@@ -6,9 +6,12 @@ import asyncio
 import contextlib
 import secrets
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, Mapping
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .engine import EventRecord, WeaverEngine, WeaverError
 
@@ -28,6 +31,7 @@ COMMANDS = {
     "panic.trigger",
     "panic.clear",
 }
+STATIC_DIR = Path(__file__).with_name("static")
 
 
 class StageServer:
@@ -305,6 +309,16 @@ def create_app(engine: WeaverEngine | None = None, *, queue_size: int = 256) -> 
     app = FastAPI(title="Harmonic Weaver", version="0.1.0", lifespan=lifespan)
     app.state.engine = selected_engine
     app.state.stage_server = stage_server
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    @app.get("/", include_in_schema=False)
+    @app.get("/patchbay", include_in_schema=False)
+    async def patchbay() -> FileResponse:
+        return FileResponse(
+            STATIC_DIR / "index.html",
+            media_type="text/html",
+            headers={"Cache-Control": "no-cache"},
+        )
 
     @app.get("/health")
     async def health() -> dict[str, Any]:

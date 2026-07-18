@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Harmonic Weaver Patchbay</title>
+  <link rel="stylesheet" href="/static/patchbay.css">
+</head>
+<body>
+  <header class="stage-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <p class="eyebrow">Harmonic Weaver</p>
+        <h1>Performance Patchbay</h1>
+      </div>
+    </div>
+    <div class="stage-status" aria-live="polite">
+      <span id="connection-status" class="connection status-offline">Offline</span>
+      <span id="revision-status" class="revision">Stage —</span>
+    </div>
+  </header>
+
+  <section class="performance-bar" aria-label="Performance controls">
+    <div class="scene-control">
+      <label for="scene-select">Scene</label>
+      <select id="scene-select" aria-label="Scene to switch to"></select>
+      <button id="scene-switch" class="button button-primary" type="button">Hot switch</button>
+      <span id="active-scene" class="active-scene">No active scene</span>
+    </div>
+    <button id="panic-button" class="panic-button" type="button" aria-pressed="false">
+      <span class="panic-icon" aria-hidden="true">!</span>
+      <span id="panic-label">PANIC</span>
+    </button>
+  </section>
+
+  <section id="panic-banner" class="panic-banner" hidden aria-live="assertive">
+    <div>
+      <strong>PANIC LATCHED</strong>
+      <span id="panic-detail">All instrument output is held safe.</span>
+    </div>
+    <div class="recovery-controls">
+      <label for="recovery-scene">Recovery scene</label>
+      <select id="recovery-scene"></select>
+      <button id="panic-clear" class="button button-recover" type="button">Clear &amp; recover</button>
+    </div>
+  </section>
+
+  <main class="patchbay-grid">
+    <aside class="bay-panel sources-panel" aria-labelledby="sources-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Signal registry</p>
+          <h2 id="sources-title">Sources</h2>
+        </div>
+        <span id="source-count" class="count">0</span>
+      </div>
+      <p class="panel-hint">Choose a channel, then patch it to a capability.</p>
+      <div id="sources-list" class="registry-list"></div>
+    </aside>
+
+    <section class="bay-panel routes-panel" aria-labelledby="routes-title">
+      <div class="panel-heading routes-heading">
+        <div>
+          <p class="eyebrow">Active weave</p>
+          <h2 id="routes-title">Routes</h2>
+        </div>
+        <span id="route-count" class="count">0</span>
+      </div>
+      <div id="patch-intent" class="patch-intent" aria-live="polite">
+        <span class="intent-dot"></span>
+        <span id="patch-intent-text">Select a source channel to begin.</span>
+        <button id="clear-selection" type="button" class="text-button" hidden>Clear</button>
+      </div>
+      <div id="routes-list" class="routes-list"></div>
+    </section>
+
+    <aside class="bay-panel instruments-panel" aria-labelledby="instruments-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Control registry</p>
+          <h2 id="instruments-title">Instruments</h2>
+        </div>
+        <span id="instrument-count" class="count">0</span>
+      </div>
+      <p class="panel-hint">Set bindings and strike Patch. Writable numeric arguments are shown.</p>
+      <div id="instruments-list" class="registry-list"></div>
+    </aside>
+  </main>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog id="transform-dialog" class="transform-dialog">
+    <form method="dialog" id="transform-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">Ordered signal chain</p>
+          <h2 id="transform-title">Edit transforms</h2>
+        </div>
+        <button id="transform-close" class="icon-button" value="cancel" aria-label="Close transform editor">×</button>
+      </div>
+      <p class="dialog-hint">Transforms run top to bottom. Changes replace the complete route atomically.</p>
+      <div id="transform-list" class="transform-list"></div>
+      <div class="add-transform">
+        <label for="transform-type">Add transform</label>
+        <select id="transform-type">
+          <option value="scale_range">Scale range</option>
+          <option value="curve">Curve</option>
+          <option value="smoothing">Smoothing</option>
+          <option value="gate">Gate</option>
+          <option value="combine">Combine</option>
+        </select>
+        <button id="transform-add" class="button" type="button">Add</button>
+      </div>
+      <div class="dialog-actions">
+        <button class="button" value="cancel">Cancel</button>
+        <button id="transform-save" class="button button-primary" type="button">Save chain</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="empty-template">
+    <div class="empty-state">
+      <span class="empty-glyph" aria-hidden="true">⌁</span>
+      <p></p>
+    </div>
+  </template>
+
+  <script src="/static/patchbay.js" defer></script>
+</body>
+</html>

@@ -29,5 +29,8 @@ harmonic-weaver-weaver = "harmonic_weaver.weaver:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+harmonic_weaver = ["static/*"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]

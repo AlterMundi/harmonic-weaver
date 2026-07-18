@@ -1348,6 +1348,7 @@ class WeaverEngine:
         }
         return {
             "source_id": status.source_id,
+            "description": status.manifest.get("source", {}).get("description"),
             "kind": status.kind,
             "expected_contract_id": status.expected_contract_id,
             "runtime_contract_id": status.runtime_contract_id,
@@ -1355,12 +1356,14 @@ class WeaverEngine:
             "gate_state": status.gate_state,
             "reason": status.reason,
             "last_frame_seq": status.last_frame_seq,
+            "channel_specs": thaw(status.manifest.get("channels", ())),
             "channels": channels,
         }
 
     def _instrument_snapshot(self, status: InstrumentStatus) -> dict[str, Any]:
         return {
             "instrument_id": status.instrument_id,
+            "description": status.manifest.get("instrument", {}).get("description"),
             "expected_contract_id": status.expected_contract_id,
             "runtime_contract_id": status.runtime_contract_id,
             "stream_id": status.stream_id,
@@ -1368,6 +1371,7 @@ class WeaverEngine:
             "safety_state": status.safety_state,
             "state_synced": status.state_synced,
             "reason": status.reason,
+            "capabilities": thaw(status.manifest.get("capabilities", ())),
         }
 
     def source_value(self, address: str) -> ValueEnvelope | None:
