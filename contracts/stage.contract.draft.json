@@ -1,0 +1,602 @@
+{
+  "name": "harmonic-weaver-stage",
+  "contract_type": "stage_control",
+  "contract_version": "0.1-draft",
+  "schema_version": "0.1.0",
+  "status": "draft",
+  "contract_id": "cc2f83205e0dccf6d0b5d488883d73ad",
+  "namespace": "/ws",
+  "description": "Headless Harmonic Weaver stage plane consumed by every UI and control client.",
+  "authority": "This manifest is authoritative for WebSocket message names and payload shapes. Source Frame v1 and Instrument Control v1 remain authoritative on the OSC edges.",
+  "transport": {
+    "protocol": "WebSocket JSON text frames",
+    "endpoint": "/ws",
+    "encoding": "UTF-8 JSON; one complete message object per text frame",
+    "default_bind": "127.0.0.1",
+    "remote_access": "Deployment concern; use authentication and TLS at a trusted reverse proxy.",
+    "slow_client_rule": "Each client has a bounded outbound queue. Disconnect it on overflow; never block the routing hot path."
+  },
+  "hashes": {
+    "algorithm": "SHA-256 truncated to 128 bits, lowercase hex (32 characters)",
+    "contract_id": "Canonical UTF-8 JSON with sorted keys, no whitespace and no NaN/Infinity, excluding top-level contract_id, golden_hash and expected_contract_id fields. The expected value lives in the adjacent golden sidecar."
+  },
+  "stream_identity": {
+    "server_stream_id": "Random 64-bit lowercase hexadecimal value generated once per server process start.",
+    "scope": "event_seq, subscriptions and reconnect high-water marks are scoped to server_stream_id.",
+    "restart_rule": "A new server_stream_id invalidates resume positions; the client performs a new handshake and state snapshot."
+  },
+  "counters": {
+    "event_seq": "Unsigned monotonic integer incremented exactly once for each committed broadcast event; it resets only with server_stream_id.",
+    "stage_revision": "Unsigned monotonic integer incremented once per committed logical state transaction.",
+    "activation_generation": "Unsigned monotonic integer incremented whenever a compiled active routing graph is atomically swapped.",
+    "panic_generation": "Unsigned monotonic integer incremented on the transition from non-panic to latched panic."
+  },
+  "handshake": {
+    "server_first": "Immediately after accepting the socket, send server.hello with gate_state=awaiting_client.",
+    "client_deadline_ms": 5000,
+    "client_rule": "client.hello MUST echo this manifest's exact contract_id before subscriptions or commands are accepted.",
+    "match": "An exact expected_contract_id match gates the connection ready. A mismatch leaves it incompatible and command-ineligible.",
+    "repeat": "Repeat the full handshake whenever server_stream_id changes."
+  },
+  "envelopes": {
+    "client": {
+      "required": [
+        "type",
+        "protocol_version",
+        "request_id",
+        "payload"
+      ],
+      "fields": {
+        "type": "One client-to-server messages key.",
+        "protocol_version": "Must equal 0.1-draft.",
+        "request_id": "Non-empty client-generated ID, unique for the lifetime of this socket and echoed by the response.",
+        "payload": "Object defined by the selected message type."
+      },
+      "additional_top_level_fields": false
+    },
+    "server": {
+      "required": [
+        "type",
+        "protocol_version",
+        "server_stream_id",
+        "event_seq",
+        "stage_revision",
+        "sent_at_us",
+        "payload"
+      ],
+      "fields": {
+        "type": "One server-to-client messages key.",
+        "protocol_version": "0.1-draft.",
+        "server_stream_id": "Current server process identity.",
+        "event_seq": "Current committed event high-water mark; only broadcast events increment it.",
+        "stage_revision": "Current committed state revision.",
+        "sent_at_us": "Unix time in integer microseconds for evidence correlation, never for ordering.",
+        "request_id": "Present on command.ack, command.error and the state.snapshot response; echoes the client request.",
+        "payload": "Object defined by the selected message type."
+      },
+      "additional_top_level_fields": false
+    }
+  },
+  "entities": {
+    "channel_ref": {
+      "required": [
+        "channel"
+      ],
+      "fields": {
+        "channel": "Exact source_id.channel registry address; the first dot is the separator.",
+        "include_when": "Optional object {channel, op, value}; channel is another exact registry address, op is eq|ne|lt|lte|gt|gte, and invalid predicate input excludes this value."
+      }
+    },
+    "destination": {
+      "required": [
+        "instrument_id",
+        "capability",
+        "bindings",
+        "argument"
+      ],
+      "fields": {
+        "instrument_id": "Stable installed Instrument Control instrument_id.",
+        "capability": "Exact capabilities[].name with write=true.",
+        "bindings": "Object binding every address-pattern placeholder to an in-bounds value.",
+        "argument": "Exact writable capability argument name."
+      }
+    },
+    "transform": {
+      "type_enum": [
+        "scale_range",
+        "curve",
+        "smoothing",
+        "gate",
+        "combine"
+      ],
+      "variants": {
+        "scale_range": "Requires finite two-element in and out ranges plus boolean clamp.",
+        "curve": "Requires kind=linear|power|exponential|smoothstep|piecewise and the kind's finite parameters; piecewise points must be monotonic.",
+        "smoothing": "Requires kind=one_pole|ramp and finite non-negative time_ms.",
+        "gate": "Requires finite threshold and hysteresis, mode=level|rising_edge|falling_edge, and closed=suppress or {value: finite number}.",
+        "combine": "Must be first when route inputs has arity greater than one; operator=mean|sum|min|max|weighted_sum|difference and weights are required only for weighted_sum."
+      }
+    },
+    "validity_policy": {
+      "required": [
+        "held",
+        "min_confidence",
+        "invalid"
+      ],
+      "fields": {
+        "held": "accept|reject; accepted values remain held and retain confidence.",
+        "min_confidence": "Finite number in [0,1].",
+        "invalid": "suppress|release|reset|hold_then_reset.",
+        "hold_ms": "Required bounded non-negative duration only for hold_then_reset."
+      }
+    },
+    "route": {
+      "required": [
+        "route_id",
+        "route_version",
+        "enabled",
+        "inputs",
+        "transforms",
+        "destination",
+        "validity"
+      ],
+      "fields": {
+        "route_id": "Stable lowercase identifier matching [a-z][a-z0-9_-]* within its scene.",
+        "route_version": "Positive integer incremented on every definition replacement.",
+        "enabled": "Boolean; disabled routes remain auditable and emit nothing.",
+        "label": "Optional operator-facing label.",
+        "inputs": "Non-empty array of channel_ref objects.",
+        "transforms": "Ordered array of transform objects; arbitrary expressions or executable code are forbidden.",
+        "destination": "One destination object.",
+        "validity": "One validity_policy object.",
+        "notes": "Optional design rationale; included in the scene hash."
+      }
+    },
+    "aggregator": {
+      "required": [
+        "aggregator_id",
+        "aggregator_version",
+        "derived_source_id",
+        "output_channel",
+        "inputs",
+        "operator",
+        "cadence",
+        "validity"
+      ],
+      "fields": {
+        "aggregator_id": "Stable lowercase identifier within its scene.",
+        "aggregator_version": "Positive integer incremented on replacement.",
+        "derived_source_id": "Source registry identity produced by this declaration.",
+        "output_channel": "Single Source Frame-compatible channel name; address is derived_source_id.output_channel.",
+        "inputs": "Non-empty ordered array of exact channel_ref objects.",
+        "operator": "mean|sum|min|max|weighted_sum|difference with optional finite weights.",
+        "cadence": "Either {mode: fixed_hz, rate_hz: positive finite} or {mode: on_input, max_rate_hz: positive finite}.",
+        "validity": "Object requiring min_valid_count, min_observed_count, max_age_ms, include_held, held_max_ms and confidence=minimum|mean|product.",
+        "contract_id_rule": "The derived source's synthetic contract_id is the canonical hash of this complete declaration."
+      }
+    },
+    "transition": {
+      "required": [
+        "policy"
+      ],
+      "fields": {
+        "policy": "crossfade|held|reset.",
+        "duration_ms": "Required non-negative duration for crossfade; scene default is 100.",
+        "await_valid_ms": "Bounded wait for crossfade; scene default is 250.",
+        "hold_ms": "Bounded wait for held; scene default is 250.",
+        "destination_overrides": "Optional array of exact destination plus transition; ambiguity is rejected."
+      }
+    },
+    "scene": {
+      "required": [
+        "scene_id",
+        "scene_version",
+        "name",
+        "description",
+        "tags",
+        "updated_at_us",
+        "aggregators",
+        "routes",
+        "transition"
+      ],
+      "fields": {
+        "scene_id": "Stable lowercase identifier matching [a-z][a-z0-9_-]*.",
+        "scene_version": "Positive integer incremented on every scene transaction.",
+        "name": "Non-empty operator-facing name.",
+        "description": "Mapping purpose and performance rationale.",
+        "tags": "Array of stable strings.",
+        "created_at_us": "Optional integer Unix microseconds; retained after creation.",
+        "updated_at_us": "Integer Unix microseconds.",
+        "aggregators": "Array of complete aggregator declarations.",
+        "routes": "Array of complete route declarations.",
+        "transition": "Default transition object.",
+        "metadata": "Optional JSON object containing declarative, non-executable metadata."
+      }
+    },
+    "safety_profile": {
+      "required": [
+        "instrument_id",
+        "instrument_contract_id",
+        "instrument_class",
+        "silence_actions",
+        "reset_defaults"
+      ],
+      "fields": {
+        "instrument_id": "Exact installed instrument identity.",
+        "instrument_contract_id": "Exact Instrument Control contract ID to which this profile is bound.",
+        "instrument_class": "sustained_processor|polyphonic_instrument|control_only.",
+        "silence_actions": "Ordered native actions/capability writes declared by the bound manifest; audio classes must reach silence within 20 ms.",
+        "release_all_action": "Required for polyphonic_instrument and must name a declared native action.",
+        "force_all_off_action": "Required for polyphonic_instrument and must name a declared native action.",
+        "release_grace_ms": "Required for polyphonic_instrument, finite and in [0,500].",
+        "reset_defaults": "Complete declared writable capability defaults needed by route reset and panic recovery.",
+        "rearm_fade_ms": "Finite duration at least 250 ms."
+      }
+    }
+  },
+  "messages": {
+    "client.hello": {
+      "direction": "client_to_server",
+      "pre_gate_allowed": true,
+      "payload_required": [
+        "client_id",
+        "expected_contract_id",
+        "supported_protocol_versions"
+      ],
+      "payload": {
+        "client_id": "Stable client instance label.",
+        "expected_contract_id": "Exact 32-character contract ID from this manifest.",
+        "supported_protocol_versions": "Non-empty array that must contain 0.1-draft."
+      }
+    },
+    "server.hello": {
+      "direction": "server_to_client",
+      "event": false,
+      "payload_required": [
+        "contract_id",
+        "schema_version",
+        "gate_state"
+      ],
+      "payload": {
+        "contract_id": "Current stage contract ID.",
+        "schema_version": "0.1.0.",
+        "gate_state": "awaiting_client|ready|incompatible.",
+        "reason": "Present unless gate_state=ready."
+      }
+    },
+    "state.subscribe": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "topics"
+      ],
+      "payload": {
+        "topics": "Non-empty subset of stage|routes|scenes|sources|instruments|metrics.",
+        "after_event_seq": "Optional reconnect hint valid only for the current server_stream_id; the server may still send a full snapshot."
+      }
+    },
+    "state.snapshot": {
+      "direction": "server_to_client",
+      "event": false,
+      "payload_required": [
+        "topics",
+        "snapshot_event_seq",
+        "stage"
+      ],
+      "payload": {
+        "topics": "Topics included by the subscription.",
+        "snapshot_event_seq": "Atomic event high-water mark; subsequent events are strictly greater.",
+        "stage": "Object containing active_scene_id, activation_generation and panic state.",
+        "routes": "Selected persisted definitions and active runtime status when routes was requested.",
+        "scenes": "Complete scene definitions when scenes was requested.",
+        "sources": "Source registry snapshot when sources was requested.",
+        "instruments": "Instrument registry and safety status when instruments was requested.",
+        "metrics": "Current counters and latency summaries when metrics was requested."
+      }
+    },
+    "state.event": {
+      "direction": "server_to_client",
+      "event": true,
+      "payload_required": [
+        "topic",
+        "action"
+      ],
+      "payload": {
+        "topic": "stage|routes|scenes|metrics.",
+        "action": "route.created|route.updated|route.deleted|route.batch_committed|scene.upserted|scene.deleted|scene.switched|route.runtime_changed|metrics.updated.",
+        "entity_id": "Affected route or scene ID when applicable.",
+        "entity": "Committed entity or minimal runtime delta.",
+        "activation_generation": "Present when the active graph changed."
+      }
+    },
+    "route.create": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "scene_id",
+        "expected_stage_revision",
+        "route"
+      ],
+      "payload": {
+        "scene_id": "Target scene.",
+        "expected_stage_revision": "Compare-and-swap revision.",
+        "route": "Complete route entity whose route_version is 1."
+      },
+      "atomicity": "Validate and commit the scene plus active graph, if active, as one transaction."
+    },
+    "route.update": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "scene_id",
+        "route_id",
+        "expected_route_version",
+        "expected_stage_revision",
+        "route"
+      ],
+      "payload": {
+        "scene_id": "Target scene.",
+        "route_id": "Existing route identity and must equal route.route_id.",
+        "expected_route_version": "Current positive integer.",
+        "expected_stage_revision": "Compare-and-swap revision.",
+        "route": "Complete replacement with route_version exactly expected_route_version + 1."
+      },
+      "atomicity": "Full replacement; JSON merge patch is not supported."
+    },
+    "route.delete": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "scene_id",
+        "route_id",
+        "expected_route_version",
+        "expected_stage_revision"
+      ],
+      "payload": {
+        "scene_id": "Target scene.",
+        "route_id": "Existing route identity.",
+        "expected_route_version": "Current positive integer.",
+        "expected_stage_revision": "Compare-and-swap revision."
+      }
+    },
+    "route.batch": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "expected_stage_revision",
+        "operations"
+      ],
+      "payload": {
+        "expected_stage_revision": "Compare-and-swap revision for the entire batch.",
+        "operations": "Non-empty ordered array of route.create|route.update|route.delete payloads without their expected_stage_revision."
+      },
+      "atomicity": "Validate all operations against one candidate state, then commit all or none with one stage revision and at most one activation generation."
+    },
+    "scene.upsert": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "expected_stage_revision",
+        "scene"
+      ],
+      "payload": {
+        "expected_stage_revision": "Compare-and-swap revision.",
+        "expected_scene_version": "Required for replacement and omitted for creation.",
+        "scene": "Complete scene entity; creation starts at version 1 and replacement increments exactly once."
+      }
+    },
+    "scene.delete": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "scene_id",
+        "expected_scene_version",
+        "expected_stage_revision"
+      ],
+      "payload": {
+        "scene_id": "Inactive target scene; deleting the active scene is rejected.",
+        "expected_scene_version": "Current positive integer.",
+        "expected_stage_revision": "Compare-and-swap revision."
+      }
+    },
+    "scene.switch": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "scene_id",
+        "expected_scene_version",
+        "expected_stage_revision"
+      ],
+      "payload": {
+        "scene_id": "Persisted scene to activate.",
+        "expected_scene_version": "Exact scene definition version.",
+        "expected_stage_revision": "Compare-and-swap revision."
+      },
+      "atomicity": "Preflight and compile before a single tick-boundary activation; transition comes from the scene."
+    },
+    "panic.trigger": {
+      "direction": "client_to_server",
+      "priority": "out_of_band",
+      "payload_required": [],
+      "payload": {
+        "reason": "Optional operator-readable text.",
+        "idempotency_key": "Optional stable retry key. Panic never requires expected_stage_revision."
+      },
+      "atomicity": "Latch and close the route output gate before dispatching per-instrument actions."
+    },
+    "panic.clear": {
+      "direction": "client_to_server",
+      "payload_required": [
+        "panic_generation",
+        "scene_id",
+        "expected_scene_version"
+      ],
+      "payload": {
+        "panic_generation": "Must equal the active latched generation.",
+        "scene_id": "Explicit scene to rearm; there is no implicit resume.",
+        "expected_scene_version": "Exact persisted scene version."
+      },
+      "atomicity": "Revalidate contracts, state sync and safety profiles; reset route state and fade from safe values. Any failure leaves panic latched."
+    },
+    "panic.event": {
+      "direction": "server_to_client",
+      "event": true,
+      "payload_required": [
+        "panic_generation",
+        "phase"
+      ],
+      "payload": {
+        "panic_generation": "Affected generation.",
+        "phase": "latched|instrument_result|safe|recovery_started|recovered|recovery_failed.",
+        "instrument_id": "Present for an instrument_result.",
+        "outcome": "ok|failed|timeout|pending when applicable.",
+        "reason": "Failure or operator reason when applicable."
+      }
+    },
+    "registry.source": {
+      "direction": "server_to_client",
+      "event": true,
+      "payload_required": [
+        "source_id",
+        "kind",
+        "action",
+        "gate_state",
+        "expected_contract_id"
+      ],
+      "payload": {
+        "source_id": "Stable external or derived source identity.",
+        "kind": "external|derived.",
+        "action": "installed|hello_accepted|hello_rejected|stream_changed|lease_expired|derived_ready|removed.",
+        "gate_state": "installed|connecting|gated|ready|incompatible|absent.",
+        "expected_contract_id": "Installed or synthetic accepted contract ID.",
+        "runtime_contract_id": "Hello contract ID for external sources, when present.",
+        "stream_id": "Runtime source stream ID, when present.",
+        "reason": "Required for rejected, incompatible or absent transitions."
+      }
+    },
+    "registry.instrument": {
+      "direction": "server_to_client",
+      "event": true,
+      "payload_required": [
+        "instrument_id",
+        "action",
+        "gate_state",
+        "expected_contract_id",
+        "safety_state"
+      ],
+      "payload": {
+        "instrument_id": "Stable instrument identity.",
+        "action": "installed|hello_accepted|hello_rejected|stream_changed|sync_started|sync_completed|disconnected|removed.",
+        "gate_state": "installed|connecting|gated|ready|incompatible|absent.",
+        "expected_contract_id": "Installed accepted Instrument Control contract ID.",
+        "runtime_contract_id": "Hello contract ID, when present.",
+        "stream_id": "Runtime instrument stream ID, when present.",
+        "safety_state": "missing|valid|safe|degraded.",
+        "reason": "Required for rejected, incompatible, absent or degraded transitions."
+      }
+    },
+    "command.ack": {
+      "direction": "server_to_client",
+      "event": false,
+      "payload_required": [
+        "command_type",
+        "status"
+      ],
+      "payload": {
+        "command_type": "Original command message type.",
+        "status": "committed|latched|already_latched|recovered.",
+        "activation_generation": "Present when the active graph changed.",
+        "panic_generation": "Present for panic commands."
+      }
+    },
+    "command.error": {
+      "direction": "server_to_client",
+      "event": false,
+      "payload_required": [
+        "command_type",
+        "code",
+        "message"
+      ],
+      "payload": {
+        "command_type": "Original command message type or unknown.",
+        "code": "bad_message|not_gated|contract_mismatch|validation_failed|revision_conflict|not_found|already_exists|capability_missing|destination_collision|panic_latched|unsafe_instrument|state_sync_incomplete|internal_error.",
+        "message": "Operator-readable summary.",
+        "details": "Optional structured paths/reasons; must not contain secrets.",
+        "current_stage_revision": "Present for revision_conflict."
+      }
+    }
+  },
+  "state_sync": {
+    "authoritative_store": "The server state store is authoritative; client-local state is only a projection.",
+    "subscribe_transaction": "Register the subscription, capture an immutable snapshot and its event high-water mark, send the snapshot, then send only later events.",
+    "reconnect": "A client normally requests a full snapshot. Resume is optional and valid only if server_stream_id matches and retained history is contiguous.",
+    "commit_visibility": "Broadcast definitions and runtime changes only after their state transaction commits.",
+    "no_optimistic_client_truth": "A client does not present a mutation as applied until command.ack or the matching committed event arrives."
+  },
+  "registry_rules": {
+    "source_install": "Install an accepted Source Frame v1 manifest before connection; runtime hello cannot alter it.",
+    "source_gate": "Accept frames only after source_id, stream_id and contract_id match; discard non-monotonic frames and invalidate all channels on lease expiry.",
+    "instrument_install": "Install an accepted Instrument Control v1 manifest and a safety profile bound to its contract_id before performance arming.",
+    "instrument_gate": "Send no writes until instrument_id and contract_id match and state synchronization completes for the current stream_id.",
+    "capability_gate": "Only write=true declared capabilities, in-bounds bindings and declared arguments are patchable.",
+    "derived_gate": "Compile an acyclic aggregator declaration and register its synthetic contract ID before routes can bind its output."
+  },
+  "transaction_rules": {
+    "serialization": "The server serializes state mutations and compare-and-swap checks.",
+    "preflight": "Validate identifiers, finite values, manifests, capabilities, graph cycles, transform arity, destination uniqueness, defaults and safety before commit.",
+    "activation": "Active graph changes swap once at an engine tick; no client observes a partially compiled generation.",
+    "failure": "A rejected mutation leaves persisted state and the active graph unchanged.",
+    "one_writer": "At most one enabled route may target one fully bound destination argument in a scene.",
+    "audit": "Persist the complete declarative transaction and resulting revisions; executable route content is forbidden."
+  },
+  "panic_semantics": {
+    "priority": "panic.trigger bypasses normal mutation order, latches state and closes output before instrument I/O.",
+    "latched_state": "Keep sources and telemetry live, retain scene edits, suppress all writes and discard triggers without queueing.",
+    "sustained_processor": "Native panic if declared, then silence gains/enables within 20 ms; reset other controls while silence stays pinned.",
+    "polyphonic_instrument": "Block note-ons, release all, silence master within 20 ms, force all off within at most 500 ms, then reset while master stays pinned.",
+    "control_only": "Suppress events and reset declared controls.",
+    "partial_failure": "Continue other instruments, report per-instrument outcome, remain latched and retry safety on reconnect.",
+    "recovery": "Only panic.clear with the current generation and explicit valid scene can recover; restore defaults and fade from safe values for at least 250 ms.",
+    "no_replay": "Never replay events received or queued before recovery."
+  },
+  "latency_and_evidence": {
+    "weaver_overhead_target_ms": {
+      "scope": "Local source receipt to instrument send under the full MVP route set; provisional T4.2 acceptance target.",
+      "p50_max": 2.0,
+      "p95_max": 5.0,
+      "p99_max": 10.0
+    },
+    "mutation_activation_p95_max_ms": 20.0,
+    "intentional_time_exclusions": "Report fixed cadence wait, scene crossfade and instrument-declared lag separately; do not hide them inside Weaver overhead.",
+    "report_root": "reports/<run_id>/",
+    "required_evidence": [
+      "run configuration and all accepted contract IDs",
+      "canonical active scene snapshot",
+      "source-received, route-evaluated and instrument-sent timestamps",
+      "latency_summary.json with sample count and p50/p95/p99",
+      "behavior events for gating, validity, atomic scene switch, panic and recovery",
+      "drop, rejection and error counts"
+    ]
+  },
+  "mvp_scope": {
+    "sources": [
+      "harmocap",
+      "midi",
+      "ecg-rhythmic-trigger"
+    ],
+    "instruments": [
+      "beacon-spatial",
+      "harmonic-shaper"
+    ],
+    "required_performance_case": "Focused HarMoCAP subject controls one harmonic per limb plus head; non-focus slots aggregate into the harmonic bed; scenes switch live and global panic is recoverable.",
+    "deferred": [
+      "EEG and continuous HR drivers",
+      "audio-derived modulation",
+      "phone sensors",
+      "surge-bridge",
+      "mobile and Quest/WebXR clients"
+    ]
+  },
+  "receiver_rules": {
+    "unknown_type": "Return command.error code=bad_message; do not mutate state.",
+    "contract_mismatch": "Allow only handshake traffic; do not subscribe or mutate.",
+    "revision_conflict": "Return the current stage revision and require a fresh snapshot or explicit retry.",
+    "panic_priority": "Process panic.trigger even when its client view is stale and even while another mutation awaits commit.",
+    "panic_latch": "Reject route activation and scene.switch while panic is active; route/scene definition edits may commit but emit nothing.",
+    "finite_numbers": "Reject NaN, Infinity, out-of-range values and numeric booleans everywhere.",
+    "event_order": "Use server_stream_id plus event_seq, never timestamps, for event ordering.",
+    "thin_client": "A UI must reconstruct its projection from state.snapshot plus later events and must not bypass this protocol to control instruments."
+  }
+}
