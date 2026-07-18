@@ -9,6 +9,22 @@ description = "Headless modulation router/patchbay for the Harmonic Beacon ecosy
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.110,<0.116",
+    "numpy>=1.24,<3",
+    "scipy>=1.10,<2",
+    "uvicorn>=0.29,<1",
+    "websockets>=12,<16",
+]
+
+[project.optional-dependencies]
+test = [
+    "httpx>=0.27,<1",
+    "pytest>=8,<10",
+]
+
+[project.scripts]
+harmonic-weaver-weaver = "harmonic_weaver.weaver:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

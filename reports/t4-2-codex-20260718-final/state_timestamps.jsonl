@@ -1,0 +1,17 @@
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"scene_reset","sent_at_us":1784367322338073,"value":0.0}
+{"captured_at_us":null,"frame_seq":0,"phase":"source_received","received_at_us":1784367322338582,"source_id":"sensor","stream_id":"0000000000000001"}
+{"evaluated_at_us":1784367322338582,"phase":"route_evaluated","result":"usable","route_id":"sensor-to-gain","value":0.625}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"route","sent_at_us":1784367322338582,"value":0.625}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_reset","sent_at_us":1784367322339489,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_reset","sent_at_us":1784367322339682,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_reset","sent_at_us":1784367322339806,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_reset","sent_at_us":1784367322339902,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_reset","sent_at_us":1784367322339989,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_recovery_default","sent_at_us":1784367322340836,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_recovery_default","sent_at_us":1784367322340938,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_recovery_default","sent_at_us":1784367322341031,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_recovery_default","sent_at_us":1784367322341116,"value":0.0}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"panic_recovery_default","sent_at_us":1784367322341200,"value":0.0}
+{"captured_at_us":null,"frame_seq":1,"phase":"source_received","received_at_us":1784367322641616,"source_id":"sensor","stream_id":"0000000000000001"}
+{"evaluated_at_us":1784367322641616,"phase":"route_evaluated","result":"usable","route_id":"sensor-to-gain","value":0.375}
+{"argument":"gain","capability":"voice_gain","instrument_id":"synth","phase":"instrument_sent","reason":"route","sent_at_us":1784367322641616,"value":0.375}

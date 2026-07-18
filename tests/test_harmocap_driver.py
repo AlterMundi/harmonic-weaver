@@ -225,6 +225,61 @@ class FrameCollector:
         return out
 
 
+@unittest.skipUnless(TWO_PERSONS.is_file(), f"missing fixture {TWO_PERSONS}")
+class TestWeaverEngineIntegration(unittest.TestCase):
+    def test_fixture_channel_reaches_native_recording_capability(self) -> None:
+        from engine_fixtures import instrument_manifest, safety_profile, scene, source_manifest
+        from harmonic_weaver.engine import RecordingOutputTransport, WeaverEngine
+
+        source = source_manifest(
+            "harmocap",
+            {name: (-1_000_000.0, 1_000_000.0) for name in channel_names()},
+        )
+        instrument = instrument_manifest()
+        recorder = RecordingOutputTransport()
+        engine = WeaverEngine(transport=recorder)
+        engine.install_source(source)
+        engine.source_hello("harmocap", "0000000000000001", source["contract_id"])
+        engine.install_instrument(instrument, safety_profile(instrument))
+        engine.instrument_hello("synth", "0000000000000002", instrument["contract_id"])
+        engine.instrument_sync_complete("synth", "0000000000000002", instrument["contract_id"])
+        route = {
+            "route_id": "left-wrist-to-voice-four",
+            "route_version": 1,
+            "enabled": True,
+            "inputs": [{"channel": "harmocap.slot_0_keypoint_left_wrist_y"}],
+            "transforms": [
+                {"type": "scale_range", "in": [0.0, 1.0], "out": [0.0, 1.0], "clamp": True}
+            ],
+            "destination": {
+                "instrument_id": "synth",
+                "capability": "voice_gain",
+                "bindings": {"N": 4},
+                "argument": "gain",
+            },
+            "validity": {"held": "accept", "min_confidence": 0.0, "invalid": "suppress"},
+        }
+        engine.upsert_scene(scene(routes=[route]), engine.stage_revision)
+        engine.switch_scene("main", 1, engine.stage_revision)
+        recorder.clear()
+        emitted: list[dict[str, tuple[float, int, float]]] = []
+
+        def callback(source_id: str, values: dict[str, tuple[float, int, float]]) -> None:
+            emitted.append(values)
+            engine.driver_callback(source_id, values)
+
+        driver = HarMoCAPDriver(on_frame=callback)
+        feed_session(driver, load_jsonl(TWO_PERSONS)[:1])
+
+        self.assertTrue(emitted)
+        expected = min(1.0, max(0.0, emitted[-1]["slot_0_keypoint_left_wrist_y"][0]))
+        routed = [item for item in recorder.records if item.reason == "route"]
+        self.assertTrue(routed)
+        self.assertEqual(routed[-1].capability, "voice_gain")
+        self.assertEqual(routed[-1].bindings, {"N": 4})
+        self.assertAlmostEqual(float(routed[-1].value), expected, places=6)
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------

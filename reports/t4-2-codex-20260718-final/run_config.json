@@ -1,0 +1,1 @@
+{"asgi_probe":"http_and_websocket_passed","claims":{"audible_audio":false,"hardware":false},"mode":"headless","network_bind_probe":"blocked_by_sandbox_operation_not_permitted","run_id":"t4-2-codex-20260718-final","started_at_us":1784367322333681,"task":"T4.2","transport":"recording"}
