@@ -78,7 +78,7 @@ def source_manifest(
     return manifest
 
 
-def harmocap_manifest() -> dict[str, Any]:
+def harmocap_manifest(lease_ms: float = 2500.0) -> dict[str, Any]:
     boolean_names = {
         f"slot_{slot}_{field}"
         for slot in range(8)
@@ -115,10 +115,10 @@ def harmocap_manifest() -> dict[str, Any]:
         if name.endswith("_verticality"):
             bounds = (-1.0, 1.0)
         specs.append((name, bounds))
-    return source_manifest("harmocap", specs, lease_ms=2500.0, rate_hz=60.0)
+    return source_manifest("harmocap", specs, lease_ms=lease_ms, rate_hz=60.0)
 
 
-def ecg_manifest() -> dict[str, Any]:
+def ecg_manifest(lease_ms: float = 2500.0) -> dict[str, Any]:
     return source_manifest(
         "ecg",
         (
@@ -126,16 +126,16 @@ def ecg_manifest() -> dict[str, Any]:
             ("bpm", (20.0, 300.0)),
             ("signal_quality", (0.0, 1.0)),
         ),
-        lease_ms=2500.0,
+        lease_ms=lease_ms,
         rate_hz=31.25,
     )
 
 
-def midi_manifest() -> dict[str, Any]:
+def midi_manifest(lease_ms: float = 2500.0) -> dict[str, Any]:
     return source_manifest(
         "midi",
         (("cc_1", (0.0, 1.0)), ("modwheel", (0.0, 1.0))),
-        lease_ms=2500.0,
+        lease_ms=lease_ms,
         rate_hz=2.0,
     )
 
@@ -235,6 +235,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ecg-host", default="127.0.0.1")
     parser.add_argument("--ecg-port", type=int, default=5001)
     parser.add_argument("--max-runtime-s", type=float, default=300.0)
+    parser.add_argument(
+        "--lease-ms",
+        type=float,
+        default=2500.0,
+        help="source presence lease in ms; raise it for live sessions so a "
+        "temporary dropout (camera stall, person out of frame) does not "
+        "latch the source gate as permanently absent",
+    )
     parser.add_argument("--log-level", default="info")
     return parser
 
@@ -317,9 +325,9 @@ def main(argv: list[str] | None = None) -> int:
         raise RuntimeError("Shaper adapter state synchronization did not complete")
 
     source_manifests = {
-        "harmocap": harmocap_manifest(),
-        "ecg": ecg_manifest(),
-        "midi": midi_manifest(),
+        "harmocap": harmocap_manifest(lease_ms=args.lease_ms),
+        "ecg": ecg_manifest(lease_ms=args.lease_ms),
+        "midi": midi_manifest(lease_ms=args.lease_ms),
     }
     source_streams: dict[str, str] = {}
     for source_id, manifest in source_manifests.items():
