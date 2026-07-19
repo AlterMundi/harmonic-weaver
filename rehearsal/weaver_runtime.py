@@ -156,7 +156,7 @@ def shaper_safety_profile(contract_id: str) -> dict[str, Any]:
         ],
         "reset_defaults": [
             {
-                "capability": "harmonic_gain",
+                "capability": "harmonic_envelope",
                 "bindings": {"N": harmonic},
                 "argument": "gain",
                 "value": 0.0,

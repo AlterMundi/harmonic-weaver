@@ -1062,7 +1062,7 @@ def run() -> int:
             int(record["bindings"]["N"])
             for record in route_records
             if record.get("instrument_id") == "shaper"
-            and record.get("capability") == "harmonic_gain"
+            and record.get("capability") == "harmonic_envelope"
         }
         evidence.check(
             "route.focused_subject.five_harmonics",

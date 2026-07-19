@@ -41,7 +41,7 @@
       "enabled": true,
       "inputs": [{"channel": "sparse_head.y"}],
       "transforms": [{"type": "scale_range", "in": [0.0, 1.0], "out": [0.0, 0.42], "clamp": true}],
-      "destination": {"instrument_id": "shaper", "capability": "harmonic_gain", "bindings": {"N": 5}, "argument": "gain"},
+      "destination": {"instrument_id": "shaper", "capability": "harmonic_envelope", "bindings": {"N": 5}, "argument": "gain"},
       "validity": {"held": "reject", "min_confidence": 0.8, "invalid": "release"}
     },
     {

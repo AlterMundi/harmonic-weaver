@@ -36,6 +36,8 @@
 #                                the HarMoCAP process only (use it when the
 #                                GPU is unstable; auto resolves per
 #                                configs/model.yaml). Default: auto
+#   --harmocap-checkpoint <path> Explicit local HarMoCAP pose checkpoint for
+#                                this run; does not modify model.yaml
 #   --scene <name>               Scene to activate; resolved against
 #                                rehearsal/scenes/<name>.scene.json with or
 #                                without the suffix (default: event-demo)
@@ -97,6 +99,7 @@ BEACON_SOURCE="file"
 BEACON_MUTE=0
 CAMERA="0"
 HARMOCAP_DEVICE="auto"
+HARMOCAP_CHECKPOINT=""
 SCENE="event-demo"
 PUSH_SCENE=1
 LEASE_MS="300000"
@@ -123,6 +126,7 @@ while [ "$#" -gt 0 ]; do
         --beacon-mute)   BEACON_MUTE=1 ;;
         --camera)        CAMERA="${2:?--camera needs a source}"; shift ;;
         --harmocap-device) HARMOCAP_DEVICE="${2:?--harmocap-device needs auto|cpu|cuda}"; shift ;;
+        --harmocap-checkpoint) HARMOCAP_CHECKPOINT="${2:?--harmocap-checkpoint needs a path}"; shift ;;
         --scene)         SCENE="${2:?--scene needs a name}"; shift ;;
         --no-scene)      PUSH_SCENE=0 ;;
         --lease-ms)      LEASE_MS="${2:?--lease-ms needs a value}"; shift ;;
@@ -396,6 +400,7 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     HARMOCAP_ARGS=(--source "$CAMERA" --host 127.0.0.1 --port 9100)
     [ -n "$RECORD" ] && HARMOCAP_ARGS+=(--record "$RECORD")
     [ "$SHOW" -eq 1 ] && HARMOCAP_ARGS+=(--show)
+    [ -n "$HARMOCAP_CHECKPOINT" ] && HARMOCAP_ARGS+=(--checkpoint "$HARMOCAP_CHECKPOINT")
     log "starting HarMoCAP realtime (camera: $CAMERA, device: $HARMOCAP_DEVICE)"
     HARMOCAP_ENV=()
     [ "$HARMOCAP_DEVICE" = "cpu" ] && HARMOCAP_ENV=(CUDA_VISIBLE_DEVICES=)
