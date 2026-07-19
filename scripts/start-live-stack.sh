@@ -52,6 +52,12 @@
 #   --no-record                  Do not record the HarMoCAP session
 #   --show                       Open the HarMoCAP cv2 skeleton window
 #   --shaper-no-audio            Run the shaper headless (no sounddevice)
+#   --shaper-device <name>       JACK output device name substring for the
+#                                shaper (default: "R24 Analog Stereo"). The
+#                                shaper is always launched under pw-jack
+#                                when audio is on: the PipeWire ALSA plugin
+#                                renders silence for PortAudio streams on
+#                                this host; JACK is the audible path
 #   --shaper-no-midi             Disable shaper MIDI inputs (default: MIDI
 #                                enabled, so USB keyboards like the reface
 #                                CP drive the native harmonic source)
@@ -99,6 +105,7 @@ RECORD=""
 RECORD_SET=0
 SHOW=0
 SHAPER_AUDIO=1
+SHAPER_DEVICE="${SHAPER_DEVICE:-R24 Analog Stereo}"
 SHAPER_MIDI=1
 ECG_SIM=0
 ECG_BPM="72"
@@ -124,6 +131,7 @@ while [ "$#" -gt 0 ]; do
         --no-record)     RECORD=""; RECORD_SET=1 ;;
         --show)          SHOW=1 ;;
         --shaper-no-audio) SHAPER_AUDIO=0 ;;
+        --shaper-device) SHAPER_DEVICE="${2:?--shaper-device needs a name}"; shift ;;
         --shaper-no-midi) SHAPER_MIDI=0 ;;
         --with-ecg-sim)  ECG_SIM=1 ;;
         --ecg-bpm)       ECG_BPM="${2:?--ecg-bpm needs a value}"; shift ;;
@@ -341,8 +349,17 @@ if [ "$DO_SHAPER" -eq 1 ]; then
     SHAPER_ARGS=()
     [ "$SHAPER_AUDIO" -eq 0 ] && SHAPER_ARGS+=(--no-audio)
     [ "$SHAPER_MIDI" -eq 0 ] && SHAPER_ARGS+=(--no-midi)
-    log "starting harmonic-shaper ${SHAPER_ARGS[*]:-(audio+midi)}"
-    (cd "$SHAPER_DIR" && "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
+    # Audio goes through JACK (pw-jack): the PipeWire ALSA plugin renders
+    # silence for PortAudio streams on this host (verified 2026-07-19;
+    # JACK->R24 is the audible path). The engine adopts the JACK server
+    # sample rate itself.
+    SHAPER_LAUNCH=()
+    if [ "$SHAPER_AUDIO" -eq 1 ]; then
+        SHAPER_LAUNCH=(pw-jack)
+        SHAPER_ARGS+=(--device "$SHAPER_DEVICE")
+    fi
+    log "starting harmonic-shaper ${SHAPER_LAUNCH[*]:+pw-jack }${SHAPER_ARGS[*]:-(audio+midi)}"
+    (cd "$SHAPER_DIR" && "${SHAPER_LAUNCH[@]}" "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
         > "$LOG_DIR/shaper.log" 2>&1 &
     register $! shaper
     wait_http "http://127.0.0.1:8080/api/state" "shaper API" 60
