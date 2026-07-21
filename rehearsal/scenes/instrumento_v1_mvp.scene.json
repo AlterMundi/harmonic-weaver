@@ -261,7 +261,7 @@
     }
   ],
   "created_at_us": 0,
-  "description": "Multi-body: max(nose_y) across present slots→partial_ceiling; mean(tempo_bpm gated by tempo_conf)→clock_bpm; focused body→arp H=0 (R) + H=1 (L); slot_1→arp H=2 (R) + H=3 (L). Convergence via slew_limiter; arp direction from derivative(wrist_y). Static arp/clock setup via constant routes.",
+  "description": "Multi-body: max(nose_y) across present slots\u2192partial_ceiling; mean(tempo_bpm gated by tempo_conf)\u2192clock_bpm; focused body\u2192arp H=0 (R) + H=1 (L); slot_1\u2192arp H=2 (R) + H=3 (L). Convergence via slew_limiter; arp direction from derivative(wrist_y). Static arp/clock setup via constant routes.",
   "name": "Cuerpo como instrumento v1 MVP",
   "routes": [
     {
@@ -390,7 +390,7 @@
           "max_abs": 2.5,
           "max_dt_ms": 100.0,
           "type": "derivative",
-          "window_ms": 60.0
+          "window_ms": 120.0
         },
         {
           "clamp": true,
@@ -545,7 +545,7 @@
           "max_abs": 2.5,
           "max_dt_ms": 100.0,
           "type": "derivative",
-          "window_ms": 60.0
+          "window_ms": 120.0
         },
         {
           "clamp": true,
@@ -700,7 +700,7 @@
           "max_abs": 2.5,
           "max_dt_ms": 100.0,
           "type": "derivative",
-          "window_ms": 60.0
+          "window_ms": 120.0
         },
         {
           "clamp": true,
@@ -855,7 +855,7 @@
           "max_abs": 2.5,
           "max_dt_ms": 100.0,
           "type": "derivative",
-          "window_ms": 60.0
+          "window_ms": 120.0
         },
         {
           "clamp": true,
