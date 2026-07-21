@@ -99,9 +99,10 @@ Transform execution is ordered and uses finite numbers only:
 | `phase_accumulator` | Integrate an angular velocity (deg/s) into a running phase wrapped to `[0, wrap_deg)` (default `360`). Optional `max_rate` clamps `|velocity|`; `max_dt_ms` (default `100`) clamps the per-evaluation step so a gap on resume cannot jump. Stateful. |
 | `slew_limiter` | Chase a continuous target at bounded rate (`max_rate` units/s). `max_dt_ms` clamps the integration step so a network gap cannot jump the parameter. First sample snaps to target (cold start). Output static range equals the incoming range. Stateful. |
 | `derivative` | Causal trailing difference of a position/feature → signed velocity: `(x[t]-x[t-1])/dt`. `window_ms > 0` (declared min Δt), `max_abs > 0` clamps `|d/dt|` and defines static range `[-max_abs, +max_abs]`, `max_dt_ms >= 0` clamps `dt`. First sample emits `0`. Stateful. |
+| `beat_envelope` | Rising-edge trigger → decaying gain envelope: on each edge (input crossing `threshold`, default `0.5`) the output snaps to `peak` (default `1`) and relaxes toward `floor` (default `0`). The time constant is `tau_ms`, or auto-scaled from the measured inter-beat interval by `tau_ratio` (default `0.3`); `min_interval_ms` (default `250`) is a refractory guard. Output bounded to `[floor, peak]`. Stateful. |
 
 `scale_range`, `curve`, `combine` and `gate` are memoryless; `smoothing`,
-`phase_accumulator`, `slew_limiter` and `derivative` are **stateful** — they hold
+`phase_accumulator`, `slew_limiter`, `derivative` and `beat_envelope` are **stateful** — they hold
 per-route, per-position state in `RouteRuntime` and derive their time step from
 the engine's `now_us` deltas (the same monotonic clock used everywhere, so
 replay/resume stays deterministic — never wall-clock). See
