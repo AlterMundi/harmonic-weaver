@@ -317,6 +317,86 @@ select:focus, input:focus, textarea:focus { border-color: var(--cyan); box-shado
 .add-transform { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 
+/* Convergence knobs — collapsible panel below the patchbay */
+.knobs-panel {
+  margin: 0 24px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+}
+.knobs-panel > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.knobs-panel > summary::-webkit-details-marker { display: none; }
+.knobs-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid transparent;
+}
+.knobs-panel[open] .knobs-summary {
+  border-bottom-color: var(--line);
+}
+.knobs-summary h2 { margin: 0; font-size: 16px; }
+.knobs-summary::after {
+  content: "▸";
+  color: var(--muted);
+  font-size: 14px;
+  transition: transform .15s ease;
+}
+.knobs-panel[open] .knobs-summary::after { transform: rotate(90deg); }
+.knobs-hint { margin: 0; padding: 10px 16px 0; }
+.knobs-hint code {
+  font: 700 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--cyan);
+}
+.knobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px 18px;
+  padding: 14px 16px 18px;
+}
+.knob {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-raised);
+}
+.knob-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .04em;
+  text-transform: lowercase;
+}
+.knob-label output {
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+.knob input[type="range"] {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--green);
+}
+.knob input[type="number"] {
+  width: 100%;
+  min-height: 34px;
+}
+.knobs-status-ok { color: var(--green); border-color: var(--green-dim); }
+.knobs-status-err { color: var(--amber); }
+
 @media (max-width: 980px) {
   .patchbay-grid { grid-template-columns: 1fr 1.5fr; }
   .instruments-panel { grid-column: 1 / -1; border-top: 1px solid var(--line); }
@@ -328,4 +408,5 @@ select:focus, input:focus, textarea:focus { border-color: var(--cyan); box-shado
   .patchbay-grid { display: block; }
   .bay-panel { border-right: 0; border-bottom: 1px solid var(--line); }
   .transform-fields { grid-template-columns: 1fr 1fr; }
+  .knobs-panel { margin-inline: 14px; }
 }

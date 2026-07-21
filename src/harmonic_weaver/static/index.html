@@ -89,6 +89,52 @@
     </aside>
   </main>
 
+  <details id="knobs-panel" class="knobs-panel" open>
+    <summary class="knobs-summary">
+      <div>
+        <p class="eyebrow">Live session</p>
+        <h2>Convergence knobs</h2>
+      </div>
+      <span id="knobs-status" class="count">—</span>
+    </summary>
+    <p class="panel-hint knobs-hint">
+      Adjust mid-session without editing scene JSON. Changes push to Shaper immediately.
+      <code>clock_bpm_override = 0</code> resumes body tempo.
+    </p>
+    <div class="knobs-grid" id="knobs-grid">
+      <label class="knob" for="knob-settle_beats">
+        <span class="knob-label">settle_beats <output id="out-settle_beats" for="knob-settle_beats">1</output></span>
+        <input id="knob-settle_beats" type="range" min="0.25" max="4" step="0.25" value="1"
+               data-param="settle_beats" data-kind="float">
+      </label>
+      <label class="knob" for="knob-ceiling_max">
+        <span class="knob-label">ceiling_max <output id="out-ceiling_max" for="knob-ceiling_max">32</output></span>
+        <input id="knob-ceiling_max" type="range" min="1" max="32" step="1" value="32"
+               data-param="ceiling_max" data-kind="int">
+      </label>
+      <label class="knob" for="knob-tempo_conf_threshold">
+        <span class="knob-label">tempo_conf_threshold <output id="out-tempo_conf_threshold" for="knob-tempo_conf_threshold">0.35</output></span>
+        <input id="knob-tempo_conf_threshold" type="range" min="0" max="1" step="0.05" value="0.35"
+               data-param="tempo_conf_threshold" data-kind="float">
+      </label>
+      <label class="knob" for="knob-clock_bpm_override">
+        <span class="knob-label">clock_bpm_override <output id="out-clock_bpm_override" for="knob-clock_bpm_override">0</output></span>
+        <input id="knob-clock_bpm_override" type="number" min="0" max="240" step="1" value="0"
+               data-param="clock_bpm_override" data-kind="float" inputmode="numeric">
+      </label>
+      <label class="knob" for="knob-arp_register_lo">
+        <span class="knob-label">arp register lo <output id="out-arp_register_lo" for="knob-arp_register_lo">1</output></span>
+        <input id="knob-arp_register_lo" type="range" min="1" max="32" step="1" value="1"
+               data-param="arp_register_lo" data-kind="int">
+      </label>
+      <label class="knob" for="knob-arp_register_hi">
+        <span class="knob-label">arp register hi <output id="out-arp_register_hi" for="knob-arp_register_hi">16</output></span>
+        <input id="knob-arp_register_hi" type="range" min="1" max="32" step="1" value="16"
+               data-param="arp_register_hi" data-kind="int">
+      </label>
+    </div>
+  </details>
+
   <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
 
   <dialog id="transform-dialog" class="transform-dialog">

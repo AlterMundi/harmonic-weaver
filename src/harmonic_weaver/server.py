@@ -9,11 +9,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Mapping
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .engine import EventRecord, WeaverEngine, WeaverError
+from .scene_params import SceneParamsStore, install_knob_transport
 
 
 STAGE_CONTRACT_ID = "cc2f83205e0dccf6d0b5d488883d73ad"
@@ -279,9 +280,17 @@ class StageServer:
         return self.envelope("command.error", payload, request_id=request_id)
 
 
-def create_app(engine: WeaverEngine | None = None, *, queue_size: int = 256) -> FastAPI:
+def create_app(
+    engine: WeaverEngine | None = None,
+    *,
+    queue_size: int = 256,
+    scene_params: SceneParamsStore | None = None,
+) -> FastAPI:
     owned_engine = engine is None
     selected_engine = engine or WeaverEngine()
+    params = scene_params or SceneParamsStore()
+    # Rewrite capability traffic so static scene routes cannot fight knobs.
+    install_knob_transport(selected_engine, params)
     stage_server = StageServer(selected_engine, queue_size=queue_size)
 
     @asynccontextmanager
@@ -309,6 +318,7 @@ def create_app(engine: WeaverEngine | None = None, *, queue_size: int = 256) -> 
     app = FastAPI(title="Harmonic Weaver", version="0.1.0", lifespan=lifespan)
     app.state.engine = selected_engine
     app.state.stage_server = stage_server
+    app.state.scene_params = params
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/", include_in_schema=False)
@@ -329,6 +339,38 @@ def create_app(engine: WeaverEngine | None = None, *, queue_size: int = 256) -> 
             "stage_revision": selected_engine.stage_revision,
             "panic_active": selected_engine.panic_active,
         }
+
+    @app.get("/api/scene/params")
+    async def get_scene_params() -> dict[str, Any]:
+        return params.snapshot()
+
+    @app.post("/api/scene/params")
+    async def post_scene_params(request: Request) -> JSONResponse:
+        try:
+            body = await request.json()
+        except Exception:  # noqa: BLE001
+            return JSONResponse(
+                {"error": "invalid_json", "message": "request body must be JSON"},
+                status_code=400,
+            )
+        if not isinstance(body, dict):
+            return JSONResponse(
+                {"error": "bad_request", "message": "body must be a JSON object"},
+                status_code=400,
+            )
+        try:
+            result = params.update(
+                body,
+                transport=selected_engine.transport,
+                engine=selected_engine,
+                push=True,
+            )
+        except ValueError as exc:
+            return JSONResponse(
+                {"error": "validation_error", "message": str(exc)},
+                status_code=400,
+            )
+        return JSONResponse(result)
 
     @app.websocket("/ws")
     async def stage_socket(websocket: WebSocket) -> None:

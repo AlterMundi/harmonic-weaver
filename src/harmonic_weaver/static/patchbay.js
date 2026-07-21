@@ -850,6 +850,102 @@
     if (socket) socket.close();
   });
 
+  // ── Convergence knobs (HTTP, independent of Stage WS) ──────────────
+  const knobsStatus = $("#knobs-status");
+  const knobInputs = Array.from(document.querySelectorAll("[data-param]"));
+
+  function formatKnobValue(input, value) {
+    const kind = input.dataset.kind;
+    const n = Number(value);
+    if (kind === "int") return String(Math.round(n));
+    const step = Number(input.step) || 0.01;
+    if (step >= 1) return String(n);
+    const decimals = (String(step).split(".")[1] || "").length || 2;
+    return n.toFixed(decimals);
+  }
+
+  function setKnobOutputs(params) {
+    for (const input of knobInputs) {
+      const key = input.dataset.param;
+      if (!(key in params)) continue;
+      const value = params[key];
+      input.value = String(value);
+      const output = document.getElementById(`out-${key}`);
+      if (output) output.textContent = formatKnobValue(input, value);
+    }
+  }
+
+  function setKnobsStatus(text, ok) {
+    if (!knobsStatus) return;
+    knobsStatus.textContent = text;
+    knobsStatus.classList.toggle("knobs-status-ok", !!ok);
+    knobsStatus.classList.toggle("knobs-status-err", ok === false);
+  }
+
+  async function loadSceneParams() {
+    try {
+      const response = await fetch("/api/scene/params", {cache: "no-store"});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const params = await response.json();
+      setKnobOutputs(params);
+      setKnobsStatus("synced", true);
+    } catch (error) {
+      setKnobsStatus("offline", false);
+      console.warn("scene params load failed", error);
+    }
+  }
+
+  async function postSceneParam(key, value) {
+    const body = {};
+    body[key] = value;
+    try {
+      const response = await fetch("/api/scene/params", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setKnobsStatus("error", false);
+        toast(payload.message || `Knob ${key} rejected`, "error");
+        return;
+      }
+      if (payload.params) setKnobOutputs(payload.params);
+      const push = Array.isArray(payload.pushed) ? payload.pushed[0] : null;
+      if (push && push.error) {
+        setKnobsStatus("push err", false);
+        toast(`${key}: ${push.error}`, "error");
+      } else if (push && push.skipped) {
+        setKnobsStatus("body tempo", true);
+      } else if (push && push.address) {
+        setKnobsStatus(push.address, true);
+      } else {
+        setKnobsStatus("updated", true);
+      }
+    } catch (error) {
+      setKnobsStatus("error", false);
+      toast(`Knob ${key} failed: ${error.message || error}`, "error");
+    }
+  }
+
+  for (const input of knobInputs) {
+    const emit = () => {
+      const key = input.dataset.param;
+      const kind = input.dataset.kind;
+      let value = Number(input.value);
+      if (!Number.isFinite(value)) return;
+      if (kind === "int") value = Math.round(value);
+      const output = document.getElementById(`out-${key}`);
+      if (output) output.textContent = formatKnobValue(input, value);
+      postSceneParam(key, value);
+    };
+    input.addEventListener("input", emit);
+    // number inputs also fire change on blur/enter
+    if (input.type === "number") input.addEventListener("change", emit);
+  }
+
+  loadSceneParams();
+
   render();
   connect();
 })();
