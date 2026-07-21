@@ -407,6 +407,8 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     log "starting HarMoCAP realtime (camera: $CAMERA, device: $HARMOCAP_DEVICE)"
     HARMOCAP_ENV=()
     [ "$HARMOCAP_DEVICE" = "cpu" ] && HARMOCAP_ENV=(CUDA_VISIBLE_DEVICES=)
+    # GPU mode: sync crashes for clean recovery + block on kernel errors
+    [ "$HARMOCAP_DEVICE" != "cpu" ] && HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=1)
     (cd "$HARMOCAP_DIR" && env "${HARMOCAP_ENV[@]}" "$HARMOCAP_VENV/bin/python" scripts/run_realtime.py "${HARMOCAP_ARGS[@]}") \
         > "$LOG_DIR/harmocap.log" 2>&1 &
     register $! harmocap
