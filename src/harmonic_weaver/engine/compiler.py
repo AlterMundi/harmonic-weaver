@@ -189,6 +189,10 @@ class RouteRuntime:
     gate_states: dict[int, bool] = field(default_factory=dict)
     phase_values: dict[int, float] = field(default_factory=dict)
     phase_at_us: dict[int, int] = field(default_factory=dict)
+    slew_values: dict[int, float] = field(default_factory=dict)
+    slew_at_us: dict[int, int] = field(default_factory=dict)
+    derivative_values: dict[int, float] = field(default_factory=dict)
+    derivative_at_us: dict[int, int] = field(default_factory=dict)
     beat_state: dict[int, dict] = field(default_factory=dict)
     last_usable_output: float | None = None
     last_usable_at_us: int | None = None
@@ -409,7 +413,17 @@ def compile_route(
         if not isinstance(transform, Mapping):
             raise validation(f"{tpath} must be an object")
         kind = transform.get("type")
-        if kind not in {"scale_range", "curve", "smoothing", "gate", "combine", "phase_accumulator", "beat_envelope"}:
+        if kind not in {
+            "scale_range",
+            "curve",
+            "smoothing",
+            "gate",
+            "combine",
+            "phase_accumulator",
+            "slew_limiter",
+            "derivative",
+            "beat_envelope",
+        }:
             raise validation(f"{tpath}.type is invalid")
         if kind == "combine":
             if index != 0 or len(inputs) == 1:
@@ -460,6 +474,18 @@ def compile_route(
             if "max_dt_ms" in transform:
                 nonnegative(transform["max_dt_ms"], f"{tpath}.max_dt_ms")
             current_range = (0.0, wrap_deg)
+        elif kind == "slew_limiter":
+            # Rate-limited chase of a continuous target. Output stays inside the
+            # incoming static range (does not expand or shrink bounds).
+            positive(transform.get("max_rate"), f"{tpath}.max_rate")
+            nonnegative(transform.get("max_dt_ms"), f"{tpath}.max_dt_ms")
+        elif kind == "derivative":
+            # Causal trailing difference of a position/feature → signed velocity.
+            # Output static range is always [-max_abs, +max_abs].
+            positive(transform.get("window_ms"), f"{tpath}.window_ms")
+            max_abs = positive(transform.get("max_abs"), f"{tpath}.max_abs")
+            nonnegative(transform.get("max_dt_ms"), f"{tpath}.max_dt_ms")
+            current_range = (-max_abs, max_abs)
         elif kind == "beat_envelope":
             # Rising-edge trigger -> decaying gain envelope: on each edge the
             # output snaps to `peak` and relaxes toward `floor` with a time
@@ -608,6 +634,58 @@ def evaluate_route(
             runtime.phase_values[transform_index] = phase
             runtime.phase_at_us[transform_index] = now_us
             current = phase
+        elif kind == "slew_limiter":
+            assert isinstance(current, float)
+            target = current
+            max_rate = float(transform["max_rate"])
+            max_dt_s = float(transform["max_dt_ms"]) / 1000.0
+            previous_value = runtime.slew_values.get(transform_index)
+            previous_at_us = runtime.slew_at_us.get(transform_index)
+            if previous_value is None or previous_at_us is None:
+                # Cold start: no history — snap to target (do not invent a dt).
+                out = target
+            else:
+                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                # Clamp dt so a network gap cannot jump the parameter.
+                if dt_s > max_dt_s:
+                    dt_s = max_dt_s
+                max_delta = max_rate * dt_s
+                delta = target - previous_value
+                if delta > max_delta:
+                    delta = max_delta
+                elif delta < -max_delta:
+                    delta = -max_delta
+                out = previous_value + delta
+            runtime.slew_values[transform_index] = out
+            runtime.slew_at_us[transform_index] = now_us
+            current = out
+        elif kind == "derivative":
+            assert isinstance(current, float)
+            # Causal trailing difference: (x[t] - x[t-1]) / dt, dt clamped so a
+            # network gap cannot invent an unbounded spike after resume. First
+            # sample has no history → emit 0. Output always in ±max_abs.
+            max_abs = float(transform["max_abs"])
+            max_dt_s = float(transform["max_dt_ms"]) / 1000.0
+            previous_value = runtime.derivative_values.get(transform_index)
+            previous_at_us = runtime.derivative_at_us.get(transform_index)
+            if previous_value is None or previous_at_us is None:
+                out = 0.0
+            else:
+                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                if dt_s > max_dt_s:
+                    dt_s = max_dt_s
+                if dt_s <= 0.0:
+                    out = 0.0
+                else:
+                    out = (current - previous_value) / dt_s
+                    if out > max_abs:
+                        out = max_abs
+                    elif out < -max_abs:
+                        out = -max_abs
+            # State stores the input sample (not the derivative) for the next step.
+            runtime.derivative_values[transform_index] = current
+            runtime.derivative_at_us[transform_index] = now_us
+            current = out
         elif kind == "beat_envelope":
             assert isinstance(current, float)
             peak = float(transform.get("peak", 1.0))
