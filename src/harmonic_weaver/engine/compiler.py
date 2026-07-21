@@ -191,6 +191,8 @@ class RouteRuntime:
     phase_at_us: dict[int, int] = field(default_factory=dict)
     slew_values: dict[int, float] = field(default_factory=dict)
     slew_at_us: dict[int, int] = field(default_factory=dict)
+    derivative_values: dict[int, float] = field(default_factory=dict)
+    derivative_at_us: dict[int, int] = field(default_factory=dict)
     last_usable_output: float | None = None
     last_usable_at_us: int | None = None
     invalid_reset_sent: bool = False
@@ -418,6 +420,7 @@ def compile_route(
             "combine",
             "phase_accumulator",
             "slew_limiter",
+            "derivative",
         }:
             raise validation(f"{tpath}.type is invalid")
         if kind == "combine":
@@ -474,6 +477,13 @@ def compile_route(
             # incoming static range (does not expand or shrink bounds).
             positive(transform.get("max_rate"), f"{tpath}.max_rate")
             nonnegative(transform.get("max_dt_ms"), f"{tpath}.max_dt_ms")
+        elif kind == "derivative":
+            # Causal trailing difference of a position/feature → signed velocity.
+            # Output static range is always [-max_abs, +max_abs].
+            positive(transform.get("window_ms"), f"{tpath}.window_ms")
+            max_abs = positive(transform.get("max_abs"), f"{tpath}.max_abs")
+            nonnegative(transform.get("max_dt_ms"), f"{tpath}.max_dt_ms")
+            current_range = (-max_abs, max_abs)
     validity_policy = validate_validity(raw["validity"], f"{path}.validity")
     definition = copy.deepcopy(dict(raw))
     definition["validity"] = validity_policy
@@ -629,6 +639,33 @@ def evaluate_route(
                 out = previous_value + delta
             runtime.slew_values[transform_index] = out
             runtime.slew_at_us[transform_index] = now_us
+            current = out
+        elif kind == "derivative":
+            assert isinstance(current, float)
+            # Causal trailing difference: (x[t] - x[t-1]) / dt, dt clamped so a
+            # network gap cannot invent an unbounded spike after resume. First
+            # sample has no history → emit 0. Output always in ±max_abs.
+            max_abs = float(transform["max_abs"])
+            max_dt_s = float(transform["max_dt_ms"]) / 1000.0
+            previous_value = runtime.derivative_values.get(transform_index)
+            previous_at_us = runtime.derivative_at_us.get(transform_index)
+            if previous_value is None or previous_at_us is None:
+                out = 0.0
+            else:
+                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                if dt_s > max_dt_s:
+                    dt_s = max_dt_s
+                if dt_s <= 0.0:
+                    out = 0.0
+                else:
+                    out = (current - previous_value) / dt_s
+                    if out > max_abs:
+                        out = max_abs
+                    elif out < -max_abs:
+                        out = -max_abs
+            # State stores the input sample (not the derivative) for the next step.
+            runtime.derivative_values[transform_index] = current
+            runtime.derivative_at_us[transform_index] = now_us
             current = out
     if isinstance(current, list) or not math.isfinite(current):
         return None, "suppress"
