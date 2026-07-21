@@ -447,6 +447,10 @@ def compile_route(
             if transform.get("kind") not in {"one_pole", "ramp"}:
                 raise validation(f"{tpath}.kind is invalid")
             nonnegative(transform.get("time_ms"), f"{tpath}.time_ms")
+            # Optional gap clamp: when set, must be strictly positive. None/absent
+            # keeps legacy behaviour (raw dt, network gaps can jump alpha≈1).
+            if "max_dt_ms" in transform and transform["max_dt_ms"] is not None:
+                positive(transform["max_dt_ms"], f"{tpath}.max_dt_ms")
         elif kind == "gate":
             finite(transform.get("threshold"), f"{tpath}.threshold")
             hysteresis = nonnegative(transform.get("hysteresis"), f"{tpath}.hysteresis")
@@ -558,7 +562,13 @@ def evaluate_route(
             previous_value = runtime.smooth_values.get(transform_index)
             previous_at_us = runtime.smooth_at_us.get(transform_index)
             if previous_value is not None and previous_at_us is not None and time_ms > 0:
-                dt_ms = max(0.0, (now_us - previous_at_us) / 1000.0)
+                # Work in seconds for the optional max_dt_ms clamp, then convert
+                # back to ms for the existing alpha formulas (time_ms units).
+                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                max_dt_ms = transform.get("max_dt_ms")
+                if max_dt_ms is not None:
+                    dt_s = min(dt_s, float(max_dt_ms) / 1000.0)
+                dt_ms = dt_s * 1000.0
                 if transform["kind"] == "one_pole":
                     alpha = 1.0 - math.exp(-dt_ms / time_ms)
                 else:

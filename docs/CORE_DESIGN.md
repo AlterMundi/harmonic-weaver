@@ -93,7 +93,7 @@ Transform execution is ordered and uses finite numbers only:
 |---|---|
 | `scale_range` | Affine input/output ranges; clamp behavior is explicit. |
 | `curve` | `linear`, `power`, `exponential`, `smoothstep` or monotonic piecewise points. |
-| `smoothing` | One-pole or bounded ramp with declared `time_ms`; it is control-rate smoothing, not audio interpolation. |
+| `smoothing` | One-pole or bounded ramp with declared `time_ms`; it is control-rate smoothing, not audio interpolation. Optional `max_dt_ms > 0` clamps `dt` before alpha so a network gap cannot jump (`alpha≈1`); absent/`None` keeps raw-`dt` behaviour. Stateful. |
 | `gate` | Threshold, hysteresis, `level`/`rising_edge`/`falling_edge`, and closed behavior (`suppress` or a finite value). |
 | `combine` | `mean`, `sum`, `min`, `max`, `weighted_sum` or `difference`, with arity and weights validated. |
 | `phase_accumulator` | Integrate an angular velocity (deg/s) into a running phase wrapped to `[0, wrap_deg)` (default `360`). Optional `max_rate` clamps `|velocity|`; `max_dt_ms` (default `100`) clamps the per-evaluation step so a gap on resume cannot jump. Stateful. |
