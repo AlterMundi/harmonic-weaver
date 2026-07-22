@@ -156,6 +156,58 @@ def _validate_combine(transform: Mapping[str, Any], arity: int, path: str) -> tu
     return str(operator), weights
 
 
+def _validate_bin_2d(
+    transform: Mapping[str, Any], arity: int, path: str
+) -> dict[str, Any]:
+    if arity != 2:
+        raise validation(f"{path} bin_2d requires exactly two inputs")
+    if "weights" in transform:
+        raise validation(f"{path}.weights is not valid for bin_2d")
+    cols = integer(transform.get("cols"), f"{path}.cols", minimum=1)
+    rows = integer(transform.get("rows"), f"{path}.rows", minimum=1)
+    serpentine = transform.get("serpentine", True)
+    if not isinstance(serpentine, bool):
+        raise validation(f"{path}.serpentine must be a boolean")
+    x_min = finite(transform.get("x_min", 0.0), f"{path}.x_min")
+    x_max = finite(transform.get("x_max", 1.0), f"{path}.x_max")
+    y_min = finite(transform.get("y_min", 0.0), f"{path}.y_min")
+    y_max = finite(transform.get("y_max", 1.0), f"{path}.y_max")
+    if x_min >= x_max:
+        raise validation(f"{path}.x_min must be less than x_max")
+    if y_min >= y_max:
+        raise validation(f"{path}.y_min must be less than y_max")
+    return {
+        "cols": cols,
+        "rows": rows,
+        "serpentine": serpentine,
+        "x_min": x_min,
+        "x_max": x_max,
+        "y_min": y_min,
+        "y_max": y_max,
+    }
+
+
+def _bin_2d_index(
+    x: float,
+    y: float,
+    *,
+    cols: int,
+    rows: int,
+    serpentine: bool,
+    x_min: float,
+    x_max: float,
+    y_min: float,
+    y_max: float,
+) -> float:
+    col = int(math.floor((x - x_min) / (x_max - x_min) * cols))
+    row = int(math.floor((y - y_min) / (y_max - y_min) * rows))
+    col = max(0, min(cols - 1, col))
+    row = max(0, min(rows - 1, row))
+    if serpentine and col % 2 == 1:
+        row = rows - 1 - row
+    return float(col * rows + row)
+
+
 @dataclass(frozen=True)
 class DestinationSpec:
     definition: dict[str, Any]
@@ -799,8 +851,16 @@ def compile_aggregators(
                     continue
                 raise validation(f"aggregator {raw['aggregator_id']!r} references unknown input(s): {unresolved}")
             ranges = [available[address] for address in addresses]
-            operator, weights = _validate_combine(raw, len(ranges), f"aggregator {raw['aggregator_id']}")
-            output_range = _combine_range(operator, ranges, weights)
+            path = f"aggregator {raw['aggregator_id']}"
+            if raw.get("operator") == "bin_2d":
+                params = _validate_bin_2d(raw, len(ranges), path)
+                raw.update(params)
+                operator = "bin_2d"
+                weights = None
+                output_range = (0.0, float(params["cols"] * params["rows"] - 1))
+            else:
+                operator, weights = _validate_combine(raw, len(ranges), path)
+                output_range = _combine_range(operator, ranges, weights)
             cadence = raw["cadence"]
             if not isinstance(cadence, Mapping) or cadence.get("mode") not in {"fixed_hz", "on_input"}:
                 raise validation(f"aggregator {raw['aggregator_id']!r} cadence is invalid")
@@ -848,6 +908,65 @@ def evaluate_aggregator(
     now_us: int,
 ) -> ValueEnvelope:
     validity = aggregator.definition["validity"]
+    if aggregator.operator == "bin_2d":
+        definition = aggregator.definition
+        envelopes: list[ValueEnvelope] = []
+        for item in aggregator.inputs:
+            if "include_when" in item and not _predicate_matches(item["include_when"], values, now_us):
+                runtime.last_output_confidence = 0.0
+                return ValueEnvelope.invalid(now_us)
+            envelope = values.get(item["channel"], ValueEnvelope.invalid(now_us))
+            if envelope.state == INVALID:
+                runtime.last_output_confidence = 0.0
+                return ValueEnvelope.invalid(now_us)
+            if now_us - envelope.received_at_us > int(float(validity["max_age_ms"]) * 1000):
+                runtime.last_output_confidence = 0.0
+                return ValueEnvelope.invalid(now_us)
+            if envelope.state == HELD and not validity["include_held"]:
+                runtime.last_output_confidence = 0.0
+                return ValueEnvelope.invalid(now_us)
+            envelopes.append(envelope)
+        x_env, y_env = envelopes[0], envelopes[1]
+        observed_count = sum(item.state == OBSERVED for item in envelopes)
+        if len(envelopes) >= validity["min_valid_count"] and observed_count >= validity["min_observed_count"]:
+            value = _bin_2d_index(
+                x_env.value,
+                y_env.value,
+                cols=int(definition["cols"]),
+                rows=int(definition["rows"]),
+                serpentine=bool(definition["serpentine"]),
+                x_min=float(definition["x_min"]),
+                x_max=float(definition["x_max"]),
+                y_min=float(definition["y_min"]),
+                y_max=float(definition["y_max"]),
+            )
+            confidences = [x_env.confidence, y_env.confidence]
+            reducer = validity["confidence"]
+            if reducer == "minimum":
+                confidence = min(confidences)
+            elif reducer == "mean":
+                confidence = sum(confidences) / len(confidences)
+            else:
+                confidence = math.prod(confidences)
+            state = OBSERVED if all(item.state == OBSERVED for item in envelopes) else HELD
+            if state == HELD:
+                confidence = min(confidence, runtime.last_output_confidence)
+            else:
+                runtime.cached_value = value
+                runtime.cached_confidence = confidence
+                runtime.cached_at_us = now_us
+            runtime.last_output_confidence = confidence
+            return ValueEnvelope(value, state, confidence, now_us, now_us)
+        held_max_us = int(float(validity["held_max_ms"]) * 1000)
+        if runtime.cached_value is not None and runtime.cached_at_us is not None and held_max_us > 0:
+            age = now_us - runtime.cached_at_us
+            if age <= held_max_us:
+                confidence = runtime.cached_confidence * max(0.0, 1.0 - age / held_max_us)
+                confidence = min(confidence, runtime.last_output_confidence)
+                runtime.last_output_confidence = confidence
+                return ValueEnvelope(runtime.cached_value, HELD, confidence, now_us, runtime.cached_at_us)
+        runtime.last_output_confidence = 0.0
+        return ValueEnvelope.invalid(now_us)
     usable: list[ValueEnvelope] = []
     for item in aggregator.inputs:
         if "include_when" in item and not _predicate_matches(item["include_when"], values, now_us):
