@@ -246,6 +246,12 @@ class RouteRuntime:
     derivative_values: dict[int, float] = field(default_factory=dict)
     derivative_at_us: dict[int, int] = field(default_factory=dict)
     beat_state: dict[int, dict] = field(default_factory=dict)
+    # peak_detector per-transform: last TWO samples (prev_prev, prev) and last
+    # fire timestamp (us). Three-sample window needed to detect a local max:
+    # the previous step was strictly above the one before it AND the current
+    # sample is non-greater.
+    peak_history: dict[int, tuple[float, float]] = field(default_factory=dict)
+    peak_last_fire_us: dict[int, int] = field(default_factory=dict)
     last_usable_output: float | None = None
     last_usable_at_us: int | None = None
     invalid_reset_sent: bool = False
@@ -448,7 +454,13 @@ def compile_route(
     transforms = raw["transforms"]
     if not isinstance(transforms, list):
         raise validation(f"{path}.transforms must be an array")
-    if len(inputs) > 1 and (
+    # radial_velocity collapses the 4 inputs into a scalar; no combine needed.
+    first_transform_consumes_all = (
+        bool(transforms)
+        and isinstance(transforms[0], Mapping)
+        and transforms[0].get("type") == "radial_velocity"
+    )
+    if len(inputs) > 1 and not first_transform_consumes_all and (
         not transforms
         or not isinstance(transforms[0], Mapping)
         or transforms[0].get("type") != "combine"
@@ -456,6 +468,10 @@ def compile_route(
         raise validation(f"{path} multiple inputs require combine as the first transform")
     if len(inputs) == 1:
         current_range = ranges[0]
+    elif first_transform_consumes_all:
+        # radial_velocity is its own combiner — output range is fixed at (0, 1)
+        # and is updated inside the transform-validation branch below.
+        current_range = (0.0, 1.0)
     else:
         operator, weights = _validate_combine(transforms[0], len(inputs), f"{path}.transforms[0]")
         current_range = _combine_range(operator, ranges, weights)
@@ -475,6 +491,8 @@ def compile_route(
             "slew_limiter",
             "derivative",
             "beat_envelope",
+            "radial_velocity",
+            "peak_detector",
         }:
             raise validation(f"{tpath}.type is invalid")
         if kind == "combine":
@@ -559,6 +577,29 @@ def compile_route(
             if "min_interval_ms" in transform:
                 nonnegative(transform["min_interval_ms"], f"{tpath}.min_interval_ms")
             current_range = (floor_value, peak)
+        elif kind == "radial_velocity":
+            # Two-point Euclidean distance, clipped to [0, 1]. Consumes the
+            # four input channels as (x1, y1, x2, y2). No state. Output range
+            # is always [0, 1] regardless of input ranges. Like `combine`, this
+            # transform collapses the multi-input route into a single scalar;
+            # downstream transforms operate on that scalar.
+            if len(inputs) != 4:
+                raise validation(
+                    f"{tpath} requires exactly 4 inputs (x1, y1, x2, y2); got {len(inputs)}"
+                )
+            current_range = (0.0, 1.0)
+        elif kind == "peak_detector":
+            # Fires an impulse (1.0) when the input just turned over a local
+            # maximum: previous sample was strictly greater than the one
+            # before that (rising), this sample is non-greater (falling/stop),
+            # the current value is >= threshold, and the refractory window
+            # since the last fire has elapsed. Emits 0.0 otherwise. State is
+            # held in the route's `RouteRuntime` (peak_history,
+            # peak_last_fire_us). refractory_ms=0 disables the window (every
+            # qualifying sample fires).
+            finite(transform.get("threshold", 0.0), f"{tpath}.threshold")
+            nonnegative(transform.get("refractory_ms", 250.0), f"{tpath}.refractory_ms")
+            current_range = (0.0, 1.0)
     validity_policy = validate_validity(raw["validity"], f"{path}.validity")
     definition = copy.deepcopy(dict(raw))
     definition["validity"] = validity_policy
@@ -616,6 +657,15 @@ def evaluate_route(
         if kind == "combine":
             operator, weights = _validate_combine(transform, len(envelopes), "runtime.combine")
             current = _apply_combine(operator, list(current), weights)  # type: ignore[arg-type]
+        elif kind == "radial_velocity":
+            assert isinstance(current, list) and len(current) == 4, (
+                f"radial_velocity expects 4 floats; got {current!r}"
+            )
+            x1, y1, x2, y2 = current
+            dx = x1 - x2
+            dy = y1 - y2
+            dist = math.sqrt(dx * dx + dy * dy)
+            current = min(1.0, max(0.0, dist))
         elif kind == "scale_range":
             assert isinstance(current, float)
             in_first, in_second = transform["in"]
@@ -782,6 +832,36 @@ def evaluate_route(
             state["eval_us"] = now_us
             runtime.beat_state[transform_index] = state
             current = state["value"]
+        elif kind == "peak_detector":
+            assert isinstance(current, float)
+            threshold = float(transform.get("threshold", 0.0))
+            refractory_us = int(float(transform.get("refractory_ms", 250.0)) * 1000)
+            history = runtime.peak_history.get(transform_index)
+            last_fire_us = runtime.peak_last_fire_us.get(transform_index)
+            fire = 0.0
+            if history is not None and last_fire_us is not None:
+                prev_prev, prev = history
+                # Local-maximum condition: previous step was strictly above the
+                # one before it (rising), current sample is non-greater
+                # (falling or flat), current value crosses the threshold, and
+                # the refractory window since the last fire has elapsed.
+                rising_then_turning = prev > prev_prev and current <= prev
+                crosses_threshold = current >= threshold
+                refractory_ok = (now_us - last_fire_us) >= refractory_us
+                if rising_then_turning and crosses_threshold and refractory_ok:
+                    fire = 1.0
+                    runtime.peak_last_fire_us[transform_index] = now_us
+            # Update history: shift (prev_prev, prev) <- (prev, current).
+            if history is None:
+                runtime.peak_history[transform_index] = (0.0, current)
+            else:
+                _, prev = history
+                runtime.peak_history[transform_index] = (prev, current)
+            # Seed the fire timestamp on first call so the refractory window
+            # is measured from the first sample, not from -inf.
+            if last_fire_us is None:
+                runtime.peak_last_fire_us[transform_index] = now_us
+            current = fire
     if isinstance(current, list) or not math.isfinite(current):
         return None, "suppress"
     runtime.last_usable_output = current
