@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Harmonic Weaver — Live Overlay</title>
+<link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+<div class="stage">
+  <!-- webcam source: kept in layout (not display:none) so frames keep decoding, but invisible -->
+  <video id="cam" autoplay playsinline muted></video>
+  <!-- video frame (or simulated fallback feed) -->
+  <canvas id="bg" width="1280" height="720"></canvas>
+  <!-- serpentine harmonic grid overlay, transparent so the feed shows through -->
+  <canvas id="grid" width="1280" height="720"></canvas>
+  <!-- camera + websocket state -->
+  <div class="status" id="status">
+    <span class="dot"></span><span id="statusText">cam waiting · ws connecting</span>
+  </div>
+</div>
+<script src="overlay.js"></script>
+</body>
+</html>
