@@ -257,6 +257,29 @@ def shaper_safety_profile(contract_id: str) -> dict[str, Any]:
                 },
             ]
         )
+    # Phase/amplitude-driving scenes (e.g. Latido) write harmonic_phase and the
+    # global master_gain. Declare their safe resets so those destinations pass
+    # the compiler's safety check — every route destination must appear here or
+    # scene compile raises unsafe_instrument.
+    reset_defaults.extend(
+        [
+            {
+                "capability": "harmonic_phase",
+                "bindings": {"N": harmonic},
+                "argument": "phase_degrees",
+                "value": 0.0,
+            }
+            for harmonic in range(1, 6)
+        ]
+    )
+    reset_defaults.append(
+        {
+            "capability": "master_gain",
+            "bindings": {},
+            "argument": "gain",
+            "value": 0.8,
+        }
+    )
     return {
         "instrument_id": "shaper",
         "instrument_contract_id": contract_id,
