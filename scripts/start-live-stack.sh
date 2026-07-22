@@ -453,6 +453,7 @@ for (( i=0; i<${#PIDS[@]}; i++ )); do
 done
 echo
 echo "  patchbay:   http://localhost:8765/"
+echo "  overlay:    http://localhost:8765/static/overlay.html"
 echo "  beacon UI:  http://localhost:5050/"
 echo "  shaper API: http://localhost:8080/api/state"
 echo "  logs:       $LOG_DIR"
