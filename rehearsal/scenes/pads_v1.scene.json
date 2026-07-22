@@ -241,8 +241,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -255,6 +257,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -332,8 +339,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -346,6 +355,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -423,8 +437,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -437,6 +453,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -514,8 +535,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -528,6 +551,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -605,8 +633,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -619,6 +649,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -696,8 +731,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -710,6 +747,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -787,8 +829,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -801,6 +845,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -878,8 +927,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -892,6 +943,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -969,8 +1025,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -983,6 +1041,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1060,8 +1123,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1074,6 +1139,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1151,8 +1221,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1165,6 +1237,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1242,8 +1319,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1256,6 +1335,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1333,8 +1417,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1347,6 +1433,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1424,8 +1515,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1438,6 +1531,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1515,8 +1613,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1529,6 +1629,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1606,8 +1711,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1620,6 +1727,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1697,8 +1809,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1711,6 +1825,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1788,8 +1907,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1802,6 +1923,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1879,8 +2005,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1893,6 +2021,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -1970,8 +2103,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -1984,6 +2119,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2061,8 +2201,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2075,6 +2217,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2152,8 +2299,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2166,6 +2315,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2243,8 +2397,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2257,6 +2413,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2334,8 +2495,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2348,6 +2511,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2425,8 +2593,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2439,6 +2609,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2516,8 +2691,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2530,6 +2707,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2607,8 +2789,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2621,6 +2805,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2698,8 +2887,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2712,6 +2903,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2789,8 +2985,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2803,6 +3001,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2880,8 +3083,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2894,6 +3099,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -2971,8 +3181,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -2985,6 +3197,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
@@ -3062,8 +3279,10 @@
       ],
       "transforms": [
         {
-          "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
         },
         {
           "type": "scale_range",
@@ -3076,6 +3295,11 @@
             1.0
           ],
           "clamp": true
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
         }
       ],
       "destination": {
