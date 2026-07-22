@@ -53,6 +53,16 @@
 #                                default: artifacts/<run-id>/harmocap.jsonl
 #   --no-record                  Do not record the HarMoCAP session
 #   --show                       Open the HarMoCAP cv2 skeleton window
+#   --pads-view <harmocap|web|both|none>
+#                                Which viewport to open for pads-style scenes.
+#                                harmocap: only the HarMoCAP --show window.
+#                                web: only the browser overlay at
+#                                      http://localhost:8765/static/overlay.html
+#                                both: harmocap window + browser.
+#                                none: neither (batch recording).
+#                                When omitted: harmocap if --show is set,
+#                                otherwise none. Explicit --pads-view wins
+#                                over --show (warn once if both are passed).
 #   --shaper-no-audio            Run the shaper headless (no sounddevice)
 #   --shaper-device <name>       JACK output device name substring for the
 #                                shaper (default: "R24 Analog Stereo"). The
@@ -108,6 +118,11 @@ MAX_RUNTIME_S="14400"
 RECORD=""
 RECORD_SET=0
 SHOW=0
+# --pads-view selector. Valid values: harmocap|web|both|none.
+# When unset (empty), the effective view is derived from SHOW after parsing
+# so that legacy invocations behave as before (--show => harmocap only).
+PADS_VIEW=""
+PADS_VIEW_EXPLICIT=0
 SHAPER_AUDIO=1
 SHAPER_DEVICE="${SHAPER_DEVICE:-R24 Analog Stereo}"
 SHAPER_MIDI=1
@@ -136,6 +151,7 @@ while [ "$#" -gt 0 ]; do
         --record)        RECORD="${2:?--record needs a path}"; RECORD_SET=1; shift ;;
         --no-record)     RECORD=""; RECORD_SET=1 ;;
         --show)          SHOW=1 ;;
+        --pads-view)     PADS_VIEW="${2:?--pads-view needs harmocap|web|both|none}"; PADS_VIEW_EXPLICIT=1; shift ;;
         --shaper-no-audio) SHAPER_AUDIO=0 ;;
         --shaper-device) SHAPER_DEVICE="${2:?--shaper-device needs a name}"; shift ;;
         --shaper-no-midi) SHAPER_MIDI=0 ;;
@@ -154,6 +170,27 @@ done
 
 case "$BEACON_SOURCE" in file|live) ;; *) echo "[ERROR] --beacon-source must be file or live" >&2; exit 2 ;; esac
 case "$HARMOCAP_DEVICE" in auto|cpu|cuda) ;; *) echo "[ERROR] --harmocap-device must be auto, cpu or cuda" >&2; exit 2 ;; esac
+case "$PADS_VIEW" in ""|harmocap|web|both|none) ;; *) echo "[ERROR] --pads-view must be harmocap, web, both or none" >&2; exit 2 ;; esac
+
+# ---- resolve --pads-view vs legacy --show -----------------------------------
+# Explicit --pads-view always wins. If only --show was passed, treat it as
+# --pads-view=harmocap. If neither was passed, default to none (batch mode).
+if [ "$PADS_VIEW_EXPLICIT" -eq 1 ] && [ "$SHOW" -eq 1 ]; then
+    echo "[warn] both --show and --pads-view=$PADS_VIEW passed; --pads-view wins, --show ignored"
+fi
+case "$PADS_VIEW" in
+    "")        PADS_VIEW_EFFECTIVE=$([ "$SHOW" -eq 1 ] && echo harmocap || echo none) ;;
+    harmocap)  PADS_VIEW_EFFECTIVE=harmocap ;;
+    web)       PADS_VIEW_EFFECTIVE=web ;;
+    both)      PADS_VIEW_EFFECTIVE=both ;;
+    none)      PADS_VIEW_EFFECTIVE=none ;;
+esac
+case "$PADS_VIEW_EFFECTIVE" in
+    harmocap) SHOW=1 ;;
+    web)      SHOW=0 ;;
+    both)     SHOW=1 ;;
+    none)     SHOW=0 ;;
+esac
 
 ARTIFACT_DIR="$WEAVER_DIR/rehearsal/artifacts/$RUN_ID"
 LOG_DIR="$ARTIFACT_DIR/logs"
@@ -404,6 +441,20 @@ log "starting weaver runtime (lease ${LEASE_MS}ms, max ${MAX_RUNTIME_S}s)"
 register $! weaver
 wait_tcp 127.0.0.1 8765 "weaver Stage WS" 60
 log "weaver ready (Stage WS on :8765)"
+
+# ---- 3b. open web overlay browser if requested --------------------------------
+# Best-effort: launch xdg-open in background. Failure here is non-fatal so
+# headless / no-DISPLAY runs do not block.
+case "$PADS_VIEW_EFFECTIVE" in
+    web|both)
+        if command -v xdg-open >/dev/null 2>&1; then
+            log "opening web overlay (xdg-open http://localhost:8765/static/overlay.html)"
+            (xdg-open "http://localhost:8765/static/overlay.html" >/dev/null 2>&1 &) || true
+        else
+            log "xdg-open not found; web overlay URL: http://localhost:8765/static/overlay.html"
+        fi
+        ;;
+esac
 
 # ---- 4. scene push --------------------------------------------------------------
 if [ "$PUSH_SCENE" -eq 1 ]; then
