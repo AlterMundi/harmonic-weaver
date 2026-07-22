@@ -252,6 +252,10 @@ class RouteRuntime:
     # sample is non-greater.
     peak_history: dict[int, tuple[float, float]] = field(default_factory=dict)
     peak_last_fire_us: dict[int, int] = field(default_factory=dict)
+    # pad_dwell per-transform: committed output value + timestamp of the
+    # last commit (so we can decide when the dwell has elapsed).
+    dwell_value: dict[int, float] = field(default_factory=dict)
+    dwell_last_change_us: dict[int, int] = field(default_factory=dict)
     last_usable_output: float | None = None
     last_usable_at_us: int | None = None
     invalid_reset_sent: bool = False
@@ -493,6 +497,7 @@ def compile_route(
             "beat_envelope",
             "radial_velocity",
             "peak_detector",
+            "pad_dwell",
         }:
             raise validation(f"{tpath}.type is invalid")
         if kind == "combine":
@@ -600,6 +605,19 @@ def compile_route(
             finite(transform.get("threshold", 0.0), f"{tpath}.threshold")
             nonnegative(transform.get("refractory_ms", 250.0), f"{tpath}.refractory_ms")
             current_range = (0.0, 1.0)
+        elif kind == "pad_dwell":
+            # Debounces a discrete (or pseudo-discrete) input value: holds
+            # the committed output until the input has been different for at
+            # least `dwell_ms`, then commits the new value in a single step.
+            # On cold start, emits the input immediately (no artificial
+            # latency). Optional `min_change_ms` rejects commits that arrive
+            # less than `min_change_ms` after the previous commit
+            # (sub-frame noise guard). Static range is unchanged from the
+            # incoming range. dwell_ms=0 disables the dwell debounce (only
+            # the min_change_ms anti-bounce guard remains active).
+            nonnegative(transform.get("dwell_ms", 80.0), f"{tpath}.dwell_ms")
+            if "min_change_ms" in transform:
+                nonnegative(transform["min_change_ms"], f"{tpath}.min_change_ms")
     validity_policy = validate_validity(raw["validity"], f"{path}.validity")
     definition = copy.deepcopy(dict(raw))
     definition["validity"] = validity_policy
@@ -862,6 +880,43 @@ def evaluate_route(
             if last_fire_us is None:
                 runtime.peak_last_fire_us[transform_index] = now_us
             current = fire
+        elif kind == "pad_dwell":
+            assert isinstance(current, float)
+            dwell_ms = float(transform.get("dwell_ms", 80.0))
+            dwell_us = int(dwell_ms * 1000.0)
+            min_change_ms = transform.get("min_change_ms")
+            min_change_us = (
+                int(float(min_change_ms) * 1000.0) if min_change_ms is not None else 0
+            )
+            held = runtime.dwell_value.get(transform_index)
+            last_change_us = runtime.dwell_last_change_us.get(transform_index)
+            if held is None:
+                # Cold start: commit immediately so the first audio frame
+                # after the route activates does not wait an artificial dwell.
+                runtime.dwell_value[transform_index] = current
+                runtime.dwell_last_change_us[transform_index] = now_us
+                current = current
+            elif current == held:
+                # No change requested: emit the held value.
+                current = held
+            else:
+                # Change requested. Apply min_change_ms first (sub-frame
+                # anti-bounce), then the dwell_ms debounce.
+                min_change_ok = (
+                    last_change_us is None
+                    or (now_us - last_change_us) >= min_change_us
+                )
+                dwell_ok = (
+                    last_change_us is None
+                    or (now_us - last_change_us) >= dwell_us
+                )
+                if min_change_ok and dwell_ok:
+                    runtime.dwell_value[transform_index] = current
+                    runtime.dwell_last_change_us[transform_index] = now_us
+                    current = current
+                else:
+                    # Dwell or anti-bounce still active: keep the held value.
+                    current = held
     if isinstance(current, list) or not math.isfinite(current):
         return None, "suppress"
     runtime.last_usable_output = current
