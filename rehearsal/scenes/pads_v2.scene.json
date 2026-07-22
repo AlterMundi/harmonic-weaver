@@ -1,0 +1,3336 @@
+{
+  "scene_id": "pads-v2",
+  "scene_version": 1,
+  "name": "Pads v2",
+  "description": "Single-slot symmetric per-hand grid. Hand r owns odd N (1..31), hand l owns even N (2..32). 32 harmonics total, 16 per hand, each with envelope + pluck trigger. Multi-human ready at the aggregator level; full multi-slot mapping requires per-source voice_id ownership in harmonic_envelope (engine limitation, future card).",
+  "tags": [
+    "rehearsal",
+    "pads",
+    "harmonic",
+    "v2",
+    "single-slot"
+  ],
+  "created_at_us": 0,
+  "updated_at_us": 0,
+  "transition": {
+    "policy": "reset"
+  },
+  "aggregators": [
+    {
+      "aggregator_id": "slot-0-pos-r-x",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_pos_r_x",
+      "output_channel": "x",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_right_wrist_x",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-pos-r-y",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_pos_r_y",
+      "output_channel": "y",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_right_wrist_y",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-pad-r",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_pad_r",
+      "output_channel": "pad",
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        }
+      ],
+      "operator": "bin_2d",
+      "cols": 4,
+      "rows": 8,
+      "serpentine": true,
+      "x_min": 1.0,
+      "x_max": 0.0,
+      "y_min": 1.0,
+      "y_max": 0.0,
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 2,
+        "min_observed_count": 2,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-pos-l-x",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_pos_l_x",
+      "output_channel": "x",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_left_wrist_x",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-pos-l-y",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_pos_l_y",
+      "output_channel": "y",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_left_wrist_y",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-pad-l",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_pad_l",
+      "output_channel": "pad",
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        }
+      ],
+      "operator": "bin_2d",
+      "cols": 4,
+      "rows": 8,
+      "serpentine": true,
+      "x_min": 1.0,
+      "x_max": 0.0,
+      "y_min": 1.0,
+      "y_max": 0.0,
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 2,
+        "min_observed_count": 2,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-nose-x",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_nose_x",
+      "output_channel": "x",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_nose_x",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "slot-0-nose-y",
+      "aggregator_version": 1,
+      "derived_source_id": "slot_0_nose_y",
+      "output_channel": "y",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_nose_y",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "slot-0-hand-r-envelope-01",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 1
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-01",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 1
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-03",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 3
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-03",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 3
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-05",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 5
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-05",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 5
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-07",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 7
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-07",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 7
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-09",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 9
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-09",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 9
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-11",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 11
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-11",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 11
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-13",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 13
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-13",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 13
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-15",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 15
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-15",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 15
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-17",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 17
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-17",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 17
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-19",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 19
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-19",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 19
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-21",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 21
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-21",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 21
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-23",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 23
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-23",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 23
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-25",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 25
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-25",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 25
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-27",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 27
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-27",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 27
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-29",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 29
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-29",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 29
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-envelope-31",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_r.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            -0.5,
+            0.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 31
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-r-trigger-31",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_r_x.x"
+        },
+        {
+          "channel": "slot_0_pos_r_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 31
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-02",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 2
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-02",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 2
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-04",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 4
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-04",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 4
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-06",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 6
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-06",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 6
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-08",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 8
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-08",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 8
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-10",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 10
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-10",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 10
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-12",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 12
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-12",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 12
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-14",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 14
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-14",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 14
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-16",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 16
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-16",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 16
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-18",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 18
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-18",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 18
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-20",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 20
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-20",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 20
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-22",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 22
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-22",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 22
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-24",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 24
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-24",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 24
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-26",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 26
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-26",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 26
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-28",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 28
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-28",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 28
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-30",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 30
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-30",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 30
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-envelope-32",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pad_l.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "pad_dwell",
+          "dwell_ms": 80.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.5,
+            1.5
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 32
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "hold_then_reset",
+        "min_confidence": 0.5,
+        "hold_ms": 150.0
+      }
+    },
+    {
+      "route_id": "slot-0-hand-l-trigger-32",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "slot_0_pos_l_x.x"
+        },
+        {
+          "channel": "slot_0_pos_l_y.y"
+        },
+        {
+          "channel": "slot_0_nose_x.x"
+        },
+        {
+          "channel": "slot_0_nose_y.y"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "radial_velocity"
+        },
+        {
+          "type": "peak_detector",
+          "threshold": 0.3,
+          "refractory_ms": 250.0
+        },
+        {
+          "type": "scale_range",
+          "in": [
+            0.0,
+            1.0
+          ],
+          "out": [
+            0.0,
+            1.0
+          ],
+          "clamp": true
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_trigger",
+        "bindings": {
+          "N": 32
+        },
+        "argument": "amplitude"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "suppress",
+        "min_confidence": 0.5
+      }
+    }
+  ]
+}

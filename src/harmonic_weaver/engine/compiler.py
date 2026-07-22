@@ -857,15 +857,21 @@ def evaluate_route(
             history = runtime.peak_history.get(transform_index)
             last_fire_us = runtime.peak_last_fire_us.get(transform_index)
             fire = 0.0
-            if history is not None and last_fire_us is not None:
+            if history is not None:
                 prev_prev, prev = history
                 # Local-maximum condition: previous step was strictly above the
                 # one before it (rising), current sample is non-greater
-                # (falling or flat), current value crosses the threshold, and
-                # the refractory window since the last fire has elapsed.
+                # (falling or flat), and current value crosses the threshold.
                 rising_then_turning = prev > prev_prev and current <= prev
                 crosses_threshold = current >= threshold
-                refractory_ok = (now_us - last_fire_us) >= refractory_us
+                # Refractory: if last_fire_us is None (this is the first
+                # sample's second evaluation), the gate is open. After that,
+                # the gate stays open only after refractory_us elapsed since
+                # the last fire.
+                refractory_ok = (
+                    last_fire_us is None
+                    or (now_us - last_fire_us) >= refractory_us
+                )
                 if rising_then_turning and crosses_threshold and refractory_ok:
                     fire = 1.0
                     runtime.peak_last_fire_us[transform_index] = now_us
@@ -875,10 +881,6 @@ def evaluate_route(
             else:
                 _, prev = history
                 runtime.peak_history[transform_index] = (prev, current)
-            # Seed the fire timestamp on first call so the refractory window
-            # is measured from the first sample, not from -inf.
-            if last_fire_us is None:
-                runtime.peak_last_fire_us[transform_index] = now_us
             current = fire
         elif kind == "pad_dwell":
             assert isinstance(current, float)
