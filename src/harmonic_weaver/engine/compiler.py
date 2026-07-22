@@ -172,10 +172,10 @@ def _validate_bin_2d(
     x_max = finite(transform.get("x_max", 1.0), f"{path}.x_max")
     y_min = finite(transform.get("y_min", 0.0), f"{path}.y_min")
     y_max = finite(transform.get("y_max", 1.0), f"{path}.y_max")
-    if x_min >= x_max:
-        raise validation(f"{path}.x_min must be less than x_max")
-    if y_min >= y_max:
-        raise validation(f"{path}.y_min must be less than y_max")
+    if x_min == x_max:
+        raise validation(f"{path}.x_min must not equal x_max")
+    if y_min == y_max:
+        raise validation(f"{path}.y_min must not equal y_max")
     return {
         "cols": cols,
         "rows": rows,

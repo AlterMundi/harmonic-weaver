@@ -200,10 +200,9 @@ function drawHandDot(sourceId, color) {
   const yKey = sourceId.replace(/_[xy]$/, '_y');
   const x = handPos[xKey], y = handPos[yKey];
   if (x == null || y == null) return;
-  // Grid matches HarMoCAP coordinates (both unflipped); camera is only
-  // flipped for visual comfort — dots stay at HarMoCAP positions.
-  const px = x * W;
-  // HarMoCAP Y=0 is top of image; canvas Y=0 is top → direct match
+  // Camera is flipped (mirror), grid columns flipped to match.
+  // Dot X must be flipped too so it appears where the hand is in the mirror.
+  const px = (1 - x) * W;
   const py = y * H;
   const r = 14;
   gctx.beginPath();

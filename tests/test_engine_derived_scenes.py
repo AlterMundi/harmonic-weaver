@@ -268,7 +268,7 @@ def test_bin_2d_validation_rejects_bad_parameters() -> None:
 
     with pytest.raises(WeaverError) as raised:
         engine.upsert_scene(
-            scene(aggregators=[bin_2d_aggregator(x_min=1.0, x_max=0.0)]),
+            scene(aggregators=[bin_2d_aggregator(x_min=1.0, x_max=1.0)]),
             engine.stage_revision,
         )
     assert raised.value.code == "validation_failed"
