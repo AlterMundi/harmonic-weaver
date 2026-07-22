@@ -241,6 +241,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             -0.5,
@@ -283,6 +289,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -327,6 +339,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             0.5,
@@ -369,6 +387,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -413,6 +437,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             1.5,
@@ -455,6 +485,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -499,6 +535,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             2.5,
@@ -541,6 +583,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -585,6 +633,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             3.5,
@@ -627,6 +681,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -671,6 +731,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             4.5,
@@ -713,6 +779,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -757,6 +829,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             5.5,
@@ -799,6 +877,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -843,6 +927,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             6.5,
@@ -885,6 +975,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -929,6 +1025,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             7.5,
@@ -971,6 +1073,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1015,6 +1123,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             8.5,
@@ -1057,6 +1171,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1101,6 +1221,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             9.5,
@@ -1143,6 +1269,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1187,6 +1319,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             10.5,
@@ -1229,6 +1367,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1273,6 +1417,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             11.5,
@@ -1315,6 +1465,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1359,6 +1515,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             12.5,
@@ -1401,6 +1563,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1445,6 +1613,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             13.5,
@@ -1487,6 +1661,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1531,6 +1711,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             14.5,
@@ -1573,6 +1759,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1617,6 +1809,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             15.5,
@@ -1659,6 +1857,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1703,6 +1907,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             16.5,
@@ -1745,6 +1955,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1789,6 +2005,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             17.5,
@@ -1831,6 +2053,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1875,6 +2103,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             18.5,
@@ -1917,6 +2151,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -1961,6 +2201,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             19.5,
@@ -2003,6 +2249,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2047,6 +2299,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             20.5,
@@ -2089,6 +2347,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2133,6 +2397,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             21.5,
@@ -2175,6 +2445,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2219,6 +2495,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             22.5,
@@ -2261,6 +2543,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2305,6 +2593,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             23.5,
@@ -2347,6 +2641,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2391,6 +2691,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             24.5,
@@ -2433,6 +2739,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2477,6 +2789,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             25.5,
@@ -2519,6 +2837,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2563,6 +2887,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             26.5,
@@ -2605,6 +2935,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2649,6 +2985,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             27.5,
@@ -2691,6 +3033,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2735,6 +3083,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             28.5,
@@ -2777,6 +3131,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2821,6 +3181,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             29.5,
@@ -2863,6 +3229,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
@@ -2907,6 +3279,12 @@
       ],
       "transforms": [
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "scale_range",
           "in": [
             30.5,
@@ -2949,6 +3327,12 @@
         }
       ],
       "transforms": [
+        {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 60.0,
+          "max_dt_ms": 80.0
+        },
         {
           "type": "scale_range",
           "in": [
