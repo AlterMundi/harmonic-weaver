@@ -1,0 +1,2735 @@
+{
+  "scene_id": "pads-v1",
+  "scene_version": 1,
+  "name": "Pads v1",
+  "description": "Spatial pad grid: 4x8 serpentine \u2192 32 harmonic pads",
+  "tags": [
+    "rehearsal",
+    "pads",
+    "harmonic",
+    "multi-body"
+  ],
+  "created_at_us": 0,
+  "updated_at_us": 0,
+  "aggregators": [
+    {
+      "aggregator_id": "hand-r-x",
+      "aggregator_version": 1,
+      "derived_source_id": "hand_r_x",
+      "output_channel": "x",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_right_wrist_x",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        },
+        {
+          "channel": "harmocap.slot_1_keypoint_right_wrist_x",
+          "include_when": {
+            "channel": "harmocap.slot_1_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "hand-r-y",
+      "aggregator_version": 1,
+      "derived_source_id": "hand_r_y",
+      "output_channel": "y",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_right_wrist_y",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        },
+        {
+          "channel": "harmocap.slot_1_keypoint_right_wrist_y",
+          "include_when": {
+            "channel": "harmocap.slot_1_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "hand-l-x",
+      "aggregator_version": 1,
+      "derived_source_id": "hand_l_x",
+      "output_channel": "x",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_left_wrist_x",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        },
+        {
+          "channel": "harmocap.slot_1_keypoint_left_wrist_x",
+          "include_when": {
+            "channel": "harmocap.slot_1_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "hand-l-y",
+      "aggregator_version": 1,
+      "derived_source_id": "hand_l_y",
+      "output_channel": "y",
+      "inputs": [
+        {
+          "channel": "harmocap.slot_0_keypoint_left_wrist_y",
+          "include_when": {
+            "channel": "harmocap.slot_0_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        },
+        {
+          "channel": "harmocap.slot_1_keypoint_left_wrist_y",
+          "include_when": {
+            "channel": "harmocap.slot_1_focused",
+            "op": "eq",
+            "value": 1.0
+          }
+        }
+      ],
+      "operator": "mean",
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 1,
+        "min_observed_count": 1,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "hand-r-pad",
+      "aggregator_version": 1,
+      "derived_source_id": "hand_r_pad",
+      "output_channel": "pad",
+      "inputs": [
+        {
+          "channel": "hand_r_x.x"
+        },
+        {
+          "channel": "hand_r_y.y"
+        }
+      ],
+      "operator": "bin_2d",
+      "cols": 4,
+      "rows": 8,
+      "serpentine": true,
+      "x_min": 0.0,
+      "x_max": 1.0,
+      "y_min": 0.0,
+      "y_max": 1.0,
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 2,
+        "min_observed_count": 2,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    },
+    {
+      "aggregator_id": "hand-l-pad",
+      "aggregator_version": 1,
+      "derived_source_id": "hand_l_pad",
+      "output_channel": "pad",
+      "inputs": [
+        {
+          "channel": "hand_l_x.x"
+        },
+        {
+          "channel": "hand_l_y.y"
+        }
+      ],
+      "operator": "bin_2d",
+      "cols": 4,
+      "rows": 8,
+      "serpentine": true,
+      "x_min": 0.0,
+      "x_max": 1.0,
+      "y_min": 0.0,
+      "y_max": 1.0,
+      "cadence": {
+        "mode": "on_input",
+        "max_rate_hz": 60.0
+      },
+      "validity": {
+        "min_valid_count": 2,
+        "min_observed_count": 2,
+        "max_age_ms": 250.0,
+        "include_held": false,
+        "held_max_ms": 0.0,
+        "confidence": "minimum"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "route_id": "pad-r-01",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": -0.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 1
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-01",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": -0.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 1
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-02",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 0.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 2
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-02",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 0.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 2
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-03",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 1.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 3
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-03",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 1.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 3
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-04",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 2.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 4
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-04",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 2.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 4
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-05",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 3.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 5
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-05",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 3.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 5
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-06",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 4.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 6
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-06",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 4.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 6
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-07",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 5.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 7
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-07",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 5.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 7
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-08",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 6.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 8
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-08",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 6.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 8
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-09",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 7.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 9
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-09",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 7.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 9
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-10",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 8.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 10
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-10",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 8.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 10
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-11",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 9.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 11
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-11",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 9.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 11
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-12",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 10.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 12
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-12",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 10.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 12
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-13",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 11.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 13
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-13",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 11.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 13
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-14",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 12.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 14
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-14",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 12.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 14
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-15",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 13.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 15
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-15",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 13.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 15
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-16",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 14.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 16
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-16",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 14.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 16
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-17",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 15.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 17
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-17",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 15.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 17
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-18",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 16.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 18
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-18",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 16.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 18
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-19",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 17.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 19
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-19",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 17.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 19
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-20",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 18.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 20
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-20",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 18.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 20
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-21",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 19.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 21
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-21",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 19.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 21
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-22",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 20.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 22
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-22",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 20.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 22
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-23",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 21.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 23
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-23",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 21.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 23
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-24",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 22.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 24
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-24",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 22.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 24
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-25",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 23.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 25
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-25",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 23.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 25
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-26",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 24.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 26
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-26",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 24.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 26
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-27",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 25.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 27
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-27",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 25.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 27
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-28",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 26.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 28
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-28",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 26.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 28
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-29",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 27.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 29
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-29",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 27.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 29
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-30",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 28.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 30
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-30",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 28.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 30
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-31",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 29.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 31
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-31",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 29.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 31
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-r-32",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_r_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 30.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_envelope",
+        "bindings": {
+          "N": 32
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "route_id": "pad-l-32",
+      "route_version": 1,
+      "enabled": true,
+      "inputs": [
+        {
+          "channel": "hand_l_pad.pad"
+        }
+      ],
+      "transforms": [
+        {
+          "type": "gate",
+          "mode": "rising_edge",
+          "threshold": 30.5,
+          "hysteresis": 0.0,
+          "closed": {
+            "value": 0.0
+          }
+        },
+        {
+          "type": "slew_limiter",
+          "max_rate": 8.0,
+          "max_dt_ms": 50.0
+        }
+      ],
+      "destination": {
+        "instrument_id": "shaper",
+        "capability": "harmonic_gain",
+        "bindings": {
+          "N": 32
+        },
+        "argument": "gain"
+      },
+      "validity": {
+        "held": "reject",
+        "invalid": "release",
+        "min_confidence": 0.5
+      }
+    }
+  ],
+  "transition": {
+    "policy": "crossfade",
+    "duration_ms": 500.0,
+    "await_valid_ms": 750.0
+  }
+}

@@ -148,18 +148,33 @@ def shaper_safety_profile(contract_id: str) -> dict[str, Any]:
 
     Includes legacy harmonic envelopes (event_demo / sparse) plus the cuerpo-
     instrumento MVP surface: partial_ceiling, clock, settle, generator, arp/*
-    for hands H=0..3 (multi-body: body0→H0/H1, body1→H2/H3). Every route
-    destination must appear here or scene compile raises unsafe_instrument.
+    for hands H=0..3 (multi-body: body0→H0/H1, body1→H2/H3). The F3 pads_v1
+    scene drives harmonic_envelope and harmonic_gain for all 32 harmonics
+    (right hand → envelope, left hand → gain) so both are listed for N=1..32.
+    Every route destination must appear here or scene compile raises
+    unsafe_instrument.
     """
-    reset_defaults: list[dict[str, Any]] = [
+    harmonic_envelope_defaults = [
         {
             "capability": "harmonic_envelope",
             "bindings": {"N": harmonic},
             "argument": "gain",
             "value": 0.0,
         }
-        for harmonic in range(1, 6)
+        for harmonic in range(1, 33)
     ]
+    harmonic_gain_defaults = [
+        {
+            "capability": "harmonic_gain",
+            "bindings": {"N": harmonic},
+            "argument": "gain",
+            "value": 1.0,
+        }
+        for harmonic in range(1, 33)
+    ]
+    reset_defaults: list[dict[str, Any]] = (
+        harmonic_envelope_defaults + harmonic_gain_defaults
+    )
     reset_defaults.extend(
         [
             {
