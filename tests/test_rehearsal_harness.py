@@ -58,9 +58,11 @@ def test_real_manifests_safety_profiles_and_both_scenes_compile() -> None:
     demo = load_json(ROOT / "rehearsal" / "scenes" / "event_demo.scene.json")
     sparse = load_json(ROOT / "rehearsal" / "scenes" / "sparse.scene.json")
     instrumento = load_json(ROOT / "rehearsal" / "scenes" / "instrumento_v1_mvp.scene.json")
+    pads = load_json(ROOT / "rehearsal" / "scenes" / "pads_v1.scene.json")
     engine.upsert_scene(demo, engine.stage_revision)
     engine.upsert_scene(sparse, engine.stage_revision)
     engine.upsert_scene(instrumento, engine.stage_revision)
+    engine.upsert_scene(pads, engine.stage_revision)
     engine.switch_scene("event-demo", 1, engine.stage_revision)
 
     snapshot = engine.snapshot(["routes", "instruments"])
@@ -95,6 +97,15 @@ def test_real_manifests_safety_profiles_and_both_scenes_compile() -> None:
     }
     assert {0, 1, 2, 3} <= arp_hands
     assert all(route["runtime"]["active"] for route in instrument_snapshot["routes"])
+
+    engine.switch_scene("pads-v1", 1, engine.stage_revision)
+    pads_snapshot = engine.snapshot(["routes", "sources"])
+    assert len(pads_snapshot["routes"]) == 64
+    pad_caps = {route["destination"]["capability"] for route in pads_snapshot["routes"]}
+    assert pad_caps == {"harmonic_envelope", "harmonic_gain"}
+    source_ids = {item["source_id"] for item in pads_snapshot["sources"]}
+    assert {"hand_r_pad", "hand_l_pad"} <= source_ids
+    assert all(route["runtime"]["active"] for route in pads_snapshot["routes"])
 
 
 def test_live_osc_transport_audits_engine_frozen_route_bindings(

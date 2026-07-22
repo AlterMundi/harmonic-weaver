@@ -135,6 +135,7 @@ class StageServer:
             return "instruments"
         if event.type == "panic.event":
             return "stage"
+        # state.event carries an explicit topic (routes/scenes/stage/sources/…).
         return str(event.payload.get("topic", "stage"))
 
     async def websocket(self, websocket: WebSocket) -> None:
@@ -343,6 +344,76 @@ def create_app(
     @app.get("/api/scene/params")
     async def get_scene_params() -> dict[str, Any]:
         return params.snapshot()
+
+    @app.get("/api/pads")
+    async def get_pad_state() -> dict[str, Any]:
+        """Return current pad indices from derived sources plus route outputs.
+
+        Primary fields ``hand_r_pad`` / ``hand_l_pad`` mirror the Stage sources
+        snapshot (``hand_*_pad.pad``). ``active_pads`` is the set of integer pad
+        indices currently observed. ``routes`` lists harmonic envelope/gain last
+        outputs for debugging. Prefer the Stage WebSocket ``sources`` topic for
+        live overlay updates.
+        """
+        pad_addresses = ("hand_r_pad.pad", "hand_l_pad.pad")
+        hand_state: dict[str, Any] = {}
+        active: list[int] = []
+        routes_out: list[dict[str, Any]] = []
+        with selected_engine._lock:
+            for address in pad_addresses:
+                source_id, channel = address.split(".", 1)
+                envelope = selected_engine._values.get(address)
+                if envelope is None:
+                    hand_state[source_id] = {
+                        "channel": channel,
+                        "value": None,
+                        "state": "invalid",
+                        "confidence": 0.0,
+                    }
+                    continue
+                payload = {
+                    "channel": channel,
+                    "value": envelope.value,
+                    "state": envelope.state,
+                    "confidence": envelope.confidence,
+                    "received_at_us": envelope.received_at_us,
+                    "captured_at_us": envelope.captured_at_us,
+                }
+                hand_state[source_id] = payload
+                if envelope.state == "observed" and envelope.value is not None:
+                    idx = int(round(float(envelope.value)))
+                    if 0 <= idx < 32 and idx not in active:
+                        active.append(idx)
+            compiled = selected_engine._compiled_scene
+            routes = compiled.routes if compiled is not None else ()
+            for route in routes:
+                if not route.definition["enabled"]:
+                    continue
+                capability = route.destination.definition["capability"]
+                if capability not in {"harmonic_envelope", "harmonic_gain"}:
+                    continue
+                bindings = route.destination.definition["bindings"]
+                harmonic = bindings.get("N")
+                if not isinstance(harmonic, int):
+                    continue
+                last_output = selected_engine._last_outputs.get(route.destination.key)
+                routes_out.append(
+                    {
+                        "route_id": route.route_id,
+                        "harmonic": harmonic,
+                        "capability": capability,
+                        "last_output": last_output,
+                    }
+                )
+        active.sort()
+        routes_out.sort(key=lambda item: (item["harmonic"], item["capability"]))
+        return {
+            "scene_id": selected_engine.active_scene_id,
+            "hand_r_pad": hand_state.get("hand_r_pad"),
+            "hand_l_pad": hand_state.get("hand_l_pad"),
+            "active_pads": active,
+            "routes": routes_out,
+        }
 
     @app.post("/api/scene/params")
     async def post_scene_params(request: Request) -> JSONResponse:

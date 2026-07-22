@@ -37,4 +37,6 @@ where = ["src"]
 harmonic_weaver = ["static/*"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+# Project root so tests can import the local `rehearsal` package; `src` for
+# the installed harmonic_weaver package layout used by editable installs.
+pythonpath = [".", "src"]

@@ -1023,6 +1023,8 @@ class WeaverEngine:
                 runtime.pending_input = False
                 if previous != envelope:
                     derived_changed.add(aggregator.output_address)
+        if derived_changed:
+            self._publish_derived_source_channels(derived_changed)
         all_changed = changed | derived_changed
         for route in compiled.routes:
             if not route.definition["enabled"]:
@@ -1333,16 +1335,53 @@ class WeaverEngine:
             snapshot = self.snapshot(topics)
             return snapshot, self._state.revision, self._event_seq
 
+    def _channel_snapshot(self, envelope: ValueEnvelope) -> dict[str, Any]:
+        return {
+            "value": envelope.value,
+            "state": envelope.state,
+            "confidence": envelope.confidence,
+            "received_at_us": envelope.received_at_us,
+            "captured_at_us": envelope.captured_at_us,
+        }
+
+    def _publish_derived_source_channels(self, addresses: set[str]) -> None:
+        """Broadcast derived-source channel updates on the Stage sources topic.
+
+        Overlay clients subscribe to ``sources`` and read pad indices from
+        ``hand_r_pad.pad`` / ``hand_l_pad.pad`` (and any other derived source
+        channels). Stage revision is intentionally not advanced: these are
+        streaming value updates, not stage graph mutations.
+        """
+        by_source: dict[str, dict[str, Any]] = {}
+        for address in sorted(addresses):
+            if "." not in address:
+                continue
+            source_id, channel = address.split(".", 1)
+            status = self._sources.get(source_id)
+            if status is None or status.kind != "derived":
+                continue
+            envelope = self._values.get(address)
+            if envelope is None:
+                continue
+            by_source.setdefault(source_id, {})[channel] = self._channel_snapshot(envelope)
+        for source_id, channels in by_source.items():
+            self._publish(
+                "state.event",
+                {
+                    "topic": "sources",
+                    "action": "source.channels_updated",
+                    "entity_id": source_id,
+                    "entity": {
+                        "source_id": source_id,
+                        "channels": channels,
+                    },
+                },
+            )
+
     def _source_snapshot(self, status: SourceStatus) -> dict[str, Any]:
         prefix = status.source_id + "."
         channels = {
-            address[len(prefix) :]: {
-                "value": envelope.value,
-                "state": envelope.state,
-                "confidence": envelope.confidence,
-                "received_at_us": envelope.received_at_us,
-                "captured_at_us": envelope.captured_at_us,
-            }
+            address[len(prefix) :]: self._channel_snapshot(envelope)
             for address, envelope in self._values.items()
             if address.startswith(prefix)
         }

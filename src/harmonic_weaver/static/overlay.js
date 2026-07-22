@@ -231,20 +231,117 @@ grid.addEventListener('mousemove', (e) => {
 grid.addEventListener('mouseleave', () => setHover(null));
 
 // ---------------------------------------------------------------------------
-// WebSocket — future routing feed (route_state / pad_activation).
-// The server does not emit these yet, so parsing is deliberately defensive:
-// unknown message types and unknown payload keys are ignored silently.
+// WebSocket — Stage Contract protocol.
+// Handshake: server.hello → client.hello → server.hello(ready) →
+// state.subscribe(sources) → state.snapshot + state.event stream.
+// Pad highlights come from derived sources hand_r_pad.pad / hand_l_pad.pad.
 // ---------------------------------------------------------------------------
+const PROTOCOL_VERSION = '0.1-draft';
+const STAGE_CONTRACT_ID = 'cc2f83205e0dccf6d0b5d488883d73ad';
+const PAD_SOURCE_CHANNELS = {
+  hand_r_pad: 'pad',
+  hand_l_pad: 'pad',
+};
+
 let ws = null;
 let reconnectTimer = null;
 let lastPadMsgAt = 0;  // when we last got real pad data (gates the simulation)
+let requestSeq = 0;
+let stageGated = false;
+// Latest pad index per hand source (null = invalid / unknown).
+const handPads = { hand_r_pad: null, hand_l_pad: null };
 
-// Coerce assorted payload shapes into a list of integer pad indices in [0,N).
+function clientId() {
+  try {
+    const key = 'harmonic-weaver-overlay-client-id';
+    let value = localStorage.getItem(key);
+    if (!value) {
+      value = `overlay-${crypto.randomUUID()}`;
+      localStorage.setItem(key, value);
+    }
+    return value;
+  } catch (_e) {
+    return `overlay-${Math.random().toString(16).slice(2)}`;
+  }
+}
+
+function nextRequestId(prefix) {
+  requestSeq += 1;
+  return `${prefix}-${requestSeq}`;
+}
+
+function sendClient(type, payload) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({
+    type,
+    protocol_version: PROTOCOL_VERSION,
+    request_id: nextRequestId(type.replace('.', '-')),
+    payload,
+  }));
+}
+
+function padIndexFromEnvelope(envelope) {
+  if (!envelope || typeof envelope !== 'object') return null;
+  if (envelope.state && envelope.state !== 'observed' && envelope.state !== 'held') return null;
+  const n = Number(envelope.value);
+  if (!Number.isFinite(n)) return null;
+  const idx = Math.round(n);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= N) return null;
+  return idx;
+}
+
+function recomputeWsPadsFromHands() {
+  wsPads.clear();
+  for (const idx of Object.values(handPads)) {
+    if (idx != null) wsPads.add(idx);
+  }
+  if (wsPads.size) {
+    lastPadMsgAt = Date.now();
+    randomPads.clear();
+  }
+  recomputeActive();
+}
+
+function applyPadChannel(sourceId, channel, envelope) {
+  if (!(sourceId in handPads)) return;
+  if (channel !== PAD_SOURCE_CHANNELS[sourceId]) return;
+  handPads[sourceId] = padIndexFromEnvelope(envelope);
+  recomputeWsPadsFromHands();
+}
+
+function applySourcesSnapshot(sources) {
+  if (!Array.isArray(sources)) return;
+  let touched = false;
+  for (const source of sources) {
+    if (!source || typeof source !== 'object') continue;
+    const sourceId = source.source_id;
+    if (!(sourceId in handPads)) continue;
+    const channel = PAD_SOURCE_CHANNELS[sourceId];
+    const envelope = source.channels?.[channel];
+    handPads[sourceId] = padIndexFromEnvelope(envelope);
+    touched = true;
+  }
+  if (touched) recomputeWsPadsFromHands();
+}
+
+function applySourceChannelsUpdated(payload) {
+  if (!payload || typeof payload !== 'object') return;
+  const entity = payload.entity || payload;
+  const sourceId = entity.source_id || payload.entity_id;
+  if (!(sourceId in handPads)) return;
+  const channels = entity.channels;
+  if (!channels || typeof channels !== 'object') return;
+  const channel = PAD_SOURCE_CHANNELS[sourceId];
+  if (!(channel in channels)) return;
+  applyPadChannel(sourceId, channel, channels[channel]);
+}
+
+// Legacy defensive parsers (route_state / pad_activation) kept as no-ops if a
+// future feed still uses them — they merge into wsPads without clobbering hands.
 function toPadList(value) {
   const out = [];
   if (Array.isArray(value)) {
     if (value.length && typeof value[0] === 'boolean') {
-      // bitmask array: [true,false,...] length N
       value.forEach((on, i) => { if (on) out.push(i); });
     } else {
       for (const v of value) {
@@ -253,7 +350,6 @@ function toPadList(value) {
       }
     }
   } else if (value && typeof value === 'object') {
-    // map { "0": true, "5": true, ... }
     for (const [k, on] of Object.entries(value)) {
       const n = Number(k);
       if (on && Number.isInteger(n) && n >= 0 && n < N) out.push(n);
@@ -262,18 +358,17 @@ function toPadList(value) {
   return out;
 }
 
-// route_state: full snapshot of which pads are active.
 function applyRouteState(payload) {
   if (!payload || typeof payload !== 'object') return;
   const list = toPadList(payload.active_pads ?? payload.pads ?? payload.active ?? payload.routes);
+  if (!list.length) return;
   wsPads.clear();
   for (const i of list) wsPads.add(i);
   lastPadMsgAt = Date.now();
-  randomPads.clear();  // real data supersedes the placeholder
+  randomPads.clear();
   recomputeActive();
 }
 
-// pad_activation: a single pad toggled on/off.
 function applyPadActivation(payload) {
   if (!payload || typeof payload !== 'object') return;
   const raw = payload.index ?? payload.pad ?? payload.idx ?? payload.harmonic;
@@ -290,15 +385,57 @@ function handleWSMessage(data) {
   let msg;
   try { msg = JSON.parse(data); } catch (_e) { return; }
   if (!msg || typeof msg !== 'object') return;
-  const type = msg.type || msg.event || '';
-  const payload = (msg.payload && typeof msg.payload === 'object') ? msg.payload : msg;
+  const type = msg.type || '';
+  const payload = (msg.payload && typeof msg.payload === 'object') ? msg.payload : {};
+
+  if (type === 'server.hello') {
+    if (payload.gate_state === 'awaiting_client') {
+      sendClient('client.hello', {
+        client_id: clientId(),
+        expected_contract_id: STAGE_CONTRACT_ID,
+        supported_protocol_versions: [PROTOCOL_VERSION],
+      });
+    } else if (payload.gate_state === 'ready') {
+      stageGated = true;
+      wsState = 'live';
+      updateStatus();
+      sendClient('state.subscribe', { topics: ['sources'] });
+    } else if (payload.gate_state === 'incompatible') {
+      wsState = 'offline';
+      updateStatus();
+    }
+    return;
+  }
+
+  if (type === 'state.snapshot') {
+    applySourcesSnapshot(payload.sources);
+    return;
+  }
+
+  if (type === 'state.event') {
+    if (payload.topic === 'sources' && payload.action === 'source.channels_updated') {
+      applySourceChannelsUpdated(payload);
+    }
+    return;
+  }
+
+  if (type === 'registry.source' && payload.action === 'derived_ready') {
+    // Derived sources just appeared — re-subscribe for a fresh snapshot.
+    if (stageGated) sendClient('state.subscribe', { topics: ['sources'] });
+    return;
+  }
+
+  // Back-compat: ignore silently if never emitted.
   if (type === 'route_state') applyRouteState(payload);
   else if (type === 'pad_activation') applyPadActivation(payload);
-  // any other message type is ignored silently
 }
 
 function connectWS() {
   clearTimeout(reconnectTimer);
+  stageGated = false;
+  requestSeq = 0;
+  handPads.hand_r_pad = null;
+  handPads.hand_l_pad = null;
   wsState = 'connecting';
   updateStatus();
   let socket;
@@ -312,9 +449,9 @@ function connectWS() {
     return;
   }
   ws = socket;
-  socket.addEventListener('open', () => { wsState = 'live'; updateStatus(); });
   socket.addEventListener('message', (ev) => handleWSMessage(ev.data));
   socket.addEventListener('close', () => {
+    stageGated = false;
     wsState = 'offline';
     updateStatus();
     reconnectTimer = setTimeout(connectWS, 3000);
