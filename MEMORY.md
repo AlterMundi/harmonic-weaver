@@ -1,11 +1,19 @@
 # harmonic-weaver — Project Memory
 
-> Last updated: 2026-07-22. Pads v1 live-working.
+> Last updated: 2026-07-24. Pads v2 on integration branch `feat/pads-v2`.
 
 ## Status
 
 Critical-path engine of the beacon ecosystem. All core tasks complete (T1.1–T4.5).
-**Pads v1** (cuerpo-como-instrumento spatial grid mode) live-working: 4×8 serpentine harmonic pad grid overlaid on HarMoCAP window, 64 routes (right hand→envelope, left hand→gain), polyphonic gain ducking in Shaper, bin_2d spatial aggregator operator.
+**Pads v2** (cuerpo-como-instrumento with retrigger/pluck) on integration branch `feat/pads-v2`:
+- Single-slot symmetric per-hand grid (hand_r → odd N, hand_l → even N).
+- 64 routes: 16 envelope + 16 trigger per hand.
+- New engine transforms: `radial_velocity`, `peak_detector`, `pad_dwell`.
+- New Shaper capability: `harmonic_trigger` (pluck envelope on deceleration peak, contract id `cac459b4`).
+- `--pads-view` flag on the launcher.
+- Audio path switched from pw-jack to ALSA directly (R24 USB Audio stable).
+- Orphan process reclaim on boot (no more manual port cleanup).
+- 150 tests green. branch `feat/pads-v2` (NOT merged to main — pending user review).
 
 ## Key paths
 
@@ -23,11 +31,13 @@ Critical-path engine of the beacon ecosystem. All core tasks complete (T1.1–T4
 ## Quick-start
 
 ```bash
-# Live stack with pads scene (HarMoCAP skeleton + 4×8 grid overlay)
-./scripts/start-live-stack.sh --scene pads-v1 --beacon-mute --show
+# Shaper with pluck capability (MUST be on feat/pads-v2)
+cd ~/Projects/harmonic-shaper && git checkout feat/pads-v2
+# Weaver with all transforms + scene v2 + launcher fixes
+cd ~/Projects/harmonic-weaver && git checkout feat/pads-v2
 
-# Web overlay (alternative to HarMoCAP window)
-http://localhost:8765/static/overlay.html
+# Live stack with pads-v2 scene (harmonic switching + retrigger on deceleration)
+./scripts/start-live-stack.sh --scene pads-v2 --beacon-mute --pads-view harmocap
 
 # Stop
 ./scripts/start-live-stack.sh --stop latest
@@ -35,8 +45,8 @@ http://localhost:8765/static/overlay.html
 
 ```bash
 # Tests
-/tmp/weaver-audit/bin/python -m pytest tests/ -q
-# 120 passed, 1 skipped, 4 subtests
+PYTHONPATH=src /tmp/weaver-audit/bin/python -m pytest tests/ -q
+# 150 passed, 1 skipped, 4 subtests
 ```
 
 ## Pads v1 — spatial grid mode (2026-07-22)
