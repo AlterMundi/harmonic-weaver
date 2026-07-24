@@ -2,13 +2,12 @@
   "scene_id": "pads-v2",
   "scene_version": 1,
   "name": "Pads v2",
-  "description": "Single-slot symmetric per-hand grid. Hand r owns odd N (1..31), hand l owns even N (2..32). 32 harmonics total, 16 per hand, each with envelope + pluck trigger. Multi-human ready at the aggregator level; full multi-slot mapping requires per-source voice_id ownership in harmonic_envelope (engine limitation, future card).",
+  "description": "4x8 serpentine -> 32 harmonic pads. Symmetric per-hand role. Hand r owns odd N, hand l owns even N. Each pad index maps to exactly one harmonic. Onset on deceleration peak.",
   "tags": [
     "rehearsal",
     "pads",
     "harmonic",
-    "v2",
-    "single-slot"
+    "v2"
   ],
   "created_at_us": 0,
   "updated_at_us": 0,
@@ -373,8 +372,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            0.5,
+            1.5
           ],
           "out": [
             0.0,
@@ -469,8 +468,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            1.5,
+            2.5
           ],
           "out": [
             0.0,
@@ -565,8 +564,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            2.5,
+            3.5
           ],
           "out": [
             0.0,
@@ -661,8 +660,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            3.5,
+            4.5
           ],
           "out": [
             0.0,
@@ -757,8 +756,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            4.5,
+            5.5
           ],
           "out": [
             0.0,
@@ -853,8 +852,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            5.5,
+            6.5
           ],
           "out": [
             0.0,
@@ -949,8 +948,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            6.5,
+            7.5
           ],
           "out": [
             0.0,
@@ -1045,8 +1044,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            7.5,
+            8.5
           ],
           "out": [
             0.0,
@@ -1141,8 +1140,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            8.5,
+            9.5
           ],
           "out": [
             0.0,
@@ -1237,8 +1236,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            9.5,
+            10.5
           ],
           "out": [
             0.0,
@@ -1333,8 +1332,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            10.5,
+            11.5
           ],
           "out": [
             0.0,
@@ -1429,8 +1428,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            11.5,
+            12.5
           ],
           "out": [
             0.0,
@@ -1525,8 +1524,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            12.5,
+            13.5
           ],
           "out": [
             0.0,
@@ -1621,8 +1620,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            13.5,
+            14.5
           ],
           "out": [
             0.0,
@@ -1717,8 +1716,8 @@
         {
           "type": "scale_range",
           "in": [
-            -0.5,
-            0.5
+            14.5,
+            15.5
           ],
           "out": [
             0.0,
@@ -1813,8 +1812,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            15.5,
+            16.5
           ],
           "out": [
             0.0,
@@ -1909,8 +1908,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            16.5,
+            17.5
           ],
           "out": [
             0.0,
@@ -2005,8 +2004,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            17.5,
+            18.5
           ],
           "out": [
             0.0,
@@ -2101,8 +2100,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            18.5,
+            19.5
           ],
           "out": [
             0.0,
@@ -2197,8 +2196,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            19.5,
+            20.5
           ],
           "out": [
             0.0,
@@ -2293,8 +2292,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            20.5,
+            21.5
           ],
           "out": [
             0.0,
@@ -2389,8 +2388,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            21.5,
+            22.5
           ],
           "out": [
             0.0,
@@ -2485,8 +2484,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            22.5,
+            23.5
           ],
           "out": [
             0.0,
@@ -2581,8 +2580,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            23.5,
+            24.5
           ],
           "out": [
             0.0,
@@ -2677,8 +2676,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            24.5,
+            25.5
           ],
           "out": [
             0.0,
@@ -2773,8 +2772,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            25.5,
+            26.5
           ],
           "out": [
             0.0,
@@ -2869,8 +2868,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            26.5,
+            27.5
           ],
           "out": [
             0.0,
@@ -2965,8 +2964,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            27.5,
+            28.5
           ],
           "out": [
             0.0,
@@ -3061,8 +3060,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            28.5,
+            29.5
           ],
           "out": [
             0.0,
@@ -3157,8 +3156,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            29.5,
+            30.5
           ],
           "out": [
             0.0,
@@ -3253,8 +3252,8 @@
         {
           "type": "scale_range",
           "in": [
-            0.5,
-            1.5
+            30.5,
+            31.5
           ],
           "out": [
             0.0,
