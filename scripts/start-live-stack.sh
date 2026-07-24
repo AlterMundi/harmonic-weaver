@@ -323,7 +323,7 @@ PY
 # the launcher's --stop command cannot clean up.  Detect stale live-stack
 # processes by port + command pattern and kill them automatically so the user
 # never sees "port … already in use".
-_KNOWN_ORPHANS="scsynth|sclang|weaver_runtime|harmonic_shaper|run_realtime"
+_KNOWN_ORPHANS="scsynth|sclang|weaver_runtime|harmonic_shaper|run_realtime|python3|python"
 reclaim_orphan_port() { # port proto
     local pid cmd
     for pid in $(ss -tulpn 2>/dev/null | grep -oP "\b$1\b.*pid=\K[0-9]+"); do
