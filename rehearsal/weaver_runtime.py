@@ -172,8 +172,21 @@ def shaper_safety_profile(contract_id: str) -> dict[str, Any]:
         }
         for harmonic in range(1, 33)
     ]
+    # Pads v2 (feat/pads-v2): body-driven onset events via peak_detector on
+    # radial_velocity. The Shaper's harmonic_trigger capability layers a
+    # transient pluck on top of the sustain envelope without resetting phase
+    # or releasing the sustain gate. Default amplitude at rest is 0 (no pluck).
+    harmonic_trigger_defaults = [
+        {
+            "capability": "harmonic_trigger",
+            "bindings": {"N": harmonic},
+            "argument": "amplitude",
+            "value": 0.0,
+        }
+        for harmonic in range(1, 33)
+    ]
     reset_defaults: list[dict[str, Any]] = (
-        harmonic_envelope_defaults + harmonic_gain_defaults
+        harmonic_envelope_defaults + harmonic_gain_defaults + harmonic_trigger_defaults
     )
     reset_defaults.extend(
         [
