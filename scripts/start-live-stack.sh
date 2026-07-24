@@ -326,7 +326,7 @@ PY
 _KNOWN_ORPHANS="scsynth|sclang|weaver_runtime|harmonic_shaper|run_realtime"
 reclaim_orphan_port() { # port proto
     local pid cmd
-    for pid in $(ss -tulpn 2>/dev/null | awk -v p=":$1" '$0 ~ p {for(i=1;i<=NF;i++) if(match($i,/pid=/)) {gsub(/.*pid=/,"",$i); gsub(/,/,"",$i); print $i}}'); do
+    for pid in $(ss -tulpn 2>/dev/null | grep -oP "\b$1\b.*pid=\K[0-9]+"); do
         cmd="$(ps -o comm= -p "$pid" 2>/dev/null || true)"
         if echo "$cmd" | grep -qE "$_KNOWN_ORPHANS"; then
             log "reclaiming orphan $cmd (pid $pid) on port $1/$2 …"
