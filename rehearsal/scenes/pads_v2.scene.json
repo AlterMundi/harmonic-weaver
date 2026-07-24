@@ -2,7 +2,7 @@
   "scene_id": "pads-v2",
   "scene_version": 1,
   "name": "Pads v2",
-  "description": "4x8 serpentine -> 32 harmonic pads. Symmetric per-hand role. Hand r owns odd N, hand l owns even N. Each pad index maps to exactly one harmonic. Onset on deceleration peak.",
+  "description": "4x8 serpentine -> 32 harmonic pads. Symmetric per-hand. Hand r odd N, hand l even N. Onset on deceleration peak. Tuned for playability (2026-07-24).",
   "tags": [
     "rehearsal",
     "pads",
@@ -271,7 +271,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -324,9 +324,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -367,7 +373,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -420,9 +426,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -463,7 +475,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -516,9 +528,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -559,7 +577,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -612,9 +630,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -655,7 +679,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -708,9 +732,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -751,7 +781,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -804,9 +834,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -847,7 +883,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -900,9 +936,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -943,7 +985,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -996,9 +1038,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1039,7 +1087,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1092,9 +1140,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1135,7 +1189,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1188,9 +1242,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1231,7 +1291,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1284,9 +1344,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1327,7 +1393,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1380,9 +1446,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1423,7 +1495,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1476,9 +1548,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1519,7 +1597,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1572,9 +1650,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1615,7 +1699,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1668,9 +1752,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1711,7 +1801,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1764,9 +1854,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1807,7 +1903,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1860,9 +1956,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1903,7 +2005,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -1956,9 +2058,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -1999,7 +2107,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2052,9 +2160,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2095,7 +2209,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2148,9 +2262,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2191,7 +2311,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2244,9 +2364,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2287,7 +2413,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2340,9 +2466,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2383,7 +2515,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2436,9 +2568,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2479,7 +2617,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2532,9 +2670,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2575,7 +2719,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2628,9 +2772,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2671,7 +2821,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2724,9 +2874,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2767,7 +2923,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2820,9 +2976,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2863,7 +3025,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -2916,9 +3078,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -2959,7 +3127,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -3012,9 +3180,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -3055,7 +3229,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -3108,9 +3282,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -3151,7 +3331,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -3204,9 +3384,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
@@ -3247,7 +3433,7 @@
       "transforms": [
         {
           "type": "pad_dwell",
-          "dwell_ms": 80.0
+          "dwell_ms": 50.0
         },
         {
           "type": "scale_range",
@@ -3300,9 +3486,15 @@
           "type": "radial_velocity"
         },
         {
+          "type": "smoothing",
+          "kind": "one_pole",
+          "time_ms": 40.0,
+          "max_dt_ms": 80.0
+        },
+        {
           "type": "peak_detector",
-          "threshold": 0.3,
-          "refractory_ms": 250.0
+          "threshold": 0.55,
+          "refractory_ms": 400.0
         },
         {
           "type": "scale_range",
