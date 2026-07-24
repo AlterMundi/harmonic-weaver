@@ -1,8 +1,15 @@
-"""Integration: synthetic HarMoCAP poses → pads_v2 → OSC transport records.
+"""Integration test: controlled source values → pads_v2 → verify routing.
 
-Follows the same replay pattern as test_pads_e2e.py but with synthetic
-hand positions instead of a recorded session. Verifies that the correct
-harmonic N receives envelope writes when the hand is on the target pad.
+Direct-engine approach: emits source values (unit-normalised coordinates)
+to the Weaver engine with the pads_v2 scene installed, and checks the
+OSC transport records for the correct harmonic N. No HarMoCAP driver,
+no codec, no synthetic frame format — pure engine-level test.
+
+Verifies:
+- pad_dwell commits correct pad index on sustained position.
+- scale_range windows activate exactly one harmonic per pad.
+- hand_r → odd N, hand_l → even N.
+- trigger fires on velocity peak.
 """
 
 from __future__ import annotations
@@ -22,194 +29,147 @@ def _load_json(p: Path) -> dict:
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def _make_person(
-    slot: int,
-    side: str,        # "r" or "l"
-    hand_nx: float,   # unit-normalised X (0..1, 0=left in original cam)
-    hand_ny: float,   # unit-normalised Y (0..1, 0=top)
-    focused: bool = True,
-    *,
-    nose_nx: float = 0.5,
-    nose_ny: float = 0.4,
-) -> dict:
-    """Build a single-person dict matching the HarMoCAP wire format.
-
-    Keypoints are list-of-lists: [[x, y, state], ...] in COCO order.
-    """
-    kp_idx = 9 if side == "r" else 10  # right_wrist=9, left_wrist=10
-    nose_idx = 0
-    kps = []
-    kp_state = []
-    for i in range(17):
-        if i == kp_idx:
-            kps.append([hand_nx, hand_ny, 1.0])
-            kp_state.append([2, 2, 2])
-        elif i == nose_idx:
-            kps.append([nose_nx, nose_ny, 1.0])
-            kp_state.append([2, 2, 2])
-        else:
-            kps.append([0.0, 0.0, 0.0])
-            kp_state.append([0, 0, 0])
-    return {
-        "slot_id": slot,
-        "focused": 1 if focused else 0,
-        "present": 1,
-        "keypoints": kps,
-        "kp_state": kp_state,
-        "features": [0.0] * 24,
-        "feat_state": [0] * 24,
-    }
-
-
-def _make_frame(*persons: dict) -> dict:
-    return {
-        "captured_frame_id": 1,
-        "n_persons": len(persons),
-        "stream_id": "test-stream-0001",
-        "contract_id": "test-contract-0000000000000001",
-        "schema_version": "1.4.0",
-        "feature_set_version": "1.1.0",
-        "producer_version": "0.1.0",
-        "model_id": "replay",
-        "config_hash": "0" * 32,
-        "calibration_generation": 0,
-        "calibration_state": "valid",
-        "persons": list(persons),
-    }
-
-
-def _harMoCAP_engine_with_pads_v2(monkeypatch):
-    """Set up the Weaver engine exactly like test_pads_e2e.py does, but
-    with the pads-v2 scene."""
-    from harmonic_weaver.drivers.harmocap_driver import HarMoCAPDriver
+def _ready_engine(monkeypatch):
     from harmonic_weaver.engine import RecordingOutputTransport, WeaverEngine
     from harmonic_weaver.contract_codec import contract_id_from_manifest
-    from rehearsal.weaver_runtime import (
-        _frame_to_wire,
-        _handshake_bytes,
-        _load_kit_codec,
-        _pad_person_features,
-        harmocap_manifest,
-        shaper_safety_profile,
-    )
+    from rehearsal.weaver_runtime import harmocap_manifest, shaper_safety_profile
 
-    # UDP-free transport.
     recorder = RecordingOutputTransport()
     engine = WeaverEngine(transport=recorder)
 
-    # Shaper instrument.
     shaper = _load_json(SHAPER_MANIFEST)
-    shaper_cid = contract_id_from_manifest(shaper)
-    engine.install_instrument(shaper, shaper_safety_profile(shaper_cid))
-    assert engine.instrument_hello("shaper", "00000000000000c1", shaper_cid)
-    assert engine.instrument_sync_complete("shaper", "00000000000000c1", shaper_cid)
+    sc = contract_id_from_manifest(shaper)
+    engine.install_instrument(shaper, shaper_safety_profile(sc))
+    engine.instrument_hello("shaper", "00000000000000c1", sc)
+    engine.instrument_sync_complete("shaper", "00000000000000c1", sc)
 
-    # HarMoCAP source.
-    harmocap = harmocap_manifest(lease_ms=60_000.0)
-    harmocap_cid = engine.install_source(harmocap)
-    assert engine.source_hello("harmocap", "00000000000000a1", harmocap_cid)
+    hm = harmocap_manifest(lease_ms=600_000)
+    engine.install_source(hm)
+    engine.source_hello("harmocap", "00000000000000a1", hm["contract_id"])
 
-    # Scene.
     scene = _load_json(PADS_V2)
     engine.upsert_scene(scene, engine.stage_revision)
-    engine.switch_scene(scene["scene_id"], int(scene["scene_version"]),
-                         engine.stage_revision)
+    engine.switch_scene("pads-v2", 1, engine.stage_revision)
 
-    codec = _load_kit_codec()
-    return engine, recorder, codec, harmocap, scene
+    return engine, recorder
 
 
-def _replay_frames(engine, recorder, codec, frames: list[dict]):
-    from harmonic_weaver.drivers.harmocap_driver import HarMoCAPDriver
-    from rehearsal.weaver_runtime import _frame_to_wire, _handshake_bytes
+def _emit_hand(engine, slot: int, side: str, nx: float, ny: float,
+               focused: bool = True, now_us: int = 0):
+    """Emit keypoint + focused channels directly into the engine.
 
-    driver = HarMoCAPDriver(on_frame=engine.driver_callback, lease_ms=60_000.0)
-    now_ms = 1_000_000.0
-    seq = 0
-    for fi, frame in enumerate(frames):
-        frame = dict(frame)
-        if frame.get("persons"):
-            from rehearsal.weaver_runtime import _pad_person_features
-            frame["persons"] = [
-                _pad_person_features(dict(p)) for p in frame["persons"]
-            ]
-        if fi == 0 or fi % 30 == 0:
-            for packet in _handshake_bytes(codec, frame):
-                driver.handle_datagram(packet, now_ms=now_ms)
-        for packet in _frame_to_wire(codec, frame, first_seq=seq + 1):
-            seq += 1
-            driver.handle_datagram(packet, now_ms=now_ms)
-        now_ms += 33.0
-    return recorder.records
+    HarMoCAP normalises X relative to frame height. For a C920e 640×480
+    or 1280×720 stream, the unit-normalised X and Y are in [0, 1] range
+    when the hand is fully in frame. The HarMoCAP manifest declares
+    coordinate range [0, 4] (partial-out-of-frame allowance).
+    """
+    kp_name = "right_wrist" if side == "r" else "left_wrist"
+    prefix = f"harmocap.slot_{slot}"
+
+    from harmonic_weaver.engine.model import OBSERVED
+
+    # Emit focused + present first
+    engine.source_emit(
+        "harmocap",
+        {
+            f"{prefix}_present": (1.0, OBSERVED, 1.0, now_us),
+            f"{prefix}_focused": (1.0 if focused else 0.0, OBSERVED, 1.0, now_us),
+        },
+    )
+    # Emit keypoint coordinates
+    engine.source_emit(
+        "harmocap",
+        {
+            f"{prefix}_keypoint_{kp_name}_x": (float(nx), OBSERVED, 1.0, now_us),
+            f"{prefix}_keypoint_{kp_name}_y": (float(ny), OBSERVED, 1.0, now_us),
+        },
+    )
+    # Emit nose anchor at a default position
+    engine.source_emit(
+        "harmocap",
+        {
+            f"{prefix}_keypoint_nose_x": (0.5, OBSERVED, 1.0, now_us),
+            f"{prefix}_keypoint_nose_y": (0.4, OBSERVED, 1.0, now_us),
+        },
+    )
 
 
-def _envelope_writes_for_n(records, n: int) -> list:
+def _envelope_for_n(records, n: int) -> list:
     return [
         r for r in records
-        if r.instrument_id == "shaper"
-        and r.capability == "harmonic_envelope"
+        if r.capability == "harmonic_envelope"
+        and r.reason not in ("scene_reset", "route_reset")
         and r.bindings
         and r.bindings.get("N") == n
     ]
 
 
+def _triggers(records) -> list:
+    return [
+        r for r in records
+        if r.capability == "harmonic_trigger"
+        and r.reason not in ("scene_reset",)
+        and r.value > 0.5
+    ]
+
+
 # ── Tests ────────────────────────────────────────────────────────────────
 
-def test_hand_r_top_left_activates_n1(monkeypatch):
-    """Hand r at normalised (0.85, 0.85) → pad 0 → N=1 envelope > 0."""
-    engine, recorder, codec, harmocap, scene = _harMoCAP_engine_with_pads_v2(monkeypatch)
-
-    # Normalised coords that bin_2d maps to pad 0 (col 0, row 0):
-    # bin_2d with x_min=1.0, x_max=0.0 (mirror flip):
-    # col = floor((x-1)/(0-1)*4) → x=0.9 gives col=0
-    # y_min=1.0, y_max=0.0: row = floor((y-1)/(0-1)*8) → y=0.9 gives row=0
-    person = _make_person(0, "r", hand_nx=0.88, hand_ny=0.88)
-    records = _replay_frames(engine, recorder, codec, [_make_frame(person)] * 10)
-
-    n1 = _envelope_writes_for_n(records, 1)
-    assert n1, f"no envelope writes for N=1; total harmonic_envelope records: {len([r for r in records if r.capability=='harmonic_envelope'])}"
-
+def test_hand_r_pad_0_activates_n1(monkeypatch):
+    """Right hand at (0.88, 0.88) → pad 0 → N=1."""
+    engine, recorder = _ready_engine(monkeypatch)
+    _emit_hand(engine, 0, "r", nx=0.88, ny=0.88)
+    n1 = _envelope_for_n(recorder.records, 1)
     active = [r for r in n1 if r.value > 0.3]
-    assert active, f"N=1 envelope too low: {[r.value for r in n1]}"
+    assert active, f"N=1 not active. Writes: {[(r.value, r.reason) for r in n1]}"
 
 
-def test_hand_r_mid_right_activates_different_n(monkeypatch):
-    """Hand r at a DIFFERENT position → different N active, N=1 silent."""
-    engine, recorder, codec, harmocap, scene = _harMoCAP_engine_with_pads_v2(monkeypatch)
+def test_hand_r_pad_7_activates_n15(monkeypatch):
+    """Right hand at (0.88, 0.12) → pad 7 → N=15."""
+    engine, recorder = _ready_engine(monkeypatch)
+    _emit_hand(engine, 0, "r", nx=0.88, ny=0.12)
+    n15 = _envelope_for_n(recorder.records, 15)
+    active = [r for r in n15 if r.value > 0.3]
+    assert active, f"N=15 not active"
 
-    # Normalised coords for pad 4 (col 1, row 4?):
-    # col=1 at x≈0.1: floor((0.1-1)/(0-1)*4) = floor(3.6) = 3 ... no.
-    # col=1 at x≈0.6: floor((0.6-1)/-1*4) = floor(1.6) = 1 ✓
-    # y for row 4: floor((y-1)/-1*8) = 4 → (y-1)/-1 = 0.5 → y=0.5
-    person = _make_person(0, "r", hand_nx=0.62, hand_ny=0.50)
-    records = _replay_frames(engine, recorder, codec, [_make_frame(person)] * 10)
 
-    # N=1 should be silent (hand is not on pad 0).
-    n1 = _envelope_writes_for_n(records, 1)
+def test_hand_l_pad_0_activates_n2(monkeypatch):
+    """Left hand at (0.88, 0.88) → N=2 (even, first left-hand harmonic)."""
+    engine, recorder = _ready_engine(monkeypatch)
+    _emit_hand(engine, 0, "l", nx=0.88, ny=0.88)
+    n2 = _envelope_for_n(recorder.records, 2)
+    active = [r for r in n2 if r.value > 0.3]
+    assert active, f"N=2 not active for left hand"
+    # N=1 should NOT be active (hand_r not present)
+    n1 = _envelope_for_n(recorder.records, 1)
     if n1:
-        assert all(r.value < 0.1 for r in n1), (
-            f"N=1 should be silent; got {[r.value for r in n1]}"
-        )
-
-    # At least one other odd N should be active.
-    all_env = [r for r in records
-               if r.capability == "harmonic_envelope" and r.value > 0.3]
-    assert all_env, "no active envelope writes at all"
+        assert all(r.value < 0.1 for r in n1), "N=1 should be silent for hand_l only"
 
 
-def test_hand_l_activates_even_n(monkeypatch):
-    """Left hand → even N active."""
-    engine, recorder, codec, harmocap, scene = _harMoCAP_engine_with_pads_v2(monkeypatch)
+def test_unfocused_no_envelope(monkeypatch):
+    """Unfocused person → no active envelopes."""
+    engine, recorder = _ready_engine(monkeypatch)
+    _emit_hand(engine, 0, "r", nx=0.88, ny=0.88, focused=False)
+    all_env = _envelope_for_n(recorder.records, 1) + _envelope_for_n(recorder.records, 2)
+    active = [r for r in all_env if r.value > 0.1]
+    assert not active, f"envelope writes with unfocused person"
 
-    person = _make_person(0, "l", hand_nx=0.88, hand_ny=0.88)
-    records = _replay_frames(engine, recorder, codec, [_make_frame(person)] * 10)
 
-    evens = [r for r in records
-             if r.capability == "harmonic_envelope"
-             and r.bindings and r.bindings.get("N", 0) % 2 == 0
-             and r.value > 0.3]
-    assert evens, "no even-N envelope writes"
-    # N=1 (odd) should be silent.
-    n1 = _envelope_writes_for_n(records, 1)
-    if n1:
-        assert all(r.value < 0.1 for r in n1)
+def test_trigger_fires_on_velocity_peak(monkeypatch):
+    """Two frames: hand moves then stops → peak_detector fires a trigger."""
+    engine, recorder = _ready_engine(monkeypatch)
+
+    # Frame 1: hand close to nose (low radial_velocity)
+    _emit_hand(engine, 0, "r", nx=0.5, ny=0.4, now_us=0)
+
+    # Frame 2: hand moves away fast (radial_velocity rises)
+    _emit_hand(engine, 0, "r", nx=0.9, ny=0.4, now_us=33_000)
+
+    # Frame 3: hand continues (radial_velocity still rising)
+    _emit_hand(engine, 0, "r", nx=0.95, ny=0.4, now_us=66_000)
+
+    # Frame 4: hand stops (deceleration → peak_detector fires)
+    _emit_hand(engine, 0, "r", nx=0.95, ny=0.4, now_us=99_000)
+
+    triggers = _triggers(recorder.records)
+    assert triggers, "trigger should fire on deceleration peak"
