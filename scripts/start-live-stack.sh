@@ -320,6 +320,40 @@ PY
     return 0
 }
 
+# ---- orphan reclamation (port 57110/57120/5050 already in use?) --------------
+# If a previous live-stack run crashed during boot (before writing its pidfile),
+# the launcher's --stop command cannot clean up.  Detect stale live-stack
+# processes by port + command pattern and kill them automatically so the user
+# never sees "port … already in use".
+_KNOWN_ORPHANS="scsynth|sclang|weaver_runtime|harmonic_shaper|run_realtime"
+reclaim_orphan_port() { # port proto
+    local pid cmd
+    for pid in $(ss -tulpn 2>/dev/null | awk -v p=":$1" '$0 ~ p {for(i=1;i<=NF;i++) if(match($i,/pid=/)) {gsub(/.*pid=/,"",$i); gsub(/,/,"",$i); print $i}}'); do
+        cmd="$(ps -o comm= -p "$pid" 2>/dev/null || true)"
+        if echo "$cmd" | grep -qE "$_KNOWN_ORPHANS"; then
+            log "reclaiming orphan $cmd (pid $pid) on port $1/$2 …"
+            kill -9 "$pid" 2>/dev/null || true
+        fi
+    done
+    # Wait up to 2 s for the port to free so the check below passes.
+    local waited=0
+    while [ $waited -lt 20 ]; do
+        if [ "$2" = "tcp" ]; then
+            (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null || return 0
+        else
+            "$WEAVER_VENV/bin/python" - "$1" <<'PY' 2>/dev/null && return 0
+import socket, sys
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind(("127.0.0.1", int(sys.argv[1])))
+s.close()
+PY
+        fi
+        waited=$((waited + 1))
+        sleep 0.1
+    done
+    return 0
+}
+
 # ---- preflight --------------------------------------------------------------
 log "run id: $RUN_ID"
 mkdir -p "$LOG_DIR"
@@ -351,7 +385,17 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     [ -x "$HARMOCAP_VENV/bin/python" ] || fail "HarMoCAP venv missing: $HARMOCAP_VENV"
 fi
 
-# Port preflight.
+# Port preflight — reclaim known orphans from crashed runs first, then
+# demand a free port.  The user never sees "port … already in use" again.
+log "reclaiming any orphaned live-stack processes …"
+reclaim_orphan_port 57120 udp
+reclaim_orphan_port 57110 udp
+reclaim_orphan_port 5050 tcp
+reclaim_orphan_port 9002 udp
+reclaim_orphan_port 8080 tcp
+reclaim_orphan_port 8765 tcp
+reclaim_orphan_port 9100 udp
+[ "$ECG_SIM" -eq 1 ] && reclaim_orphan_port 5001 udp
 [ "$DO_BEACON" -eq 1 ] && { check_port_free 57120 udp beacon; check_port_free 57110 udp beacon; check_port_free 5050 tcp beacon-webui; }
 [ "$DO_SHAPER" -eq 1 ] && { check_port_free 9002 udp shaper; check_port_free 8080 tcp shaper-api; }
 check_port_free 8765 tcp weaver-stage
