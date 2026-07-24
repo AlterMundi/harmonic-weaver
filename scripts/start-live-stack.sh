@@ -64,12 +64,10 @@
 #                                otherwise none. Explicit --pads-view wins
 #                                over --show (warn once if both are passed).
 #   --shaper-no-audio            Run the shaper headless (no sounddevice)
-#   --shaper-device <name>       JACK output device name substring for the
-#                                shaper (default: "R24 Analog Stereo"). The
-#                                shaper is always launched under pw-jack
-#                                when audio is on: the PipeWire ALSA plugin
-#                                renders silence for PortAudio streams on
-#                                this host; JACK is the audible path
+#   --shaper-device <name>       sounddevice output device name substring
+#                                for the shaper (default: "R24: USB Audio").
+#                                Use "Built-in Audio Analog Stereo" for the
+#                                internal laptop speakers as a fallback.
 #   --shaper-no-midi             Disable shaper MIDI inputs (default: MIDI
 #                                enabled, so USB keyboards like the reface
 #                                CP drive the native harmonic source)
@@ -124,7 +122,7 @@ SHOW=0
 PADS_VIEW=""
 PADS_VIEW_EXPLICIT=0
 SHAPER_AUDIO=1
-SHAPER_DEVICE="${SHAPER_DEVICE:-R24 Analog Stereo}"
+SHAPER_DEVICE="${SHAPER_DEVICE:-R24: USB Audio}"
 SHAPER_MIDI=1
 ECG_SIM=0
 ECG_BPM="72"
@@ -453,17 +451,14 @@ if [ "$DO_SHAPER" -eq 1 ]; then
     SHAPER_ARGS=()
     [ "$SHAPER_AUDIO" -eq 0 ] && SHAPER_ARGS+=(--no-audio)
     [ "$SHAPER_MIDI" -eq 0 ] && SHAPER_ARGS+=(--no-midi)
-    # Audio goes through JACK (pw-jack): the PipeWire ALSA plugin renders
-    # silence for PortAudio streams on this host (verified 2026-07-19;
-    # JACK->R24 is the audible path). The engine adopts the JACK server
-    # sample rate itself.
-    SHAPER_LAUNCH=()
+    # Audio goes directly to the ALSA device via sounddevice (no JACK).
+    # The PipeWire ALSA plugin on this host was historically silent but
+    # is verified working as of 2026-07-24 (test tone audible through R24).
     if [ "$SHAPER_AUDIO" -eq 1 ]; then
-        SHAPER_LAUNCH=(pw-jack)
         SHAPER_ARGS+=(--device "$SHAPER_DEVICE")
     fi
-    log "starting harmonic-shaper ${SHAPER_LAUNCH[*]:+pw-jack }${SHAPER_ARGS[*]:-(audio+midi)}"
-    (cd "$SHAPER_DIR" && "${SHAPER_LAUNCH[@]}" "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
+    log "starting harmonic-shaper${SHAPER_AUDIO:+ --device \"$SHAPER_DEVICE\"} ${SHAPER_ARGS[*]:-(audio+midi)}"
+    (cd "$SHAPER_DIR" && "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
         > "$LOG_DIR/shaper.log" 2>&1 &
     register $! shaper
     wait_http "http://127.0.0.1:8080/api/state" "shaper API" 60
