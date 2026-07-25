@@ -56,6 +56,7 @@ def _build_ranges():
     ranges = {}
     for slot in (0, 1):
         ranges[f"harmocap.slot_{slot}_focused"] = (0.0, 1.0)
+        ranges[f"harmocap.slot_{slot}_present"] = (0.0, 1.0)
         for kp in (
             "nose", "left_eye", "right_eye", "left_ear", "right_ear",
             "left_shoulder", "right_shoulder", "left_elbow", "right_elbow",
@@ -73,12 +74,22 @@ def _safety_defaults():
     for cap in shaper["capabilities"]:
         # Cover all capabilities pads_v1 and pads_v2 reference: envelope,
         # gain (pads_v1) and trigger.
-        if cap["name"] not in ("harmonic_envelope", "harmonic_gain", "harmonic_trigger"):
+        if cap["name"] not in (
+            "harmonic_envelope",
+            "harmonic_gain",
+            "harmonic_trigger",
+            "harmonic_source_envelope",
+        ):
             continue
         for n in range(1, 33):
-            d = {"instrument_id": "shaper", "capability": cap["name"],
-                 "bindings": {"N": n}, "argument": cap["arguments"][0]["name"]}
-            safety[destination_key(d)] = 0.0
+            sources = range(16) if cap["name"] == "harmonic_source_envelope" else (None,)
+            for source in sources:
+                bindings = {"N": n}
+                if source is not None:
+                    bindings["S"] = source
+                d = {"instrument_id": "shaper", "capability": cap["name"],
+                     "bindings": bindings, "argument": cap["arguments"][0]["name"]}
+                safety[destination_key(d)] = 0.0
     return safety
 
 
@@ -89,20 +100,19 @@ def test_pads_v2_scene_compiles_cleanly():
     result = compile_scene(scene, _build_ranges(),
                             {"harMoCAP": harmocap, "shaper": shaper},
                             safety_defaults=_safety_defaults())
-    # 8 aggregators: per-hand x/y + per-hand bin_2d pad + nose x/y (one slot).
-    assert len(result.aggregators) == 8
-    # 64 routes: 16 envelope + 16 trigger per hand, both hands.
-    assert len(result.routes) == 64
+    # Two slots × two hands × (x/y/pad) aggregators.
+    assert len(result.aggregators) == 12
+    # Two people × two hands × all 32 harmonics.
+    assert len(result.routes) == 128
     # Symmetry: equal route count per hand.
     hand_r = sum(1 for r in result.routes if "hand-r" in r.route_id)
     hand_l = sum(1 for r in result.routes if "hand-l" in r.route_id)
-    assert hand_r == hand_l == 32
-    # Harmonic split: hand_r on odd N, hand_l on even N.
+    assert hand_r == hand_l == 64
+    # Every hand owns the complete harmonic grid through its own source binding.
     for r in result.routes:
-        if "hand-r" in r.route_id and "envelope" in r.route_id:
-            assert r.destination.definition["bindings"]["N"] % 2 == 1
-        elif "hand-l" in r.route_id and "envelope" in r.route_id:
-            assert r.destination.definition["bindings"]["N"] % 2 == 0
+        assert r.destination.definition["capability"] == "harmonic_source_envelope"
+        assert 1 <= r.destination.definition["bindings"]["N"] <= 32
+        assert 0 <= r.destination.definition["bindings"]["S"] <= 3
 
 
 def test_peak_detector_triggers_on_synthetic_trajectory():

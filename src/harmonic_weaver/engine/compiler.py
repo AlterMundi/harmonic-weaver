@@ -498,6 +498,7 @@ def compile_route(
             "radial_velocity",
             "peak_detector",
             "pad_dwell",
+            "match_value",
         }:
             raise validation(f"{tpath}.type is invalid")
         if kind == "combine":
@@ -618,6 +619,15 @@ def compile_route(
             nonnegative(transform.get("dwell_ms", 80.0), f"{tpath}.dwell_ms")
             if "min_change_ms" in transform:
                 nonnegative(transform["min_change_ms"], f"{tpath}.min_change_ms")
+        elif kind == "match_value":
+            # Discrete-pad selector: a bin index either matches this route's
+            # target exactly or it does not. Unlike scale_range, this is not a
+            # cumulative threshold, so one hand activates one harmonic.
+            finite(transform.get("value"), f"{tpath}.value")
+            nonnegative(transform.get("tolerance", 0.0), f"{tpath}.tolerance")
+            on_value = finite(transform.get("on", 1.0), f"{tpath}.on")
+            off_value = finite(transform.get("off", 0.0), f"{tpath}.off")
+            current_range = min(on_value, off_value), max(on_value, off_value)
     validity_policy = validate_validity(raw["validity"], f"{path}.validity")
     definition = copy.deepcopy(dict(raw))
     definition["validity"] = validity_policy
@@ -919,6 +929,15 @@ def evaluate_route(
                 else:
                     # Dwell or anti-bounce still active: keep the held value.
                     current = held
+        elif kind == "match_value":
+            assert isinstance(current, float)
+            target = float(transform["value"])
+            tolerance = float(transform.get("tolerance", 0.0))
+            current = (
+                float(transform.get("on", 1.0))
+                if abs(current - target) <= tolerance
+                else float(transform.get("off", 0.0))
+            )
     if isinstance(current, list) or not math.isfinite(current):
         return None, "suppress"
     runtime.last_usable_output = current

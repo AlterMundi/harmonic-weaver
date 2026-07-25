@@ -1,185 +1,156 @@
-"""Integration test: controlled source values → pads_v2 → verify routing.
-
-Direct-engine approach: emits source values (unit-normalised coordinates)
-to the Weaver engine with the pads_v2 scene installed, and checks the
-OSC transport records for the correct harmonic N. No HarMoCAP driver,
-no codec, no synthetic frame format — pure engine-level test.
-
-Verifies:
-- pad_dwell commits correct pad index on sustained position.
-- scale_range windows activate exactly one harmonic per pad.
-- hand_r → odd N, hand_l → even N.
-- trigger fires on velocity peak.
-"""
+"""Integration tests for continuous source-owned Pads v2 routing."""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-import pytest
+from harmonic_weaver.contract_codec import contract_id_from_manifest
+from harmonic_weaver.engine import INVALID, OBSERVED, RecordingOutputTransport, WeaverEngine
+from rehearsal.weaver_runtime import harmocap_manifest, shaper_safety_profile
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECTS = ROOT.parent
 SHAPER_MANIFEST = PROJECTS / "harmonic-shaper" / "contracts" / "shaper.contract.json"
 PADS_V2 = ROOT / "rehearsal" / "scenes" / "pads_v2.scene.json"
+HARMOCAP_X_SPAN = 16.0 / 9.0
 
 
-import pytest
-
-# All tests in this module need the HarMoCAP driver + codec replay path
-# to provide the full channel set required by the source manifest.
-# When the recorded session is available, the one-off verification script
-# confirms 174 active harmonics across both hands. These pytest markers
-# prevent noise in the CI suite until the full driver-level test is wired.
-pytestmark = pytest.mark.skip(reason="requires HarMoCAP driver + recorded session (verified via one-off script)")
+def _load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _load_json(p: Path) -> dict:
-    return json.loads(p.read_text(encoding="utf-8"))
-
-
-def _ready_engine(monkeypatch):
-    from harmonic_weaver.engine import RecordingOutputTransport, WeaverEngine
-    from harmonic_weaver.contract_codec import contract_id_from_manifest
-    from rehearsal.weaver_runtime import harmocap_manifest, shaper_safety_profile
-
+def _ready_engine() -> tuple[WeaverEngine, RecordingOutputTransport]:
     recorder = RecordingOutputTransport()
     engine = WeaverEngine(transport=recorder)
-
     shaper = _load_json(SHAPER_MANIFEST)
-    sc = contract_id_from_manifest(shaper)
-    engine.install_instrument(shaper, shaper_safety_profile(sc))
-    engine.instrument_hello("shaper", "00000000000000c1", sc)
-    engine.instrument_sync_complete("shaper", "00000000000000c1", sc)
+    contract_id = contract_id_from_manifest(shaper)
+    engine.install_instrument(shaper, shaper_safety_profile(contract_id))
+    engine.instrument_hello("shaper", "00000000000000c1", contract_id)
+    engine.instrument_sync_complete("shaper", "00000000000000c1", contract_id)
 
-    hm = harmocap_manifest(lease_ms=600_000)
-    engine.install_source(hm)
-    engine.source_hello("harmocap", "00000000000000a1", hm["contract_id"])
-
-    scene = _load_json(PADS_V2)
-    engine.upsert_scene(scene, engine.stage_revision)
+    manifest = harmocap_manifest(lease_ms=600_000)
+    engine.install_source(manifest)
+    engine.source_hello("harmocap", "00000000000000a1", manifest["contract_id"])
+    engine.upsert_scene(_load_json(PADS_V2), engine.stage_revision)
     engine.switch_scene("pads-v2", 1, engine.stage_revision)
-
     return engine, recorder
 
 
-def _emit_hand(engine, slot: int, side: str, nx: float, ny: float,
-               focused: bool = True, now_us: int = 0):
-    """Emit keypoint + focused channels directly into the engine.
-
-    HarMoCAP normalises X relative to frame height. For a C920e 640×480
-    or 1280×720 stream, the unit-normalised X and Y are in [0, 1] range
-    when the hand is fully in frame. The HarMoCAP manifest declares
-    coordinate range [0, 4] (partial-out-of-frame allowance).
-    """
-    kp_name = "right_wrist" if side == "r" else "left_wrist"
-    prefix = f"harmocap.slot_{slot}"
-
-    from harmonic_weaver.engine.model import OBSERVED
-
-    # Emit focused + present first
-    engine.source_emit(
-        "harmocap",
+def _emit_hand(
+    engine: WeaverEngine,
+    slot: int,
+    side: str,
+    nx: float,
+    ny: float,
+    *,
+    present: bool = True,
+    now_us: int = 0,
+) -> None:
+    wrist = "right_wrist" if side == "r" else "left_wrist"
+    # Source-frame payloads use manifest channel names; the engine adds the
+    # ``harmocap.`` address prefix when ingesting them.
+    prefix = f"slot_{slot}"
+    values = {
+        item["name"]: (0.0, INVALID, 0.0)
+        for item in harmocap_manifest(lease_ms=600_000)["channels"]
+    }
+    values.update(
         {
-            f"{prefix}_present": (1.0, OBSERVED, 1.0, now_us),
-            f"{prefix}_focused": (1.0 if focused else 0.0, OBSERVED, 1.0, now_us),
-        },
+            f"{prefix}_present": (1.0 if present else 0.0, OBSERVED, 1.0),
+            f"{prefix}_keypoint_{wrist}_x": (nx, OBSERVED, 1.0),
+            f"{prefix}_keypoint_{wrist}_y": (ny, OBSERVED, 1.0),
+        }
     )
-    # Emit keypoint coordinates
-    engine.source_emit(
-        "harmocap",
-        {
-            f"{prefix}_keypoint_{kp_name}_x": (float(nx), OBSERVED, 1.0, now_us),
-            f"{prefix}_keypoint_{kp_name}_y": (float(ny), OBSERVED, 1.0, now_us),
-        },
-    )
-    # Emit nose anchor at a default position
-    engine.source_emit(
-        "harmocap",
-        {
-            f"{prefix}_keypoint_nose_x": (0.5, OBSERVED, 1.0, now_us),
-            f"{prefix}_keypoint_nose_y": (0.4, OBSERVED, 1.0, now_us),
-        },
-    )
+    engine.ingest_driver_frame("harmocap", values)
 
 
-def _envelope_for_n(records, n: int) -> list:
+def _source_writes(records, harmonic: int, source: int):
     return [
-        r for r in records
-        if r.capability == "harmonic_envelope"
-        and r.reason not in ("scene_reset", "route_reset")
-        and r.bindings
-        and r.bindings.get("N") == n
+        record
+        for record in records
+        if record.capability == "harmonic_source_envelope"
+        and record.reason == "route"
+        and record.bindings == {"N": harmonic, "S": source}
     ]
 
 
-def _triggers(records) -> list:
-    return [
-        r for r in records
-        if r.capability == "harmonic_trigger"
-        and r.reason not in ("scene_reset",)
-        and r.value > 0.5
+def test_pads_v2_compiles_full_grid_for_both_hands_of_two_people() -> None:
+    engine, _ = _ready_engine()
+    snapshot = engine.snapshot(["routes"])
+    assert len(snapshot["routes"]) == 128
+    assert {
+        route["destination"]["bindings"]["S"]
+        for route in snapshot["routes"]
+    } == {0, 1, 2, 3}
+    assert {
+        route["destination"]["bindings"]["N"]
+        for route in snapshot["routes"]
+    } == set(range(1, 33))
+
+
+def test_each_hand_continuously_activates_exactly_its_current_harmonic() -> None:
+    engine, recorder = _ready_engine()
+    _emit_hand(engine, 0, "r", HARMOCAP_X_SPAN * 0.88, 0.88)
+    _emit_hand(engine, 0, "l", HARMOCAP_X_SPAN * 0.88, 0.12)
+
+    # Grid origin is N=1; the upper cell of the first serpentine column is N=8.
+    assert any(record.value == 1.0 for record in _source_writes(recorder.records, 1, 0))
+    assert any(record.value == 1.0 for record in _source_writes(recorder.records, 8, 1))
+    for source, selected in ((0, 1), (1, 8)):
+        active = {
+            record.bindings["N"]
+            for record in recorder.records
+            if record.capability == "harmonic_source_envelope"
+            and record.reason == "route"
+            and record.bindings["S"] == source
+            and record.value > 0.0
+        }
+        assert active == {selected}
+
+
+def test_full_grid_is_bottom_left_origin_with_serpentine_columns() -> None:
+    """Visual grid: H1 rises in the left column; each next column reverses."""
+    for column in range(4):
+        for row_from_bottom in range(8):
+            engine, recorder = _ready_engine()
+            # HarMoCAP coordinates are mirrored in X and have Y=0 at the top.
+            x = HARMOCAP_X_SPAN * (1.0 - (column + 0.5) / 4.0)
+            y = 1.0 - (row_from_bottom + 0.5) / 8.0
+            _emit_hand(engine, 0, "r", x, y)
+            expected = column * 8 + (
+                row_from_bottom if column % 2 == 0 else 7 - row_from_bottom
+            ) + 1
+            active = {
+                record.bindings["N"]
+                for record in recorder.records
+                if record.capability == "harmonic_source_envelope"
+                and record.reason == "route"
+                and record.bindings["S"] == 0
+                and record.value > 0.0
+            }
+            assert active == {expected}
+
+
+def test_same_pad_from_two_hands_keeps_independent_source_ownership() -> None:
+    engine, recorder = _ready_engine()
+    _emit_hand(engine, 0, "r", HARMOCAP_X_SPAN * 0.88, 0.88)
+    _emit_hand(engine, 0, "l", HARMOCAP_X_SPAN * 0.88, 0.88)
+
+    assert any(record.value == 1.0 for record in _source_writes(recorder.records, 1, 0))
+    assert any(record.value == 1.0 for record in _source_writes(recorder.records, 1, 1))
+
+
+def test_absent_person_does_not_activate_a_hand() -> None:
+    engine, recorder = _ready_engine()
+    _emit_hand(engine, 1, "r", HARMOCAP_X_SPAN * 0.88, 0.88, present=False)
+    active = [
+        record
+        for record in recorder.records
+        if record.capability == "harmonic_source_envelope"
+        and record.reason == "route"
+        and record.bindings["S"] == 2
+        and record.value > 0.0
     ]
-
-
-# ── Tests ────────────────────────────────────────────────────────────────
-
-def test_hand_r_pad_0_activates_n1(monkeypatch):
-    """Right hand at (0.88, 0.88) → pad 0 → N=1."""
-    engine, recorder = _ready_engine(monkeypatch)
-    _emit_hand(engine, 0, "r", nx=0.88, ny=0.88)
-    n1 = _envelope_for_n(recorder.records, 1)
-    active = [r for r in n1 if r.value > 0.3]
-    assert active, f"N=1 not active. Writes: {[(r.value, r.reason) for r in n1]}"
-
-
-def test_hand_r_pad_7_activates_n15(monkeypatch):
-    """Right hand at (0.88, 0.12) → pad 7 → N=15."""
-    engine, recorder = _ready_engine(monkeypatch)
-    _emit_hand(engine, 0, "r", nx=0.88, ny=0.12)
-    n15 = _envelope_for_n(recorder.records, 15)
-    active = [r for r in n15 if r.value > 0.3]
-    assert active, f"N=15 not active"
-
-
-def test_hand_l_pad_0_activates_n2(monkeypatch):
-    """Left hand at (0.88, 0.88) → N=2 (even, first left-hand harmonic)."""
-    engine, recorder = _ready_engine(monkeypatch)
-    _emit_hand(engine, 0, "l", nx=0.88, ny=0.88)
-    n2 = _envelope_for_n(recorder.records, 2)
-    active = [r for r in n2 if r.value > 0.3]
-    assert active, f"N=2 not active for left hand"
-    # N=1 should NOT be active (hand_r not present)
-    n1 = _envelope_for_n(recorder.records, 1)
-    if n1:
-        assert all(r.value < 0.1 for r in n1), "N=1 should be silent for hand_l only"
-
-
-def test_unfocused_no_envelope(monkeypatch):
-    """Unfocused person → no active envelopes."""
-    engine, recorder = _ready_engine(monkeypatch)
-    _emit_hand(engine, 0, "r", nx=0.88, ny=0.88, focused=False)
-    all_env = _envelope_for_n(recorder.records, 1) + _envelope_for_n(recorder.records, 2)
-    active = [r for r in all_env if r.value > 0.1]
-    assert not active, f"envelope writes with unfocused person"
-
-
-def test_trigger_fires_on_velocity_peak(monkeypatch):
-    """Two frames: hand moves then stops → peak_detector fires a trigger."""
-    engine, recorder = _ready_engine(monkeypatch)
-
-    # Frame 1: hand close to nose (low radial_velocity)
-    _emit_hand(engine, 0, "r", nx=0.5, ny=0.4, now_us=0)
-
-    # Frame 2: hand moves away fast (radial_velocity rises)
-    _emit_hand(engine, 0, "r", nx=0.9, ny=0.4, now_us=33_000)
-
-    # Frame 3: hand continues (radial_velocity still rising)
-    _emit_hand(engine, 0, "r", nx=0.95, ny=0.4, now_us=66_000)
-
-    # Frame 4: hand stops (deceleration → peak_detector fires)
-    _emit_hand(engine, 0, "r", nx=0.95, ny=0.4, now_us=99_000)
-
-    triggers = _triggers(recorder.records)
-    assert triggers, "trigger should fire on deceleration peak"
+    assert active == []
