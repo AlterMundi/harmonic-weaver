@@ -1088,6 +1088,14 @@ class WeaverEngine:
         if destination.argument_type in {"int32", "int64"} and not float(value).is_integer():
             self.metrics["transport_errors"] += 1
             return False
+        # Suppress redundant writes: if the value hasn't changed since the
+        # last send, the instrument already holds it — skip the OSC packet.
+        if (
+            not safety
+            and destination.key in self._last_outputs
+            and float(native_value) == self._last_outputs[destination.key]
+        ):
+            return True
         record = OutputRecord(instrument_id, "capability", now_us, reason, destination.definition["capability"], destination.address, freeze(destination.definition["bindings"]), destination.definition["argument"], native_value)
         try:
             self.transport.send_capability(record)

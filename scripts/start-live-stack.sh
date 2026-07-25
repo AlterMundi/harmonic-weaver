@@ -109,6 +109,7 @@ CAMERA="0"
 HARMOCAP_DEVICE="auto"
 HARMOCAP_CHECKPOINT=""
 HARMOCAP_IMGSZ=""
+HARMOCAP_MAX_SLOTS=""   # empty = use config default
 SCENE="event-demo"
 PUSH_SCENE=1
 LEASE_MS="300000"
@@ -142,6 +143,7 @@ while [ "$#" -gt 0 ]; do
         --harmocap-device) HARMOCAP_DEVICE="${2:?--harmocap-device needs auto|cpu|cuda}"; shift ;;
         --harmocap-checkpoint) HARMOCAP_CHECKPOINT="${2:?--harmocap-checkpoint needs a path}"; shift ;;
         --harmocap-imgsz) HARMOCAP_IMGSZ="${2:?--harmocap-imgsz needs a value}"; shift ;;
+        --harmocap-max-slots) HARMOCAP_MAX_SLOTS="${2:?--harmocap-max-slots needs 1-8}"; shift ;;
         --scene)         SCENE="${2:?--scene needs a name}"; shift ;;
         --no-scene)      PUSH_SCENE=0 ;;
         --lease-ms)      LEASE_MS="${2:?--lease-ms needs a value}"; shift ;;
@@ -511,6 +513,7 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     [ "$SHOW" -eq 1 ] && HARMOCAP_ARGS+=(--show)
     [ -n "$HARMOCAP_CHECKPOINT" ] && HARMOCAP_ARGS+=(--checkpoint "$HARMOCAP_CHECKPOINT")
     [ -n "$HARMOCAP_IMGSZ" ] && HARMOCAP_ARGS+=(--imgsz "$HARMOCAP_IMGSZ")
+    [ -n "$HARMOCAP_MAX_SLOTS" ] && HARMOCAP_ARGS+=(--max-slots "$HARMOCAP_MAX_SLOTS")
     log "starting HarMoCAP realtime (camera: $CAMERA, device: $HARMOCAP_DEVICE)"
     HARMOCAP_ENV=()
     [ "$HARMOCAP_DEVICE" = "cpu" ] && HARMOCAP_ENV=(CUDA_VISIBLE_DEVICES=)
