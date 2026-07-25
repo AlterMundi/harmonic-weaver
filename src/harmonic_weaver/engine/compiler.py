@@ -246,6 +246,16 @@ class RouteRuntime:
     derivative_values: dict[int, float] = field(default_factory=dict)
     derivative_at_us: dict[int, int] = field(default_factory=dict)
     beat_state: dict[int, dict] = field(default_factory=dict)
+    # peak_detector per-transform: last TWO samples (prev_prev, prev) and last
+    # fire timestamp (us). Three-sample window needed to detect a local max:
+    # the previous step was strictly above the one before it AND the current
+    # sample is non-greater.
+    peak_history: dict[int, tuple[float, float]] = field(default_factory=dict)
+    peak_last_fire_us: dict[int, int] = field(default_factory=dict)
+    # pad_dwell per-transform: committed output value + timestamp of the
+    # last commit (so we can decide when the dwell has elapsed).
+    dwell_value: dict[int, float] = field(default_factory=dict)
+    dwell_last_change_us: dict[int, int] = field(default_factory=dict)
     last_usable_output: float | None = None
     last_usable_at_us: int | None = None
     invalid_reset_sent: bool = False
@@ -448,7 +458,13 @@ def compile_route(
     transforms = raw["transforms"]
     if not isinstance(transforms, list):
         raise validation(f"{path}.transforms must be an array")
-    if len(inputs) > 1 and (
+    # radial_velocity collapses the 4 inputs into a scalar; no combine needed.
+    first_transform_consumes_all = (
+        bool(transforms)
+        and isinstance(transforms[0], Mapping)
+        and transforms[0].get("type") == "radial_velocity"
+    )
+    if len(inputs) > 1 and not first_transform_consumes_all and (
         not transforms
         or not isinstance(transforms[0], Mapping)
         or transforms[0].get("type") != "combine"
@@ -456,6 +472,10 @@ def compile_route(
         raise validation(f"{path} multiple inputs require combine as the first transform")
     if len(inputs) == 1:
         current_range = ranges[0]
+    elif first_transform_consumes_all:
+        # radial_velocity is its own combiner — output range is fixed at (0, 1)
+        # and is updated inside the transform-validation branch below.
+        current_range = (0.0, 1.0)
     else:
         operator, weights = _validate_combine(transforms[0], len(inputs), f"{path}.transforms[0]")
         current_range = _combine_range(operator, ranges, weights)
@@ -475,6 +495,10 @@ def compile_route(
             "slew_limiter",
             "derivative",
             "beat_envelope",
+            "radial_velocity",
+            "peak_detector",
+            "pad_dwell",
+            "match_value",
         }:
             raise validation(f"{tpath}.type is invalid")
         if kind == "combine":
@@ -559,6 +583,51 @@ def compile_route(
             if "min_interval_ms" in transform:
                 nonnegative(transform["min_interval_ms"], f"{tpath}.min_interval_ms")
             current_range = (floor_value, peak)
+        elif kind == "radial_velocity":
+            # Two-point Euclidean distance, clipped to [0, 1]. Consumes the
+            # four input channels as (x1, y1, x2, y2). No state. Output range
+            # is always [0, 1] regardless of input ranges. Like `combine`, this
+            # transform collapses the multi-input route into a single scalar;
+            # downstream transforms operate on that scalar.
+            if len(inputs) != 4:
+                raise validation(
+                    f"{tpath} requires exactly 4 inputs (x1, y1, x2, y2); got {len(inputs)}"
+                )
+            current_range = (0.0, 1.0)
+        elif kind == "peak_detector":
+            # Fires an impulse (1.0) when the input just turned over a local
+            # maximum: previous sample was strictly greater than the one
+            # before that (rising), this sample is non-greater (falling/stop),
+            # the current value is >= threshold, and the refractory window
+            # since the last fire has elapsed. Emits 0.0 otherwise. State is
+            # held in the route's `RouteRuntime` (peak_history,
+            # peak_last_fire_us). refractory_ms=0 disables the window (every
+            # qualifying sample fires).
+            finite(transform.get("threshold", 0.0), f"{tpath}.threshold")
+            nonnegative(transform.get("refractory_ms", 250.0), f"{tpath}.refractory_ms")
+            current_range = (0.0, 1.0)
+        elif kind == "pad_dwell":
+            # Debounces a discrete (or pseudo-discrete) input value: holds
+            # the committed output until the input has been different for at
+            # least `dwell_ms`, then commits the new value in a single step.
+            # On cold start, emits the input immediately (no artificial
+            # latency). Optional `min_change_ms` rejects commits that arrive
+            # less than `min_change_ms` after the previous commit
+            # (sub-frame noise guard). Static range is unchanged from the
+            # incoming range. dwell_ms=0 disables the dwell debounce (only
+            # the min_change_ms anti-bounce guard remains active).
+            nonnegative(transform.get("dwell_ms", 80.0), f"{tpath}.dwell_ms")
+            if "min_change_ms" in transform:
+                nonnegative(transform["min_change_ms"], f"{tpath}.min_change_ms")
+        elif kind == "match_value":
+            # Discrete-pad selector: a bin index either matches this route's
+            # target exactly or it does not. Unlike scale_range, this is not a
+            # cumulative threshold, so one hand activates one harmonic.
+            finite(transform.get("value"), f"{tpath}.value")
+            nonnegative(transform.get("tolerance", 0.0), f"{tpath}.tolerance")
+            on_value = finite(transform.get("on", 1.0), f"{tpath}.on")
+            off_value = finite(transform.get("off", 0.0), f"{tpath}.off")
+            current_range = min(on_value, off_value), max(on_value, off_value)
     validity_policy = validate_validity(raw["validity"], f"{path}.validity")
     definition = copy.deepcopy(dict(raw))
     definition["validity"] = validity_policy
@@ -616,6 +685,15 @@ def evaluate_route(
         if kind == "combine":
             operator, weights = _validate_combine(transform, len(envelopes), "runtime.combine")
             current = _apply_combine(operator, list(current), weights)  # type: ignore[arg-type]
+        elif kind == "radial_velocity":
+            assert isinstance(current, list) and len(current) == 4, (
+                f"radial_velocity expects 4 floats; got {current!r}"
+            )
+            x1, y1, x2, y2 = current
+            dx = x1 - x2
+            dy = y1 - y2
+            dist = math.sqrt(dx * dx + dy * dy)
+            current = min(1.0, max(0.0, dist))
         elif kind == "scale_range":
             assert isinstance(current, float)
             in_first, in_second = transform["in"]
@@ -782,6 +860,84 @@ def evaluate_route(
             state["eval_us"] = now_us
             runtime.beat_state[transform_index] = state
             current = state["value"]
+        elif kind == "peak_detector":
+            assert isinstance(current, float)
+            threshold = float(transform.get("threshold", 0.0))
+            refractory_us = int(float(transform.get("refractory_ms", 250.0)) * 1000)
+            history = runtime.peak_history.get(transform_index)
+            last_fire_us = runtime.peak_last_fire_us.get(transform_index)
+            fire = 0.0
+            if history is not None:
+                prev_prev, prev = history
+                # Local-maximum condition: previous step was strictly above the
+                # one before it (rising), current sample is non-greater
+                # (falling or flat), and current value crosses the threshold.
+                rising_then_turning = prev > prev_prev and current <= prev
+                crosses_threshold = current >= threshold
+                # Refractory: if last_fire_us is None (this is the first
+                # sample's second evaluation), the gate is open. After that,
+                # the gate stays open only after refractory_us elapsed since
+                # the last fire.
+                refractory_ok = (
+                    last_fire_us is None
+                    or (now_us - last_fire_us) >= refractory_us
+                )
+                if rising_then_turning and crosses_threshold and refractory_ok:
+                    fire = 1.0
+                    runtime.peak_last_fire_us[transform_index] = now_us
+            # Update history: shift (prev_prev, prev) <- (prev, current).
+            if history is None:
+                runtime.peak_history[transform_index] = (0.0, current)
+            else:
+                _, prev = history
+                runtime.peak_history[transform_index] = (prev, current)
+            current = fire
+        elif kind == "pad_dwell":
+            assert isinstance(current, float)
+            dwell_ms = float(transform.get("dwell_ms", 80.0))
+            dwell_us = int(dwell_ms * 1000.0)
+            min_change_ms = transform.get("min_change_ms")
+            min_change_us = (
+                int(float(min_change_ms) * 1000.0) if min_change_ms is not None else 0
+            )
+            held = runtime.dwell_value.get(transform_index)
+            last_change_us = runtime.dwell_last_change_us.get(transform_index)
+            if held is None:
+                # Cold start: commit immediately so the first audio frame
+                # after the route activates does not wait an artificial dwell.
+                runtime.dwell_value[transform_index] = current
+                runtime.dwell_last_change_us[transform_index] = now_us
+                current = current
+            elif current == held:
+                # No change requested: emit the held value.
+                current = held
+            else:
+                # Change requested. Apply min_change_ms first (sub-frame
+                # anti-bounce), then the dwell_ms debounce.
+                min_change_ok = (
+                    last_change_us is None
+                    or (now_us - last_change_us) >= min_change_us
+                )
+                dwell_ok = (
+                    last_change_us is None
+                    or (now_us - last_change_us) >= dwell_us
+                )
+                if min_change_ok and dwell_ok:
+                    runtime.dwell_value[transform_index] = current
+                    runtime.dwell_last_change_us[transform_index] = now_us
+                    current = current
+                else:
+                    # Dwell or anti-bounce still active: keep the held value.
+                    current = held
+        elif kind == "match_value":
+            assert isinstance(current, float)
+            target = float(transform["value"])
+            tolerance = float(transform.get("tolerance", 0.0))
+            current = (
+                float(transform.get("on", 1.0))
+                if abs(current - target) <= tolerance
+                else float(transform.get("off", 0.0))
+            )
     if isinstance(current, list) or not math.isfinite(current):
         return None, "suppress"
     runtime.last_usable_output = current
