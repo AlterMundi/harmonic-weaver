@@ -123,7 +123,7 @@ SHOW=0
 PADS_VIEW=""
 PADS_VIEW_EXPLICIT=0
 SHAPER_AUDIO=1
-SHAPER_DEVICE="${SHAPER_DEVICE:-R24: USB Audio}"
+SHAPER_DEVICE="${SHAPER_DEVICE:-R24 Analog Stereo}"
 SHAPER_MIDI=1
 ECG_SIM=0
 ECG_BPM="72"
@@ -453,14 +453,14 @@ if [ "$DO_SHAPER" -eq 1 ]; then
     SHAPER_ARGS=()
     [ "$SHAPER_AUDIO" -eq 0 ] && SHAPER_ARGS+=(--no-audio)
     [ "$SHAPER_MIDI" -eq 0 ] && SHAPER_ARGS+=(--no-midi)
-    # Audio goes directly to the ALSA device via sounddevice (no JACK).
-    # The PipeWire ALSA plugin on this host was historically silent but
-    # is verified working as of 2026-07-24 (test tone audible through R24).
+    # Audio goes through JACK over PipeWire (pw-jack), the reliable path
+    # on this host. The PipeWire ALSA plugin renders silence for PortAudio
+    # streams; pw-jack exposes the R24 as a JACK device at 48000 Hz.
     if [ "$SHAPER_AUDIO" -eq 1 ]; then
         SHAPER_ARGS+=(--device "$SHAPER_DEVICE")
     fi
-    log "starting harmonic-shaper${SHAPER_AUDIO:+ --device \"$SHAPER_DEVICE\"} ${SHAPER_ARGS[*]:-(audio+midi)}"
-    (cd "$SHAPER_DIR" && "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
+    log "starting harmonic-shaper under pw-jack${SHAPER_AUDIO:+ --device \"$SHAPER_DEVICE\"} ${SHAPER_ARGS[*]:-(audio+midi)}"
+    (cd "$SHAPER_DIR" && pw-jack "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
         > "$LOG_DIR/shaper.log" 2>&1 &
     register $! shaper
     wait_http "http://127.0.0.1:8080/api/state" "shaper API" 60
@@ -514,6 +514,11 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     [ -n "$HARMOCAP_CHECKPOINT" ] && HARMOCAP_ARGS+=(--checkpoint "$HARMOCAP_CHECKPOINT")
     [ -n "$HARMOCAP_IMGSZ" ] && HARMOCAP_ARGS+=(--imgsz "$HARMOCAP_IMGSZ")
     [ -n "$HARMOCAP_MAX_SLOTS" ] && HARMOCAP_ARGS+=(--max-slots "$HARMOCAP_MAX_SLOTS")
+    # Auto-detect overlay mode from scene name
+    case "$SCENE" in
+        bands*) HARMOCAP_ARGS+=(--pads-mode bands) ;;
+        *)      HARMOCAP_ARGS+=(--pads-mode grid) ;;
+    esac
     log "starting HarMoCAP realtime (camera: $CAMERA, device: $HARMOCAP_DEVICE)"
     HARMOCAP_ENV=()
     [ "$HARMOCAP_DEVICE" = "cpu" ] && HARMOCAP_ENV=(CUDA_VISIBLE_DEVICES=)

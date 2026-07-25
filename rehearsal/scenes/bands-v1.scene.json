@@ -1,0 +1,21 @@
+{
+  "scene_id": "bands-v1",
+  "scene_version": 1,
+  "name": "Vertical Bands v1",
+  "description": "8 symmetric vertical bands per person, centred on nose. Distance from head maps to harmonic: centre = H1, outermost = H8. Both arms produce the same note. Each person gets independent bands calibrated to their own reach.",
+  "tags": ["rehearsal", "bands", "harmonic", "v1", "continuous", "polyphonic", "geometry", "symmetric"],
+  "created_at_us": 0,
+  "updated_at_us": 0,
+  "transition": { "policy": "reset" },
+  "geometry": {
+    "type": "vertical_bands",
+    "subdivisions": 8,
+    "band_span": 0.4
+  },
+  "activation": {
+    "kernel": "delta",
+    "magnitude": "presence",
+    "envelope": "none"
+  },
+  "effects": []
+}

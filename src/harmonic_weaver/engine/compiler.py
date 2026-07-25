@@ -114,6 +114,10 @@ def _combine_range(
         return min(item[0] for item in ranges), max(item[1] for item in ranges)
     if operator == "difference":
         return ranges[0][0] - ranges[1][1], ranges[0][1] - ranges[1][0]
+    if operator == "abs":
+        lo, hi = ranges[0]
+        mx = max(abs(lo), abs(hi))
+        return 0.0, mx
     assert weights is not None
     lows: list[float] = []
     highs: list[float] = []
@@ -135,16 +139,20 @@ def _apply_combine(operator: str, values: list[float], weights: list[float] | No
         return max(values)
     if operator == "difference":
         return values[0] - values[1]
+    if operator == "abs":
+        return abs(values[0])
     assert weights is not None
     return sum(value * weight for value, weight in zip(values, weights))
 
 
 def _validate_combine(transform: Mapping[str, Any], arity: int, path: str) -> tuple[str, list[float] | None]:
     operator = transform.get("operator")
-    if operator not in {"mean", "sum", "min", "max", "weighted_sum", "difference"}:
+    if operator not in {"mean", "sum", "min", "max", "weighted_sum", "difference", "abs"}:
         raise validation(f"{path}.operator is invalid")
     if operator == "difference" and arity != 2:
         raise validation(f"{path} difference requires exactly two inputs")
+    if operator == "abs" and arity != 1:
+        raise validation(f"{path} abs requires exactly one input")
     weights: list[float] | None = None
     if operator == "weighted_sum":
         raw = transform.get("weights")
@@ -232,6 +240,20 @@ class CompiledRoute:
     @property
     def canonical(self) -> str:
         return canonical_json_dumps(self.definition)
+
+
+@dataclass(frozen=True)
+class GeometryExpansion:
+    """Return value from every geometry expander.
+
+    Geometry expanders produce topology — aggregators for zone indices
+    plus zone layout metadata. They also produce routes (via the activation
+    layer) and may include standalone effect routes.
+    """
+
+    aggregators: tuple[dict[str, Any], ...]
+    zone_layout: dict[str, Any]
+    routes: tuple[dict[str, Any], ...]
 
 
 @dataclass
@@ -1226,6 +1248,12 @@ def validate_transition(
     return clean
 
 
+# Geometry expander registry: map geometry.type string to an expander
+# callable that takes (raw_scene: dict, base_channel_ranges: dict) and
+# returns GeometryExpansion.
+_GEOMETRY_EXPANDERS: dict[str, Any] = {}
+
+
 def compile_scene(
     raw: Any,
     base_channel_ranges: Mapping[str, tuple[float, float]],
@@ -1235,7 +1263,27 @@ def compile_scene(
     if not isinstance(raw, Mapping):
         raise validation("scene must be an object")
     validate_json_finite(raw, "scene")
-    required(raw, ("scene_id", "scene_version", "name", "description", "tags", "updated_at_us", "aggregators", "routes", "transition"), "scene")
+    has_geometry = "geometry" in raw
+    has_raw_aggs = "aggregators" in raw or "routes" in raw
+    if has_geometry and has_raw_aggs:
+        raise validation("scene must declare EITHER a geometry block OR raw aggregators/routes, not both")
+    if has_geometry:
+        geo_block = raw["geometry"]
+        if not isinstance(geo_block, Mapping):
+            raise validation("scene.geometry must be an object")
+        required(geo_block, ("type",), "scene.geometry")
+        geo_type = identifier(geo_block["type"], "scene.geometry.type")
+        expander = _GEOMETRY_EXPANDERS.get(geo_type)
+        if expander is None:
+            raise validation(f"unknown geometry type {geo_type!r}")
+        expansion = expander(raw, dict(base_channel_ranges))
+        scene_aggregators = list(expansion.aggregators)
+        scene_routes: list[Any] = list(expansion.routes)
+    else:
+        required(raw, ("aggregators", "routes"), "scene")  # classic path
+        scene_aggregators = list(raw.get("aggregators", []))
+        scene_routes = list(raw.get("routes", []))
+    required(raw, ("scene_id", "scene_version", "name", "description", "tags", "updated_at_us", "transition"), "scene")
     identifier(raw["scene_id"], "scene.scene_id")
     integer(raw["scene_version"], "scene.scene_version", minimum=1)
     if not isinstance(raw["name"], str) or not raw["name"].strip():
@@ -1248,14 +1296,13 @@ def compile_scene(
         integer(raw["created_at_us"], "scene.created_at_us", minimum=0)
     integer(raw["updated_at_us"], "scene.updated_at_us", minimum=0)
     transition = validate_transition(raw["transition"])
-    aggregators, ranges = compile_aggregators(raw["aggregators"], base_channel_ranges)
-    routes_raw = raw["routes"]
-    if not isinstance(routes_raw, list):
+    aggregators, ranges = compile_aggregators(scene_aggregators, base_channel_ranges)
+    if not isinstance(scene_routes, (list, tuple)):
         raise validation("scene.routes must be an array")
     routes: list[CompiledRoute] = []
     route_ids: set[str] = set()
     destinations: dict[tuple[Any, ...], str] = {}
-    for index, route_raw in enumerate(routes_raw):
+    for index, route_raw in enumerate(scene_routes):
         route = compile_route(route_raw, ranges, instrument_manifests, safety_defaults, f"scene.routes[{index}]")
         if route.route_id in route_ids:
             raise validation(f"duplicate route_id {route.route_id!r}")
@@ -1292,3 +1339,8 @@ __all__ = [
     "validate_transition",
     "validate_json_finite",
 ]
+
+# Import geometry expanders so they self-register in _GEOMETRY_EXPANDERS.
+from harmonic_weaver.engine.geometry_bands import expand_vertical_bands  # noqa: F401
+
+_GEOMETRY_EXPANDERS["vertical_bands"] = expand_vertical_bands
