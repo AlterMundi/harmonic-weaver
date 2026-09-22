@@ -395,6 +395,48 @@ def resolve_scene_path(scene: str | Path) -> Path:
     return path
 
 
+def runtime_status_payload(
+    *,
+    engine: WeaverEngine,
+    transport: LiveOSCTransport,
+    harmocap: HarMoCAPDriver,
+    harmocap_listener_alive: bool,
+    ecg: ECGDriver,
+    midi: MIDIDriver,
+    captured_at_us: int | None = None,
+) -> dict[str, Any]:
+    records = transport.records
+    reasons: dict[str, int] = {}
+    for record in records:
+        reasons[record.reason] = reasons.get(record.reason, 0) + 1
+    return {
+        "captured_at_us": captured_at_us if captured_at_us is not None else time.time_ns() // 1000,
+        "engine": engine.snapshot(),
+        "drivers": {
+            "harmocap": {
+                "listener_alive": harmocap_listener_alive,
+                "upstream_stream_id": harmocap.stream_id,
+                "upstream_contract_id": (
+                    harmocap.hello.contract_id if harmocap.hello else None
+                ),
+                "stats": vars(harmocap.stats),
+            },
+            "ecg": {
+                "stream_alive": ecg.stream_alive(),
+                "frame_count": ecg._frame_count,
+            },
+            "midi": {
+                "connected": midi.connected,
+                "port_name": midi.port_name,
+                "available_ports": midi.available_ports(),
+                "channels": midi.snapshot(),
+                "last_error": repr(midi.last_error) if midi.last_error else None,
+            },
+        },
+        "transport": {"record_count": len(records), "reasons": reasons},
+    }
+
+
 def _pad_person_features(person: dict[str, Any], target_n: int = 24) -> dict[str, Any]:
     """Pad pre-tempo (21-feature) session persons so kit pack expects 24."""
     out = dict(person)
@@ -836,38 +878,16 @@ def main(argv: list[str] | None = None) -> int:
 
     def write_status() -> None:
         while not status_stop.is_set():
-            records = transport.records
-            reasons: dict[str, int] = {}
-            for record in records:
-                reasons[record.reason] = reasons.get(record.reason, 0) + 1
             atomic_json(
                 args.artifact_root / "runtime_status.json",
-                {
-                    "captured_at_us": time.time_ns() // 1000,
-                    "engine": engine.snapshot(),
-                    "drivers": {
-                        "harmocap": {
-                            "listener_alive": harmocap_thread.is_alive(),
-                            "upstream_stream_id": harmocap.stream_id,
-                            "upstream_contract_id": (
-                                harmocap.hello.contract_id if harmocap.hello else None
-                            ),
-                            "stats": vars(harmocap.stats),
-                        },
-                        "ecg": {
-                            "stream_alive": ecg.stream_alive(),
-                            "frame_count": ecg._frame_count,
-                        },
-                        "midi": {
-                            "connected": midi.connected,
-                            "port_name": midi.port_name,
-                            "available_ports": midi.available_ports(),
-                            "channels": midi.snapshot(),
-                            "last_error": repr(midi.last_error) if midi.last_error else None,
-                        },
-                    },
-                    "transport": {"record_count": len(records), "reasons": reasons},
-                },
+                runtime_status_payload(
+                    engine=engine,
+                    transport=transport,
+                    harmocap=harmocap,
+                    harmocap_listener_alive=harmocap_thread.is_alive(),
+                    ecg=ecg,
+                    midi=midi,
+                ),
             )
             status_stop.wait(0.5)
 
@@ -916,4 +936,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

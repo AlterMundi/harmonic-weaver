@@ -63,3 +63,15 @@ be committed. Current stabilization and polyphony work is tracked in
 [issue #4](https://github.com/AlterMundi/harmonic-weaver/issues/4); the bounded
 Codex continuation plan is in
 [`docs/CODEX_HANDOFF_BANDS_V1.md`](docs/CODEX_HANDOFF_BANDS_V1.md).
+
+Bands-v1 artifact summaries can be produced without exposing pose coordinates:
+
+```console
+python -m rehearsal.analyze_bands_artifact rehearsal/artifacts/<run-id>
+```
+
+The command emits compact JSON with HarMoCAP frame counts, the declared
+person-count histogram, harmonic source-slot activity, frame-batched harmonic
+transition counts, and route-reset evidence. Initialization resets are excluded
+from transition counts. Run it on live artifacts only after any participant-data
+audit.

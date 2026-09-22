@@ -61,6 +61,31 @@ KeyError: 'routes'
 
 The active geometry scene has `geometry_routes`, while `Engine.snapshot()` indexes `active["routes"]` unconditionally.
 
+## Audited implementation status
+
+The Codex candidate was reviewed before integration. The audit retained the
+bounded production changes and restored four unrelated HTTP/WebSocket tests
+that Codex had weakened while working around its sandbox:
+
+- geometry-scene snapshots/status payloads no longer crash on `bands-v1`; route
+  snapshots for geometry scenes are built from active compiled routes and
+  include the same runtime fields as conventional route scenes;
+- conventional route-scene, HTTP and WebSocket behavior retains its original
+  integration coverage;
+- deterministic two-person × two-hand coverage proves S0–S3 can activate
+  independently, one hand can move N1→N3 without cross-talk, and removing
+  person slot 1 releases only S2/S3;
+- `python -m rehearsal.analyze_bands_artifact <artifact-dir>` emits compact
+  evidence by batching writes per frame timestamp and tracking `(S, N)` state;
+  scene initialization resets are not misreported as harmonic transitions;
+- synthetic analyzer fixtures contain no participant data.
+
+The orchestrator ran the corrected analyzer on `live-20260922T015050`: 1,044
+frames (0:387, 1:650, 2:7), 508 Shaper events, activity on all four intended
+source slots, 172 true frame-level harmonic transitions, 18 route-reset zeros,
+and zero ambiguous state changes. No new live camera, OSC, audio, or listening
+verification is claimed.
+
 ## Iteration 1 — trustworthy geometry-scene status
 
 1. Reproduce the failure in a focused automated test.

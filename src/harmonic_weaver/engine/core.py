@@ -1291,12 +1291,19 @@ class WeaverEngine:
             if "routes" in selected:
                 active = self._state.scenes.get(self._state.active_scene_id) if self._state.active_scene_id else None
                 route_snapshots: list[dict[str, Any]] = []
-                if active is not None:
+                if active is not None and self._compiled_scene is not None:
                     compiled_routes = {
                         route.route_id: route
-                        for route in (self._compiled_scene.routes if self._compiled_scene else ())
+                        for route in self._compiled_scene.routes
                     }
-                    for route_definition in thaw(active["routes"]):
+                    if "routes" in active:
+                        route_definitions = thaw(active["routes"])
+                    else:
+                        route_definitions = [
+                            copy.deepcopy(route.definition)
+                            for route in self._compiled_scene.routes
+                        ]
+                    for route_definition in route_definitions:
                         compiled_route = compiled_routes.get(route_definition["route_id"])
                         instrument_ready = False
                         last_output: float | None = None
