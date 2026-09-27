@@ -1,6 +1,29 @@
 # Harmonic Weaver — Project Memory
 
-## Current State (2026-09-22)
+## Current State (2026-09-27)
+
+### Movement-consonance lane (research closed, driver v1 verified)
+
+- Research pack COMPLETE at `research/movement-consonance/` (5 raw reports +
+  CROSS_REPORT + SYNTHESIS + NARRATED + ADDENDUM + bibliography, ~330 KB).
+  Topic: new control mode where movement QUALITY drives detuning of the
+  natural harmonic series; `f'(n,d) = f1·(n + d/2)`, `|d|=1` lands on the
+  odd multiples of `f1/2` (just intervals). Snap = finite potential well,
+  continuous escape (Nicolás: "continuo con nivel de snap, NO rejilla").
+- Driver v1 prototype at `research/movement-consonance/consonance/`
+  (metrics.py + driver.py, stdlib only). Verified end-to-end 2026-09-27:
+  720 frames of HarMoCAP `session_v1.jsonl` → shaper `--no-audio --slave`
+  → 9 detuned voices live in `/api/state` (−498 to +80 cents). Drives the
+  shaper through the EXISTING `/beacon/*` slave port (voice_id 7000+n):
+  zero shaper changes, no contract bump.
+- Codex handoff for this lane: `docs/CODEX_HANDOFF_MOVEMENT_CONSONANCE.md`
+- HMK chapters (shared pool `~/.agents/memory/compaii`): 187, 189, 190.
+- Open decisions for Nicolás: anatomical mapping (midline-virtual vs
+  kinetic-chain), default snap mode, and metric weights — these are to be
+  CALIBRATED by the baseline experiment (blind ratings + Spearman ρ), not
+  hand-tuned.
+
+## Previous State (2026-09-22)
 
 ### Branch: feat/geometry-activation
 
