@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -50,7 +51,10 @@ except ModuleNotFoundError:
     channel_names = _mod.channel_names
     registry_address = _mod.registry_address
 
-KIT_ROOT = Path.home() / "Projects" / "HarMoCAP" / "harmocap-nico-kit"
+HARMOCAP_ROOT = Path(
+    os.environ.get("HARMOCAP_DIR", REPO_ROOT.parent / "HarMoCAP")
+).expanduser()
+KIT_ROOT = HARMOCAP_ROOT / "harmocap-nico-kit"
 KIT_CODEC = KIT_ROOT / "osc_codec.py"
 TWO_PERSONS = KIT_ROOT / "examples" / "fixtures" / "two_persons.jsonl"
 LIFECYCLE = KIT_ROOT / "examples" / "fixtures" / "lifecycle.jsonl"
