@@ -18,3 +18,13 @@
 - 2026-07-19: T4.5 rehearsal PASS (46/46 assertions, 125s, 96% non-silence).
 - 2026-07-19: Live camera→HarMoCAP→Weaver→Shaper/R24 audibly confirmed.
 - 2026-07-18: repo scaffolded.
+
+- 2026-09-27: Integración de Consonancia kinética como modo excluyente del lanzador (`--scene kinetic-consonance`): ventana HarMoCAP con video/esqueleto/zonas, sin pads; foco y lease por persona, apagado selectivo. Verificación y alcance en `docs/KINETIC_CONSONANCE.md`.
+
+- 2026-09-27: Por aclaración de Nicolás, consonancia kinética se prueba aislada: entrada `start-kinetic-consonance.sh`, sólo HarMoCAP/controlador/Shaper; sin espacializador, MIDI, ECG, pads/bandas ni patchbay.
+
+- 2026-09-27: Tras escucha, Nicolás pide drone/acorde polifónico continuo. Se reemplaza gating de movimiento por voces sostenidas con ganancia basal, modulación cinética de pitch/gain/phase suavizada y actualizaciones nativas sin re-disparos.
+
+- 2026-09-27: Aplicado orden explícito de seis voces: caderas F1, hombros F2, rodillas F3, codos F4, tobillos F5, muñecas F6. Conservado drone sostenido; 11 tests del controlador aprobados.
+
+- 2026-09-27: A pedido de Nicolás, modo crudo: snap y piso de ganancia cero, retirado suavizado 200 ms y filtro de pose; reposo/missing silencian sin cola musical. Verificados 13 tests de controlador, 9 de HarMoCAP y render real con muñeca aislada→F6→silencio.

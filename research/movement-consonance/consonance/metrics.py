@@ -29,29 +29,23 @@ NOSE, L_EYE, R_EYE, L_EAR, R_EAR = 0, 1, 2, 3, 4
 L_SHO, R_SHO, L_ELB, R_ELB, L_WRI, R_WRI = 5, 6, 7, 8, 9, 10
 L_HIP, R_HIP, L_KNE, R_KNE, L_ANK, R_ANK = 11, 12, 13, 14, 15, 16
 
-# (harmonic_n, name, kind) — kind: 'virtual' (midline interpolation),
-# 'single' (one COCO point), 'pair' (bilateral, energy-max side drives).
-# R5 C.1 recommended table: midline rises through the series, limbs branch
-# by distality. Pairs share the harmonic (bands-v1 precedent).
+# Six shared voices, ordered explicitly by Nicolás (2026-09-27).
+# Torso pairs use their midpoint; limb pairs retain the current side selector.
 ZONES: tuple[tuple[int, str, str], ...] = (
-    (1, "pelvis",      "virtual"),   # hip_mid = F0
-    (2, "under_navel", "virtual"),   # hip_mid + 1/3 (shoulder_mid - hip_mid)
-    (3, "navel",       "virtual"),   # hip_mid + 2/3
-    (4, "shoulders",   "single"),    # shoulder_mid (nose cluster weighs in)
-    (5, "head",        "single"),    # nose (eyes/ears folded via confidence)
-    (6, "knees",       "pair"),      # L/R knee
-    (7, "ankles",      "pair"),      # L/R ankle (kinetic-chain root)
-    (8, "elbows",      "pair"),      # L/R elbow
-    (9, "wrists",      "pair"),      # L/R wrist (most distal = highest partial)
+    (1, "hips",      "midpoint"),
+    (2, "shoulders", "midpoint"),
+    (3, "knees",     "pair"),
+    (4, "elbows",    "pair"),
+    (5, "ankles",    "pair"),
+    (6, "wrists",    "pair"),
 )
 
-# COCO indices per zone (for 'single'/'pair'; 'virtual' computed from hips+shoulders).
 ZONE_POINTS: dict[str, tuple[int, ...]] = {
+    "hips": (L_HIP, R_HIP),
     "shoulders": (L_SHO, R_SHO),
-    "head": (NOSE,),
     "knees": (L_KNE, R_KNE),
-    "ankles": (L_ANK, R_ANK),
     "elbows": (L_ELB, R_ELB),
+    "ankles": (L_ANK, R_ANK),
     "wrists": (L_WRI, R_WRI),
 }
 
@@ -98,10 +92,8 @@ def zone_point(name: str, kind: str, kp: list, kp_state: list,
                side_speed: tuple[float, float]) -> tuple[float, float, bool]:
     """Compute the zone's driving point (x, y, observed) in isotropic units.
 
-    virtual: midline interpolation hip_mid -> shoulder_mid.
-    single:  COCO point (shoulders = midpoint; head = nose).
-    pair:    the more-active side drives (so a kick/punch lands in the zone);
-             falls back to midpoint when both sides are equally calm.
+    midpoint: midpoint of the anatomical pair (hips or shoulders).
+    pair: the more-active observed side drives the shared voice.
     """
     def obs(i: int) -> bool:
         try:
@@ -112,26 +104,10 @@ def zone_point(name: str, kind: str, kp: list, kp_state: list,
     def pt(i: int) -> tuple[float, float]:
         return (kp[i][0], kp[i][1])
 
-    shx = (kp[L_SHO][0] + kp[R_SHO][0]) / 2.0
-    shy = (kp[L_SHO][1] + kp[R_SHO][1]) / 2.0
-    hpx = (kp[L_HIP][0] + kp[R_HIP][0]) / 2.0
-    hpy = (kp[L_HIP][1] + kp[R_HIP][1]) / 2.0
-    sh_obs = obs(L_SHO) and obs(R_SHO)
-    hip_obs = obs(L_HIP) and obs(R_HIP)
-
-    if kind == "virtual":
-        frac = {1: 0.0, 2: 1.0 / 3.0, 3: 2.0 / 3.0}[
-            next(z[0] for z in ZONES if z[1] == name)]
-        x = hpx + frac * (shx - hpx)
-        y = hpy + frac * (shy - hpy)
-        return x, y, (sh_obs and hip_obs)
-
-    idxs = ZONE_POINTS.get(name, ())
-    if kind == "single":
-        if name == "shoulders":
-            return shx, shy, sh_obs
-        i = idxs[0]
-        return pt(i)[0], pt(i)[1], obs(i)
+    if kind == "midpoint":
+        li, ri = ZONE_POINTS[name]
+        return ((kp[li][0] + kp[ri][0]) / 2,
+                (kp[li][1] + kp[ri][1]) / 2, obs(li) and obs(ri))
 
     # pair: energy-max side
     li, ri = PAIR_IDX[name]
@@ -188,7 +164,7 @@ class ZoneTracker:
 
     def __init__(self, *, w_surprise: float = 1.0, w_brake: float = 0.5,
                  pred_tau: float = 0.15, brake_win: float = 0.30,
-                 speed_norm: float = 1.5, gate_speed: float = 0.05):
+                 speed_norm: float = 1.5, gate_speed: float = 0.0):
         self.w_surprise = w_surprise
         self.w_brake = w_brake
         self.pred_tau = pred_tau        # s — ballistic prediction horizon
@@ -199,9 +175,9 @@ class ZoneTracker:
         for n, name, kind in ZONES:
             self.zones[n] = ZoneState(n, name, kind)
         self._speed_p90: dict[int, float] = {n: 0.3 for n, _, _ in ZONES}
-        # raw last-sample per side for pair zones: name -> {coco_idx: (t,x,y)}
-        self._side_last: dict[str, dict[int, tuple[float, float, float]]] = {
-            name: {} for name in PAIR_IDX}
+        # Independent histories prevent side selection from creating motion.
+        self._pair_hist = {name: {i: deque(maxlen=64) for i in indices}
+                           for name, indices in PAIR_IDX.items()}
 
     def update(self, kp: list, kp_state: list, t_s: float,
                present: bool) -> None:
@@ -222,12 +198,13 @@ class ZoneTracker:
                     x, y = kp[i][0], kp[i][1]
                 except (IndexError, TypeError):
                     continue
-                last = self._side_last[name].get(i)
-                if last is not None:
-                    lt, lx, ly = last
+                hist = self._pair_hist[name][i]
+                observed = kp_state[i][0] == 0
+                if hist and observed and hist[-1][3]:
+                    lt, lx, ly, _ = hist[-1]
                     dt = max(1e-3, t_s - lt)
                     speeds[i] = math.hypot(x - lx, y - ly) / dt / T
-                self._side_last[name][i] = (t_s, x, y)
+                hist.append((t_s, x, y, observed))
             side_sp[name] = (speeds.get(li, 0.0), speeds.get(ri, 0.0))
 
         for n, name, kind in ZONES:
@@ -235,10 +212,16 @@ class ZoneTracker:
             ss = side_sp.get(name, (0.0, 0.0))
             z.side_speed = ss
             x, y, obs = zone_point(name, kind, kp, kp_state, ss)
-            z.hist.append((t_s, x, y, obs))
+            if kind == "pair":
+                li, ri = PAIR_IDX[name]
+                pick = li if kp_state[li][0] == 0 and (kp_state[ri][0] != 0 or ss[0] >= ss[1]) else ri
+                z.hist = self._pair_hist[name][pick]
+            else:
+                z.hist.append((t_s, x, y, obs))
 
-            # need >=3 samples for velocity+acceleration
-            if len(z.hist) < 4:
+            z.gain = 0.0
+            z.active = False
+            if len(z.hist) < 2:
                 continue
 
             (t0, x0, y0, o0) = z.hist[-2]
@@ -250,13 +233,18 @@ class ZoneTracker:
 
             if not (o0 and o1):
                 z.active = False
-                z.gain = max(0.0, z.gain - 0.05)  # gentle release
+                z.gain = 0.0
                 continue
 
             vx = (x1 - x0) / dt / T
             vy = (y1 - y0) / dt / T
             speed = math.hypot(vx, vy)
             z.speed = speed
+            z.active = speed > self.gate_speed
+            z.gain = min(1.0, speed / self.speed_norm) if z.active else 0.0
+            if len(z.hist) < 3:
+                z.d_raw = 0.0
+                continue
 
             # acceleration from previous velocity sample (vx already in T/s,
             # so ax = dv/dt is T/s² — do NOT divide by T again)
@@ -345,12 +333,6 @@ class ZoneTracker:
                                   self.w_brake * (2.0 * z.brake_frac - 1.0))
             z.d_raw = max(-1.0, min(1.0, d_raw))
 
-            # activation gate: zone must be moving (or recently moved)
-            z.active = speed > self.gate_speed and z.observed_frac > 0.7
-
-            # gain from speed (soft knee), normalized
-            g = min(1.0, speed / self.speed_norm)
-            z.gain = g if z.active else max(0.0, z.gain - 0.05)
 
     def apply_snap(self, snap: float, theta: float = 0.15) -> None:
         for z in self.zones.values():

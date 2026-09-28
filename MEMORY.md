@@ -16,6 +16,22 @@
   → 9 detuned voices live in `/api/state` (−498 to +80 cents). Drives the
   shaper through the EXISTING `/beacon/*` slave port (voice_id 7000+n):
   zero shaper changes, no contract bump.
+- Current mapping: hips F1, shoulders F2, knees F3, elbows F4, ankles F5,
+  wrists F6. Six sustained shared voices; replaces the original nine zones.
+- Current raw experiment supersedes the sustained-at-rest revision: snap=0,
+  gain floor=0, no 200 ms output smoothing, no One-Euro pose filtering or
+  held sound for missing joints. Shaper attack/release=0. Speed drives gain;
+  stationary samples silence each zone immediately. Independent limb-side
+  histories avoid fake motion when selecting a different side.
+- Isolated experiment: `scripts/start-kinetic-consonance.sh` runs only
+  HarMoCAP, consonance and Shaper; no spatializer, MIDI, ECG or Stage runtime.
+  Recording is opt-in.
+- Live launcher integration: `--scene kinetic-consonance` (alias `consonance`)
+  runs the consonance controller INSTEAD OF the pads/bands runtime. Existing
+  HarMoCAP camera window uses skeleton + external H1–H6 state, without pads.
+  See `docs/KINETIC_CONSONANCE.md` for invocation and verification.
+- Nicolás reports hearing the prior prototype test; source of that specific
+  audible run is not independently established by the saved handoff.
 - Codex handoff for this lane: `docs/CODEX_HANDOFF_MOVEMENT_CONSONANCE.md`
 - HMK chapters (shared pool `~/.agents/memory/compaii`): 187, 189, 190.
 - Open decisions for Nicolás: anatomical mapping (midline-virtual vs

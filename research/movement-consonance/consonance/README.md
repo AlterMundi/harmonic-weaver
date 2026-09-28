@@ -111,3 +111,20 @@ usa 40.4), `--max-persons` (v1: 1).
   activación = rutas/gains), respetando la regla de arquitectura.
 - Protocolo baseline del ADDENDUM §C: clips experto/neutro/disonante →
   ratings ciegos → Spearman ρ para calibrar w_surprise/w_brake/theta.
+
+## Integración en vivo — 2026-09-27
+
+El lanzador común ahora selecciona el modo excluyente
+`--scene kinetic-consonance`, con la ventana de cámara y tracking habitual.
+Ver [guía de uso](../../../docs/KINETIC_CONSONANCE.md). El receptor conserva
+el foco por slot, descarta secuencias repetidas y libera voces tras 2 s sin
+datos; reinicia cinemática al cambiar de persona/stream. El cierre libera
+sólo las voces propias, en lugar del panic global del prototipo original.
+
+## Drone sostenido — 2026-09-27
+
+A pedido del usuario tras escuchar el modo, las voces permanecen encendidas
+en reposo: piso de ganancia 0.12, variación por movimiento hasta 0.45, fase
+±45° según desvío cinético y suavizado de 200 ms. Gain/phase usan los controles
+nativos de Shaper en 9002, sin re-disparar voice_on. Esta revisión reemplaza
+el gating por velocidad y el compromiso de re-assertar voice_on de v1.

@@ -23,10 +23,10 @@ envelope-owned voices (voice_id = -10000-n). So an external driver can own
 voice_ids 7000+n with continuous detune, ZERO shaper changes, no contract
 bump. The native /digital detune capability stays for later (CROSS_REPORT §G).
 
-v1 known compromises (documented, not hidden):
-- Gain updates go through voice_on, which calls record_strum() — at frame rate
-  that would pollute the shaper's strum-period estimator, so voice_on is
-  throttled (only when gain moves > --gain-eps or on activation change).
+Raw movement mode:
+- No snap, gain floor, output smoothing or held sound on missing joints.
+- Voice gain follows observed speed; zero speed is silent.
+- Native gain/phase updates do not reassert voice_on during continuous motion.
 - Live-mode gating implements stream_id reset + monotonic seq + 2s lease, but
   NOT the strict hello/calibration handshake (the kit's osc_receiver_example
   does; for exploration we accept frames directly). Flagged in the README.
@@ -45,8 +45,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
+import os
 import socket
+import signal
+import struct
 import sys
 import time
 from pathlib import Path
@@ -54,7 +56,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import metrics as M  # noqa: E402
 
-KIT = Path.home() / "Projects/HarMoCAP/harmocap-nico-kit"
+KIT = Path(os.environ.get("HARMOCAP_DIR", str(Path.home() / "Projects/HarMoCAP"))) / "harmocap-nico-kit"
 
 VOICE_ID_BASE = 7000          # stable ids, clear of envelope ids (-10000-n)
 LEASE_S = 2.0                 # kit rule 4: no data for 2 s → absent
@@ -123,8 +125,9 @@ def enc_msg(address: str, args: list) -> bytes:
 
 class ShaperOut:
     def __init__(self, host: str, port: int, f1: float, gain_eps: float,
-                 dry: bool):
+                 dry: bool, control_port: int = 9002):
         self.host, self.port, self.f1 = host, port, f1
+        self.control_port = control_port
         self.gain_eps, self.dry = gain_eps, dry
         self.sock = None if dry else socket.socket(socket.AF_INET,
                                                    socket.SOCK_DGRAM)
@@ -136,16 +139,23 @@ class ShaperOut:
             return
         self.sock.sendto(enc_msg(address, args), (self.host, self.port))
 
-    def update(self, n: int, freq: float, gain: float) -> None:
+    def _control(self, address: str, value: float) -> None:
+        if not self.dry and self.sock is not None:
+            self.sock.sendto(enc_msg(address, [float(value)]),
+                             (self.host, self.control_port))
+
+    def update(self, n: int, freq: float, gain: float, phase: float = 0.0) -> None:
         vid = VOICE_ID_BASE + n
-        prev = self.last_gain.get(n)
-        if vid not in self.on or prev is None or abs(gain - prev) > self.gain_eps:
-            # (re)assert voice with current gain — throttled (see module doc)
+        if vid not in self.on:
             self._send("/beacon/voice/on", [vid, float(freq), float(gain), int(n)])
             self.on.add(vid)
-            self.last_gain[n] = gain
         else:
             self._send("/beacon/voice/freq", [vid, float(freq)])
+        # Existing Shaper controls change sustained voices without recording
+        # another strum or changing voice ownership.
+        self._control(f"/digital/harmonic/{n}/gain", gain)
+        self._control(f"/digital/harmonic/{n}/phase", phase)
+        self.last_gain[n] = gain
 
     def release(self, n: int) -> None:
         vid = VOICE_ID_BASE + n
@@ -155,7 +165,9 @@ class ShaperOut:
             self.last_gain.pop(n, None)
 
     def panic(self) -> None:
-        self._send("/beacon/panic", [])
+        # Release only voices owned by this mode; preserve other instruments.
+        for vid in list(self.on):
+            self.release(vid - VOICE_ID_BASE)
         if self.sock:
             self.sock.close()
 
@@ -172,62 +184,149 @@ def frames_from_file(path: Path):
                 yield json.loads(line)
 
 
-def frames_from_osc(port: int, bufsize: int = 65535):
-    """Live wire → frame dicts. Uses the kit codec when importable."""
-    sys.path.insert(0, str(KIT))
-    import osc_codec  # type: ignore
+class LiveReceiver:
+    """Per-slot wire cache: person bundles are atomic, not whole-body frames."""
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(("0.0.0.0", port))
-    print(f"[driver] listening for /harmocap/v1/* on udp:{port}", flush=True)
-    stream_id, last_seq = None, -1
-    pending: dict[int, dict] = {}   # captured_frame_id -> frame being assembled
-    while True:
-        data, _ = sock.recvfrom(bufsize)
-        try:
-            msgs = osc_codec.decode_bundle(data)
-        except Exception:
-            continue
-        frame = None
-        for addr, args in msgs:
-            if addr.endswith("/meta"):
-                (sid, fid, seq, n_persons, fps, _cid, _cg, _cs,
-                 cap_us, _proc_us, _q_us) = args[:11]
-                if sid != stream_id:            # kit rule 2: new stream → reset
-                    stream_id, last_seq, pending = sid, -1, {}
-                if seq <= last_seq:             # kit rule 3: monotonic
-                    continue
-                last_seq = seq
-                frame = {"stream_id": sid, "captured_frame_id": fid,
-                         "captured_at_us": cap_us, "fps": fps,
-                         "n_persons": n_persons, "persons": []}
-                pending[fid] = frame
-            elif addr is not None and "/person/" in addr:
-                rest = addr.split("/person/", 1)[1]
-                slot_s, _, field = rest.partition("/")
-                fid = max(pending) if pending else None
-                if fid is None:
-                    continue
-                fr = pending[fid]
-                slot = int(slot_s)
-                per = next((p for p in fr["persons"] if p["slot_id"] == slot),
-                           None)
-                if per is None:
-                    per = {"slot_id": slot, "present": False}
-                    fr["persons"].append(per)
-                if field == "present":
-                    per["present"] = bool(args[0])
-                elif field == "keypoints":
-                    per["keypoints"] = osc_codec.unpack_keypoints(args[0])
-                elif field == "kp_state":
-                    per["kp_state"] = osc_codec.unpack_kp_state(args[0])
-        if frame is not None:
-            # emit once the bundle for its last person arrived; simplest: emit
-            # every frame we started, persons fill in as their bundles land.
-            yield frame
-            # prune old assemblies
-            for fid in [k for k in pending if k < frame["captured_frame_id"] - 4]:
-                pending.pop(fid, None)
+    def __init__(self, codec):
+        self.codec = codec
+        self.stream_id = None
+        self.last_seq = -1
+        self.persons = {}
+
+    def feed(self, data, now):
+        msgs = self.codec.decode_bundle(data)
+        if not msgs or msgs[0][0] != "/harmocap/v1/meta":
+            return
+        sid, fid, seq, count, fps, cid, cg, cs, cap_us, *_ = msgs[0][1]
+        if sid != self.stream_id:
+            self.stream_id, self.last_seq, self.persons = sid, -1, {}
+        if seq <= self.last_seq:
+            return
+        self.last_seq = seq
+        person = {"present": False, "focused": False,
+                  "captured_at_us": cap_us, "received_at": now}
+        for addr, args in msgs[1:]:
+            if "/person/" not in addr:
+                continue
+            slot, field = addr.split("/person/", 1)[1].split("/", 1)
+            person["slot_id"] = int(slot)
+            if field in ("present", "focused"):
+                person[field] = bool(args[0])
+            elif field == "keypoints":
+                person[field] = self.codec.unpack_keypoints(args[0])
+            elif field == "kp_state":
+                person[field] = self.codec.unpack_kp_state(args[0])
+        if "slot_id" in person:
+            self.persons[person["slot_id"]] = person
+
+    def snapshot(self, now):
+        return {"stream_id": self.stream_id, "persons": [
+            p for p in self.persons.values()
+            if p["present"] and now - p["received_at"] < LEASE_S
+        ]}
+
+
+def frames_from_osc(port: int, bufsize: int = 65535):
+    """Poll even during silence so the presence lease can release voices."""
+    sys.path.insert(0, str(KIT))
+    import osc_codec
+
+    receiver = LiveReceiver(osc_codec)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.bind(("127.0.0.1", port))
+        sock.settimeout(0.1)
+        print(f"[driver] listening for /harmocap/v1/* on udp:{port}", flush=True)
+        while True:
+            try:
+                data, _ = sock.recvfrom(bufsize)
+                receiver.feed(data, time.monotonic())
+            except socket.timeout:
+                pass
+            except (ValueError, TypeError, IndexError, KeyError, struct.error):
+                pass
+            yield receiver.snapshot(time.monotonic())
+
+
+class ConsonanceSession:
+    """One focused performer; identity changes start fresh kinematic history."""
+
+    def __init__(self, out, *, snap=0.0, snap_mode="series", theta=0.15,
+                 w_surprise=1.0, w_brake=0.5, pred_tau=0.15):
+        self.out = out
+        self.snap, self.snap_mode, self.theta = snap, snap_mode, theta
+        self.tracker_args = dict(w_surprise=w_surprise, w_brake=w_brake,
+                                 pred_tau=pred_tau)
+        self.tracker = M.ZoneTracker(**self.tracker_args)
+        self.identity = None
+        self.last_cap = None
+        self.person = None
+        self.sustained = {}
+
+    def update(self, frame):
+        people = [p for p in frame.get("persons", []) if p.get("present")]
+        people.sort(key=lambda p: (not p.get("focused"), p["slot_id"]))
+        person = people[0] if people else None
+        identity = (frame.get("stream_id"), person["slot_id"]) if person else None
+        if identity != self.identity:
+            for n in self.tracker.zones:
+                self.out.release(n)
+            self.tracker = M.ZoneTracker(**self.tracker_args)
+            self.identity, self.last_cap = identity, None
+            self.sustained.clear()
+        self.person = person
+        if person is None:
+            return
+        cap = person.get("captured_at_us", frame.get("captured_at_us"))
+        kp, states = person.get("keypoints"), person.get("kp_state")
+        if cap is None or kp is None or states is None:
+            for n in self.tracker.zones:
+                self.out.release(n)
+            self.person, self.last_cap = None, None
+            self.sustained.clear()
+            self.tracker = M.ZoneTracker(**self.tracker_args)
+            return
+        if self.last_cap is not None and cap <= self.last_cap:
+            return  # Other slots/heartbeat packets must not advance this body.
+        self.last_cap = cap
+        self.tracker.update(kp, states, cap / 1e6, present=True)
+        for n, z in self.tracker.zones.items():
+            z.d_eff = snap_apply(z.d_raw, self.snap, self.snap_mode, self.theta)
+            _, _, observed = M.zone_point(z.name, z.kind, kp, states, z.side_speed)
+            if not observed or z.gain <= 0.0:
+                self.out.release(n)
+                self.sustained[n] = (M.freq_for(n, z.d_eff, self.out.f1), 0.0,
+                                     45.0 * z.d_eff)
+                continue
+            current = (M.freq_for(n, z.d_eff, self.out.f1),
+                       0.45 * z.gain, 45.0 * z.d_eff)
+            self.sustained[n] = current
+            self.out.update(n, *current)
+
+    def state(self):
+        zones = []
+        if self.person and self.last_cap is not None:
+            for n, z in self.tracker.zones.items():
+                x, y, observed = M.zone_point(
+                    z.name, z.kind, self.person["keypoints"],
+                    self.person["kp_state"], z.side_speed)
+                zones.append(dict(n=n, x=x, y=y, observed=observed,
+                                  active=VOICE_ID_BASE + n in self.out.on,
+                                  freq=self.sustained.get(n, (self.out.f1 * n, 0., 0.))[0],
+                                  detune=z.d_eff,
+                                  gain=self.sustained.get(n, (0., 0., 0.))[1],
+                                  phase_deg=self.sustained.get(n, (0., 0., 0.))[2]))
+        return dict(mode="Consonancia kinetica", updated_at=time.time(),
+                    stream_id=self.identity[0] if self.identity else None,
+                    slot_id=self.identity[1] if self.identity else None,
+                    captured_at_us=self.last_cap, zones=zones)
+
+
+def write_state(path, state):
+    if path is not None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(state), encoding="utf-8")
+        tmp.replace(path)
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -242,30 +341,44 @@ def main() -> int:
     ap.add_argument("--shaper-host", default="127.0.0.1")
     ap.add_argument("--shaper-port", type=int, default=9001,
                     help="shaper /beacon/* slave port (run shaper with --slave)")
+    ap.add_argument("--shaper-control-port", type=int, default=9002)
     ap.add_argument("--f1", type=float, default=40.0)
-    ap.add_argument("--snap", type=float, default=0.5,
+    ap.add_argument("--snap", type=float, default=0.0,
                     help="0 = continuous (no snap) … 1 = hard wells")
     ap.add_argument("--snap-mode", default="series",
                     choices=["off", "series", "grid", "both"])
     ap.add_argument("--theta", type=float, default=0.15,
                     help="escape threshold (T units, surprise-normalized)")
     ap.add_argument("--gain-eps", type=float, default=0.03,
-                    help="gain change that justifies a voice_on re-assert")
+                    help="legacy compatibility option; sustained updates do not retrigger")
     ap.add_argument("--w-surprise", type=float, default=1.0)
     ap.add_argument("--w-brake", type=float, default=0.5)
     ap.add_argument("--pred-tau", type=float, default=0.15)
-    ap.add_argument("--max-persons", type=int, default=1,
+    ap.add_argument("--max-persons", type=int, choices=[1], default=1,
                     help="v1: track the first N slots (focus order)")
     ap.add_argument("--rate", type=float, default=1.0,
                     help="replay speed factor (file source only)")
     ap.add_argument("--dry", action="store_true",
                     help="no audio out; print a 1 Hz per-zone table")
+    ap.add_argument("--state-file", type=Path, help="Live state for the camera overlay")
+    ap.add_argument("--max-runtime-s", type=float, default=0.0)
     args = ap.parse_args()
+    if args.rate <= 0:
+        ap.error("--rate must be positive")
+    if not 0 <= args.snap <= 1 or args.f1 <= 0:
+        ap.error("--snap must be in [0,1] and --f1 must be positive")
 
-    tracker = M.ZoneTracker(w_surprise=args.w_surprise, w_brake=args.w_brake,
-                            pred_tau=args.pred_tau)
+    def stop(*_):
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, stop)
+
     out = ShaperOut(args.shaper_host, args.shaper_port, args.f1,
-                    args.gain_eps, args.dry)
+                    args.gain_eps, args.dry, args.shaper_control_port)
+    session = ConsonanceSession(out, snap=args.snap, snap_mode=args.snap_mode,
+                                theta=args.theta, w_surprise=args.w_surprise,
+                                w_brake=args.w_brake, pred_tau=args.pred_tau)
+    write_state(args.state_file, session.state())
 
     if args.source == "osc":
         src = frames_from_osc(args.osc_port)
@@ -277,63 +390,34 @@ def main() -> int:
     last_print = 0.0
     n_frames = 0
     try:
+        last_state = 0.0
         for frame in src:
-            cap_us = frame.get("captured_at_us")
-            if cap_us is None:
-                continue
-            if t0_cap is None:
-                t0_cap = cap_us
-            # realtime pacing for file replay
+            now = time.monotonic()
+            if args.max_runtime_s and now - t0_wall >= args.max_runtime_s:
+                break
             if args.source != "osc":
-                target = t0_wall + (cap_us - t0_cap) / 1e6 / args.rate
-                delay = target - time.monotonic()
+                cap_us = frame.get("captured_at_us")
+                if cap_us is None:
+                    continue
+                if t0_cap is None:
+                    t0_cap = cap_us
+                delay = t0_wall + (cap_us - t0_cap) / 1e6 / args.rate - now
                 if delay > 0:
                     time.sleep(delay)
-            t_s = cap_us / 1e6
-
-            persons = [p for p in frame.get("persons", []) if p.get("present")]
-            persons.sort(key=lambda p: (not p.get("focused"), p["slot_id"]))
-            persons = persons[:args.max_persons]
-
-            for p in persons:
-                kp = p.get("keypoints")
-                kps = p.get("kp_state")
-                if kp is None or kps is None:
-                    continue
-                tracker.update(kp, kps, t_s, present=True)
-            if not persons:
-                tracker.update([], [], t_s, present=False)
-
-            tracker.apply_snap(args.snap if args.snap_mode != "off" else 0.0,
-                               args.theta)
-            # NOTE: apply_snap uses metrics.snap_map (series well); grid/both
-            # modes post-process here:
-            if args.snap_mode in ("grid", "both"):
-                for z in tracker.zones.values():
-                    z.d_eff = snap_apply(z.d_raw, args.snap, args.snap_mode,
-                                         args.theta)
-
-            for n, z in tracker.zones.items():
-                if z.active and z.gain > 0.01:
-                    freq = M.freq_for(n, z.d_eff, args.f1)
-                    out.update(n, freq, z.gain * 0.6)
-                else:
-                    out.release(n)
+            session.update(frame)
             n_frames += 1
-
-            if args.dry and t_s - last_print >= 1.0:
-                last_print = t_s
-                print(f"── t={t_s - t0_cap / 1e6:7.1f}s frame={n_frames}")
-                for n, z in sorted(tracker.zones.items()):
-                    if z.active:
-                        f = M.freq_for(n, z.d_eff, args.f1)
-                        print(f"  H{n:<2} {z.name:<12} d={z.d_eff:+.3f} "
-                              f"f={f:7.2f}Hz g={z.gain:.2f} "
-                              f"surp={z.surprise:.3f} P={'+' if z.power_sign > 0 else ('-' if z.power_sign < 0 else '0')}")
+            if now - last_state >= 0.1:
+                write_state(args.state_file, session.state())
+                last_state = now
+            if args.dry and now - last_print >= 1.0:
+                last_print = now
+                print(json.dumps(session.state()), flush=True)
     except KeyboardInterrupt:
         print("\n[driver] interrupted")
     finally:
         out.panic()
+        session.update({"persons": []})
+        write_state(args.state_file, session.state())
     print(f"[driver] done: {n_frames} frames")
     return 0
 

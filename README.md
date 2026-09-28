@@ -51,6 +51,11 @@ On the current rehearsal workstation the known-good launch command is:
   --shaper-device "R24 Analog Stereo"
 ```
 
+For the isolated **Consonancia kinética** experiment, run
+`./scripts/start-kinetic-consonance.sh --camera 0`.
+It starts only HarMoCAP, the consonance controller and Shaper, with camera
+and skeleton overlay. See [the experiment guide](docs/KINETIC_CONSONANCE.md).
+
 Camera indices and audio-device names are machine-specific. Stop the latest
 stack with:
 
