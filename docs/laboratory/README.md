@@ -1,6 +1,7 @@
 # Laboratorio corporal: punto de entrada
 
-Estado: implementación en curso; ver [evidencia y pendientes](IMPLEMENTATION_STATUS.md). 2026-09-29.
+Estado: primera iteración local disponible; ver [arranque](RUNNING.md),
+[validación y límites](VALIDATION.md) y [estado](IMPLEMENTATION_STATUS.md). 2026-09-29.
 
 Para aportar cambios o presets: [fronteras y flujo de contribución](CONTRIBUTING.md).
 
@@ -44,7 +45,7 @@ Evaluar después: presets seleccionados contra las mismas fuentes, cálculo y s�
 
 [LAB-09 · #17](https://github.com/AlterMundi/harmonic-weaver/issues/17) es captura opcional y no bloquea las primeras sesiones de [LAB-08 · #16](https://github.com/AlterMundi/harmonic-weaver/issues/16). La validación comparativa comienza después del feedback, no condiciona la operación cotidiana.
 
-No hay colaboradores asignados automáticamente. Cada tarea declara fronteras y aceptación; los cambios necesarios en HarMoCAP/Shaper se publican en sus repos y se enlazan desde la tarea de Weaver. No iniciar modificaciones del instrumento como parte de esta publicación documental.
+No hay colaboradores asignados automáticamente. Cada tarea declara fronteras y aceptación; los cambios necesarios en HarMoCAP/Shaper se publican en sus repos y se enlazan desde la tarea de Weaver. La implementación y su evidencia se siguen en IMPLEMENTATION_STATUS y VALIDATION.
 
 ## Investigación conservada
 

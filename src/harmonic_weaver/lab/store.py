@@ -71,7 +71,7 @@ class SessionStore:
         self.preset = Preset.model_validate(stored["preset"]) if stored else Preset()
         self.prepared = self._prepare(self.preset)
         revision = stored["revision"] if stored else 0
-        self.state = SessionState(desired_revision=revision, applied_revision=revision)
+        self.state = SessionState(desired_revision=revision)
         self._undo: list[Preset] = []
         self._redo: list[Preset] = []
 
@@ -87,7 +87,8 @@ class SessionStore:
         event = SessionEvent(session_id=self.state.session_id,
                              monotonic_s=time.monotonic(), source_time_s=self.state.position_s,
                              kind=kind, revision=self.state.desired_revision if revision is None else revision,
-                             payload=payload)
+                             payload={"source_id": self.state.source_id, "person_id": self.state.person_id,
+                                      "calibration_id": self.state.calibration_id, **payload})
         self._db.execute("INSERT INTO events(payload) VALUES (?)", (event.model_dump_json(),))
 
     def snapshot(self):

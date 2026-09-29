@@ -89,6 +89,55 @@
       "title": "Generated Monotonic S",
       "type": "number"
     },
+    "control_owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Owner"
+    },
+    "control_sequence": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Sequence"
+    },
+    "control_applied_monotonic_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Applied Monotonic S"
+    },
+    "control_sampled_monotonic_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Sampled Monotonic S"
+    },
     "output_dac_time_s": {
       "anyOf": [
         {

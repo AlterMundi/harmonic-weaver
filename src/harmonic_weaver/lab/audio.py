@@ -20,7 +20,10 @@ class ShaperOutput:
         self._targets = []
         self._target_revision = 0
         self._target_version = 0
+        self._submitted_at = time.monotonic()
         self._applied_revision = -1
+        self._acknowledged_revision = -1
+        self._control_to_audio_ms = None
         self._frame = None
         self._error = "connecting"
         self._control_error = None
@@ -40,16 +43,19 @@ class ShaperOutput:
             if values != self._targets or revision != self._target_revision:
                 self._targets, self._target_revision = values, revision
                 self._target_version += 1
+                self._submitted_at = time.monotonic()
 
     def _run(self):
         sequence, sent_version = 0, -1
         sent_at, polled_at = -1., -1.
+        pending, measured_version = {}, -1
         with self._client_factory() as client:
             try:
                 while not self._stop.is_set():
                     started = time.monotonic()
                     with self._lock:
                         targets, revision, version = list(self._targets), self._target_revision, self._target_version
+                        submitted = self._submitted_at
                     if version != sent_version or started-sent_at >= .1:
                         sequence += 1
                         try:
@@ -60,8 +66,11 @@ class ShaperOutput:
                             if ack.get("owner") != self.owner or ack.get("applied_sequence") != sequence:
                                 raise ValueError("Shaper acknowledged a different control frame")
                             sent_version, sent_at = version, started
+                            pending[sequence] = revision, version, submitted
+                            if len(pending) > 512:
+                                del pending[min(pending)]
                             with self._lock:
-                                self._applied_revision = revision
+                                self._acknowledged_revision = revision
                                 self._control_error = None
                                 self._last_ack = time.monotonic()
                                 self._roundtrip_ms = (self._last_ack-started)*1000
@@ -77,6 +86,12 @@ class ShaperOutput:
                             with self._lock:
                                 self._frame = frame
                                 self._error = None if frame.running else "audio engine is not running"
+                                applied = pending.get(frame.control_sequence) if frame.control_owner == self.owner else None
+                                if applied is not None and frame.running:
+                                    self._applied_revision = applied[0]
+                                    if applied[1] != measured_version and frame.control_sampled_monotonic_s is not None:
+                                        measured_version = applied[1]
+                                        self._control_to_audio_ms = max(0., (frame.control_sampled_monotonic_s-applied[2])*1000)
                         except (httpx.HTTPError, ValueError) as exc:
                             with self._lock:
                                 self._error = str(exc)
@@ -95,6 +110,8 @@ class ShaperOutput:
             return {"shaper": {"url": self.url, "applied_revision":self._applied_revision,
                     "error":self._control_error or self._error,
                     "control_roundtrip_ms":self._roundtrip_ms,
+                    "acknowledged_revision":self._acknowledged_revision,
+                    "control_to_audio_block_ms":self._control_to_audio_ms,
                     "last_ack_age_ms":None if self._last_ack is None else (now-self._last_ack)*1000,
                     "telemetry_age_ms":None if age is None else age*1000,
                     "telemetry_valid":age is not None and 0 <= age < .3 and self._frame.running},

@@ -18,10 +18,17 @@
       "type": "integer"
     },
     "applied_revision": {
-      "default": 0,
-      "minimum": 0,
-      "title": "Applied Revision",
-      "type": "integer"
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Applied Revision"
     },
     "analysis_epoch": {
       "default": 0,

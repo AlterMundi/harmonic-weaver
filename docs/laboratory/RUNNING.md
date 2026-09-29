@@ -1,7 +1,9 @@
 # Arranque y primer recorrido local
 
-Estado: primera mesa en integración; ver IMPLEMENTATION_STATUS. La escucha y
+Estado: primera iteración local disponible; ver IMPLEMENTATION_STATUS. La escucha y
 aceptación de Nicolás no se infieren de las pruebas automatizadas.
+
+[Evidencia, mediciones y límites conocidos](VALIDATION.md).
 
 ## Dependencias
 
@@ -73,6 +75,8 @@ en SOURCES. La cámara y el audio live no se graban automáticamente.
 1. Fuente: ingresar la ruta de un video y abrirlo; esperar el tracking o explorar
    el prefijo procesado. Reproducir y activar Loop. Reabrir el mismo archivo debe
    mostrar «cache reutilizado»; «Forzar tracking» genera una extracción nueva.
+   En esta máquina ya hay cuatro fragmentos en `~/Videos/weaver-lab/` y en la
+   biblioteca. No hace falta abrir/procesar el original de 15 GB para empezar.
 2. Presets: elegir «Instrumento original» para el baseline de seis voces.
    Cambiar master, sensibilidades y ruteos mientras la fuente sigue corriendo.
 3. Para modelos nuevos, elegir la persona y **Calibrar escala con este cuerpo**.

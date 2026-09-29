@@ -43,5 +43,6 @@ Comando actual para las pruebas de contratos/modelos/runtime desde el checkout:
 python -m pytest -q tests/test_lab_*.py
 ```
 
-La primera entrega local todavía está en construcción. Consultar el estado
-comprobado antes de asumir que UI, cámara o audio físico ya están verificados.
+La primera iteración local está disponible. Consultar VALIDATION e
+IMPLEMENTATION_STATUS para distinguir pruebas de software, señal de salida y
+aceptación humana pendiente; los medios corporales permanecen fuera del repo.

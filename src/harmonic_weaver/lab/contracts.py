@@ -324,7 +324,7 @@ class SessionState(Contract):
     schema_version: Literal[1] = 1
     session_id: str = Field(default_factory=lambda: uuid4().hex)
     desired_revision: int = Field(default=0, ge=0)
-    applied_revision: int = Field(default=0, ge=0)
+    applied_revision: int | None = Field(default=None, ge=0)
     analysis_epoch: int = Field(default=0, ge=0)
     source_id: str | None = None
     person_id: str | None = None
@@ -364,6 +364,10 @@ class VoiceFrame(Contract):
     sample_rate: int = Field(gt=0)
     block_frames: int = Field(gt=0)
     generated_monotonic_s: Number
+    control_owner: str | None = None
+    control_sequence: int | None = Field(default=None, ge=0)
+    control_applied_monotonic_s: Number | None = None
+    control_sampled_monotonic_s: Number | None = None
     output_dac_time_s: Number | None = None
     running: bool
     stage: Literal["oscillators_pre_shape_limiter"] = "oscillators_pre_shape_limiter"

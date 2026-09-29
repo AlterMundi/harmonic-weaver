@@ -1,7 +1,7 @@
 # Implementación: estado comprobado
 
-2026-09-29. Objetivo activo: primera iteración local en integración. La aceptación
-humana y escucha no se dieron por realizadas.
+2026-09-29. Primera iteración local disponible para feedback. La aceptación
+humana y escucha siguen pendientes. [Evidencia y límites](VALIDATION.md).
 
 ## Publicación
 
@@ -47,9 +47,10 @@ centros; no establecen intención ni causalidad.
 
 - Suite Weaver completa: **229 tests + 4 subtests**, 117.68 s.
 - Laboratorio: **45 tests**, incluidos contratos/cache/PTS/modelos/ruteos/runtime.
-- Shaper: **7 tests específicos**, reconstrucción 1/6/32 voces, lease, release y API.
-- UI: **5 pruebas Playwright**: suma polifónica 1/6/32, grosor geométrico y recorrido
-  de edición en navegador, revisión reconocida por Shaper y guardado de preset.
+- Shaper: **35 tests** de laboratorio/audio/estado, incluidos reconstrucción
+  1/6/32 voces, lease, release y revisión consumida por el callback.
+- UI: **6 pruebas Playwright**: suma polifónica 1/6/32, grosor geométrico, edición,
+  preset, macro continuo y reproducción real con píxeles dibujados en el canvas.
 - Cámara física: captura/inferencia produjo frames recientes, sin error del worker;
   cerrada después del smoke. No equivale a una sesión corporal aceptada.
 - Fragmento frontal real de 12 s: 359 frames cacheados. Los cinco modelos alcanzaron
@@ -61,14 +62,19 @@ Los cuatro fragmentos locales (perfil/espalda/frente/sin soga) suman unos 21 MB.
 El original grande permanece en Downloads sin duplicar. Video, frames, screenshots
 con cuerpo y tracking privado no se incorporan al repo ni a GitHub.
 
-## Verificación pendiente antes de entregar
+## Integración comprobada y pendientes humanos
 
-1. Completar tracking/reapertura de los otros ángulos, forzado y cambio de fuente;
-   recorrido web con figura y video reales, presets/macros y recuperación.
-2. Verificar ruta efectiva JACK/PipeWire (ALSA en este host puede producir silencio
-   aunque el callback esté activo). Separar medidas de software y físicas.
-3. Sesión prolongada y diagnóstico de latencia/jitter/backlog. Documentar límites
-   observados y qué queda para escucha/aceptación humana.
-4. Actualizar PRs/issues y dejar sesión local lista para probar.
+Los cuatro ángulos se reprocesaron/reabrieron y recibieron el mismo preset portable
+con calibración nueva. Forzado CPU creó nueva generación; reapertura dio cache hit.
+Un error CUDA encontrado no destruyó el cache previo y se recuperó usando CPU;
+su causa de bajo nivel sigue abierta y se documenta en VALIDATION.
+
+Salida JACK verificada por captura de los puertos propios: señal durante movimiento
+y cero tras pausa. Soak de 600 s, 51 epochs, sin errores; control preparado→bloque
+p50 14,45 ms / p95 27,92 ms. No equivale a latencia física ni escucha humana.
+
+Quedan para Nicolás: escucha, sensación al moverse/observar, aceptación y feedback
+de interfaz. Los máximos de latencia, precisión de tracking y fallo GPU tienen
+límites explícitos; no se declara una validación científica o fisiológica.
 
 Grabación opcional, evaluación formal y sensores siguen en la agenda posterior.
