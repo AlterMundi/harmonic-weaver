@@ -58,3 +58,8 @@ PYTHONPATH=src python -m pytest -q tests/test_capture_wakeup.py tests/test_instr
 Weaver: 184 tests y 4 subtests pasan (99.83 s). HarMoCAP: 8 pruebas específicas
 pasan (0.31 s). Son verificaciones de software; escucha, cámara física y aceptación
 humana del nuevo laboratorio siguen pendientes. LAB-08 las distingue expresamente.
+
+La suite ampliada de HarMoCAP dio 105 passed, 2 skipped y 6 fallos de importación
+por ausencia del extra opcional Gradio en el entorno local. Afectan tests de la
+webapp Gradio previa, no las ocho pruebas de captura/overlay. No se modificó ese
+entorno ni se presenta esta corrida como suite completa verde.
