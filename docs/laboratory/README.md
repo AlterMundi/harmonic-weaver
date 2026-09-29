@@ -7,6 +7,8 @@ Para aportar cambios o presets: [fronteras y flujo de contribución](CONTRIBUTIN
 
 Coordinación y seguimiento: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Este índice reúne el alcance vigente, las tareas ejecutables y las preguntas que siguen abiertas.
 
+Próxima iteración y colaboración: [integración de Sai y goals complementarios](NEXT_ITERATION.md).
+
 ## Qué leer primero
 
 1. [Decisiones vigentes](DECISIONS.md): prioridades acordadas y distinciones que no deben perderse.
