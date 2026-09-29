@@ -1,0 +1,92 @@
+{
+  "additionalProperties": false,
+  "description": "Source-specific settings; deliberately outside portable musical presets.",
+  "properties": {
+    "checkpoint": {
+      "minLength": 1,
+      "title": "Checkpoint",
+      "type": "string"
+    },
+    "device": {
+      "default": "auto",
+      "title": "Device",
+      "type": "string"
+    },
+    "imgsz": {
+      "default": 320,
+      "maximum": 1280,
+      "minimum": 160,
+      "multipleOf": 32,
+      "title": "Imgsz",
+      "type": "integer"
+    },
+    "confidence": {
+      "default": 0.3,
+      "maximum": 1,
+      "minimum": 0.01,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "joint_confidence": {
+      "default": 0.3,
+      "maximum": 1,
+      "minimum": 0.01,
+      "title": "Joint Confidence",
+      "type": "number"
+    },
+    "max_detections": {
+      "default": 6,
+      "maximum": 32,
+      "minimum": 1,
+      "title": "Max Detections",
+      "type": "integer"
+    },
+    "max_slots": {
+      "default": 4,
+      "maximum": 8,
+      "minimum": 1,
+      "title": "Max Slots",
+      "type": "integer"
+    },
+    "tracker": {
+      "default": "bytetrack.yaml",
+      "enum": [
+        "bytetrack.yaml",
+        "botsort.yaml"
+      ],
+      "title": "Tracker",
+      "type": "string"
+    },
+    "reacquisition": {
+      "default": true,
+      "title": "Reacquisition",
+      "type": "boolean"
+    },
+    "camera_width": {
+      "default": 1280,
+      "maximum": 3840,
+      "minimum": 160,
+      "title": "Camera Width",
+      "type": "integer"
+    },
+    "camera_height": {
+      "default": 720,
+      "maximum": 2160,
+      "minimum": 120,
+      "title": "Camera Height",
+      "type": "integer"
+    },
+    "camera_fps": {
+      "default": 30,
+      "maximum": 120,
+      "minimum": 1,
+      "title": "Camera Fps",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "checkpoint"
+  ],
+  "title": "PerceptionSettings",
+  "type": "object"
+}

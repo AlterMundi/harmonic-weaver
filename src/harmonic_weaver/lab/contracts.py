@@ -64,7 +64,12 @@ class MotionFrame(Contract):
     sequence: int = Field(ge=0)
     source_time_s: Number = Field(ge=0)
     available_monotonic_s: Number = Field(ge=0)
+    captured_monotonic_s: Number | None = Field(default=None, ge=0)
+    duration_s: Number | None = Field(default=None, ge=0)
     timestamp_origin: Literal["pts", "capture", "index_fps", "synthetic"]
+    source_pts: int | None = None
+    time_base_num: int | None = None
+    time_base_den: int | None = Field(default=None, gt=0)
     coordinate_frame: Literal["camera_isotropic", "world"] = "camera_isotropic"
     unit: Literal["frame_height", "meter"] = "frame_height"
     dimensions: Literal[2, 3] = 2
@@ -363,3 +368,22 @@ class VoiceFrame(Contract):
 
 PERSISTED_CONTRACTS = (MotionFrame, FeatureFrame, AlgorithmDescriptor, Preset,
                        Calibration, SessionState, SessionEvent, VoiceFrame)
+
+
+class PerceptionSettings(Contract):
+    """Source-specific settings; deliberately outside portable musical presets."""
+    checkpoint: str = Field(min_length=1)
+    device: str = "auto"
+    imgsz: int = Field(default=320, ge=160, le=1280, multiple_of=32)
+    confidence: Number = Field(default=.3, ge=.01, le=1)
+    joint_confidence: Number = Field(default=.3, ge=.01, le=1)
+    max_detections: int = Field(default=6, ge=1, le=32)
+    max_slots: int = Field(default=4, ge=1, le=8)
+    tracker: Literal["bytetrack.yaml", "botsort.yaml"] = "bytetrack.yaml"
+    reacquisition: bool = True
+    camera_width: int = Field(default=1280, ge=160, le=3840)
+    camera_height: int = Field(default=720, ge=120, le=2160)
+    camera_fps: int = Field(default=30, ge=1, le=120)
+
+
+PERSISTED_CONTRACTS += (PerceptionSettings,)

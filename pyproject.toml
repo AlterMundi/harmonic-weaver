@@ -19,6 +19,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+lab = [
+    "python-multipart>=0.0.9,<1",
+]
 test = [
     "httpx>=0.27,<1",
     "pytest>=8,<10",

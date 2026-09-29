@@ -1,0 +1,168 @@
+"""Video library and asynchronous extraction. Loop/replay reads never start inference."""
+from __future__ import annotations
+
+from bisect import bisect_right
+from dataclasses import dataclass, field
+import json
+from pathlib import Path
+import threading
+from uuid import uuid4
+
+from .cache import CacheCancelled, TrackingCache, atomic_json, cache_identity, sha256_file
+from .contracts import MotionFrame, PerceptionSettings
+from .perception import PerceptionWorker
+
+
+@dataclass
+class VideoJob:
+    id: str
+    path: Path
+    settings: PerceptionSettings
+    status: str = "hashing"
+    media_id: str | None = None
+    cache_key: str | None = None
+    cache_location: str | None = None
+    cache_hit: bool = False
+    error: str | None = None
+    duration_s: float = 0.
+    frames: list[MotionFrame] = field(default_factory=list)
+    times: list[float] = field(default_factory=list)
+    cancel_event: threading.Event = field(default_factory=threading.Event)
+    worker: PerceptionWorker | None = None
+    thread: threading.Thread | None = None
+
+    def public(self):
+        return {"id": self.id, "name": self.path.name, "path": str(self.path), "status": self.status,
+                "media_id": self.media_id, "cache_key": self.cache_key, "cache_location": self.cache_location,
+                "cache_hit": self.cache_hit, "error": self.error, "duration_s": self.duration_s,
+                "processed_frames": len(self.frames), "prefix_s": self.times[-1] if self.times else 0.,
+                "perception": self.settings.model_dump(),
+                "width": self.frames[0].width if self.frames else None,
+                "height": self.frames[0].height if self.frames else None}
+
+
+class VideoLibrary:
+    def __init__(self, data_dir, *, worker_factory=PerceptionWorker):
+        self.data_dir = Path(data_dir)
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.index = self.data_dir / "media.json"
+        self.cache = TrackingCache(self.data_dir)
+        self.worker_factory = worker_factory
+        self._lock = threading.RLock()
+        self.jobs: dict[str, VideoJob] = {}
+        try:
+            self.assets = json.loads(self.index.read_text())
+        except (OSError, ValueError):
+            self.assets = {}
+
+    def open(self, path, settings: PerceptionSettings, *, force=False):
+        path = Path(path).expanduser().resolve()
+        if not path.is_file() or path.suffix.lower() not in {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}:
+            raise ValueError("choose an existing video file (mp4/mov/m4v/webm/mkv/avi)")
+        with self._lock:
+            if any(j.status in {"hashing", "probing", "building"} for j in self.jobs.values()):
+                raise ValueError("a video extraction is active; cancel it before starting another")
+            job = VideoJob(uuid4().hex, path, settings.model_copy(deep=True))
+            self.jobs[job.id] = job
+            job.thread = threading.Thread(target=self._extract, args=(job, force), daemon=True,
+                                          name=f"lab-tracking-{job.id[:6]}")
+            job.thread.start()
+            return job.public()
+
+    def _extract(self, job, force):
+        try:
+            media_hash = sha256_file(job.path)
+            if job.cancel_event.is_set():
+                raise CacheCancelled("cancelled")
+            worker = self.worker_factory()
+            with self._lock:
+                job.media_id = media_hash
+                job.status = "probing"
+                job.worker = worker
+            extractor = worker.probe()
+            key, metadata = cache_identity(media_hash, job.settings, extractor)
+            if job.cancel_event.is_set():
+                raise CacheCancelled("cancelled")
+            cached = None if force else self.cache.read(job.path, key)
+            with self._lock:
+                job.cache_key = key
+                job.status = "building"
+                job.error = self.cache.last_problem
+            if cached is None:
+                def progress(frame, count):
+                    with self._lock:
+                        job.frames.append(frame)
+                        job.times.append(frame.source_time_s)
+                        job.duration_s = frame.source_time_s
+                def observations():
+                    for message in worker.messages(job.settings, source_id=media_hash, stream_id=job.id, video=job.path):
+                        if message.get("type") == "metadata" and message.get("duration_s"):
+                            metadata["media_duration_s"] = float(message["duration_s"])
+                        if message.get("type") == "frame":
+                            yield MotionFrame.model_validate(message["frame"])
+                cached = self.cache.write(job.path, key, metadata, observations(),
+                                          cancel=job.cancel_event, progress=progress)
+            else:
+                job.cache_hit = True
+            with self._lock:
+                job.frames = cached.frames
+                job.times = [f.source_time_s for f in cached.frames]
+                job.duration_s = cached.manifest["duration_s"]
+                job.cache_location = str(cached.manifest_path)
+                job.status = "ready"
+                job.error = self.cache.last_problem
+                self.assets[media_hash] = {"id": media_hash, "name": job.path.name, "path": str(job.path),
+                                           "duration_s": job.duration_s, "perception": job.settings.model_dump(),
+                                           "cache_location": job.cache_location}
+                atomic_json(self.index, self.assets)
+        except Exception as exc:
+            with self._lock:
+                job.status = "cancelled" if job.cancel_event.is_set() or isinstance(exc, CacheCancelled) else "error"
+                job.error = str(exc)
+        finally:
+            if job.worker is not None:
+                job.worker.stop()
+
+    def list_assets(self):
+        with self._lock:
+            return list(self.assets.values())
+
+    def snapshot(self, job_id):
+        with self._lock:
+            return self.jobs[job_id].public()
+
+    def frame_at(self, job_id, position_s):
+        with self._lock:
+            job = self.jobs[job_id]
+            if not job.times or position_s > job.duration_s or (job.status != "ready" and position_s > job.times[-1]):
+                return None
+            index = bisect_right(job.times, position_s) - 1
+            return job.frames[index] if index >= 0 else None
+
+    def frames_between(self, job_id, start_s, end_s):
+        with self._lock:
+            job = self.jobs[job_id]
+            left, right = bisect_right(job.times, start_s), bisect_right(job.times, end_s)
+            return job.frames[left:right]
+
+    def cancel(self, job_id):
+        with self._lock:
+            job = self.jobs[job_id]
+            if job.status in {"ready", "error", "cancelled"}:
+                return job.public()
+            job.cancel_event.set()
+            worker = job.worker
+        if worker:
+            worker.stop()
+        return self.snapshot(job_id)
+
+    def path(self, job_id):
+        with self._lock:
+            return self.jobs[job_id].path
+
+    def close(self):
+        for job_id in list(self.jobs):
+            self.cancel(job_id)
+        for job in list(self.jobs.values()):
+            if job.thread is not None:
+                job.thread.join(timeout=5)

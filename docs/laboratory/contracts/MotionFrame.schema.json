@@ -102,6 +102,32 @@
       "title": "Available Monotonic S",
       "type": "number"
     },
+    "captured_monotonic_s": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Captured Monotonic S"
+    },
+    "duration_s": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration S"
+    },
     "timestamp_origin": {
       "enum": [
         "pts",
@@ -111,6 +137,43 @@
       ],
       "title": "Timestamp Origin",
       "type": "string"
+    },
+    "source_pts": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Pts"
+    },
+    "time_base_num": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Time Base Num"
+    },
+    "time_base_den": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Time Base Den"
     },
     "coordinate_frame": {
       "default": "camera_isotropic",
