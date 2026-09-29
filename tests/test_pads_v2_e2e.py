@@ -20,12 +20,19 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
+HARMOCAP_ROOT = Path(
+    os.environ.get("HARMOCAP_DIR", REPO.parent / "HarMoCAP")
+).expanduser()
+SHAPER_ROOT = Path(
+    os.environ.get("SHAPER_DIR", REPO.parent / "harmonic-shaper")
+).expanduser()
 sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(REPO))
 
@@ -36,13 +43,13 @@ from harmonic_weaver.engine.model import HELD, OBSERVED, INVALID, ValueEnvelope
 
 def _harMoCAP_manifest():
     return json.loads(
-        (Path("/home/nicolas/Projects/HarMoCAP/schemas/osc_contract.v1.json")).read_text()
+        (HARMOCAP_ROOT / "schemas" / "osc_contract.v1.json").read_text()
     )
 
 
 def _shaper_manifest():
     return json.loads(
-        (Path("/home/nicolas/Projects/harmonic-shaper/contracts/shaper.contract.json")).read_text()
+        (SHAPER_ROOT / "contracts" / "shaper.contract.json").read_text()
     )
 
 
