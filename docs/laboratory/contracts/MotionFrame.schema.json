@@ -1,0 +1,172 @@
+{
+  "$defs": {
+    "Joint": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "maximum": 16,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Position"
+        },
+        "confidence": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "state": {
+          "default": "missing",
+          "enum": [
+            "observed",
+            "held",
+            "missing"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index"
+      ],
+      "title": "Joint",
+      "type": "object"
+    },
+    "Person": {
+      "additionalProperties": false,
+      "properties": {
+        "person_id": {
+          "title": "Person Id",
+          "type": "string"
+        },
+        "joints": {
+          "items": {
+            "$ref": "#/$defs/Joint"
+          },
+          "title": "Joints",
+          "type": "array"
+        }
+      },
+      "required": [
+        "person_id",
+        "joints"
+      ],
+      "title": "Person",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "stream_id": {
+      "title": "Stream Id",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 0,
+      "title": "Sequence",
+      "type": "integer"
+    },
+    "source_time_s": {
+      "minimum": 0,
+      "title": "Source Time S",
+      "type": "number"
+    },
+    "available_monotonic_s": {
+      "minimum": 0,
+      "title": "Available Monotonic S",
+      "type": "number"
+    },
+    "timestamp_origin": {
+      "enum": [
+        "pts",
+        "capture",
+        "index_fps",
+        "synthetic"
+      ],
+      "title": "Timestamp Origin",
+      "type": "string"
+    },
+    "coordinate_frame": {
+      "default": "camera_isotropic",
+      "enum": [
+        "camera_isotropic",
+        "world"
+      ],
+      "title": "Coordinate Frame",
+      "type": "string"
+    },
+    "unit": {
+      "default": "frame_height",
+      "enum": [
+        "frame_height",
+        "meter"
+      ],
+      "title": "Unit",
+      "type": "string"
+    },
+    "dimensions": {
+      "default": 2,
+      "enum": [
+        2,
+        3
+      ],
+      "title": "Dimensions",
+      "type": "integer"
+    },
+    "width": {
+      "exclusiveMinimum": 0,
+      "title": "Width",
+      "type": "integer"
+    },
+    "height": {
+      "exclusiveMinimum": 0,
+      "title": "Height",
+      "type": "integer"
+    },
+    "persons": {
+      "items": {
+        "$ref": "#/$defs/Person"
+      },
+      "title": "Persons",
+      "type": "array"
+    }
+  },
+  "required": [
+    "source_id",
+    "stream_id",
+    "sequence",
+    "source_time_s",
+    "available_monotonic_s",
+    "timestamp_origin",
+    "width",
+    "height"
+  ],
+  "title": "MotionFrame",
+  "type": "object"
+}

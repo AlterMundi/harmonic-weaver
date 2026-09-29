@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "source_id": "synthetic",
+  "stream_id": "fixture",
+  "sequence": 0,
+  "source_time_s": 0.0,
+  "available_monotonic_s": 0.0,
+  "timestamp_origin": "synthetic",
+  "coordinate_frame": "camera_isotropic",
+  "unit": "frame_height",
+  "dimensions": 2,
+  "width": 1280,
+  "height": 720,
+  "persons": [
+    {
+      "person_id": "person-1",
+      "joints": [
+        {
+          "index": 0,
+          "position": [
+            0.5,
+            0.2
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 1,
+          "position": [
+            0.7,
+            0.2
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 2,
+          "position": [
+            0.5,
+            0.26
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 3,
+          "position": [
+            0.7,
+            0.26
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 4,
+          "position": [
+            0.5,
+            0.32
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 5,
+          "position": [
+            0.7,
+            0.32
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 6,
+          "position": [
+            0.5,
+            0.38
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 7,
+          "position": [
+            0.7,
+            0.38
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 8,
+          "position": [
+            0.5,
+            0.44
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 9,
+          "position": [
+            0.7,
+            0.44
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 10,
+          "position": [
+            0.5,
+            0.5
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 11,
+          "position": [
+            0.7,
+            0.5
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 12,
+          "position": [
+            0.5,
+            0.56
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 13,
+          "position": [
+            0.7,
+            0.56
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 14,
+          "position": [
+            0.5,
+            0.62
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 15,
+          "position": [
+            0.7,
+            0.62
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        },
+        {
+          "index": 16,
+          "position": [
+            0.5,
+            0.6799999999999999
+          ],
+          "confidence": 1.0,
+          "state": "observed"
+        }
+      ]
+    }
+  ]
+}

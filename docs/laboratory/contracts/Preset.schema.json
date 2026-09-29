@@ -1,0 +1,708 @@
+{
+  "$defs": {
+    "AlgorithmSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "default": "baseline",
+          "enum": [
+            "baseline",
+            "local",
+            "relational",
+            "angular",
+            "collective"
+          ],
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "const": 1,
+          "default": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "reference": {
+          "default": "camera",
+          "enum": [
+            "camera",
+            "pelvis",
+            "torso",
+            "fixed"
+          ],
+          "title": "Reference",
+          "type": "string"
+        },
+        "fixed_x": {
+          "default": 0,
+          "maximum": 10,
+          "minimum": -10,
+          "title": "Fixed X",
+          "type": "number"
+        },
+        "fixed_y": {
+          "default": 0,
+          "maximum": 10,
+          "minimum": -10,
+          "title": "Fixed Y",
+          "type": "number"
+        },
+        "joints": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 17,
+          "minItems": 2,
+          "title": "Joints",
+          "type": "array"
+        },
+        "smoothing_s": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Smoothing S",
+          "type": "number"
+        },
+        "horizon_s": {
+          "default": 0.15,
+          "maximum": 2,
+          "minimum": 0.01,
+          "title": "Horizon S",
+          "type": "number"
+        },
+        "history_s": {
+          "default": 0.25,
+          "maximum": 5,
+          "minimum": 0.05,
+          "title": "History S",
+          "type": "number"
+        },
+        "noise_velocity": {
+          "default": 0.02,
+          "maximum": 2,
+          "minimum": 0.0001,
+          "title": "Noise Velocity",
+          "type": "number"
+        },
+        "noise_delta": {
+          "default": 0.015,
+          "maximum": 2,
+          "minimum": 0.0001,
+          "title": "Noise Delta",
+          "type": "number"
+        },
+        "relation_reference": {
+          "default": "history",
+          "enum": [
+            "history",
+            "instantaneous"
+          ],
+          "title": "Relation Reference",
+          "type": "string"
+        },
+        "window_s": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 0.3,
+          "title": "Window S",
+          "type": "number"
+        },
+        "components": {
+          "default": 3,
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Components",
+          "type": "integer"
+        },
+        "ridge": {
+          "default": 0.1,
+          "maximum": 100,
+          "minimum": 1e-05,
+          "title": "Ridge",
+          "type": "number"
+        },
+        "lag_s": {
+          "default": 0.12,
+          "maximum": 1,
+          "minimum": 0.02,
+          "title": "Lag S",
+          "type": "number"
+        },
+        "event_threshold": {
+          "default": 2,
+          "maximum": 50,
+          "minimum": 0.1,
+          "title": "Event Threshold",
+          "type": "number"
+        },
+        "refractory_s": {
+          "default": 0.25,
+          "maximum": 3,
+          "minimum": 0.02,
+          "title": "Refractory S",
+          "type": "number"
+        },
+        "max_gap_s": {
+          "default": 0.25,
+          "maximum": 2,
+          "minimum": 0.05,
+          "title": "Max Gap S",
+          "type": "number"
+        }
+      },
+      "title": "AlgorithmSettings",
+      "type": "object"
+    },
+    "Macro": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "value": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/MacroTarget"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "targets"
+      ],
+      "title": "Macro",
+      "type": "object"
+    },
+    "MacroTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "minimum": {
+          "title": "Minimum",
+          "type": "number"
+        },
+        "maximum": {
+          "title": "Maximum",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path",
+        "minimum",
+        "maximum"
+      ],
+      "title": "MacroTarget",
+      "type": "object"
+    },
+    "MappingTerm": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "input_unit": {
+          "default": "1",
+          "title": "Input Unit",
+          "type": "string"
+        },
+        "weight": {
+          "default": 1,
+          "maximum": 100,
+          "minimum": -100,
+          "title": "Weight",
+          "type": "number"
+        },
+        "offset": {
+          "default": 0,
+          "maximum": 1000,
+          "minimum": -1000,
+          "title": "Offset",
+          "type": "number"
+        },
+        "exponent": {
+          "default": 1,
+          "maximum": 5,
+          "minimum": 0.1,
+          "title": "Exponent",
+          "type": "number"
+        },
+        "deadband": {
+          "default": 0,
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Deadband",
+          "type": "number"
+        },
+        "absolute": {
+          "default": false,
+          "title": "Absolute",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "title": "MappingTerm",
+      "type": "object"
+    },
+    "ResponseSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "core_falloff": {
+          "default": 0.75,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Core Falloff",
+          "type": "number"
+        },
+        "snap": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Snap",
+          "type": "number"
+        },
+        "phase_depth": {
+          "default": 45,
+          "maximum": 180,
+          "minimum": 0,
+          "title": "Phase Depth",
+          "type": "number"
+        },
+        "pluck_enabled": {
+          "default": true,
+          "title": "Pluck Enabled",
+          "type": "boolean"
+        },
+        "attack_ms": {
+          "default": 80,
+          "maximum": 500,
+          "minimum": 10,
+          "title": "Attack Ms",
+          "type": "number"
+        },
+        "tail_ms": {
+          "default": 700,
+          "maximum": 3000,
+          "minimum": 50,
+          "title": "Tail Ms",
+          "type": "number"
+        },
+        "impulse_threshold": {
+          "default": 0.15,
+          "maximum": 2,
+          "minimum": 0.01,
+          "title": "Impulse Threshold",
+          "type": "number"
+        },
+        "zones": {
+          "items": {
+            "$ref": "#/$defs/ZoneSettings"
+          },
+          "maxItems": 6,
+          "minItems": 6,
+          "title": "Zones",
+          "type": "array"
+        }
+      },
+      "title": "ResponseSettings",
+      "type": "object"
+    },
+    "Route": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "voice": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Voice",
+          "type": "integer"
+        },
+        "target": {
+          "enum": [
+            "gain",
+            "detune",
+            "phase_deg",
+            "pan"
+          ],
+          "title": "Target",
+          "type": "string"
+        },
+        "terms": {
+          "items": {
+            "$ref": "#/$defs/MappingTerm"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Terms",
+          "type": "array"
+        },
+        "mix": {
+          "default": "sum",
+          "enum": [
+            "sum",
+            "mean",
+            "max",
+            "product"
+          ],
+          "title": "Mix",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "clamp_min": {
+          "default": -1,
+          "title": "Clamp Min",
+          "type": "number"
+        },
+        "clamp_max": {
+          "default": 1,
+          "title": "Clamp Max",
+          "type": "number"
+        },
+        "smoothing_s": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Smoothing S",
+          "type": "number"
+        },
+        "missing": {
+          "default": "silence",
+          "enum": [
+            "silence",
+            "zero"
+          ],
+          "title": "Missing",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "voice",
+        "target",
+        "terms"
+      ],
+      "title": "Route",
+      "type": "object"
+    },
+    "VisualSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "window_periods": {
+          "default": 2,
+          "maximum": 30,
+          "minimum": 0.1,
+          "title": "Window Periods",
+          "type": "number"
+        },
+        "samples": {
+          "default": 2400,
+          "maximum": 12000,
+          "minimum": 256,
+          "title": "Samples",
+          "type": "integer"
+        },
+        "persistence": {
+          "default": 0.65,
+          "maximum": 0.98,
+          "minimum": 0,
+          "title": "Persistence",
+          "type": "number"
+        },
+        "line_width": {
+          "default": 1.5,
+          "maximum": 6,
+          "minimum": 0.5,
+          "title": "Line Width",
+          "type": "number"
+        },
+        "brightness": {
+          "default": 0.8,
+          "maximum": 2,
+          "minimum": 0.1,
+          "title": "Brightness",
+          "type": "number"
+        },
+        "scale": {
+          "default": 1,
+          "maximum": 5,
+          "minimum": 0.1,
+          "title": "Scale",
+          "type": "number"
+        },
+        "auto_scale": {
+          "default": true,
+          "title": "Auto Scale",
+          "type": "boolean"
+        },
+        "components": {
+          "default": false,
+          "title": "Components",
+          "type": "boolean"
+        },
+        "color": {
+          "default": "ice",
+          "enum": [
+            "ice",
+            "gold",
+            "violet"
+          ],
+          "title": "Color",
+          "type": "string"
+        },
+        "mirror_video": {
+          "default": false,
+          "title": "Mirror Video",
+          "type": "boolean"
+        },
+        "show_skeleton": {
+          "default": true,
+          "title": "Show Skeleton",
+          "type": "boolean"
+        },
+        "on_disconnect": {
+          "default": "clear",
+          "enum": [
+            "clear",
+            "freeze"
+          ],
+          "title": "On Disconnect",
+          "type": "string"
+        }
+      },
+      "title": "VisualSettings",
+      "type": "object"
+    },
+    "VoiceSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Id",
+          "type": "integer"
+        },
+        "label": {
+          "maxLength": 80,
+          "title": "Label",
+          "type": "string"
+        },
+        "ratio": {
+          "exclusiveMinimum": 0,
+          "maximum": 64,
+          "title": "Ratio",
+          "type": "number"
+        },
+        "gain": {
+          "default": 1,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Gain",
+          "type": "number"
+        },
+        "detune": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": -0.99,
+          "title": "Detune",
+          "type": "number"
+        },
+        "phase_deg": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Phase Deg",
+          "type": "number"
+        },
+        "pan": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Pan",
+          "type": "number"
+        },
+        "shape": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Shape",
+          "type": "number"
+        },
+        "muted": {
+          "default": false,
+          "title": "Muted",
+          "type": "boolean"
+        },
+        "solo": {
+          "default": false,
+          "title": "Solo",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "ratio"
+      ],
+      "title": "VoiceSettings",
+      "type": "object"
+    },
+    "ZoneSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "sensitivity": {
+          "default": 1,
+          "maximum": 8,
+          "minimum": 0,
+          "title": "Sensitivity",
+          "type": "number"
+        },
+        "distance": {
+          "default": 0,
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Distance",
+          "type": "number"
+        },
+        "speed_range": {
+          "default": 0.6,
+          "maximum": 10,
+          "minimum": 0.02,
+          "title": "Speed Range",
+          "type": "number"
+        },
+        "accel_range": {
+          "default": 6,
+          "maximum": 100,
+          "minimum": 0.1,
+          "title": "Accel Range",
+          "type": "number"
+        }
+      },
+      "title": "ZoneSettings",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "id": {
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "default": "Seis zonas · plucks",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "favorite": {
+      "default": false,
+      "title": "Favorite",
+      "type": "boolean"
+    },
+    "algorithm": {
+      "$ref": "#/$defs/AlgorithmSettings"
+    },
+    "response": {
+      "$ref": "#/$defs/ResponseSettings"
+    },
+    "fundamental_hz": {
+      "default": 40.4,
+      "maximum": 440,
+      "minimum": 10,
+      "title": "Fundamental Hz",
+      "type": "number"
+    },
+    "master": {
+      "default": 0.7,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Master",
+      "type": "number"
+    },
+    "voices": {
+      "items": {
+        "$ref": "#/$defs/VoiceSettings"
+      },
+      "maxItems": 32,
+      "minItems": 6,
+      "title": "Voices",
+      "type": "array"
+    },
+    "routes": {
+      "items": {
+        "$ref": "#/$defs/Route"
+      },
+      "maxItems": 128,
+      "title": "Routes",
+      "type": "array"
+    },
+    "macros": {
+      "items": {
+        "$ref": "#/$defs/Macro"
+      },
+      "maxItems": 12,
+      "title": "Macros",
+      "type": "array"
+    },
+    "visual": {
+      "$ref": "#/$defs/VisualSettings"
+    },
+    "pause_behavior": {
+      "default": "release",
+      "enum": [
+        "release",
+        "silence"
+      ],
+      "title": "Pause Behavior",
+      "type": "string"
+    },
+    "release_ms": {
+      "default": 150,
+      "maximum": 2000,
+      "minimum": 0,
+      "title": "Release Ms",
+      "type": "number"
+    }
+  },
+  "title": "Preset",
+  "type": "object"
+}

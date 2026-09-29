@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "sample_index": 0,
+  "sample_rate": 48000,
+  "block_frames": 256,
+  "generated_monotonic_s": 0.0,
+  "output_dac_time_s": null,
+  "running": true,
+  "stage": "oscillators_pre_shape_limiter",
+  "voices": [
+    {
+      "voice_id": 7101,
+      "harmonic_n": 1,
+      "frequency_hz": 40.4,
+      "gain": 0.1,
+      "phase_rad": 0.1,
+      "envelope": 1.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "releasing": false
+    },
+    {
+      "voice_id": 7102,
+      "harmonic_n": 2,
+      "frequency_hz": 80.8,
+      "gain": 0.1,
+      "phase_rad": 0.2,
+      "envelope": 1.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "releasing": false
+    },
+    {
+      "voice_id": 7103,
+      "harmonic_n": 3,
+      "frequency_hz": 121.19999999999999,
+      "gain": 0.1,
+      "phase_rad": 0.30000000000000004,
+      "envelope": 1.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "releasing": false
+    },
+    {
+      "voice_id": 7104,
+      "harmonic_n": 4,
+      "frequency_hz": 161.6,
+      "gain": 0.1,
+      "phase_rad": 0.4,
+      "envelope": 1.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "releasing": false
+    },
+    {
+      "voice_id": 7105,
+      "harmonic_n": 5,
+      "frequency_hz": 202.0,
+      "gain": 0.1,
+      "phase_rad": 0.5,
+      "envelope": 1.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "releasing": false
+    },
+    {
+      "voice_id": 7106,
+      "harmonic_n": 6,
+      "frequency_hz": 242.39999999999998,
+      "gain": 0.1,
+      "phase_rad": 0.6000000000000001,
+      "envelope": 1.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "releasing": false
+    }
+  ]
+}

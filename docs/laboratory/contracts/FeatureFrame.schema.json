@@ -1,0 +1,116 @@
+{
+  "$defs": {
+    "Signal": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "state": {
+          "default": "observed",
+          "enum": [
+            "observed",
+            "held",
+            "missing"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "title": "Signal",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "source_time_s": {
+      "title": "Source Time S",
+      "type": "number"
+    },
+    "available_monotonic_s": {
+      "title": "Available Monotonic S",
+      "type": "number"
+    },
+    "person_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Person Id"
+    },
+    "algorithm_id": {
+      "title": "Algorithm Id",
+      "type": "string"
+    },
+    "algorithm_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Algorithm Version",
+      "type": "integer"
+    },
+    "lookahead_s": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Lookahead S",
+      "type": "number"
+    },
+    "signals": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Signal"
+      },
+      "title": "Signals",
+      "type": "object"
+    },
+    "diagnostics": {
+      "additionalProperties": true,
+      "title": "Diagnostics",
+      "type": "object"
+    }
+  },
+  "required": [
+    "source_time_s",
+    "available_monotonic_s",
+    "person_id",
+    "algorithm_id"
+  ],
+  "title": "FeatureFrame",
+  "type": "object"
+}
