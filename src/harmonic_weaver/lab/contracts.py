@@ -147,6 +147,7 @@ class AlgorithmSettings(Contract):
     fixed_y: Number = Field(default=0, ge=-10, le=10)
     joints: list[int] = Field(default_factory=lambda: list(range(5, 17)), min_length=2, max_length=17)
     smoothing_s: Number = Field(default=0, ge=0, le=2)
+    derivative_window_s: Number = Field(default=.12, ge=.02, le=.5)
     horizon_s: Number = Field(default=.15, ge=.01, le=2)
     history_s: Number = Field(default=.25, ge=.05, le=5)
     noise_velocity: Number = Field(default=.02, ge=.0001, le=2)
@@ -158,6 +159,7 @@ class AlgorithmSettings(Contract):
     lag_s: Number = Field(default=.12, ge=.02, le=1)
     event_threshold: Number = Field(default=2, ge=.1, le=50)
     refractory_s: Number = Field(default=.25, ge=.02, le=3)
+    event_duration_s: Number = Field(default=.15, ge=.02, le=2)
     max_gap_s: Number = Field(default=.25, ge=.05, le=2)
 
     @model_validator(mode="after")
