@@ -119,6 +119,8 @@ PUSH_SCENE=1
 CONSONANCE=0
 CONSONANCE_SNAP=0.0
 CONSONANCE_F1=40.4
+CONSONANCE_UI_PORT=8766
+CONSONANCE_SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/harmonic-weaver/kinetic-consonance.json"
 LEASE_MS="300000"
 MAX_RUNTIME_S="14400"
 RECORD=""
@@ -154,6 +156,8 @@ while [ "$#" -gt 0 ]; do
         --scene)         SCENE="${2:?--scene needs a name}"; shift ;;
         --no-scene)      PUSH_SCENE=0 ;;
         --consonance-snap) CONSONANCE_SNAP="${2:?--consonance-snap needs 0..1}"; shift ;;
+        --consonance-ui-port) CONSONANCE_UI_PORT="${2:?--consonance-ui-port needs a port}"; shift ;;
+        --consonance-settings) CONSONANCE_SETTINGS="${2:?--consonance-settings needs a path}"; shift ;;
         --consonance-f1) CONSONANCE_F1="${2:?--consonance-f1 needs Hz}"; shift ;;
         --lease-ms)      LEASE_MS="${2:?--lease-ms needs a value}"; shift ;;
         --max-runtime-s) MAX_RUNTIME_S="${2:?--max-runtime-s needs a value}"; shift ;;
@@ -448,6 +452,7 @@ fi
 [ "$DO_SHAPER" -eq 1 ] && { check_port_free 9002 udp shaper; check_port_free 8080 tcp shaper-api; }
 [ "$CONSONANCE" -eq 0 ] && check_port_free 8765 tcp weaver-stage
 [ "$CONSONANCE" -eq 1 ] && [ "$DO_SHAPER" -eq 1 ] && check_port_free 9003 udp consonance-shaper
+[ "$CONSONANCE" -eq 1 ] && check_port_free "$CONSONANCE_UI_PORT" tcp consonance-ui
 check_port_free 9100 udp harmocap-driver
 [ "$ECG_SIM" -eq 1 ] && check_port_free 5001 udp ecg-driver
 
@@ -521,7 +526,10 @@ fi
 # ---- 3. harmonic-weaver live runtime ------------------------------------------
 if [ "$CONSONANCE" -eq 1 ]; then
     log "mode: Consonancia kinetica (pads/bands controller disabled)"
-    # No musical attack/release tail in the raw movement experiment.
+    # The kinetic controller owns the envelope; no second envelope or clock.
+    curl -fsS --max-time 3 -X POST "http://127.0.0.1:8080/api/shaper/global/generator_enable" \
+        -H 'Content-Type: application/json' -d '{"generator_enable":0}' >/dev/null \
+        || fail "could not disable Shaper generators"
     for param in attack release; do
         curl -fsS --max-time 3 -X POST "http://127.0.0.1:8080/api/shaper/global/$param" \
             -H 'Content-Type: application/json' -d "{\"$param\":0}" >/dev/null \
@@ -532,6 +540,7 @@ if [ "$CONSONANCE" -eq 1 ]; then
         research/movement-consonance/consonance/driver.py \
         --source osc --osc-port 9100 --shaper-port 9003 --f1 "$CONSONANCE_F1" \
         --snap "$CONSONANCE_SNAP" --state-file "$CONSONANCE_STATE" \
+        --ui-port "$CONSONANCE_UI_PORT" --settings-file "$CONSONANCE_SETTINGS" \
         --max-runtime-s "$MAX_RUNTIME_S") > "$LOG_DIR/consonance.log" 2>&1 &
     CONSONANCE_PID=$!
     register "$CONSONANCE_PID" consonance
@@ -600,7 +609,11 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     HARMOCAP_ENV=()
     [ "$HARMOCAP_DEVICE" = "cpu" ] && HARMOCAP_ENV=(CUDA_VISIBLE_DEVICES=)
     # GPU mode: sync crashes for clean recovery + block on kernel errors
-    [ "$HARMOCAP_DEVICE" != "cpu" ] && HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=1)
+    if [ "$CONSONANCE" -eq 1 ]; then
+        HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=0)
+    elif [ "$HARMOCAP_DEVICE" != "cpu" ]; then
+        HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=1)
+    fi
     (cd "$HARMOCAP_DIR" && env "${HARMOCAP_ENV[@]}" "$HARMOCAP_VENV/bin/python" scripts/run_realtime.py "${HARMOCAP_ARGS[@]}") \
         > "$LOG_DIR/harmocap.log" 2>&1 &
     register $! harmocap
@@ -632,6 +645,7 @@ echo
 if [ "$CONSONANCE" -eq 1 ]; then
     echo "  mode:       Consonancia kinetica — camera $CAMERA + HarMoCAP tracking"
     echo "  state:      $CONSONANCE_STATE"
+    echo "  controls:   http://localhost:$CONSONANCE_UI_PORT"
 else
     echo "  patchbay:   http://localhost:8765/"
     echo "  overlay:    http://localhost:8765/static/overlay.html"

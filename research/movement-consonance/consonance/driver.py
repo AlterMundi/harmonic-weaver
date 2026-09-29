@@ -51,10 +51,13 @@ import signal
 import struct
 import sys
 import time
+from collections import deque
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import metrics as M  # noqa: E402
+from plucks import Pluck
+from live_controls import LiveControls, COLORS, NAMES
 
 KIT = Path(os.environ.get("HARMOCAP_DIR", str(Path.home() / "Projects/HarMoCAP"))) / "harmocap-nico-kit"
 
@@ -234,7 +237,7 @@ def frames_from_osc(port: int, bufsize: int = 65535):
     receiver = LiveReceiver(osc_codec)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.bind(("127.0.0.1", port))
-        sock.settimeout(0.1)
+        sock.settimeout(0.01)
         print(f"[driver] listening for /harmocap/v1/* on udp:{port}", flush=True)
         while True:
             try:
@@ -251,7 +254,7 @@ class ConsonanceSession:
     """One focused performer; identity changes start fresh kinematic history."""
 
     def __init__(self, out, *, snap=0.0, snap_mode="series", theta=0.15,
-                 w_surprise=1.0, w_brake=0.5, pred_tau=0.15):
+                 w_surprise=1.0, w_brake=0.5, pred_tau=0.15, controls=None):
         self.out = out
         self.snap, self.snap_mode, self.theta = snap, snap_mode, theta
         self.tracker_args = dict(w_surprise=w_surprise, w_brake=w_brake,
@@ -261,8 +264,21 @@ class ConsonanceSession:
         self.last_cap = None
         self.person = None
         self.sustained = {}
+        self.controls = controls
+        self.settings = None
+        self.applied_revision = -1
+        self.plucks = {n: Pluck() for n, _, _ in M.ZONES}
+        self.measurements = {n: deque(maxlen=900) for n, _, _ in M.ZONES}
 
-    def update(self, frame):
+    def update(self, frame, *, now=None):
+        now = time.monotonic() if now is None else now
+        configuration_changed = False
+        if self.controls:
+            self.settings, revision = self.controls.snapshot()
+            configuration_changed = revision != self.applied_revision
+            self.applied_revision = revision
+            self.snap = self.settings['snap']
+            self.out.f1 = self.settings['f1']
         people = [p for p in frame.get("persons", []) if p.get("present")]
         people.sort(key=lambda p: (not p.get("focused"), p["slot_id"]))
         person = people[0] if people else None
@@ -272,7 +288,10 @@ class ConsonanceSession:
                 self.out.release(n)
             self.tracker = M.ZoneTracker(**self.tracker_args)
             self.identity, self.last_cap = identity, None
+            self.plucks = {n: Pluck() for n in self.plucks}
             self.sustained.clear()
+            for samples in self.measurements.values():
+                samples.clear()
         self.person = person
         if person is None:
             return
@@ -282,23 +301,55 @@ class ConsonanceSession:
             for n in self.tracker.zones:
                 self.out.release(n)
             self.person, self.last_cap = None, None
+            self.plucks = {n: Pluck() for n in self.plucks}
             self.sustained.clear()
             self.tracker = M.ZoneTracker(**self.tracker_args)
             return
-        if self.last_cap is not None and cap <= self.last_cap:
+        new_sample = self.last_cap is None or cap > self.last_cap
+        if not new_sample and not configuration_changed and not (self.settings and self.settings['pluck_enabled']):
             return  # Other slots/heartbeat packets must not advance this body.
-        self.last_cap = cap
-        self.tracker.update(kp, states, cap / 1e6, present=True)
+        if new_sample:
+            self.last_cap = cap
+            self.tracker.update(kp, states, cap / 1e6, present=True)
         for n, z in self.tracker.zones.items():
-            z.d_eff = snap_apply(z.d_raw, self.snap, self.snap_mode, self.theta)
+            gain = z.gain
+            drive = z.d_raw
+            if self.settings:
+                cfg = self.settings['zones'][str(n)]
+                factor = cfg['sensitivity'] / (1 + self.settings['core_falloff'] * cfg['distance'])
+                gain = min(1.0, z.speed * factor / cfg['speed_range']) if z.active else 0.0
+                # Convert signed prediction error into an acceleration-like
+                # residual (2*error/tau²), then normalize by the editable range.
+                drive = max(-1.0, min(1.0, 2 * z.drive * factor /
+                            (self.tracker.pred_tau ** 2 * cfg['accel_range'])))
+                if self.settings['pluck_enabled']:
+                    pulse = self.plucks[n]
+                    if new_sample and z.active:
+                        pulse.observe(z.acceleration * factor / cfg['accel_range'],
+                                      self.settings['impulse_threshold'], now,
+                                      self.settings['attack_ms'] / 1000,
+                                      self.settings['tail_ms'] / 1000)
+                    elif new_sample:
+                        pulse.armed = True
+                    gain = pulse.gain(now, gain)
+                    if factor == 0 or self.settings['master'] == 0:
+                        self.plucks[n] = Pluck()
+                        gain = 0
+                gain *= self.settings['master']
+            z.d_eff = snap_apply(drive, self.snap, self.snap_mode, self.theta)
+            phase_depth = self.settings['phase_depth'] if self.settings else 45.0
             _, _, observed = M.zone_point(z.name, z.kind, kp, states, z.side_speed)
-            if not observed or z.gain <= 0.0:
+            if observed and new_sample:
+                self.measurements[n].append((z.speed, z.acceleration))
+            if not observed:
+                self.plucks[n] = Pluck()
+            if not observed or gain <= 0.0:
                 self.out.release(n)
                 self.sustained[n] = (M.freq_for(n, z.d_eff, self.out.f1), 0.0,
-                                     45.0 * z.d_eff)
+                                     phase_depth * z.d_eff)
                 continue
             current = (M.freq_for(n, z.d_eff, self.out.f1),
-                       0.45 * z.gain, 45.0 * z.d_eff)
+                       min(1.0, 0.45 * gain), phase_depth * z.d_eff)
             self.sustained[n] = current
             self.out.update(n, *current)
 
@@ -309,7 +360,20 @@ class ConsonanceSession:
                 x, y, observed = M.zone_point(
                     z.name, z.kind, self.person["keypoints"],
                     self.person["kp_state"], z.side_speed)
-                zones.append(dict(n=n, x=x, y=y, observed=observed,
+                indices = M.ZONE_POINTS[z.name]
+                points = [dict(index=i, x=self.person['keypoints'][i][0],
+                               y=self.person['keypoints'][i][1],
+                               observed=self.person['kp_state'][i][0] == 0,
+                               speed=z.side_speed[j] if z.kind == 'pair' else z.speed)
+                          for j, i in enumerate(indices)]
+                samples = self.measurements[n]
+                def p95(column):
+                    values = sorted(row[column] for row in samples)
+                    return values[int(.95 * (len(values)-1))] if values else 0.0
+                zones.append(dict(n=n, name=NAMES[n-1], color=COLORS[n-1],
+                                  points=points, impulses=self.plucks[n].count, speed=z.speed, acceleration=z.acceleration,
+                                  speed_p95=p95(0), acceleration_p95=p95(1), samples=len(samples),
+                                  x=x, y=y, observed=observed,
                                   active=VOICE_ID_BASE + n in self.out.on,
                                   freq=self.sustained.get(n, (self.out.f1 * n, 0., 0.))[0],
                                   detune=z.d_eff,
@@ -318,7 +382,10 @@ class ConsonanceSession:
         return dict(mode="Consonancia kinetica", updated_at=time.time(),
                     stream_id=self.identity[0] if self.identity else None,
                     slot_id=self.identity[1] if self.identity else None,
-                    captured_at_us=self.last_cap, zones=zones)
+                    captured_at_us=self.last_cap, zones=zones,
+                    trail_ms=self.settings['trail_ms'] if self.settings else 320,
+                    skeleton=[dict(x=k[0], y=k[1], observed=self.person['kp_state'][i][0] == 0)
+                              for i, k in enumerate(self.person['keypoints'])] if self.person and self.last_cap else [])
 
 
 def write_state(path, state):
@@ -360,6 +427,8 @@ def main() -> int:
                     help="replay speed factor (file source only)")
     ap.add_argument("--dry", action="store_true",
                     help="no audio out; print a 1 Hz per-zone table")
+    ap.add_argument("--ui-port", type=int, default=0, help="Local control UI (0 disables)")
+    ap.add_argument("--settings-file", type=Path)
     ap.add_argument("--state-file", type=Path, help="Live state for the camera overlay")
     ap.add_argument("--max-runtime-s", type=float, default=0.0)
     args = ap.parse_args()
@@ -375,7 +444,11 @@ def main() -> int:
 
     out = ShaperOut(args.shaper_host, args.shaper_port, args.f1,
                     args.gain_eps, args.dry, args.shaper_control_port)
-    session = ConsonanceSession(out, snap=args.snap, snap_mode=args.snap_mode,
+    controls = LiveControls(args.settings_file, snap=args.snap, f1=args.f1) if args.ui_port else None
+    if controls:
+        controls.start(args.ui_port)
+        print(f"[driver] controls: http://localhost:{args.ui_port}", flush=True)
+    session = ConsonanceSession(out, controls=controls, snap=args.snap, snap_mode=args.snap_mode,
                                 theta=args.theta, w_surprise=args.w_surprise,
                                 w_brake=args.w_brake, pred_tau=args.pred_tau)
     write_state(args.state_file, session.state())
@@ -406,8 +479,11 @@ def main() -> int:
                     time.sleep(delay)
             session.update(frame)
             n_frames += 1
-            if now - last_state >= 0.1:
-                write_state(args.state_file, session.state())
+            if now - last_state >= 1 / 30:
+                state = session.state()
+                write_state(args.state_file, state)
+                if controls:
+                    controls.publish(state, session.applied_revision)
                 last_state = now
             if args.dry and now - last_print >= 1.0:
                 last_print = now
@@ -418,6 +494,8 @@ def main() -> int:
         out.panic()
         session.update({"persons": []})
         write_state(args.state_file, session.state())
+        if controls:
+            controls.close()
     print(f"[driver] done: {n_frames} frames")
     return 0
 

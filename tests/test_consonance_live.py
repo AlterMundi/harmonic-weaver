@@ -213,3 +213,99 @@ def test_raw_pitch_gain_phase_have_no_snap_or_output_smoothing():
         assert z.d_eff == z.d_raw
         assert s.sustained[n] == (40.4 * (n + z.d_raw / 2),
                                   .45 * z.gain, 45 * z.d_raw)
+
+
+def test_core_compensation_and_live_mute_apply_without_reprocessing_pose(tmp_path):
+    controls = driver.LiveControls(tmp_path / 'settings.json')
+    controls.update({'pluck_enabled': 0})
+    s = driver.ConsonanceSession(session().out, controls=controls)
+    p = person(0)
+    s.update(dict(stream_id='controlled', persons=[p]))
+    p = person(0)
+    p['captured_at_us'] += 33_333
+    p['keypoints'] = [(x + .001, y, c) for x, y, c in p['keypoints']]
+    frame = dict(stream_id='controlled', persons=[p])
+    s.update(frame)
+    assert s.sustained[1][1] > s.sustained[6][1] > 0
+    before = len(s.tracker.zones[1].hist)
+    controls.update({'master': 0})
+    s.update(frame)
+    assert not s.out.on
+    assert len(s.tracker.zones[1].hist) == before
+    assert driver.LiveControls(tmp_path / 'settings.json').settings['master'] == 0
+    controls.update({'master': 1, 'zones': {'6': {'sensitivity': 0}}})
+    s.update(frame)
+    assert 7001 in s.out.on and 7006 not in s.out.on
+
+
+def test_live_control_validation_is_atomic_and_rejects_invalid_numbers():
+    import pytest
+    controls = driver.LiveControls()
+    before = controls.snapshot()
+    for patch in [{'zones': {'1': {'speed_range': 0}}}, {'master': float('nan')},
+                  {'zones': {'7': {'sensitivity': 1}}}, {'unknown': 1},
+                  {'master': True}, {'snap': .3, 'zones': {'1': {'accel_range': -1}}}]:
+        with pytest.raises(ValueError):
+            controls.update(patch)
+        assert controls.snapshot() == before
+
+
+def test_control_http_roundtrip_static_assets_and_origin_gate(tmp_path):
+    import urllib.request
+    import urllib.error
+    import pytest
+    controls = driver.LiveControls(tmp_path / 'settings.json')
+    port = controls.start(0)
+    base = f'http://127.0.0.1:{port}'
+    try:
+        assert b'Consonancia' in urllib.request.urlopen(base).read()
+        assert b'function draw' in urllib.request.urlopen(base+'/app.js').read()
+        request = urllib.request.Request(base+'/api/settings',
+            data=json.dumps({'core_falloff': 1.25}).encode(),
+            headers={'Content-Type': 'application/json', 'Origin': base})
+        assert json.load(urllib.request.urlopen(request))['revision'] == 1
+        payload = json.load(urllib.request.urlopen(base+'/api/state'))
+        assert payload['settings']['core_falloff'] == 1.25
+        request.add_header('Origin', 'https://example.com')
+        with pytest.raises(urllib.error.HTTPError) as exc:
+            urllib.request.urlopen(request)
+        assert exc.value.code == 403
+    finally:
+        controls.close()
+
+
+def test_pluck_is_aperiodic_has_attack_tail_and_rearms_on_new_impulse():
+    from plucks import Pluck
+    p = Pluck()
+    p.observe(.8, .15, 0., .08, .7)
+    assert p.gain(0, 1) == 0
+    assert 0 < p.gain(.04, 1) < p.gain(.08, 1)
+    for t in (.1, .21, .39):
+        p.observe(.8, .15, t, .08, .7)
+    assert p.count == 1
+    assert p.gain(.4, 0) > 0  # finite tail at rest
+    p.observe(.01, .15, .41, .08, .7)
+    p.observe(.9, .15, .47, .08, .7)
+    assert p.count == 2 and len(p.events) == 2
+    assert p.gain(1.3, 1) == 0
+    assert p.count == 2  # time alone never triggers
+
+
+def test_pluck_session_ticks_without_reprocessing_and_clears_on_tracking_loss():
+    controls = driver.LiveControls()
+    controls.update({'impulse_threshold': .01})
+    s = driver.ConsonanceSession(session().out, controls=controls)
+    for i in range(8):
+        frame = dict(stream_id='test', persons=[person(i)])
+        s.update(frame, now=i*.033333)
+    count = sum(p.count for p in s.plucks.values())
+    assert count > 0
+    hist = list(s.tracker.zones[1].hist)
+    for t in (.26, .3, .4):
+        s.update(frame, now=t)
+    assert sum(p.count for p in s.plucks.values()) == count
+    assert list(s.tracker.zones[1].hist) == hist
+    assert s.out.on
+    s.update(dict(stream_id='test', persons=[]), now=.41)
+    assert not s.out.on
+    assert all(not p.events for p in s.plucks.values())

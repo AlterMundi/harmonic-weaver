@@ -128,3 +128,64 @@ en reposo: piso de ganancia 0.12, variación por movimiento hasta 0.45, fase
 ±45° según desvío cinético y suavizado de 200 ms. Gain/phase usan los controles
 nativos de Shaper en 9002, sin re-disparar voice_on. Esta revisión reemplaza
 el gating por velocidad y el compromiso de re-assertar voice_on de v1.
+
+### Controles y feedback corporal (2026-09-27)
+
+El launcher aislado sirve la UI en **http://localhost:8766**. Shaper expone
+su estado técnico en http://localhost:8080/api/state; su raíz no es una UI.
+El video permanece en la ventana HarMoCAP, con los mismos colores por voz
+que el esqueleto web. Las estelas unen las posiciones medidas de cada joint,
+se desvanecen hacia el pasado y se cortan ante una observación perdida.
+El historial visual guarda hasta 24 poses; no introduce un buffer de audio.
+
+F1 caderas, F2 hombros, F3 rodillas, F4 codos, F5 tobillos, F6 muñecas.
+Cada par tiene sensibilidad, distancia al core y rangos de velocidad y
+aceleración editables. El factor es `sensibilidad / (1 + caída * distancia)`.
+Las distancias iniciales son 0, 1, 1, 2, 2, 3; son parámetros expresivos,
+no distancias anatómicas inferidas. La velocidad, medida en largos de torso/s,
+determina el gain: `min(1, velocidad * factor / rango_velocidad)` antes del
+master y del techo de voz. Cero velocidad sigue dando cero sonido.
+
+El desvío tonal usa el error firmado respecto de la predicción inercial:
+`clip(2 * drive * factor / (tau² * rango_aceleración), -1, 1)`.
+No equivale directamente al módulo de aceleración mostrado como diagnóstico.
+Los rangos iniciales (0.6 T/s y 6 T/s²) son un punto de partida ajustable;
+el p95 observado de las últimas 900 muestras ayuda a calibrar cada cuerpo.
+También se controlan fundamental, fase, snap, master, silencio y solo por voz.
+Snap inicia en cero. Las estelas sólo afectan la imagen.
+
+Los parámetros se guardan en
+`~/.config/harmonic-weaver/kinetic-consonance.json` (respeta XDG_CONFIG_HOME).
+El tag local **kinetic-consonance-raw-v1** conserva el sonido anterior a estos
+controles en ambos repos: harmonic-weaver `7aaa8c0`, HarMoCAP `4503393`.
+
+### Articulación por impulsos
+
+La UI inicia ahora con plucks: umbral de aceleración normalizada 0.15,
+ataque 80 ms y cola 700 ms. Se dispara al cruzar el umbral y se rearma
+al bajar de la mitad; aceleración sostenida no produce repetición.
+Cada impulso añade una envolvente (hasta 32 por par), con entrada smoothstep
+y caída cuadrática. La suma se limita a 1; la velocidad modula su amplitud
+entre 20% y 100%. Por pedido posterior, queda una cola finita al detenerse;
+tracking perdido o silencio global la cancelan. No hay grilla temporal.
+La envolvente se actualiza también entre cuadros, sin volver a derivar la pose.
+`Plucks = 0` vuelve al volumen crudo por velocidad, sin cola en reposo.
+El launcher desactiva los generadores internos del sintetizador.
+
+El launcher aislado inicia GPU y sólo UI web; `--window` recupera la ventana
+de video, `--harmocap-device cpu` permite comparar. En este host el modo auto
+ya utilizaba la RTX 2060; la captura observada era 720p a 10 fps, por lo que
+no se atribuye una mejora de latencia no medida a este cambio.
+
+### Corrección de respuesta en modo sin ventana
+
+El launcher aislado usa ahora inferencia a 320 (override `--harmocap-imgsz 640`)
+y desactiva `CUDA_LAUNCH_BLOCKING`, que antes forzaba sincronización de depuración.
+HarMoCAP espera una señal del hilo de captura cuando no tiene ventana, evitando
+el giro continuo entre cuadros; se mantiene un solo frame reciente, sin cola.
+Los logs `[health]` muestran FPS y captura→envío (no latencia de audio completa).
+En la sesión `live-consonance-light-gpu-20260927` se observó alrededor de 8 FPS
+y 91 ms captura→envío tras warmup; el archivo `responsiveness.json` junto al
+run registra una muestra de antigüedad de poses leída desde la API.
+La GPU reportó 91–93 °C y thermal slowdown a 300 MHz durante el diagnóstico;
+reducir resolución alivia la carga pero no resuelve la limitación térmica.

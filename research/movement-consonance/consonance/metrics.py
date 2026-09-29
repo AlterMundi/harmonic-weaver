@@ -64,6 +64,8 @@ class ZoneState:
     # per-side speed history for pair energy-max selection
     side_speed: tuple[float, float] = (0.0, 0.0)
     # smoothed outputs
+    acceleration: float = 0.0  # T/s², measured before response scaling
+    drive: float = 0.0         # signed ballistic deviation in torso units
     speed: float = 0.0          # T/s
     surprise: float = 0.0       # T (ballistic prediction error)
     power_sign: int = 0         # -1 brake, 0 neutral, +1 pump
@@ -220,6 +222,9 @@ class ZoneTracker:
                 z.hist.append((t_s, x, y, obs))
 
             z.gain = 0.0
+            z.speed = 0.0
+            z.acceleration = 0.0
+            z.drive = 0.0
             z.active = False
             if len(z.hist) < 2:
                 continue
@@ -257,6 +262,8 @@ class ZoneTracker:
                 ay = (vy - vym) / dt
             else:
                 ax = ay = 0.0
+
+            z.acceleration = math.hypot(ax, ay)
 
             # signed mechanical power P = <a, v>
             P = ax * vx + ay * vy
@@ -331,6 +338,7 @@ class ZoneTracker:
             # at a constant offset. d = sign·mag·(w_s + w_b·(2·bf−1)).
             d_raw = sign * mag * (self.w_surprise +
                                   self.w_brake * (2.0 * z.brake_frac - 1.0))
+            z.drive = sign * surprise * (self.w_surprise + self.w_brake * (2.0 * z.brake_frac - 1.0))
             z.d_raw = max(-1.0, min(1.0, d_raw))
 
 
