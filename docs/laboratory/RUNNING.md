@@ -115,3 +115,13 @@ Para aprender los controles: en Ruteos, exponente > 1 reduce valores pequeños
 más que grandes (contraste estático); exponente < 1 levanta valores pequeños
 (compresión). Suavizado reduce variaciones rápidas. Realce positivo, en cambio,
 distingue una subida de un nivel sostenido mediante historia temporal.
+
+Realce positivo ahora llega a **10**: 1 conserva el máximo anterior, 10 multiplica
+por diez el énfasis de cambios (no la ganancia general). Los picos se acotan a 1:
+puede recortar más el contraste extremo sin aumentar indefinidamente el volumen.
+
+**Articulación** mezcla sostenido (0%) e impulsos de subida (100%).
+Los impulsos salen del aumento de intensidad respecto de su media causal, no de
+un reloj ni de reiniciar voces. **Cola de transientes**, default 0.15 s, controla
+su caída exponencial. Primero probar una mezcla intermedia; a 100% un nivel
+constante termina en silencio. Ambos controles se guardan en presets.

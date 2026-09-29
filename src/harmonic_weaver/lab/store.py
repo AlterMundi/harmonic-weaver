@@ -22,7 +22,7 @@ def _json(value):
 def _macro_field(data, path):
     """Walk numeric configuration fields, not Python expressions or object attributes."""
     parts = path.split(".")
-    if parts[0] not in {"fundamental_hz", "master", "expression", "expression_window_s", "release_ms", "algorithm", "response", "voices", "routes", "visual"}:
+    if parts[0] not in {"fundamental_hz", "master", "expression", "expression_window_s", "transient_mix", "transient_decay_s", "release_ms", "algorithm", "response", "voices", "routes", "visual"}:
         raise ValueError(f"macro path is not a configurable field: {path}")
     owner = data
     try:

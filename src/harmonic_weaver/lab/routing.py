@@ -44,6 +44,7 @@ class PreparedRoutes:
         self.routes = [r for r in self.preset.routes if r.enabled]
         self.smoothed = {}
         self.expression_history = {}
+        self.transient_envelopes = {}
         self.last_time = None
         for route in self.routes:
             for term in route.terms:
@@ -71,6 +72,7 @@ class PreparedRoutes:
     def reset(self):
         self.smoothed.clear()
         self.expression_history.clear()
+        self.transient_envelopes.clear()
         self.last_time = None
 
     def evaluate(self, features, now):
@@ -139,16 +141,25 @@ class PreparedRoutes:
             # First sample seeds history: seeks/resets must not invent attacks.
             if voice.id in invalid:
                 self.expression_history.pop(voice.id, None)
+                self.transient_envelopes.pop(voice.id, None)
             else:
                 previous = self.expression_history.get(voice.id, drive)
                 alpha = -math.expm1(-dt/self.preset.expression_window_s) if dt is not None else 1.
                 baseline = previous + alpha*(drive-previous)
                 self.expression_history[voice.id] = baseline
+                rising = max(0., drive-baseline)
+                decay = math.exp(-dt/self.preset.transient_decay_s) if dt is not None else 0.
+                transient = max(self.transient_envelopes.get(voice.id, 0.)*decay,
+                                min(1., 4*rising))
+                if transient < 1e-6:
+                    transient = 0.
+                self.transient_envelopes[voice.id] = transient
                 if self.preset.expression > 0 and drive > 0:
                     drive = max(0., min(1., drive + 4*self.preset.expression*(drive-baseline)))
                 elif self.preset.expression < 0 and drive > 0:
                     # Preserve the attenuating negative side the player liked.
                     drive = min(1., drive) ** math.exp(-2.5*self.preset.expression)
+                drive = (1-self.preset.transient_mix)*drive + self.preset.transient_mix*transient
             gain = drive*voice.gain*self.preset.master
             if voice.id in invalid or voice.muted or (solo and not voice.solo):
                 gain = 0.

@@ -681,9 +681,23 @@
     },
     "expression": {
       "default": 0,
-      "maximum": 1,
+      "maximum": 10,
       "minimum": -1,
       "title": "Expression",
+      "type": "number"
+    },
+    "transient_mix": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Transient Mix",
+      "type": "number"
+    },
+    "transient_decay_s": {
+      "default": 0.15,
+      "maximum": 2,
+      "minimum": 0.02,
+      "title": "Transient Decay S",
       "type": "number"
     },
     "expression_window_s": {

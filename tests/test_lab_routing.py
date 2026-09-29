@@ -108,3 +108,34 @@ def test_positive_expression_accents_changes_not_sustain_and_resets_cleanly():
     assert sample(0, 3.09) == 0
     graph.reset()
     assert sample(.3, 10) == pytest.approx(.3)
+
+
+def test_transients_follow_rises_decay_on_sustain_and_clear_on_reset():
+    p = Preset(transient_mix=1, transient_decay_s=.1, master=1)
+    graph = PreparedRoutes(p)
+    def sample(value, t):
+        f = complete_frame()
+        for i in range(1, 7):
+            f.signals[f"zone.{i}.gain"].value = value
+        return graph.evaluate(f, t)[0][0]
+    assert sample(.1, 0).gain == 0
+    attack = sample(.3, .03)
+    assert attack.gain > .3
+    for i in range(1, 100):
+        tail = sample(.3, .03+i*.03)
+    assert tail.gain < 1e-8
+    assert tail.frequency_hz == attack.frequency_hz
+    graph.reset()
+    assert sample(.3, 10).gain == 0
+
+
+def test_tenfold_expression_keeps_static_level_and_increases_gesture():
+    gains = []
+    for expression in [1, 10]:
+        graph = PreparedRoutes(Preset(expression=expression, master=1))
+        f = complete_frame()
+        graph.evaluate(f, 0)
+        f.signals["zone.1.gain"].value = .31
+        gains.append(graph.evaluate(f, .03)[0][0].gain)
+    assert gains[1] > gains[0] > .31
+    assert gains[1]-.31 == pytest.approx(10*(gains[0]-.31))

@@ -7,6 +7,7 @@ type Data = Record<string, any>;
 let signalUnits: Data = {};
 const labels: Record<string, string> = {
   master: "Master",
+  transient_decay_s: "Cola de transientes (s)",
   expression_window_s: "Duración del contraste (s)",
   fundamental_hz: "Fundamental (Hz)",
   release_ms: "Liberación (ms)",
@@ -1026,7 +1027,7 @@ function App() {
                       aria-label="Realce expresivo"
                       type="range"
                       min="-1"
-                      max="1"
+                      max="10"
                       step=".01"
                       value={draft.expression ?? 0}
                       onChange={(e) =>
@@ -1034,15 +1035,35 @@ function App() {
                       }
                     />
                     <small>
-                      − Más selectivo · 0 Neutral · + Contraste de gestos.
-                      Acentúa subidas y bajadas sin elevar el sostenido ni
-                      cambiar la afinación.
+                      − Más selectivo · 0 Neutral · 1 Máximo anterior · 10
+                      Realce ×10. Acentúa subidas y bajadas sin elevar el
+                      sostenido ni cambiar la afinación.
                     </small>
                     <button onClick={() => change("expression", 0)}>
                       Volver a neutral
                     </button>
                   </label>
                   {form("expression_window_s")}
+                  <label>
+                    Articulación ·{" "}
+                    {Math.round((draft.transient_mix ?? 0) * 100)}% transientes
+                    <input
+                      aria-label="Articulación"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step=".01"
+                      value={draft.transient_mix ?? 0}
+                      onChange={(e) =>
+                        change("transient_mix", Number(e.target.value))
+                      }
+                    />
+                    <small>
+                      0 Sostenido · 100% Sólo impulsos de subida. Conserva fase
+                      y afinación.
+                    </small>
+                  </label>
+                  {form("transient_decay_s")}
                   {form("release_ms")}
                   {form("pause_behavior")}
                 </div>

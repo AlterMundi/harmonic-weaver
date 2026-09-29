@@ -184,3 +184,14 @@ Pruebas: acento de subida, caída, convergencia al sostenido, silencio, reset
 y preservación de afinación. Aceptación auditiva de esta curva pendiente.
 Preferencia de Nicolás: priorizar ajustes de controles existentes y explicar
 qué se cambió antes de introducir mecanismos nuevos.
+
+### Realce ×10 y mezcla de transientes
+
+Nicolás confirma mejora del contraste temporal y solicita mayor exageración.
+expression pasa de máximo 1 a 10, conservando la respuesta de presets existentes.
+transient_mix=0 conserva el sostenido; hasta 1 mezcla un seguidor de picos de
+4*max(0,x-media), con caída exponencial configurable (0.15 s). La primera
+observación no genera un impulso. Se descartan residuos menores de 1e-6 para
+evitar colas infinitesimales. Frecuencia/fase permanecen sin modificar.
+Pruebas cubren factor ×10 antes del límite, decaimiento en sostenido, reset y
+ausencia de ataques ficticios al inicializar. Escucha de estos controles pendiente.
