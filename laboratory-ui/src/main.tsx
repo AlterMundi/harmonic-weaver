@@ -1019,6 +1019,27 @@ function App() {
                 <div className="fields">
                   {form("fundamental_hz")}
                   {form("master")}
+                  <label>
+                    Realce expresivo · {(draft.expression ?? 0).toFixed(2)}
+                    <input
+                      aria-label="Realce expresivo"
+                      type="range"
+                      min="-1"
+                      max="1"
+                      step=".01"
+                      value={draft.expression ?? 0}
+                      onChange={(e) =>
+                        change("expression", Number(e.target.value))
+                      }
+                    />
+                    <small>
+                      − Sutil · 0 Neutral · + Exagerado. Realza la intensidad
+                      sin cambiar afinación, fases ni ratios.
+                    </small>
+                    <button onClick={() => change("expression", 0)}>
+                      Volver a neutral
+                    </button>
+                  </label>
                   {form("release_ms")}
                   {form("pause_behavior")}
                 </div>
@@ -1184,6 +1205,25 @@ function App() {
         </section>
         <aside className="inspector">
           <h2>Lo que está pasando</h2>
+          {draft.algorithm.id !== "baseline" && !state.calibration && (
+            <div role="status">
+              <p>
+                Este modelo necesita calibrar la escala corporal para producir
+                señales.
+              </p>
+              <button
+                disabled={!state.motion_frame?.persons?.length}
+                onClick={() =>
+                  run(async () => {
+                    await api("calibrate", {});
+                    await refresh();
+                  })
+                }
+              >
+                Calibrar con el cuerpo visible
+              </button>
+            </div>
+          )}
           <dl>
             <dt>Algoritmo</dt>
             <dd>{state.features?.algorithm_id || draft.algorithm.id}</dd>

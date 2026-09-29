@@ -96,3 +96,14 @@ Al reiniciar se recupera el último video abierto, pausado desde el inicio, usan
 sus parámetros de percepción y la caché válida. Esta preferencia es local y no
 viaja en los presets. Cerrar explícitamente la fuente o elegir cámara borra esa
 preferencia; la cámara no se enciende automáticamente al arrancar.
+
+**Realce expresivo** (Instrumento): slider −1..+1, neutral en 0. Cambia la curva
+de intensidad corporal, no frecuencias, ratios, fases ni forma de onda. Positivo
+hace presentes los movimientos sutiles y comprime el rango dinámico; negativo
+los atenúa. El master sigue controlando el nivel final. Se guarda en presets.
+La figura recibe las ganancias efectivas y refleja ese realce; su autoescala
+puede disimular cambios de tamaño global (desactivarla para comparar amplitud).
+
+Los modelos distintos de baseline requieren calibración: el inspector muestra
+un aviso y botón cuando falta. Calibrar con hombros y caderas visibles antes de
+evaluarlos; permitir que acumulen historia tras arrancar.

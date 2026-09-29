@@ -132,7 +132,12 @@ class PreparedRoutes:
         solo = any(v.solo for v in self.preset.voices)
         targets = []
         for voice in self.preset.voices:
-            gain = values.get((voice.id, "gain"), 0.)*voice.gain*self.preset.master
+            drive = values.get((voice.id, "gain"), 0.)
+            # Neutral is exactly the existing mapping. Keep silence at zero and
+            # amplify quiet motion without modifying pitch, phase or timbre.
+            if self.preset.expression and drive > 0:
+                drive = min(1., drive) ** math.exp(-2.5*self.preset.expression)
+            gain = drive*voice.gain*self.preset.master
             if voice.id in invalid or voice.muted or (solo and not voice.solo):
                 gain = 0.
             detune = voice.detune+values.get((voice.id, "detune"), 0.)

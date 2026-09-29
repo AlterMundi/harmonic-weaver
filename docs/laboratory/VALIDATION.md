@@ -155,3 +155,16 @@ de ganancia de 30 ms, editable. 01 y 01b se conservan. No se ha corregido ni
 validado aún la estimación ruidosa/saturada del residual del controlador original.
 Prueba de Shaper: 60 actualizaciones de ganancia positiva conservan el mismo
 estado de oscilador, fase acumulada y envolvente abierta.
+
+### Feedback: sostenido aceptado y realce expresivo
+
+Nicolás confirma que 01c se siente bien y activado por movimiento. Esto valida
+esa experiencia puntual; no implica aceptación de los demás modelos.
+Se agrega expression en [-1,1], default 0, portable en presets. Tras el suavizado
+de rutas, la ganancia positiva x se transforma en min(1,x)^exp(-2.5*expression);
+cero queda cero, y neutral conserva exactamente la ruta previa. Después se
+aplican ganancia de voz y master. No altera pitch, fase, pan ni shape.
+Pruebas de extremos/neutral/silencio y afinación: pasan.
+Con el tracking frontal y escala medida, los cuatro modelos no baseline
+generaron señales observadas y activaron las seis voces en replay offline.
+La escucha humana de esos modelos sigue pendiente. Seguimiento: issue #32.

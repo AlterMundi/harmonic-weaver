@@ -69,3 +69,23 @@ def test_graph_rejects_unknown_signals_and_invalid_pitch_before_apply():
     p=Preset();p.voices[0].ratio=.1
     with pytest.raises(ValueError,match="non-positive"):
         PreparedRoutes(p)
+
+
+def test_expression_preserves_tuning_and_silence_with_exact_neutral():
+    from dataclasses import replace
+    baseline = PreparedRoutes(Preset()).evaluate(complete_frame(), 0.)[0]
+    for amount in [-1., 0., 1.]:
+        preset = Preset(expression=amount)
+        targets, _ = PreparedRoutes(preset).evaluate(complete_frame(), 0.)
+        for old, new in zip(baseline, targets):
+            assert replace(new, gain=old.gain) == old
+            if amount < 0:
+                assert 0 < new.gain < old.gain
+            elif amount > 0:
+                assert old.gain < new.gain <= preset.master
+            else:
+                assert new == old
+        silent = complete_frame()
+        for i in range(1, 7):
+            silent.signals[f"zone.{i}.gain"].value = 0.
+        assert all(t.gain == 0 for t in PreparedRoutes(preset).evaluate(silent, 0.)[0])

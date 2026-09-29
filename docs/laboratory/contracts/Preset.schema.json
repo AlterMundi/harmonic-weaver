@@ -679,6 +679,13 @@
       "title": "Master",
       "type": "number"
     },
+    "expression": {
+      "default": 0,
+      "maximum": 1,
+      "minimum": -1,
+      "title": "Expression",
+      "type": "number"
+    },
     "voices": {
       "items": {
         "$ref": "#/$defs/VoiceSettings"

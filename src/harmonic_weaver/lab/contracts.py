@@ -281,6 +281,7 @@ class Preset(Contract):
     response: ResponseSettings = Field(default_factory=ResponseSettings)
     fundamental_hz: Number = Field(default=40.4, ge=10, le=440)
     master: Number = Field(default=.7, ge=0, le=1)
+    expression: Number = Field(default=0, ge=-1, le=1)
     voices: list[VoiceSettings] = Field(default_factory=initial_voices, min_length=6, max_length=32)
     routes: list[Route] = Field(default_factory=initial_routes, max_length=128)
     macros: list[Macro] = Field(default_factory=list, max_length=12)
