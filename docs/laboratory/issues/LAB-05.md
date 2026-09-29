@@ -15,3 +15,13 @@ Una sesión debe poder jugar con el instrumento sin CLI ni edición de código d
 End-to-end: abrir archivo, loop, cambiar controles en vivo, guardar preset, reiniciar, abrir otra fuente y reaplicar. Dos clientes no pisan cambios silenciosamente. Navegación por teclado, labels y errores legibles; ninguna acción que parece aplicada queda pendiente sin indicación.
 
 No implementar matemática en el navegador salvo representación visual: cliente consume contratos. No hardcodear tres componentes como tres voces ni suponer que un widget nuevo requiere un endpoint dedicado.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Milestone: [Laboratorio corporal — exploración en tiempo real v1](https://github.com/AlterMundi/harmonic-weaver/milestone/1).
+
+Dependencias: [LAB-01 · #9](https://github.com/AlterMundi/harmonic-weaver/issues/9).
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:LAB-05 -->

@@ -20,3 +20,13 @@ Tras LAB-08, especificar corpus y medidas con resultados de exploración; dividi
 Una segunda ejecución sobre los mismos inputs produce resultados dentro de tolerancias declaradas y explica diferencias de plataforma. Reporte incluye candidatos fallidos, incertidumbre, contraejemplos y límites. Publicación no depende de que gane un algoritmo inspirado en HIT.
 
 Conecta la agenda completa y las propuestas de Anni. No cierra automáticamente preguntas de percepción, energía, causalidad o neurofisiología.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Milestone: [Laboratorio corporal — comparación reproducible de presets](https://github.com/AlterMundi/harmonic-weaver/milestone/2).
+
+Dependencias: [LAB-08 · #16](https://github.com/AlterMundi/harmonic-weaver/issues/16).
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:EVAL -->

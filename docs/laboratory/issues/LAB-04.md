@@ -18,3 +18,13 @@ Tines `drawLissajous` muestra la suma de fasores; usa fundamental visual fija y 
 Silencio, una voz, seis/32 voces, ratios simples, detune, fase, ataque/release, mute/solo, cambio de fundamental y pérdida de telemetría. Fixtures numéricos de curva más prueba visual y recorrido real con Shaper. Alinear con el tiempo sonoro, no solo con target HTTP.
 
 La telemetría en Shaper se publica mediante su repo/PR; el renderer vive en Weaver. Coordinar formato mediante LAB-01 y usar fixtures para avanzar en paralelo.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Milestone: [Laboratorio corporal — exploración en tiempo real v1](https://github.com/AlterMundi/harmonic-weaver/milestone/1).
+
+Dependencias: [LAB-01 · #9](https://github.com/AlterMundi/harmonic-weaver/issues/9).
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:LAB-04 -->

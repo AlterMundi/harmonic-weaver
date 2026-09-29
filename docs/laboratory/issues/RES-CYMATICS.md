@@ -9,3 +9,11 @@ Las vistas de prueba derivadas del sonido no reciben keypoints ni etiquetas del 
 Después comparar con medio físico instrumentado y sincronizado. Entregar modelo/hipótesis de transferencia, pruebas, límites e incertidumbre. La matriz lineal puede ser una aproximación local a un operador con memoria y dinámica; no imponer invertibilidad global.
 
 Registrar hallazgos como notas fechadas enlazadas a esta issue y a la agenda. No sobrescribir fuentes ni convertir preguntas en afirmaciones demostradas.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Agenda de investigación abierta; no bloquea v1 salvo dependencias explícitas.
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:RES-CYMATICS -->

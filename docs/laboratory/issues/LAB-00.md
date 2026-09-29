@@ -20,3 +20,11 @@ Una sesión ajena puede obtener el baseline por GitHub y correr los tests sin ac
 - [ ] El launcher aislado previo sigue disponible.
 
 Es el prerrequisito de integración del laboratorio; investigación y diseño de contratos pueden avanzar leyendo el inventario, pero no asumir que main ya contiene el instrumento.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Milestone: [Laboratorio corporal — exploración en tiempo real v1](https://github.com/AlterMundi/harmonic-weaver/milestone/1).
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:LAB-00 -->

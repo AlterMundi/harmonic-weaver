@@ -18,4 +18,14 @@ Publicar señales para el preset editable: oposición→desvío; refuerzo→afin
 
 Modo estable, rotación de base sin cambio físico, degeneración, ruido/gaps, propagación iniciada en distintas regiones, dos impulsos simultáneos, quietud sin centro y oposición local/global. Verificar no fuga de futuro y disponibilidad de observaciones en cada salida.
 
-Completar software no cierra {{RES-ORGANIZATION}} ni #6. La validez científica se investiga en el segundo milestone.
+Completar software no cierra [RES-ORGANIZATION · #20](https://github.com/AlterMundi/harmonic-weaver/issues/20) ni #6. La validez científica se investiga en el segundo milestone.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Milestone: [Laboratorio corporal — exploración en tiempo real v1](https://github.com/AlterMundi/harmonic-weaver/milestone/1).
+
+Dependencias: [LAB-01 · #9](https://github.com/AlterMundi/harmonic-weaver/issues/9), [LAB-06 · #14](https://github.com/AlterMundi/harmonic-weaver/issues/14).
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:LAB-07 -->

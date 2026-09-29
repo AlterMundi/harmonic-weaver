@@ -15,3 +15,13 @@ Permitir cambiar parámetros, modalidades y ruteos mientras la fuente continúa,
 Atomicidad, revisión en conflicto, parámetros inválidos, ciclos/unidades/rutas ambiguas, transiciones sin voces colgadas, desconexión y pérdida de datos. Ejecutar carga y cambios repetidos mientras corre fuente; verificar ausencia de backlog creciente.
 
 Entregar señales/destinos enumerables para UI y fixtures para pruebas headless. La musicalidad y latencia física requieren LAB-08, no se afirman desde mocks.
+
+## Coordinación y referencias
+
+Programa: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Milestone: [Laboratorio corporal — exploración en tiempo real v1](https://github.com/AlterMundi/harmonic-weaver/milestone/1).
+
+Dependencias: [LAB-01 · #9](https://github.com/AlterMundi/harmonic-weaver/issues/9).
+
+[Especificación](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/SPEC.md) · [Decisiones vigentes](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/DECISIONS.md) · [Agenda R01–R13](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/research/laboratory/AGENDA.md) · [Inventario del baseline](https://github.com/AlterMundi/harmonic-weaver/blob/506afe3e6f43b63252f9b289365d7b33650896b5/docs/laboratory/BASELINE_INVENTORY.json).
+
+<!-- weaver-lab:LAB-03 -->
