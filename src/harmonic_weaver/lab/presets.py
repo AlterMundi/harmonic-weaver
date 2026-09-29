@@ -18,6 +18,11 @@ def initial_presets():
                          Macro(id="phase", label="Movimiento de fase", value=.25,
                               targets=[MacroTarget(path="response.phase_depth", minimum=0., maximum=180.)])]
         result.append(preset)
+    continuous = result[0].model_copy(deep=True)
+    continuous.id = "lab-v1-baseline-continuous"
+    continuous.name = "01b · Instrumento original / movimiento continuo"
+    continuous.response.pluck_enabled = False
+    result.insert(1, continuous)
     return result
 
 

@@ -99,3 +99,25 @@ conviene seguir investigando; no se afirma cumplimiento físico de las metas.
 - Escucha, comodidad al moverse y aceptación humana siguen pendientes.
 
 Grabación opcional, comparación formal y sensores conservan sus issues y agenda.
+
+### Reactividad: primera escucha humana (2026-09-29)
+
+Nicolás reportó que la primera versión responde mucho menos que el instrumento
+anterior. La aceptación sonora sigue pendiente. En el fragmento frontal local,
+reproduciendo el tracking guardado con el controlador preservado, el preset
+baseline con plucks produjo ganancias medias por zona
+[0.0062, 0.0055, 0.0131, 0.0089, 0.0157, 0.0427]; con plucks desactivados,
+[0.3044, 0.2478, 0.2029, 0.4350, 0.1330, 0.4395].
+Son ganancias del controlador, antes de normalización polifónica y salida física,
+no una medición de volumen percibido. Las velocidades medias fueron idénticas.
+Caderas, hombros y codos dispararon un solo impulso en el fragmento: la histéresis
+del pluck requiere bajar del umbral de rearme, y movimiento continuo no garantiza
+nuevos ataques. Esto explica una respuesta escasa en este caso, sin demostrar aún
+qué configuración exacta se usó en la comparación histórica.
+
+Se incorpora «01b · Instrumento original / movimiento continuo», con el mismo
+controlador baseline y plucks desactivados. El preset original se conserva.
+Próxima comparación humana: mismo fragmento, misma salida y nivel, alternar 01/01b.
+Si se desea mantener articulación percutiva durante flujo continuo, estudiar
+disparos por cambios de aceleración o mezcla continuo/impulso; no introducir un
+reloj de retrigger que invente eventos corporales.
