@@ -16,6 +16,23 @@
           "title": "Frequency Hz",
           "type": "number"
         },
+        "gain_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gain End"
+        },
+        "phase_offset_delta_rad": {
+          "default": 0,
+          "title": "Phase Offset Delta Rad",
+          "type": "number"
+        },
         "gain": {
           "minimum": 0,
           "title": "Gain",

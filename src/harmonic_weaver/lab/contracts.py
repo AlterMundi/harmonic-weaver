@@ -350,6 +350,8 @@ class EffectiveVoice(Contract):
     voice_id: int
     harmonic_n: int
     frequency_hz: Number = Field(ge=0)
+    gain_end: Number | None = None
+    phase_offset_delta_rad: Number = 0
     gain: Number = Field(ge=0)
     phase_rad: Number
     envelope: Number = Field(ge=0)

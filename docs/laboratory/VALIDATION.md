@@ -121,3 +121,20 @@ Próxima comparación humana: mismo fragmento, misma salida y nivel, alternar 01
 Si se desea mantener articulación percutiva durante flujo continuo, estudiar
 disparos por cambios de aceleración o mezcla continuo/impulso; no introducir un
 reloj de retrigger que invente eventos corporales.
+
+### Clics durante activación y cambios de movimiento
+
+La escucha humana detectó clics repetidos con respuesta continua. Shaper aplicaba
+ganancia y offset de fase como escalones entre bloques y omitía el último bloque
+de algunas colas. Para voces del laboratorio se interpolan ganancia efectiva
+(incluida normalización polifónica) y offset de fase por el arco corto, muestra
+a muestra durante un bloque. La cola final se renderiza antes de retirar la voz.
+A 48 kHz/256 muestras la transición dura 5.33 ms. El silencio explícito con
+release=0 conserva su semántica inmediata.
+
+VoiceFrame informa gain/phase_rad al inicio del bloque y gain_end/
+phase_offset_delta_rad para reconstruir la transición; la figura sigue usando
+el estado efectivo inicial, no el objetivo sin renderizar.
+Pruebas: reconstrucción PCM de 1/6/32 voces y continuidad en activación a fase
+de pico, cambios grandes de ganancia/fase y liberación. Falta confirmar por
+escucha con la R24 si esto resuelve todos los clics percibidos.
