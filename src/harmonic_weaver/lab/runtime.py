@@ -5,7 +5,7 @@ import threading
 import time
 
 from .audio import ShaperOutput
-from .contracts import Calibration
+from .contracts import Calibration, PerceptionSettings
 from .kinematics import observed_xy, torso_scale
 from .media import VideoLibrary
 from .models import MotionModel
@@ -38,6 +38,7 @@ class LaboratoryRuntime:
         self.last_source_time = -1.
         self.last_sequence = None
         self.error = None
+        self.restore_error = None
         self.routing = {}
         self.tick_ms = 0.
         self.last_targets = []
@@ -45,10 +46,19 @@ class LaboratoryRuntime:
     def start(self):
         if self._thread and self._thread.is_alive():
             return
+        self.restore_video()
         self._stop.clear()
         self.audio.start()
         self._thread = threading.Thread(target=self._run, daemon=True, name="lab-analysis")
         self._thread.start()
+
+    def restore_video(self):
+        video = self.store.last_video()
+        if video and self.kind is None:
+            try:
+                self.open_video(video["path"], PerceptionSettings.model_validate(video["perception"]))
+            except (ValueError, OSError, KeyError) as exc:
+                self.restore_error = f"No se pudo recuperar el último video: {exc}"
 
     def _reset(self):
         if self.model:
@@ -70,6 +80,8 @@ class LaboratoryRuntime:
             self.model = None
             self.transport.reset()
             self._reset()
+        self.store.remember_video({"path": job["path"], "perception": settings.model_dump()})
+        self.restore_error = None
         return job
 
     def open_camera(self, index, settings):
@@ -80,9 +92,11 @@ class LaboratoryRuntime:
             self.model = None
             self.transport.reset(playing=True)
             self._reset()
+        self.store.remember_video(None)
         return self.camera.snapshot()
 
     def close_source(self):
+        self.store.remember_video(None)
         self.camera.close()
         if self.job_id:
             self.library.cancel(self.job_id)
@@ -232,7 +246,7 @@ class LaboratoryRuntime:
                     "motion_frame":self.frame.model_dump() if self.frame else None,
                     "features":self.features.model_dump() if self.features else None,
                     "calibration":self.calibration.model_dump() if self.calibration else None,
-                    "runtime":{"tick_ms":self.tick_ms, "error":self.error, "routing":self.routing,
+                    "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
                                "epoch":self.transport.epoch}, **self.audio.snapshot()}
 
     def close(self):

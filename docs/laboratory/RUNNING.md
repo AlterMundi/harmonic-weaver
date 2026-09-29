@@ -91,3 +91,8 @@ en SOURCES. La cámara y el audio live no se graban automáticamente.
 
 La aceptación humana evalúa lo que se siente al moverse/observar/escuchar.
 Los tests verifican contratos, continuidad y comportamiento técnico; no esa sensación.
+
+Al reiniciar se recupera el último video abierto, pausado desde el inicio, usando
+sus parámetros de percepción y la caché válida. Esta preferencia es local y no
+viaja en los presets. Cerrar explícitamente la fuente o elegir cámara borra esa
+preferencia; la cámara no se enciende automáticamente al arrancar.

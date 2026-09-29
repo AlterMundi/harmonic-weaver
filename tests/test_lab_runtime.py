@@ -75,3 +75,29 @@ def test_replay_pause_gap_loop_and_configuration_do_not_replay_old_events(tmp_pa
     assert not any(v.gain for v in audio.targets)
     assert runtime.transport.position() < .1
     store.close()
+
+
+def test_last_video_survives_restart_but_explicit_close_clears_it(tmp_path):
+    from harmonic_weaver.lab.contracts import PerceptionSettings
+
+    class RestorableLibrary(Library):
+        def open(self, path, settings, force=False):
+            assert not force
+            return {"id": "restored", "path": str(path)}
+        def cancel(self, job):
+            pass
+
+    settings = PerceptionSettings(checkpoint="test.pt")
+    store = SessionStore(tmp_path)
+    runtime = LaboratoryRuntime(store, library=RestorableLibrary(), audio=Audio())
+    runtime.open_video("/example.mp4", settings)
+    store.close()
+    store = SessionStore(tmp_path)
+    runtime = LaboratoryRuntime(store, library=RestorableLibrary(), audio=Audio())
+    runtime.restore_video()
+    assert runtime.job_id == "restored"
+    assert runtime.transport.position() == 0
+    assert not runtime.transport.playing
+    runtime.close_source()
+    assert store.last_video() is None
+    store.close()

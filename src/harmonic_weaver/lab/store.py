@@ -160,6 +160,17 @@ class SessionStore:
             # Revalidate updates: Pydantic model_copy(update=...) itself does not validate.
             self.state = SessionState.model_validate({**self.state.model_dump(), **fields})
 
+    def remember_video(self, video):
+        """Session-local source preference, deliberately outside portable presets."""
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO settings(id,payload) VALUES ('last_video',?)",
+                             (_json(video),))
+
+    def last_video(self):
+        with self._lock:
+            row = self._db.execute("SELECT payload FROM settings WHERE id='last_video'").fetchone()
+            return json.loads(row[0]) if row else None
+
     def list_presets(self):
         with self._lock:
             presets = [Preset.model_validate_json(row[0]).model_dump()
