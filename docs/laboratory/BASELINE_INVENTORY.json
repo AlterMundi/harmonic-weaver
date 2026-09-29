@@ -1,0 +1,77 @@
+{
+  "date": "2026-09-29",
+  "status": "inventory only; local working files are not published by this manifest",
+  "branch": "feat/geometry-activation",
+  "head": "7aaa8c04fe8ffc0497eb6b25290b63f747bba5d1",
+  "upstream_main": "726f3bf899ed384cc3bb16768a501ff655ca6758",
+  "local_commits": [
+    "7aaa8c04fe8ffc0497eb6b25290b63f747bba5d1 feat: isolate raw six-zone kinetic consonance instrument",
+    "257bf14eccd7f5158ae606efb562958d8790bec1 docs+research: movement-consonance pack closed, driver v1 verified, Codex handoff",
+    "2d1f815945ea00dc94736e2c72f333f37b471947 fix: harden bands-v1 observability evidence",
+    "560cc514a55175c86519528fab55bb812a76d696 docs: prepare bands-v1 Codex continuation",
+    "274c343a9cea6e43d7bd9fd1e57e2cc360c54071 docs: project memory for bands-v1 implementation",
+    "5ac44dfb0b8b4ccb90ebfbcfa06564e3f35e5dbe feat(bands-v1): vertical bands geometry with symmetric activation, abs operator, dynamic calibration",
+    "149f07b0a8ccce815958e59e7f05bc8da979085d feat(pads-v2): 8-slot scene, per-body skeleton colours, --harmocap-max-slots, redundant-write suppression"
+  ],
+  "remote_only_commits": [
+    "726f3bf899ed384cc3bb16768a501ff655ca6758 Merge pull request #5 from AlterMundi/fix/portable-integration-test-paths",
+    "7d79bc597ceeff14f0d38256f0f4eccbd7709dae test: resolve sibling contracts portably"
+  ],
+  "files": [
+    {
+      "path": "research/movement-consonance/consonance/README.md",
+      "sha256": "78bcbfb3bed9f5ad077263431f93713c6243c20ebe35659127c1392c560d5b53",
+      "bytes": 10139
+    },
+    {
+      "path": "research/movement-consonance/consonance/driver.py",
+      "sha256": "5373f36a55a090e07002ce90b25d034515493ff8677fb13348cb11c22c8921c3",
+      "bytes": 24072
+    },
+    {
+      "path": "research/movement-consonance/consonance/metrics.py",
+      "sha256": "c45c039b87b1554aeb052332546b6440ed7b2f6d2b0bfb05c97f9235d4998a81",
+      "bytes": 14188
+    },
+    {
+      "path": "research/movement-consonance/consonance/live_controls.py",
+      "sha256": "bc15be33e15ef0b22398667f42576e32dbd515b2aaac18bf42486a3a19115c27",
+      "bytes": 6743
+    },
+    {
+      "path": "research/movement-consonance/consonance/plucks.py",
+      "sha256": "e68ac5255ed173f26f8436c43f4e40b2bc1e284ff0f75f9a3d1c87d9b443a4a6",
+      "bytes": 1247
+    },
+    {
+      "path": "research/movement-consonance/consonance/web/index.html",
+      "sha256": "1f2bd62dfa9375937822a0f3b33f6d3c8db563c601977a9c8db10fc71d0ea96b",
+      "bytes": 4786
+    },
+    {
+      "path": "research/movement-consonance/consonance/web/app.js",
+      "sha256": "a8dce5735634795d81240d8d775bc31b0663b0b76f1dbaccc52d655363862820",
+      "bytes": 9329
+    },
+    {
+      "path": "research/movement-consonance/consonance/web/style.css",
+      "sha256": "2f4f3e85ef23ec6d7f52a1eddf969b5d901fc32dbd6d459f34d1c81e19ef1df2",
+      "bytes": 4559
+    },
+    {
+      "path": "scripts/start-kinetic-consonance.sh",
+      "sha256": "dc7acaf90e69e89a8738833a97c04cd8aabc09ced06871edda6249f0ade8053a",
+      "bytes": 2135
+    },
+    {
+      "path": "scripts/start-live-stack.sh",
+      "sha256": "59b515d2186fab26f25fde8237fd574847eeb74f2ce7d3115a0a217963b0037d",
+      "bytes": 31914
+    },
+    {
+      "path": "tests/test_consonance_live.py",
+      "sha256": "2642f838afd8fc4514115bdf4910728428c97941ae431554d1c60bda109c4b00",
+      "bytes": 11582
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "repo": "AlterMundi/harmonic-weaver",
+  "doc_branch": "docs/rope-flow-laboratory-plan",
+  "milestones": {
+    "live": {
+      "title": "Laboratorio corporal — exploración en tiempo real v1",
+      "description": "Mesa local de exploración con archivo/cámara, cache de tracking, presets portables, ruteos en caliente, seis voces iniciales, Lissajous polifónico y modelos relacionales/colectivos con centros de despliegue variables. Entregas incrementales y feedback humano; evaluación formal en un milestone posterior."
+    },
+    "evaluation": {
+      "title": "Laboratorio corporal — comparación reproducible de presets",
+      "description": "Después del feedback de v1: corridas de presets congelados contra fuentes comunes, renderer compartido, manifest reproducible, controles y análisis comparativos publicables. Detallar subtareas al disponer de evidencia de las primeras sesiones."
+    }
+  },
+  "items": [
+    {
+      "key": "PROGRAM",
+      "title": "Laboratorio corporal: programa, decisiones y mapa de investigación",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/PROGRAM.md"
+    },
+    {
+      "key": "LAB-00",
+      "title": "LAB-00 · Preservar y reconciliar el instrumento local antes de implementar",
+      "milestone": "live",
+      "depends": [],
+      "file": "docs/laboratory/issues/LAB-00.md"
+    },
+    {
+      "key": "LAB-01",
+      "title": "LAB-01 · Contratos de sesión, presets portables y bitácora ligera",
+      "milestone": "live",
+      "depends": [
+        "LAB-00"
+      ],
+      "file": "docs/laboratory/issues/LAB-01.md"
+    },
+    {
+      "key": "LAB-02",
+      "title": "LAB-02 · Video/cámara y cache persistente de tracking para loops",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ],
+      "file": "docs/laboratory/issues/LAB-02.md"
+    },
+    {
+      "key": "LAB-03",
+      "title": "LAB-03 · Runtime causal y matriz de ruteos modificable en caliente",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ],
+      "file": "docs/laboratory/issues/LAB-03.md"
+    },
+    {
+      "key": "LAB-04",
+      "title": "LAB-04 · Telemetría efectiva de Shaper y Lissajous polifónico nuevo",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ],
+      "file": "docs/laboratory/issues/LAB-04.md"
+    },
+    {
+      "key": "LAB-05",
+      "title": "LAB-05 · Mesa web de exploración, controles completos y presets",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ],
+      "file": "docs/laboratory/issues/LAB-05.md"
+    },
+    {
+      "key": "LAB-06",
+      "title": "LAB-06 · Baselines, interferencia relacional v0 y geometría angular",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ],
+      "file": "docs/laboratory/issues/LAB-06.md"
+    },
+    {
+      "key": "LAB-07",
+      "title": "LAB-07 · Organización colectiva, centros de despliegue e interferencia",
+      "milestone": "live",
+      "depends": [
+        "LAB-01",
+        "LAB-06"
+      ],
+      "file": "docs/laboratory/issues/LAB-07.md"
+    },
+    {
+      "key": "LAB-08",
+      "title": "LAB-08 · Integración del laboratorio, latencia y primeras sesiones",
+      "milestone": "live",
+      "depends": [
+        "LAB-02",
+        "LAB-03",
+        "LAB-04",
+        "LAB-05",
+        "LAB-06",
+        "LAB-07"
+      ],
+      "file": "docs/laboratory/issues/LAB-08.md"
+    },
+    {
+      "key": "LAB-09",
+      "title": "LAB-09 · Captura opcional de fragmentos video + audio y configuración",
+      "milestone": "live",
+      "depends": [
+        "LAB-02",
+        "LAB-03",
+        "LAB-04",
+        "LAB-05"
+      ],
+      "file": "docs/laboratory/issues/LAB-09.md"
+    },
+    {
+      "key": "EVAL",
+      "title": "EVAL · Corridas reproducibles de presets × fuentes y resultados publicables",
+      "milestone": "evaluation",
+      "depends": [
+        "LAB-08"
+      ],
+      "file": "docs/laboratory/issues/EVAL.md"
+    },
+    {
+      "key": "RES-THEORY",
+      "title": "HIT, Grassmannianos y activación: restricciones, ondas y predicciones distinguibles",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-THEORY.md"
+    },
+    {
+      "key": "RES-ORGANIZATION",
+      "title": "Organización colectiva y Jpsh!: de candidatos cinemáticos a evidencia",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-ORGANIZATION.md"
+    },
+    {
+      "key": "RES-SONIFICATION",
+      "title": "Sonificar relaciones: mapeos, resonadores y respuesta al Jpsh!",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-SONIFICATION.md"
+    },
+    {
+      "key": "RES-CYMATICS",
+      "title": "Cuerpo → sonido → geometría: información preservada y medios cimáticos",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-CYMATICS.md"
+    },
+    {
+      "key": "RES-CAPTURE",
+      "title": "Cuerda, 3D y captura adicional para estudiar el despliegue",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-CAPTURE.md"
+    },
+    {
+      "key": "RES-PERCEPTION",
+      "title": "Placer, belleza y legibilidad para practicantes y observadores",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-PERCEPTION.md"
+    },
+    {
+      "key": "RES-NEURO",
+      "title": "OpenBCI, sincronización y SNR en experiencia audiovisual",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-NEURO.md"
+    },
+    {
+      "key": "RES-ENERGY",
+      "title": "Movimiento, trabajo y costo energético: ¿se relacionan belleza y eficiencia?",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-ENERGY.md"
+    },
+    {
+      "key": "RES-TRANSFER",
+      "title": "Transferencia, entrenamiento y persona–prótesis: horizonte de la propuesta",
+      "milestone": null,
+      "depends": [],
+      "file": "docs/laboratory/issues/RES-TRANSFER.md"
+    }
+  ]
+}
