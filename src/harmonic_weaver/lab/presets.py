@@ -23,6 +23,15 @@ def initial_presets():
     continuous.name = "01b · Instrumento original / movimiento continuo"
     continuous.response.pluck_enabled = False
     result.insert(1, continuous)
+    sustained = continuous.model_copy(deep=True)
+    sustained.id = "lab-v1-baseline-sustained"
+    sustained.name = "01c · Armónicos sostenidos / intensidad corporal"
+    for route in sustained.routes:
+        if route.target in {"detune", "phase_deg"}:
+            route.enabled = False
+        elif route.target == "gain":
+            route.smoothing_s = .03
+    result.insert(2, sustained)
     return result
 
 

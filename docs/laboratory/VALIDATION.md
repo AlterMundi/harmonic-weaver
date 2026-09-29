@@ -138,3 +138,20 @@ el estado efectivo inicial, no el objetivo sin renderizar.
 Pruebas: reconstrucción PCM de 1/6/32 voces y continuidad en activación a fase
 de pico, cambios grandes de ganancia/fase y liberación. Falta confirmar por
 escucha con la R24 si esto resuelve todos los clics percibidos.
+
+### Sostenido frente a modulación rápida
+
+Tras la corrección de clics, Nicolás reportó una textura semejante a ataques
+repetidos. En 150 lecturas de estado durante unos cinco segundos del video
+frontal con 01b, las seis ganancias permanecieron positivas (cero transiciones
+on/off). En todas las zonas el detune recorrió -1..1 y el percentil 95 del
+incremento absoluto de fase fue 90 grados. No se observó retrigger en esa muestra:
+la modulación extrema de tono/fase es una hipótesis concreta para esa textura,
+pendiente de comparación auditiva.
+
+01c «Armónicos sostenidos / intensidad corporal» mantiene la serie armónica y
+fases sin modulación; sólo aplica intensidad corporal, con suavizado de rutas
+de ganancia de 30 ms, editable. 01 y 01b se conservan. No se ha corregido ni
+validado aún la estimación ruidosa/saturada del residual del controlador original.
+Prueba de Shaper: 60 actualizaciones de ganancia positiva conservan el mismo
+estado de oscilador, fase acumulada y envolvente abierta.
