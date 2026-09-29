@@ -80,3 +80,10 @@ person-count histogram, harmonic source-slot activity, frame-batched harmonic
 transition counts, and route-reset evidence. Initialization resets are excluded
 from transition counts. Run it on live artifacts only after any participant-data
 audit.
+
+## Laboratorio corporal (plan de construcción)
+
+El [índice del laboratorio](docs/laboratory/README.md) reúne la especificación,
+los milestones y las tareas para explorar movimiento, sonido y geometría
+en tiempo real, junto con la agenda de investigación y evaluación posterior.
+Estado: plan publicado; implementación pendiente.
