@@ -30,17 +30,29 @@ Procrustes/ángulos principales, detección de corte degenerado y candidatos de
 activación regional simultáneos. No se implementó todavía el estimador retardado
 de propagación/centros ni se atribuye causalidad a estos candidatos.
 
-31 tests del laboratorio pasan. Son evidencia de las piezas cubiertas; no
+LAB-03/04: matriz preparada con catálogo/unidades, mezclas explícitas, curvas,
+clamps, smoothing, mute/solo y seis voces independientes de PCA. Cliente Shaper
+con último estado, revisión reconocida y lease de voces propias. Telemetría nativa
+publicada en [Shaper PR #2](https://github.com/AlterMundi/harmonic-shaper/pull/2):
+sample index, fases y ganancias/envolventes efectivas antes de shape/limiter.
+Reconstrucción automática de bloques con 1/6/32 voces; dispositivo físico pendiente.
+
+Modelos conectados a FeatureFrame y ruteos; runtime de archivos/cámara con controles
+HTTP, calibración explícita y reinicio de historia ante discontinuidades. La prueba
+de integración de runtime usa fuente/audio dobles: pausa, seek, loop, pérdida de
+cuerpo y cambio de master. No constituye todavía un recorrido audiovisual real.
+
+42 tests del laboratorio pasan en una corrida, más una prueba nueva de runtime.
+Son evidencia de las piezas cubiertas; no
 sustituyen el recorrido web, el audio, la cámara ni aceptación humana.
 
 ## Siguiente tramo necesario
 
 1. Conectar algoritmos y registro/descriptores; completar predicción retardada y
    scores de centros frente a historia propia, sin fuga de futuro.
-2. LAB-03: compilar rutas/unidades antes de aplicar revisiones, runtime a ticks,
-   preparación asíncrona, calibración y transporte; liberar voces ante gaps.
-3. LAB-04: telemetría efectiva desde AudioEngine de Shaper, en su repo propietario,
-   sample index/fases/envolvente/gain real y figura polifónica WebGL.
+2. LAB-03: revisar preparación/intercambio de modelos en caliente y validar runtime
+   con fuentes/audio reales; contratos y matriz ya están conectados.
+3. LAB-04: construir figura polifónica WebGL sobre telemetría nativa ya publicada.
 4. LAB-05: React/TypeScript, selección/upload de video/cámara, progreso/reprocesar,
    transporte, presets, controles/ruteos/macros y diagnóstico de señales.
 5. LAB-08: launcher sin terminar procesos ajenos, integración local, pruebas web,

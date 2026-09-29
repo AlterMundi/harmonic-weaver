@@ -1,6 +1,8 @@
 # Laboratorio corporal: punto de entrada
 
-Estado: planificación publicada; implementación del laboratorio pendiente. 2026-09-29.
+Estado: implementación en curso; ver [evidencia y pendientes](IMPLEMENTATION_STATUS.md). 2026-09-29.
+
+Para aportar cambios o presets: [fronteras y flujo de contribución](CONTRIBUTING.md).
 
 Coordinación y seguimiento: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Este índice reúne el alcance vigente, las tareas ejecutables y las preguntas que siguen abiertas.
 

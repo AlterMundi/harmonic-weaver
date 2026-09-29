@@ -8,10 +8,10 @@ from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from pydantic import Field
 
-from .contracts import Contract, Number, PERSISTED_CONTRACTS, Preset
+from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
 
 
@@ -29,6 +29,31 @@ class MacroRequest(RevisionRequest):
 
 class MarkRequest(Contract):
     text: str = Field(min_length=1, max_length=500)
+
+
+class VideoRequest(Contract):
+    path: str
+    perception: PerceptionSettings
+    force: bool = False
+
+
+class CameraRequest(Contract):
+    index: int = Field(default=0, ge=0, le=32)
+    perception: PerceptionSettings
+
+
+class TransportRequest(Contract):
+    playing: bool | None = None
+    position_s: Number | None = Field(default=None, ge=0)
+    loop: bool | None = None
+
+
+class PersonRequest(Contract):
+    person_id: str
+
+
+class CalibrationRequest(Contract):
+    reuse_id: str | None = None
 
 
 def _local_request(headers):
@@ -141,6 +166,52 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def mark(body: MarkRequest):
         session.mark(body.text)
         return {"ok": True}
+
+    if runtime is not None:
+        @app.get("/api/signals")
+        def signals():
+            from .routing import signal_catalog
+            return signal_catalog()
+
+        @app.get("/api/media")
+        def media():
+            return runtime.library.list_assets()
+
+        @app.post("/api/sources/video")
+        def open_video(body: VideoRequest):
+            return runtime.open_video(body.path, body.perception, body.force)
+
+        @app.post("/api/sources/camera")
+        def open_camera(body: CameraRequest):
+            return runtime.open_camera(body.index, body.perception)
+
+        @app.get("/api/media/{job_id}/file")
+        def video_file(job_id: str):
+            return FileResponse(runtime.library.path(job_id))
+
+        @app.post("/api/media/{job_id}/cancel")
+        def cancel_video(job_id: str):
+            return runtime.library.cancel(job_id)
+
+        @app.get("/api/camera/preview")
+        def camera_preview():
+            import base64
+            jpeg = runtime.camera.jpeg
+            return Response(base64.b64decode(jpeg) if jpeg else b"", media_type="image/jpeg",
+                            status_code=200 if jpeg else 204, headers={"Cache-Control":"no-store"})
+
+        @app.post("/api/transport")
+        def transport(body: TransportRequest):
+            return runtime.control(**body.model_dump())
+
+        @app.post("/api/person")
+        def person(body: PersonRequest):
+            runtime.select_person(body.person_id)
+            return snapshot()
+
+        @app.post("/api/calibrate")
+        def calibrate(body: CalibrationRequest):
+            return runtime.calibrate(body.reuse_id)
 
     @app.websocket("/ws")
     async def live(websocket: WebSocket):
