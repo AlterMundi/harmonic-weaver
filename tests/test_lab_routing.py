@@ -82,10 +82,29 @@ def test_expression_preserves_tuning_and_silence_with_exact_neutral():
             if amount < 0:
                 assert 0 < new.gain < old.gain
             elif amount > 0:
-                assert old.gain < new.gain <= preset.master
+                assert new.gain == old.gain  # a static first sample is not an attack
             else:
                 assert new == old
         silent = complete_frame()
         for i in range(1, 7):
             silent.signals[f"zone.{i}.gain"].value = 0.
         assert all(t.gain == 0 for t in PreparedRoutes(preset).evaluate(silent, 0.)[0])
+
+
+def test_positive_expression_accents_changes_not_sustain_and_resets_cleanly():
+    p = Preset(expression=1, master=1)
+    graph = PreparedRoutes(p)
+    def sample(value, time):
+        f = complete_frame()
+        for i in range(1, 7):
+            f.signals[f"zone.{i}.gain"].value = value
+        return graph.evaluate(f, time)[0][0].gain
+    assert sample(.1, 0) == pytest.approx(.1)
+    assert sample(.3, .03) > .3
+    for i in range(1, 101):
+        sustained = sample(.3, .03+i*.03)
+    assert sustained == pytest.approx(.3, abs=1e-8)
+    assert sample(.15, 3.06) < .15
+    assert sample(0, 3.09) == 0
+    graph.reset()
+    assert sample(.3, 10) == pytest.approx(.3)

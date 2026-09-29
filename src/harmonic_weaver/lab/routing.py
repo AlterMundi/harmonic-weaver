@@ -43,6 +43,7 @@ class PreparedRoutes:
         self.catalog = signal_catalog()
         self.routes = [r for r in self.preset.routes if r.enabled]
         self.smoothed = {}
+        self.expression_history = {}
         self.last_time = None
         for route in self.routes:
             for term in route.terms:
@@ -69,6 +70,7 @@ class PreparedRoutes:
 
     def reset(self):
         self.smoothed.clear()
+        self.expression_history.clear()
         self.last_time = None
 
     def evaluate(self, features, now):
@@ -133,10 +135,20 @@ class PreparedRoutes:
         targets = []
         for voice in self.preset.voices:
             drive = values.get((voice.id, "gain"), 0.)
-            # Neutral is exactly the existing mapping. Keep silence at zero and
-            # amplify quiet motion without modifying pitch, phase or timbre.
-            if self.preset.expression and drive > 0:
-                drive = min(1., drive) ** math.exp(-2.5*self.preset.expression)
+            # Transient contrast around a causal per-voice moving baseline.
+            # First sample seeds history: seeks/resets must not invent attacks.
+            if voice.id in invalid:
+                self.expression_history.pop(voice.id, None)
+            else:
+                previous = self.expression_history.get(voice.id, drive)
+                alpha = -math.expm1(-dt/self.preset.expression_window_s) if dt is not None else 1.
+                baseline = previous + alpha*(drive-previous)
+                self.expression_history[voice.id] = baseline
+                if self.preset.expression > 0 and drive > 0:
+                    drive = max(0., min(1., drive + 4*self.preset.expression*(drive-baseline)))
+                elif self.preset.expression < 0 and drive > 0:
+                    # Preserve the attenuating negative side the player liked.
+                    drive = min(1., drive) ** math.exp(-2.5*self.preset.expression)
             gain = drive*voice.gain*self.preset.master
             if voice.id in invalid or voice.muted or (solo and not voice.solo):
                 gain = 0.

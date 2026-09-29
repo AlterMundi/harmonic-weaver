@@ -90,6 +90,7 @@
   "fundamental_hz": 40.4,
   "master": 0.7,
   "expression": 0.0,
+  "expression_window_s": 0.12,
   "voices": [
     {
       "id": 1,

@@ -168,3 +168,19 @@ Pruebas de extremos/neutral/silencio y afinación: pasan.
 Con el tracking frontal y escala medida, los cuatro modelos no baseline
 generaron señales observadas y activaron las seis voces en replay offline.
 La escucha humana de esos modelos sigue pendiente. Seguimiento: issue #32.
+
+
+### Corrección del realce tras escucha
+
+Nicolás rechaza el realce positivo inicial por compresión/empaste y prefiere
+el contraste del lado negativo. Se reemplaza sólo la rama positiva por
+x + 4*expression*(x-media_causal), acotada a [0,1], conservando cero exacto.
+La media exponencial tiene constante configurable expression_window_s=0.12.
+Entrada constante converge a su nivel original; subidas reciben acento y
+bajadas se atenúan. Primer dato tras reset inicializa la media sin ataque
+inventado. La rama negativa y el punto neutral se conservan. Esto usa cambios
+de intensidad, no una medición explícita de aceleración corporal.
+Pruebas: acento de subida, caída, convergencia al sostenido, silencio, reset
+y preservación de afinación. Aceptación auditiva de esta curva pendiente.
+Preferencia de Nicolás: priorizar ajustes de controles existentes y explicar
+qué se cambió antes de introducir mecanismos nuevos.

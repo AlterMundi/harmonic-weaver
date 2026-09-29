@@ -7,6 +7,7 @@ type Data = Record<string, any>;
 let signalUnits: Data = {};
 const labels: Record<string, string> = {
   master: "Master",
+  expression_window_s: "Duración del contraste (s)",
   fundamental_hz: "Fundamental (Hz)",
   release_ms: "Liberación (ms)",
   pause_behavior: "Al pausar",
@@ -1033,13 +1034,15 @@ function App() {
                       }
                     />
                     <small>
-                      − Sutil · 0 Neutral · + Exagerado. Realza la intensidad
-                      sin cambiar afinación, fases ni ratios.
+                      − Más selectivo · 0 Neutral · + Contraste de gestos.
+                      Acentúa subidas y bajadas sin elevar el sostenido ni
+                      cambiar la afinación.
                     </small>
                     <button onClick={() => change("expression", 0)}>
                       Volver a neutral
                     </button>
                   </label>
+                  {form("expression_window_s")}
                   {form("release_ms")}
                   {form("pause_behavior")}
                 </div>

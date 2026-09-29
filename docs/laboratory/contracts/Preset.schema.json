@@ -686,6 +686,13 @@
       "title": "Expression",
       "type": "number"
     },
+    "expression_window_s": {
+      "default": 0.12,
+      "maximum": 1,
+      "minimum": 0.02,
+      "title": "Expression Window S",
+      "type": "number"
+    },
     "voices": {
       "items": {
         "$ref": "#/$defs/VoiceSettings"

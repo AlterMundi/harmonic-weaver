@@ -99,11 +99,19 @@ preferencia; la cámara no se enciende automáticamente al arrancar.
 
 **Realce expresivo** (Instrumento): slider −1..+1, neutral en 0. Cambia la curva
 de intensidad corporal, no frecuencias, ratios, fases ni forma de onda. Positivo
-hace presentes los movimientos sutiles y comprime el rango dinámico; negativo
-los atenúa. El master sigue controlando el nivel final. Se guarda en presets.
+acentúa subidas y bajadas respecto de una media causal por voz, sin elevar
+el sostenido; negativo atenúa valores bajos como en la primera prueba.
+Duración del contraste controla la constante de tiempo (default 0.12 s):
+menor = gestos más breves, mayor = énfasis más prolongado. El master sigue controlando el nivel final. Se guarda en presets.
 La figura recibe las ganancias efectivas y refleja ese realce; su autoescala
 puede disimular cambios de tamaño global (desactivarla para comparar amplitud).
 
 Los modelos distintos de baseline requieren calibración: el inspector muestra
 un aviso y botón cuando falta. Calibrar con hombros y caderas visibles antes de
 evaluarlos; permitir que acumulen historia tras arrancar.
+
+
+Para aprender los controles: en Ruteos, exponente > 1 reduce valores pequeños
+más que grandes (contraste estático); exponente < 1 levanta valores pequeños
+(compresión). Suavizado reduce variaciones rápidas. Realce positivo, en cambio,
+distingue una subida de un nivel sostenido mediante historia temporal.
