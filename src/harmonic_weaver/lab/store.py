@@ -99,6 +99,10 @@ class SessionStore:
         with self._lock:
             return self.preset.model_copy(deep=True), self.state.desired_revision, self.prepared
 
+    def analysis_epoch(self):
+        with self._lock:
+            return self.state.analysis_epoch
+
     def edit(self, preset: Preset, expected_revision: int, *, reason="edit", history=True):
         prepared = self._prepare(preset)  # potentially costly compile outside producer lock
         with self._lock:
@@ -116,6 +120,8 @@ class SessionStore:
             self.preset = preset.model_copy(deep=True)
             self.prepared = prepared
             self.state.desired_revision = revision
+            if reason == "preset_apply":
+                self.state.analysis_epoch += 1
             return self.snapshot()
 
     def history(self, expected_revision: int, *, redo=False):

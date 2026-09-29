@@ -134,6 +134,13 @@
           "title": "Lag S",
           "type": "number"
         },
+        "propagation_interval_s": {
+          "default": 0.2,
+          "maximum": 2,
+          "minimum": 0.03,
+          "title": "Propagation Interval S",
+          "type": "number"
+        },
         "event_threshold": {
           "default": 2,
           "maximum": 50,

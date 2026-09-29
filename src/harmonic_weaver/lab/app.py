@@ -6,9 +6,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 from pydantic import Field
 
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
@@ -64,7 +65,8 @@ def _local_request(headers):
     return origin is None or origin in {f"http://{host}", f"https://{host}"}
 
 
-def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=None) -> FastAPI:
+def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=None,
+               perception: PerceptionSettings | None = None, ui_dir: Path | None = None) -> FastAPI:
     session = store or SessionStore(data_dir)
 
     @asynccontextmanager
@@ -168,10 +170,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return {"ok": True}
 
     if runtime is not None:
+        @app.get("/api/environment")
+        def environment():
+            return {"perception":perception.model_dump() if perception else None}
+
         @app.get("/api/signals")
         def signals():
             from .routing import signal_catalog
             return signal_catalog()
+
+        @app.get("/api/algorithms")
+        def algorithms():
+            from .registry import algorithm_descriptors
+            return [descriptor.model_dump() for descriptor in algorithm_descriptors()]
 
         @app.get("/api/media")
         def media():
@@ -181,9 +192,39 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         def open_video(body: VideoRequest):
             return runtime.open_video(body.path, body.perception, body.force)
 
+        @app.post("/api/sources/upload")
+        async def upload_video(file: UploadFile = File(...), perception_json: str = Form(...)):
+            from uuid import uuid4
+            settings = PerceptionSettings.model_validate_json(perception_json)
+            suffix = Path(file.filename or "").suffix.lower()
+            if suffix not in {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}:
+                raise ValueError("choose a video file")
+            uploads = data_dir / "uploads"
+            uploads.mkdir(parents=True, exist_ok=True)
+            path = uploads / (uuid4().hex + suffix)
+            try:
+                size = 0
+                with path.open("xb") as output:
+                    while chunk := await file.read(1024*1024):
+                        size += len(chunk)
+                        if size > 16*1024**3:
+                            raise ValueError("upload exceeds 16 GiB; open the local path instead")
+                        await asyncio.to_thread(output.write, chunk)
+                return runtime.open_video(path, settings)
+            except Exception:
+                path.unlink(missing_ok=True)
+                raise
+            finally:
+                await file.close()
+
         @app.post("/api/sources/camera")
         def open_camera(body: CameraRequest):
             return runtime.open_camera(body.index, body.perception)
+
+        @app.post("/api/sources/close")
+        def close_source():
+            runtime.close_source()
+            return snapshot()
 
         @app.get("/api/media/{job_id}/file")
         def video_file(job_id: str):
@@ -227,4 +268,6 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         except (WebSocketDisconnect, RuntimeError, OSError, asyncio.TimeoutError):
             pass
 
+    if ui_dir is not None and (ui_dir / "index.html").is_file():
+        app.mount("/", StaticFiles(directory=ui_dir, html=True), name="laboratory-ui")
     return app

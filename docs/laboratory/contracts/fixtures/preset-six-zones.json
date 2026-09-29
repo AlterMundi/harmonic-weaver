@@ -34,6 +34,7 @@
     "components": 3,
     "ridge": 0.1,
     "lag_s": 0.12,
+    "propagation_interval_s": 0.2,
     "event_threshold": 2.0,
     "refractory_s": 0.25,
     "event_duration_s": 0.15,

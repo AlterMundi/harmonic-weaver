@@ -8,7 +8,7 @@ import math
 import numpy as np
 
 from .analysis_math import AngularMode, RelativeMode
-from .collective import CausalSubspace, DeploymentEvents
+from .collective import CausalSubspace, DeploymentEvents, LaggedPropagation
 from .contracts import FeatureFrame, Signal
 from .kinematics import Kinematics, PARENTS, ZONES
 from .legacy import FrozenBaseline, baseline_module
@@ -33,6 +33,7 @@ class MotionModel:
         self.angular = [[AngularMode(settings) for _ in range(2)] for _ in ZONES]
         self.subspace = CausalSubspace(settings)
         self.events = DeploymentEvents(settings)
+        self.propagation = LaggedPropagation(settings)
         self.global_angle = AngularMode(settings)
         self.plucks = [baseline_module().Pluck() for _ in ZONES]
         self.frame = None
@@ -74,14 +75,17 @@ class MotionModel:
                 relative = kin["velocity"][joint]-kin["velocity"][parent]
                 relations.append(self.relative[z][side].push(t, relative if np.isfinite(relative).all() else None))
                 vector = kin["position"][joint]-kin["position"][parent]
-                # Distal segment angles are relative to the proximal segment;
-                # trunk regions retain their orientation in the selected frame.
-                grandparents = {13:5, 14:6, 7:11, 8:12, 15:11, 16:12, 9:5, 10:6}
-                if joint in grandparents:
-                    proximal = kin["position"][parent]-kin["position"][grandparents[joint]]
+                # Internal angles at hip/shoulder/knee/elbow need both adjacent
+                # segments. COCO-17 lacks hands/feet: wrists/ankles expose distal
+                # segment orientation, never an invented wrist/ankle joint angle.
+                children = {11:13, 12:14, 5:7, 6:8, 13:15, 14:16, 7:9, 8:10}
+                if joint in children:
+                    proximal = vector
+                    vector = kin["position"][children[joint]]-kin["position"][joint]
                     vector = np.array([proximal @ vector, proximal[0]*vector[1]-proximal[1]*vector[0]])
                 angles.append(self.angular[z][side].push(t, vector if np.isfinite(vector).all() else None))
-            details[str(z+1)] = {"relations": relations, "angles": angles}
+            details[str(z+1)] = {"relations": relations, "angles": angles,
+                                "angle_kind":"internal joint angle" if z < 4 else "distal segment orientation (COCO-17)"}
             for name in ("I", "R", "A"):
                 vals = [r.get(name) for r in relations]
                 put(prefix+name, finite_mean(vals) if all(v is not None for v in vals) else None)
@@ -112,9 +116,11 @@ class MotionModel:
             self.responses[z] = gain, drive
 
         event_data = self.events.push(t, accelerations)
+        propagation = self.propagation.push(t, np.array([kin["velocity"][list(joints)].mean(axis=0) for joints in ZONES])) if settings.id == "collective" else {"state":"missing", "reason":"enable collective model for delayed propagation"}
         for z, event in event_data.items():
             put(f"zone.{z}.event", float(event["candidate"]) if event["state"] == "observed" else None)
-            put(f"zone.{z}.center_score", None, reason="propagation evidence not yet available")
+            region = propagation.get("regions", {}).get(str(z), {})
+            put(f"zone.{z}.center_score", region.get("score"), reason="propagation evidence not yet available")
         selected = kin["velocity"][settings.joints]
         put("global.speed", finite_mean(np.linalg.norm(selected, axis=1)), "T/s")
         trunk = kin["raw"][[5, 6]].mean(axis=0)-kin["raw"][[11, 12]].mean(axis=0)
@@ -134,7 +140,7 @@ class MotionModel:
                 self.responses[z] = gain, None if residual is None else min(1., residual)*(1-self.preset.response.snap)
         self.features = FeatureFrame(source_time_s=t, available_monotonic_s=now, person_id=person_id,
             algorithm_id=settings.id, signals=signals, diagnostics={"regions":details, "collective":collective,
-            "events":event_data, "scale":self.scale, "reference":settings.reference,
+            "events":event_data, "propagation":propagation, "scale":self.scale, "reference":settings.reference,
             "interpretation":"kinematic descriptors; no causal or physiological efficacy claim"})
         return self.tick(now)
 

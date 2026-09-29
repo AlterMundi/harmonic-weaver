@@ -1,5 +1,6 @@
 """Single analysis owner, source-clock replay and bounded latest audio output."""
 from datetime import datetime, timezone
+from dataclasses import replace
 import threading
 import time
 
@@ -33,11 +34,13 @@ class LaboratoryRuntime:
         self.routes = None
         self.revision = -1
         self.epoch = -1
+        self.config_epoch = -1
         self.last_source_time = -1.
         self.last_sequence = None
         self.error = None
         self.routing = {}
         self.tick_ms = 0.
+        self.last_targets = []
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -54,7 +57,9 @@ class LaboratoryRuntime:
             self.routes.reset()
         self.features = None
         self.last_sequence = None
-        self.audio.submit([], max(0, self.revision))
+        silence = self.model is not None and self.model.preset.pause_behavior == "silence"
+        targets = [replace(target, gain=0., release_s=0.) for target in self.last_targets] if silence else []
+        self.audio.submit(targets, max(0, self.revision))
 
     def open_video(self, path, settings, force=False):
         job = self.library.open(path, settings, force=force)
@@ -76,6 +81,17 @@ class LaboratoryRuntime:
             self.transport.reset(playing=True)
             self._reset()
         return self.camera.snapshot()
+
+    def close_source(self):
+        self.camera.close()
+        if self.job_id:
+            self.library.cancel(self.job_id)
+        with self._lock:
+            self.kind, self.job_id = None, None
+            self.frame, self.person_id, self.calibration = None, None, None
+            self.transport.reset()
+            self._reset()
+            self.model = None
 
     def control(self, *, playing=None, position_s=None, loop=None):
         with self._lock:
@@ -124,6 +140,10 @@ class LaboratoryRuntime:
         started = self.clock()
         with self._lock:
             preset, revision, prepared = self.store.configuration()
+            config_epoch = self.store.analysis_epoch()
+            if config_epoch != self.config_epoch:
+                self._reset()
+                self.config_epoch = config_epoch
             if self.model is None or self.model.preset.algorithm != preset.algorithm:
                 self.model = MotionModel(preset, self.calibration.torso_scale if self.calibration else None)
                 self._reset()
@@ -134,6 +154,7 @@ class LaboratoryRuntime:
                 if self.model.baseline:
                     self.model.baseline.preset = preset.model_copy(deep=True)
                     self.model.baseline.reset()
+            self.model.preset = preset.model_copy(deep=True)
             if revision != self.revision:
                 self.routes, self.revision = prepared, revision
                 if self.routes is None:
@@ -176,6 +197,7 @@ class LaboratoryRuntime:
                     self.features = self.model.observe(frame, self.person_id, started)
                 self.features = self.model.tick(started)
                 targets, self.routing = self.routes.evaluate(self.features, started)
+                self.last_targets = targets
                 self.audio.submit(targets, revision)
             else:
                 self._reset()

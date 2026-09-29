@@ -157,6 +157,7 @@ class AlgorithmSettings(Contract):
     components: int = Field(default=3, ge=1, le=12)
     ridge: Number = Field(default=.1, ge=.00001, le=100)
     lag_s: Number = Field(default=.12, ge=.02, le=1)
+    propagation_interval_s: Number = Field(default=.2, ge=.03, le=2)
     event_threshold: Number = Field(default=2, ge=.1, le=50)
     refractory_s: Number = Field(default=.25, ge=.02, le=3)
     event_duration_s: Number = Field(default=.15, ge=.02, le=2)
@@ -324,6 +325,7 @@ class SessionState(Contract):
     session_id: str = Field(default_factory=lambda: uuid4().hex)
     desired_revision: int = Field(default=0, ge=0)
     applied_revision: int = Field(default=0, ge=0)
+    analysis_epoch: int = Field(default=0, ge=0)
     source_id: str | None = None
     person_id: str | None = None
     calibration_id: str | None = None

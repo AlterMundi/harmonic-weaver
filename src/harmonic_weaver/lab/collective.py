@@ -113,3 +113,109 @@ class DeploymentEvents:
                               "detectability": ratio, "event_time_s": last if np.isfinite(last) else None,
                               "interpretation": "kinematic candidate; not intention or causal origin"}
         return output
+
+
+class LaggedPropagation:
+    """Delayed predictive support, compared with each destination's own history.
+
+    Select a lag on a chronological validation tail of the *past* window. Fit
+    with past targets only; evaluate on the new observation before appending it.
+    Zero/multiple positive region scores are allowed. This is not causality.
+    """
+    def __init__(self, settings):
+        self.settings = settings
+        self.history = deque(maxlen=2048)
+        self.models = {}
+        self.last_fit = -float("inf")
+        self.errors = {}
+
+    def _fit(self, x, y):
+        mean, scale = x.mean(axis=0), np.maximum(x.std(axis=0), self.settings.noise_velocity)
+        design = np.column_stack([np.ones(len(x)), (x-mean)/scale])
+        penalty = np.eye(design.shape[1])*self.settings.ridge
+        penalty[0, 0] = 0
+        weights = np.linalg.solve(design.T@design+penalty, design.T@y)
+        return mean, scale, weights
+
+    @staticmethod
+    def _predict(model, x):
+        mean, scale, weights = model
+        return np.r_[1., (x-mean)/scale]@weights
+
+    def _train(self, t, regions):
+        times = np.array([row[0] for row in self.history])
+        values = np.stack([row[1] for row in self.history])
+        lags = sorted({max(.02, min(1., self.settings.lag_s*factor)) for factor in (.5, 1., 2.)})
+        candidates = {}
+        for lag in lags:
+            indices = np.searchsorted(times, times-lag+1e-9, side="right")-1
+            valid = indices >= 0
+            rows = np.flatnonzero(valid)
+            rows = rows[times[rows]-times[indices[rows]] <= lag+self.settings.max_gap_s]
+            if len(rows) < 16:
+                continue
+            split = max(10, int(len(rows)*.7))
+            if len(rows)-split < 4:
+                continue
+            previous, actual = values[indices[rows]], values[rows]
+            for target in range(regions):
+                for source in [None]+[s for s in range(regions) if s != target]:
+                    x = previous[:, target] if source is None else np.concatenate([previous[:, target], previous[:, source]], axis=1)
+                    y = actual[:, target]
+                    fitted = self._fit(x[:split], y[:split])
+                    predicted = np.stack([self._predict(fitted, row) for row in x[split:]])
+                    loss = float(np.mean((predicted-y[split:])**2))
+                    key = source, target
+                    if key not in candidates or loss < candidates[key][0]:
+                        candidates[key] = loss, lag, self._fit(x, y)
+        self.models = candidates
+        self.last_fit = t
+
+    def push(self, t, velocities):
+        velocities = np.asarray(velocities, dtype=float)
+        if velocities.ndim != 2 or not np.isfinite(velocities).all():
+            self.history.clear(); self.models.clear(); self.errors.clear()
+            return {"state":"missing", "reason":"missing regional support"}
+        if self.history and (t <= self.history[-1][0] or t-self.history[-1][0] > self.settings.max_gap_s):
+            self.history.clear(); self.models.clear(); self.errors.clear()
+        while self.history and self.history[0][0] < t-self.settings.window_s:
+            self.history.popleft()
+        regions = len(velocities)
+        if len(self.history) >= 20 and (not self.models or t-self.last_fit >= self.settings.propagation_interval_s):
+            self._train(t, regions)
+        result = {"state":"missing", "reason":"warming delayed predictor", "regions":{},
+                  "interpretation":"delayed predictive support, not causal origin",
+                  "history_end_s":self.history[-1][0] if self.history else None}
+        predictions = {}
+        for (source, target), (_, lag, model) in self.models.items():
+            past = next((v for pt, v in reversed(self.history) if pt <= t-lag+1e-9 and t-pt <= lag+self.settings.max_gap_s), None)
+            if past is None:
+                continue
+            x = past[target] if source is None else np.r_[past[target], past[source]]
+            prediction = self._predict(model, x)
+            squared_error = float(np.mean((prediction-velocities[target])**2))
+            key = source, target
+            errors = self.errors.setdefault(key, deque(maxlen=2048))
+            errors.append((t, squared_error))
+            while errors and errors[0][0] < t-self.settings.window_s:
+                errors.popleft()
+            predictions[key] = float(np.mean([e for _,e in errors])), lag, len(errors)
+        for source in range(regions):
+            support = []
+            for target in range(regions):
+                baseline = predictions.get((None, target))
+                augmented = predictions.get((source, target))
+                if baseline is None or augmented is None or min(baseline[2],augmented[2]) < 5:
+                    continue
+                base_error, error = baseline[0], augmented[0]
+                gain = (base_error-error)/max(base_error, self.settings.noise_velocity**2)
+                support.append({"target":target+1, "improvement":float(np.clip(gain,-1,1)),
+                                "lag_s":augmented[1], "own_history_error":base_error,
+                                "augmented_error":error, "evaluation_samples":augmented[2]})
+            if support:
+                result["regions"][str(source+1)] = {"score":float(np.mean([max(0.,s["improvement"]) for s in support])),
+                                                   "support":support}
+        if result["regions"]:
+            result.update(state="observed", reason=None)
+        self.history.append((t, velocities.copy()))
+        return result

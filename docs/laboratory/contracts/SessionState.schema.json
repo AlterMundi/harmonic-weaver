@@ -23,6 +23,12 @@
       "title": "Applied Revision",
       "type": "integer"
     },
+    "analysis_epoch": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Analysis Epoch",
+      "type": "integer"
+    },
     "source_id": {
       "anyOf": [
         {
