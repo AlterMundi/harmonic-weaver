@@ -19,13 +19,17 @@ export class VideoFollower {
     if (!target.playing && !this.el.paused) this.el.pause();
     if (this.el.readyState < 1) return;
     const discontinuity = this.epoch !== target.epoch;
-    const drift = Math.abs(this.el.currentTime - target.position);
-    if (!this.el.seeking && drift > (target.playing ? .35 : .04) &&
+    const offset = target.position - this.el.currentTime;
+    const drift = Math.abs(offset);
+    // Small clock differences must not repeatedly flush the video decoder.
+    this.el.playbackRate = target.playing && !discontinuity && drift < 2
+      ? Math.max(.9, Math.min(1.1, 1 + offset * .2)) : 1;
+    if (!this.pending && !this.el.seeking && drift > (target.playing && !discontinuity ? 2 : .04) &&
       (discontinuity || !target.playing || this.now() - this.lastCorrection > 1000)) {
       this.el.currentTime = target.position;
       this.lastCorrection = this.now();
     }
-    this.epoch = target.epoch;
+    if (!this.el.seeking && !this.pending) this.epoch = target.epoch;
     if (target.playing && this.el.paused && !this.pending) {
       this.pending = true;
       void this.el.play().catch(e => {
