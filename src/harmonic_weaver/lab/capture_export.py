@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Literal
 import subprocess
 import threading
+import time
 from uuid import uuid4
 
 from pydantic import Field
@@ -19,6 +20,32 @@ class ExportSettings(Contract):
     offset_s: Number = Field(default=0,ge=-5,le=5)
     max_gap_s: Number = Field(default=.25,gt=0,le=5)
     camera_clock: Literal['collector_monotonic_s','available_monotonic_s','captured_monotonic_s'] = 'collector_monotonic_s'
+    browser_preview: bool = False
+    preview_audio_kbps: int = Field(default=192,ge=64,le=320)
+
+
+def browser_preview(folder, settings, cancelled):
+    temporary=folder/'preview.partial.mp4';output=folder/'preview.mp4'
+    command=['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y','-i',str(folder/'capture.mkv'),
+        '-map','0:v:0','-map','0:a:0','-c:v','copy','-c:a','aac','-b:a',f'{settings.preview_audio_kbps}k',
+        '-threads','2','-movflags','+faststart',str(temporary)]
+    with (folder/'preview-encoder.log').open('wb') as log:
+        process=subprocess.Popen(command,stdout=subprocess.DEVNULL,stderr=log)
+        try:
+            deadline=time.monotonic()+300
+            while process.poll() is None:
+                if cancelled and cancelled.is_set():raise ValueError('Export cancelled')
+                if time.monotonic()>deadline:raise ValueError('Browser preview encoder timed out')
+                try:process.wait(timeout=.1)
+                except subprocess.TimeoutExpired:pass
+            if process.returncode:raise ValueError('Browser preview encoder failed: '+(folder/'preview-encoder.log').read_text()[-2000:])
+            if cancelled and cancelled.is_set():raise ValueError('Export cancelled')
+        finally:
+            if process.poll() is None:process.kill();process.wait(timeout=5)
+    temporary.replace(output)
+    return {'status':'complete','file':output.name,'sha256':sha256_file(output),
+        'video':'copied H264 stream','audio':'lossy AAC derived from confirmed PCM',
+        'audio_kbps':settings.preview_audio_kbps,'limits':['AAC may introduce padding and compression; not exact PCM']}
 
 
 def read_lines(path, project=lambda row:row):
@@ -115,6 +142,11 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
         temporary.replace(output)
         report.update(status='complete',frames=count,camera_index_sha256=camera_manifest['index_sha256'] if camera_manifest else None,output={'file':output.name,'sha256':sha256_file(output)},
                       frame_plan_sha256=sha256_file(folder/'frames.jsonl'))
+        if settings.browser_preview:
+            try:report['preview']=browser_preview(folder,settings,cancelled)
+            except (OSError,ValueError) as exc:
+                if cancelled and cancelled.is_set():raise
+                report['preview']={'status':'failed','error':str(exc)}
         atomic_json(folder/'manifest.json',report);return report
     except Exception as exc:
         if process is not None and process.poll() is None:process.kill();process.wait(timeout=5)
@@ -151,14 +183,17 @@ class CaptureExports:
     def artifact(self, ident, name):
         job=self.jobs.get(ident)
         if job is None: raise ValueError('Unknown export')
-        if name not in ('capture.mkv','frames.jsonl','manifest.json'):raise ValueError('Unknown export artifact')
+        if name not in ('capture.mkv','preview.mp4','frames.jsonl','manifest.json'):raise ValueError('Unknown export artifact')
         folder=Path(job['directory'])
         if folder.is_symlink(): raise ValueError('Export directory is unavailable')
         folder=folder.resolve();path=folder/name
         if path.is_symlink() or not path.is_file():raise ValueError('Export artifact is unavailable')
         if name!='manifest.json':
             if job['status']!='complete':raise ValueError('Export is not complete')
-            expected=job['output']['sha256'] if name=='capture.mkv' else job['frame_plan_sha256']
+            if name=='preview.mp4':
+                if job.get('preview',{}).get('status')!='complete':raise ValueError('Browser preview is unavailable')
+                expected=job['preview']['sha256']
+            else:expected=job['output']['sha256'] if name=='capture.mkv' else job['frame_plan_sha256']
             stat=path.stat();fingerprint=(str(path),stat.st_dev,stat.st_ino,stat.st_size,stat.st_mtime_ns,stat.st_ctime_ns)
             if self.verified.get(fingerprint)!=expected:
                 if sha256_file(path)!=expected:raise ValueError('Export artifact changed')

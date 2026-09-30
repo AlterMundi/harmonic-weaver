@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import {readFileSync} from 'node:fs';
 
 test('explicit capture controls preserve settings, show failures and do not start on mount', async ({page}) => {
   test.skip(!process.env.LAB_COMPONENT_TEST_URL, 'requires isolated Vite');
@@ -15,7 +16,7 @@ test('explicit capture controls preserve settings, show failures and do not star
       window.captureCalls.push({path,body});
       if(path==='capture-recovery')return recovery;
       if(path==='capture-exports')return {status:'idle'};
-      if(path==='capture-exports/jobs')return [{id:'export',status:'complete'}];
+      if(path==='capture-exports/jobs')return [{id:'export',status:'complete',preview:{status:'complete'}}];
       if(path==='captures/interrupted/recover'){recovery={status:'recovered',result:{directory:'/synthetic/recovery',recovered_samples:256},journal:{directory:'/synthetic/journal',files:{'events.jsonl':{rows:2},'timeline.jsonl':{rows:3}}}};return recovery;}
       if(path==='captures/test/export')return {status:'rendering',frames:0};
       if(path==='captures/start')state={current:{status:'recording'},jobs:[]};
@@ -32,6 +33,18 @@ test('explicit capture controls preserve settings, show failures and do not star
   await page.waitForTimeout(600);
   expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports','capture-exports/jobs','capture-recovery'].includes(x.path)))).toBe(true);
   await expect(page.getByLabel('Grabar preview de cámara durante esta captura')).not.toBeChecked();
+  await expect(page.locator('video')).toHaveCount(0);
+  if(process.env.LAB_CAPTURE_PREVIEW){
+    await page.route('**/api/capture-exports/export/artifacts/preview.mp4',r=>r.fulfill({contentType:'video/mp4',body:readFileSync(process.env.LAB_CAPTURE_PREVIEW!)}));
+    await page.getByRole('button',{name:'Ver preview de captura'}).click();
+    const video=page.locator('video');
+    await expect.poll(()=>video.evaluate((el:HTMLVideoElement)=>el.readyState)).toBeGreaterThanOrEqual(1);
+    expect(await video.evaluate((el:HTMLVideoElement)=>el.paused)).toBe(true);
+    await video.evaluate(async(el:HTMLVideoElement)=>{el.muted=true;await el.play()});
+    await expect.poll(()=>video.evaluate((el:HTMLVideoElement)=>el.currentTime)).toBeGreaterThan(.2);
+    await page.getByRole('button',{name:'Cerrar preview'}).click();
+    await expect(video).toHaveCount(0);
+  }
   await page.getByLabel('Grabar preview de cámara durante esta captura').check();
   await page.getByLabel('Duración máxima (s)').fill('60');
   await page.getByLabel('Capacidad de cola de audio (bloques)').fill('64');
@@ -42,9 +55,12 @@ test('explicit capture controls preserve settings, show failures and do not star
   await stop.click();await expect(start).toBeEnabled();await expect(stop).toBeDisabled();
   await expect(page.getByText('Bitácora local: /synthetic/session')).toBeVisible();
   await expect(page.getByText('Audio local: /synthetic/audio')).toBeVisible();
+  await expect(page.getByLabel('Generar preview MP4 para navegador')).not.toBeChecked();
+  await page.getByLabel('Generar preview MP4 para navegador').check();
+  await page.getByLabel('Bitrate AAC de preview (kbps)').fill('128');
   await page.getByLabel('Reloj de cámara para alinear').selectOption('captured_monotonic_s');
   await page.getByRole('button',{name:'Exportar captura test'}).click();
-  expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/test/export').body)).toEqual({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'captured_monotonic_s'});
+  expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/test/export').body)).toEqual({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'captured_monotonic_s',browser_preview:true,preview_audio_kbps:128});
   await page.getByRole('button',{name:'Recuperar audio interrup'}).click();
   expect(await page.evaluate(()=>(window as any).captureCalls.some((x:any)=>x.path==='captures/interrupted/recover'))).toBe(true);
   await expect(page.getByText('Prefijo recuperado:',{exact:false})).toContainText('256 muestras');

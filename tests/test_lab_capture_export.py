@@ -101,13 +101,17 @@ def test_export_inventory_survives_restart_and_rejects_changed_artifacts(tmp_pat
     from types import SimpleNamespace
     from harmonic_weaver.lab.capture_export import CaptureExports
     manifest,_,_=session(tmp_path);captures=SimpleNamespace(list=lambda:[manifest])
-    service=CaptureExports(captures);service.start('synthetic',{'fps':10,'width':160,'height':120})
+    service=CaptureExports(captures);service.start('synthetic',{'fps':10,'width':160,'height':120,'browser_preview':True})
     service.thread.join(10);ident=service.snapshot()['id']
     restored=CaptureExports(captures)
     assert restored.list()[0]['status']=='complete'
     path=restored.artifact(ident,'capture.mkv')
     assert path.name=='capture.mkv'
     assert restored.artifact(ident,'capture.mkv')==path # verified fingerprint reused
+    preview=restored.artifact(ident,'preview.mp4')
+    assert preview.name=='preview.mp4'
+    preview.write_bytes(b'changed')
+    with pytest.raises(ValueError,match='changed'):restored.artifact(ident,'preview.mp4')
     with pytest.raises(ValueError,match='Unknown'):restored.artifact(ident,'../audio.wav')
     path.write_bytes(b'changed')
     with pytest.raises(ValueError,match='changed'):restored.artifact(ident,'capture.mkv')
@@ -177,3 +181,30 @@ def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path):
     (capture.folder/'00000000.jpg').write_bytes(b'changed')
     with pytest.raises(ValueError,match='frame changed'):
         render_capture(manifest,tmp_path/'changed-export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s'})
+
+
+def test_optional_browser_preview_keeps_exact_pcm_and_declares_lossy_audio(tmp_path):
+    manifest,samples,_=session(tmp_path)
+    folder=tmp_path/'export'
+    result=render_capture(manifest,folder,{'fps':10,'width':160,'height':120,'browser_preview':True,'preview_audio_kbps':128})
+    assert result['preview']['status']=='complete' and result['preview']['audio_kbps']==128
+    assert sha256_file(folder/'preview.mp4')==result['preview']['sha256']
+    streams=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-of','json',str(folder/'preview.mp4')]))['streams']
+    assert {s['codec_name'] for s in streams}=={'h264','aac'}
+    raw=subprocess.check_output(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-i',str(folder/'capture.mkv'),'-map','0:a:0','-f','f32le','-'])
+    np.testing.assert_array_equal(np.frombuffer(raw,dtype='<f4').reshape(-1,2),samples)
+    for name in ('capture.mkv','preview.mp4'):
+        frames=subprocess.check_output(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-i',str(folder/name),'-map','0:v:0','-f','rawvideo','-pix_fmt','rgb24','-'])
+        if name=='capture.mkv':original=frames
+        else:assert frames==original
+
+
+def test_preview_failure_preserves_exact_primary_export(tmp_path,monkeypatch):
+    import harmonic_weaver.lab.capture_export as module
+    def fail(*args):raise ValueError('synthetic preview failure')
+    monkeypatch.setattr(module,'browser_preview',fail)
+    manifest,_,_=session(tmp_path)
+    result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'browser_preview':True})
+    assert result['status']=='complete' and result['preview']['status']=='failed'
+    assert 'synthetic preview failure' in result['preview']['error']
+    assert sha256_file(tmp_path/'export'/'capture.mkv')==result['output']['sha256']

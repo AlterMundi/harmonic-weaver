@@ -332,3 +332,20 @@ conteo/corte/carpeta; un fallo de imágenes no descarta el audio recuperado.
 Quedan pendientes reproducción/exportación del prefijo, sincronía física y cámara
 real. La evidencia incluye kill real de un proceso con imágenes sintéticas, no
 una captura corporal ni una garantía frente a pérdida de energía del disco.
+
+### Preview reproducible por navegador — 2026-09-30
+
+Exportación ofrece **Generar preview MP4 para navegador**, apagado por defecto.
+El MKV mantiene H.264/PCM float exacto. La preview copia el stream H.264 y deriva
+AAC del audio confirmado, con bitrate web configurable 64–320 kbps (192 inicial).
+No sustituye al PCM: AAC implica compresión/padding posibles. Manifest distingue
+ambos archivos, hash/estado/bitrate y límites. Si falla sólo la preview, conserva
+la exportación primaria y muestra el fallo; cancelar sigue interrumpiendo el job.
+
+Preview terminada: **Ver preview de captura** abre video con controles sin
+reproducir automáticamente; **Cerrar preview** lo desmonta. Descarga MP4 local
+por contrato de nombres/hash, reutilizable después de reiniciar el inventario.
+No abre cámaras, no captura fuentes nuevas y no modifica el sonido en vivo.
+Todavía sin overlays de esqueleto/figura, exportación de prefijos recovered ni
+validación de sincronía física. Reproducir PCM con la figura sigue en Comparar;
+esta preview AAC no es una validación sample-for-sample de esa figura.

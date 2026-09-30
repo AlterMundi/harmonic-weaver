@@ -511,3 +511,12 @@ Regresión: calentar predictor y luego cambiar número de regiones/dimensiones d
 volver a warming, con una sola observación de la nueva forma y sin modelos/errores
 anteriores. Timestamp no finito y soporte vacío limpian historia. Suite de
 propagación/colectivo/modelos pasa; sin cambios de defaults o baseline aceptado.
+
+### Preview MP4 de captura — 2026-09-30
+
+12 pruebas de exportación pasan: H.264/AAC declarados, fotogramas decodificados
+idénticos a MKV, PCM exacto conservado, hashes/inventario/reinicio/tampering,
+fallo de preview sin perder MKV. Build pasa. Chrome aislado reprodujo MP4 sintético:
+metadata lista, pausado al abrir, tiempo avanzó tras play silenciado y cierre quitó
+el elemento. UI verificó opt-in/bitrate enviados. Sin cuerpos, cámara real ni audio
+físico. Compatibilidad comprobada en Chrome local, no en todos los navegadores.

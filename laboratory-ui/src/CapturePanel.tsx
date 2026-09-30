@@ -5,7 +5,8 @@ export function CapturePanel({api,run}:Data){
  const [state,setState]=useState<Data>({current:{status:'idle'},jobs:[]});
  useEffect(()=>{let live=true;const poll=()=>api('captures').then((s:Data)=>{if(live)setState(s)}).catch(()=>{});
  void poll();const id=setInterval(poll,500);return()=>{live=false;clearInterval(id)};},[api]);
- const [exportSettings,setExportSettings]=useState<Data>({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'collector_monotonic_s'});
+ const [exportSettings,setExportSettings]=useState<Data>({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'collector_monotonic_s',browser_preview:false,preview_audio_kbps:192});
+ const [preview,setPreview]=useState<string|null>(null);
  const [exportJobs,setExportJobs]=useState<Data[]>([]);
  const [exportState,setExportState]=useState<Data>({status:'idle'});
  useEffect(()=>{let live=true;const poll=()=>Promise.all([api('capture-exports'),api('capture-exports/jobs')]).then(([s,jobs]:Data[])=>{if(live){setExportState(s);setExportJobs(jobs as Data[])}}).catch(()=>{});
@@ -39,6 +40,7 @@ export function CapturePanel({api,run}:Data){
    ['fps','Fotogramas por segundo',1,120,1],['width','Ancho de exportación',64,1920,2],
    ['height','Alto de exportación',64,1080,2],['offset_s','Offset de alineación (s)',-5,5,.01],
    ['max_gap_s','Edad máxima de observación (s)',.001,5,.01],
+   ['preview_audio_kbps','Bitrate AAC de preview (kbps)',64,320,1],
   ].map(([key,label,min,max,step])=><label key={key}>{label}<input type="number" value={exportSettings[key]} min={min} max={max} step={step} disabled={exporting}
     onChange={e=>setExportSettings({...exportSettings,[key]:+e.target.value})}/></label>)}</div>
   <label>Reloj de cámara para alinear<select value={exportSettings.camera_clock} disabled={exporting}
@@ -47,12 +49,20 @@ export function CapturePanel({api,run}:Data){
     <option value="available_monotonic_s">Disponible después del tracking</option>
     <option value="captured_monotonic_s">Capturada por la cámara</option>
   </select></label>
+  <label><input type="checkbox" checked={exportSettings.browser_preview} disabled={exporting} onChange={e=>setExportSettings({...exportSettings,browser_preview:e.target.checked})}/>Generar preview MP4 para navegador</label>
+  <p>Preview con audio AAC comprimido; el MKV conserva PCM exacto. No se reproduce automáticamente.</p>
   <p>Exportación: {exportState.status} · {exportState.frames || 0} frames · {exportState.error || ''}</p>
   {exportState.directory && <small>Salida local: {exportState.directory}</small>}
   <button disabled={!exporting} onClick={()=>run(async()=>{setExportState(await api('capture-exports/cancel',{}));})}>Cancelar exportación</button>
   {exportJobs.map((j:Data)=><div key={j.id}><p>Exportación {j.id.slice(0,8)} · {j.status} · {j.error || ''}</p>
     {j.status==='complete' && <><a href={`/api/capture-exports/${j.id}/artifacts/capture.mkv`} download>Descargar video + PCM</a>{' · '}
     <a href={`/api/capture-exports/${j.id}/artifacts/frames.jsonl`} download>Timeline de fotogramas</a>{' · '}</>}
+    {j.status==='complete' && j.preview?.status==='complete' && <>
+      <button onClick={()=>setPreview(preview===j.id?null:j.id)}>{preview===j.id?'Cerrar preview':'Ver preview de captura'}</button>
+      <a href={`/api/capture-exports/${j.id}/artifacts/preview.mp4`} download>Descargar preview MP4 (AAC)</a>
+      {preview===j.id && <video controls playsInline preload="metadata" src={`/api/capture-exports/${j.id}/artifacts/preview.mp4`}/>}
+    </>}
+    {j.preview?.status==='failed' && <p>Preview no disponible: {j.preview.error}. El MKV con PCM se conserva.</p>}
     <a href={`/api/capture-exports/${j.id}/artifacts/manifest.json`} download>Manifest de exportación</a>
   </div>)}
   <p>Recuperación: {recovery.status} · {recovery.error || ''}</p>
