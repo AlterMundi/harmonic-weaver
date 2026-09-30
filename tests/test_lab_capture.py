@@ -161,6 +161,7 @@ def test_recovery_requires_interrupted_known_capture_and_preserves_raw_manifest(
     atomic_json(folder/'manifest.json',original);capture.jobs['interrupted']=original
     original_hash=sha256_file(folder/'manifest.json')
     def handle(request):
+        if request.method=='GET':return httpx.Response(404)
         assert request.url.path=='/api/audio/capture/recover'
         assert json.loads(request.content)=={'id':'known'}
         return httpx.Response(200,json={'status':'recovered','capture_id':'known','directory':'/synthetic/recovered','recovered_samples':256})
@@ -199,6 +200,7 @@ def test_journal_recovery_failure_does_not_hide_confirmed_pcm(tmp_path,monkeypat
     folder=capture.root/'interrupted';folder.mkdir()
     capture.jobs['interrupted']={'id':'interrupted','directory':str(folder),'status':'interrupted','shaper':{'id':'known'}}
     def handle(request):
+        if request.method=='GET':return httpx.Response(404)
         return httpx.Response(200,json={'status':'recovered','capture_id':'known','directory':'/synthetic/pcm','recovered_samples':256})
     capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
     def fail(folder):raise OSError('Synthetic journal disk failure')
@@ -208,4 +210,38 @@ def test_journal_recovery_failure_does_not_hide_confirmed_pcm(tmp_path,monkeypat
     assert job['status']=='recovered' and job['result']['recovered_samples']==256
     assert job['journal']['status']=='failed'
     assert json.loads((folder/'recovery.json').read_text())['result']['directory']=='/synthetic/pcm'
+    store.close()
+
+
+def test_lost_recovery_ack_retries_same_confirmed_capture_id(tmp_path):
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    folder=capture.root/'interrupted';folder.mkdir()
+    capture.jobs['interrupted']={'id':'interrupted','status':'interrupted','directory':str(folder),'shaper':{'id':'known'}}
+    calls=[]
+    def handle(request):
+        if request.method=='GET':return httpx.Response(200,json={'schema_version':1,'idempotent_source_hashes':True})
+        calls.append(json.loads(request.content))
+        if len(calls)==1:raise httpx.ReadTimeout('Lost completed recovery ack',request=request)
+        return httpx.Response(200,json={'status':'recovered','capture_id':'known','directory':'/synthetic/reused','recovered_samples':256,'reused':True})
+    capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
+    capture.recover('interrupted');capture.close()
+    assert calls==[{'id':'known'},{'id':'known'}]
+    assert capture.recovery_snapshot()['status']=='recovered'
+    assert capture.recovery_snapshot()['result']['reused']
+    store.close()
+
+
+def test_legacy_shaper_transport_failure_is_not_retried(tmp_path):
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    folder=capture.root/'interrupted';folder.mkdir()
+    capture.jobs['interrupted']={'id':'interrupted','status':'interrupted','directory':str(folder),'shaper':{'id':'known'}}
+    calls=[]
+    def handle(request):
+        if request.method=='GET':return httpx.Response(404)
+        calls.append(request.url.path)
+        raise httpx.ReadTimeout('Ambiguous legacy acknowledgement',request=request)
+    capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
+    capture.recover('interrupted');capture.close()
+    assert calls==['/api/audio/capture/recover']
+    assert capture.recovery_snapshot()['status']=='unconfirmed'
     store.close()

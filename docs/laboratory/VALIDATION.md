@@ -396,3 +396,9 @@ LAB-09: recuperación conservadora de prefijos de journal, UTF-8/JSON/clock/sequ
 con cortes explícitos y hashes; PCM válido conservado ante fallo de journal.
 52 tests pertinentes y build web pasan; Chrome aislado de contadores/ruta.
 CAPTURE.md y tabla vigente de IMPLEMENTATION_STATUS.md separan estado real e historia.
+
+
+LAB-09: reintento de recuperación sólo con contrato idempotente; evidencia raw
+sin cambios reutiliza resultado verificado, tampering se rechaza. 39 Shaper,
+53 Weaver pertinentes y 14 colector tras estado unconfirmed pasan. Lock/recovery
+in-flight todavía necesita job polling; ver CAPTURE.md. No modifica sonido/UI.

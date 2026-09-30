@@ -198,9 +198,18 @@ class CaptureSession:
             if not driver_id: raise ValueError('No hay identidad confirmada de la captura Shaper')
             self.recovery_job={'status':'recovering','capture_id':ident}
             def work():
+                acknowledgement_lost=False
                 try:
                     with self.client_factory() as client:
-                        response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
+                        contract=client.get('/api/audio/capture/recovery-contract')
+                        supports_retry=contract.status_code==200 and contract.json().get('schema_version')==1 and contract.json().get('idempotent_source_hashes') is True
+                        try:response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
+                        except httpx.TransportError:
+                            acknowledgement_lost=True
+                            if not supports_retry:raise
+                            # Shaper reuses verified results for the same raw hashes.
+                            # HTTP validation failures are not interpreted as lost acks.
+                            response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
                         response.raise_for_status();result=response.json()
                     if result.get('status')!='recovered' or result.get('capture_id')!=driver_id:
                         raise ValueError('Shaper did not confirm this recovered prefix')
@@ -212,7 +221,9 @@ class CaptureSession:
                     self.recovery_job.update(status='recovered',result=result,journal=journal)
                     atomic_json(Path(job['directory'])/'recovery.json',self.recovery_job)
                     job['recovery']=self.recovery_snapshot()
-                except Exception as exc:self.recovery_job.update(status='failed',error=str(exc))
+                except Exception as exc:
+                    status='unconfirmed' if acknowledgement_lost and 'result' not in self.recovery_job else 'failed'
+                    self.recovery_job.update(status=status,error=str(exc))
             self.recovery_thread=threading.Thread(target=work,daemon=True,name='lab-capture-recovery')
             self.recovery_thread.start()
             return self.recovery_snapshot()

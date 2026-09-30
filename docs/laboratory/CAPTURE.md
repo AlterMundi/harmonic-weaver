@@ -282,3 +282,26 @@ pruebas de prefijo incluyen final UTF-8 roto, filas/JSON/NaN/secuencias/reloj
 inválidos y raw hashes preservados. Fallo del journal no oculta PCM confirmado.
 Chrome aislado verifica presentación de contadores y build web pasa. Datos
 sintéticos; ninguna aceptación humana o grabación física. #17 sigue abierto.
+
+## Reintento compatible de recuperación
+
+Shaper anuncia GET `/api/audio/capture/recovery-contract` schema_version=1,
+idempotent_source_hashes=true. Para los mismos hashes de raw WAV/journal/metadata,
+recovery devuelve el resultado existente sólo tras verificar WAV/journal recuperados,
+con reused=true y ruta anclada al inventario local. Artefacto alterado se rechaza;
+no crea otra copia silenciosa. Cambio de raw produce nueva recuperación y hashes
+explícitos. Lock sigue excluyendo writers/recuperaciones concurrentes.
+
+Weaver consulta ese contrato antes de intentar recovery. Ante TransportError del
+POST reintenta una vez el mismo id sólo con compatibilidad declarada. Errores HTTP
+normales no se interpretan como ack perdido; servidor legacy admite un intento,
+sin reintento automático. Si perdió confirmación y no confirma después, status
+unconfirmed; no declara que Shaper falló ni que no exista resultado. Un recovery aún
+en curso puede rechazar segundo intento por lock; polling/inventario de jobs en
+Shaper sigue pendiente. No se da ese caso por resuelto.
+
+Evidencia: 39 tests Shaper; incluye mismo resultado/ruta, una única carpeta y
+rechazo de resultado alterado. 53 tests pertinentes Weaver antes del último guard
+unconfirmed; 14 colector reejecutadas tras guard, incluidos ack perdido resuelto
+contra contrato compatible y legacy con un único POST/unconfirmed. No hubo UI,
+parámetros sonoros ni cambios del workspace de pruebas. Sin medios/hardware/escucha.

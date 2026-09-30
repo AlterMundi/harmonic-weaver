@@ -171,3 +171,9 @@ y exportación con elección de reloj y huecos explícitos. 45 tests pertinentes
 Chrome aislado y build web; PCM MKV sintético exacto. Sin cámara física/datos privados.
 CAPTURE.md documenta preview vs flujo bruto, límites y pendientes de sincronía,
 aceptación, recuperación de imágenes/journal, player y overlays. #17 sigue abierto.
+
+
+LAB-09: reintento de recuperación sólo con contrato idempotente; evidencia raw
+sin cambios reutiliza resultado verificado, tampering se rechaza. 39 Shaper,
+53 Weaver pertinentes y 14 colector tras estado unconfirmed pasan. Lock/recovery
+in-flight todavía necesita job polling; ver CAPTURE.md. No modifica sonido/UI.
