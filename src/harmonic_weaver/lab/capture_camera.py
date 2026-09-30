@@ -1,5 +1,6 @@
 """Opt-in bounded storage of processed camera previews, outside tracking/audio."""
 import base64
+import fcntl
 from collections import deque
 import hashlib
 from pathlib import Path
@@ -12,6 +13,8 @@ from .cache import atomic_json, sha256_file
 class CameraCapture:
     def __init__(self, folder, *, queue_frames=8, max_frames=10000, max_bytes=256*1024*1024):
         self.folder=Path(folder)/'camera';self.folder.mkdir(mode=0o700)
+        self.writer_lock=(self.folder/'writer.lock').open('w+b')
+        fcntl.flock(self.writer_lock,fcntl.LOCK_EX | fcntl.LOCK_NB)
         self.queue=deque(maxlen=queue_frames)
         self.max_frames,self.max_bytes=max_frames,max_bytes
         self.stop_event=threading.Event();self.error=None
@@ -19,7 +22,11 @@ class CameraCapture:
         self.accepted=self.written=self.bytes=self.sequence_gaps=0
         self.last=None;self.status='recording'
         self.thread=threading.Thread(target=self._write,daemon=True,name='camera-capture-writer')
-        atomic_json(self.folder/'manifest.json',self.snapshot());self.thread.start()
+        try:
+            atomic_json(self.folder/'manifest.json',self.snapshot());self.thread.start()
+        except Exception:
+            self.writer_lock.close()
+            raise
 
     def offer(self, packet):
         with self.offer_lock:
@@ -62,6 +69,7 @@ class CameraCapture:
         finally:
             try:atomic_json(self.folder/'manifest.json',self.snapshot())
             except OSError as exc:self.error=str(exc);self.status='failed'
+            finally:self.writer_lock.close()
 
     def snapshot(self):
         return {'status':self.status,'error':self.error,'directory':str(self.folder),

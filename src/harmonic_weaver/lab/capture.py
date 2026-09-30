@@ -218,7 +218,12 @@ class CaptureSession:
                     atomic_json(Path(job['directory'])/'recovery.json',dict(self.recovery_job,status='audio_recovered',journal_status='pending'))
                     try:journal=recover_journal(job['directory'])
                     except (OSError,ValueError) as exc:journal={'status':'failed','error':str(exc)}
-                    self.recovery_job.update(status='recovered',result=result,journal=journal)
+                    camera={'status':'not_recorded'}
+                    if (Path(job['directory'])/'camera').exists():
+                        from .capture_camera_recovery import recover_camera
+                        try:camera=recover_camera(job['directory'])
+                        except (OSError,ValueError) as exc:camera={'status':'failed','error':str(exc)}
+                    self.recovery_job.update(status='recovered',result=result,journal=journal,camera=camera)
                     atomic_json(Path(job['directory'])/'recovery.json',self.recovery_job)
                     job['recovery']=self.recovery_snapshot()
                 except Exception as exc:

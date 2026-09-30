@@ -488,3 +488,10 @@ rechazado, frame aceptado drenado y hash estable al repetir cierre. Cinco prueba
 de writer y colector integradas con Shaper explícito; sin cámara física. El primer
 comando omitió PYTHONPATH del contrato cruzado y falló por import de Shaper;
 se corrigió el entorno de prueba, sin modificar entornos originales.
+
+### Prefijo de cámara recuperable — 2026-09-30
+
+Pruebas de fila truncada, raw sin cambios, hashes de imagen, symlink, writer activo,
+complete/legacy rechazados y proceso hijo real terminado con SIGKILL. Prefijo
+verificado preserva imágenes originales; no se recupera una imagen inferida.
+Suite writer/colector y build pasan; sin cámara física ni medios privados.

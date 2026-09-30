@@ -314,3 +314,21 @@ se drena; paquetes posteriores se rechazan explícitamente, incluso mientras el
 writer termina un JPEG lento. Evita devolver referencias a frames que nunca se
 escribirían. Cerrar nuevamente conserva el hash del índice. No cambia la captura
 opt-in, los budgets ni el instrumento.
+
+### Recuperación de previews tras interrupción — 2026-09-30
+
+Los nuevos writers mantienen un lock POSIX durante su vida. La recuperación
+verifica un prefijo consecutivo de frames.jsonl: fila completa, referencia local
+cerrada, SHA-256 de cada imagen, clocks finitos y orden de colección/secuencia.
+Se detiene en la primera fila/imagen inválida; no salta huecos, inventa frames ni
+ordena retrospectivamente. Rechaza writer activo, captura complete y captures
+legacy sin lock/metadata. Genera camera-recovered/<id>/ con índice/manifest
+recovered; originales e imágenes quedan intactos y sin copiar.
+
+El índice apunta a frame_root original: quien lo consuma debe volver a verificar
+los hashes. No es una copia autosuficiente ni una exportación audiovisual completa.
+El recorrido web de recuperación PCM intenta también este prefijo y muestra su
+conteo/corte/carpeta; un fallo de imágenes no descarta el audio recuperado.
+Quedan pendientes reproducción/exportación del prefijo, sincronía física y cámara
+real. La evidencia incluye kill real de un proceso con imágenes sintéticas, no
+una captura corporal ni una garantía frente a pérdida de energía del disco.
