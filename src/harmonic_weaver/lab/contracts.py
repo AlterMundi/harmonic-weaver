@@ -345,7 +345,7 @@ class SessionEvent(Contract):
     session_id: str
     monotonic_s: Number
     source_time_s: Number | None = None
-    kind: Literal["configuration", "preset_save", "mark", "calibration"]
+    kind: Literal["configuration", "preset_save", "mark", "calibration", "source", "transport", "person"]
     revision: int
     payload: dict
 

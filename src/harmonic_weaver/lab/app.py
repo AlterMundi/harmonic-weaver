@@ -16,6 +16,7 @@ from pydantic import Field
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
+from .capture import CaptureSettings, CaptureSession
 
 
 class RevisionRequest(Contract):
@@ -89,8 +90,9 @@ def _local_request(headers):
 
 
 def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=None,
-               perception: PerceptionSettings | None = None, ui_dir: Path | None = None) -> FastAPI:
+               perception: PerceptionSettings | None = None, ui_dir: Path | None = None, capture_client_factory=None) -> FastAPI:
     session = store or SessionStore(data_dir)
+    capture = CaptureSession(data_dir, session, runtime, client_factory=capture_client_factory) if runtime is not None else None
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -103,6 +105,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            if capture is not None:
+                capture.close()
             if evaluation is not None:
                 evaluation.close()
             if runtime is not None:
@@ -148,6 +152,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/state")
     def state():
         return snapshot()
+
+    @app.get("/api/captures")
+    def captures():
+        return {"current":capture.snapshot(), "jobs":capture.list()} if capture else {"current":{"status":"idle"}, "jobs":[]}
+
+    @app.post("/api/captures/start")
+    def start_capture(body: CaptureSettings):
+        if capture is None: raise ValueError("No hay runtime para capturar")
+        return capture.start(body.model_dump())
+
+    @app.post("/api/captures/stop")
+    def stop_capture():
+        return capture.stop() if capture else {"status":"idle"}
 
     @app.get("/api/schemas")
     def schemas():

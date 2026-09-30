@@ -90,6 +90,7 @@ class LaboratoryRuntime:
             self.transport.reset()
             self._autoplay_pending = self.store.source_preferences()["autoplay_video"]
             self._reset()
+            self.store.record_event("source", {"kind":"video", "job":job, "perception":settings.model_dump()})
         self.store.remember_video({"path": job["path"], "perception": settings.model_dump()})
         self.restore_error = None
         return job
@@ -106,6 +107,7 @@ class LaboratoryRuntime:
             self._autoplay_pending = False
             self.transport.reset(playing=True)
             self._reset()
+            self.store.record_event("source", {"kind":"camera", "index":index, "perception":settings.model_dump()})
         self.store.remember_video(None)
         return self.camera.snapshot()
 
@@ -121,6 +123,7 @@ class LaboratoryRuntime:
             self.transport.reset()
             self._reset()
             self.model = None
+            self.store.record_event("source", {"kind":None})
 
     def control(self, *, playing=None, position_s=None, loop=None):
         with self._lock:
@@ -135,6 +138,8 @@ class LaboratoryRuntime:
             if playing is not None:
                 self.transport.play(playing)
             self._reset()
+            self.store.record_event("transport", {"playing":self.transport.playing,
+                "position_s":self.transport.position(), "loop":self.transport.loop, "epoch":self.transport.epoch})
         return self.snapshot()
 
     def select_person(self, person_id):
@@ -152,6 +157,7 @@ class LaboratoryRuntime:
             self.calibration = None
             self.model = None
             self._reset()
+            self.store.record_event("person", {"person_id":person_id})
 
     def _remember_selection(self, metadata):
         if metadata and metadata["status"] == "ready" and metadata.get("generation"):
@@ -341,6 +347,13 @@ class LaboratoryRuntime:
                     self.audio.submit([], max(0, self.revision))
                     self.store.set_runtime(status="error", error=self.error)
             self._stop.wait(max(0., 1/60-(self.clock()-start)))
+
+    def capture_boundary(self):
+        # Same lock order as tick: runtime before store. No disk writer here.
+        with self._lock, self.store._lock:
+            boundary = self.store.event_boundary()
+            boundary["state"].update(self.snapshot())
+            return boundary
 
     def snapshot(self):
         with self._lock:

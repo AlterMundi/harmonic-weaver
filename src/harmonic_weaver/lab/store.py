@@ -91,6 +91,21 @@ class SessionStore:
                                       "calibration_id": self.state.calibration_id, **payload})
         self._db.execute("INSERT INTO events(payload) VALUES (?)", (event.model_dump_json(),))
 
+    def record_event(self, kind, payload):
+        with self._lock, self._db:
+            self._event(kind, payload)
+
+    def event_boundary(self):
+        with self._lock:
+            cursor = self._db.execute("SELECT COALESCE(MAX(sequence),0) FROM events").fetchone()[0]
+            return {"cursor": cursor, "state": self.snapshot(), "calibrations": self.calibrations()}
+
+    def events_since(self, cursor, limit=256):
+        with self._lock:
+            rows = self._db.execute("SELECT sequence,payload FROM events WHERE sequence>? ORDER BY sequence LIMIT ?",
+                                    (cursor,min(max(limit,1),1000))).fetchall()
+            return [{"sequence":seq,"event":json.loads(payload)} for seq,payload in rows]
+
     def snapshot(self):
         with self._lock:
             return {"preset": self.preset.model_dump(), "session": self.state.model_dump(),
@@ -227,7 +242,8 @@ class SessionStore:
         with self._lock, self._db:
             self._db.execute("INSERT OR REPLACE INTO calibrations(id,payload) VALUES (?,?)",
                              (calibration.id, calibration.model_dump_json()))
-            self._event("calibration", {"calibration_id": calibration.id, "source_id": calibration.source_id})
+            self._event("calibration", {"calibration_id": calibration.id, "source_id": calibration.source_id,
+                                       "calibration": calibration.model_dump()})
 
     def calibrations(self):
         with self._lock:

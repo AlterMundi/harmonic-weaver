@@ -119,3 +119,11 @@ sobre la sesión de prueba: PCM exacto, writer acotado, start/status/stop, lími
 por muestras y fallos explícitos; 32 pruebas hardware-free. [CAPTURE](CAPTURE.md)
 detalla contrato/evidencia y pendientes de UI, eventos, video, sincronía y recuperación.
 LAB-09 no se declara completo.
+
+
+2026-09-30 — Incremento de LAB-09: UI/API/colector de audio + journal confirmado,
+nonce propio e inicio idempotente con Shaper #4, drenaje final completo y hashes.
+22 pruebas Weaver y 33 Shaper; build web pasa. Integración sintética real confirma
+PCM exacto. Ver CAPTURE.md para contratos y límites. No completa #17: video/mux,
+latencia medida, identidad de código/fuentes y recuperación WAV pendientes. No
+instalado sobre el workspace de pruebas; sin captura privada ni aceptación humana.

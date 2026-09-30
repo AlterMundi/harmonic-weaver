@@ -349,3 +349,11 @@ incluido último bloque parcial, cierre temprano, cola acotada bloqueando writer
 disco fallido, gap/reloj/stream/callback status, id obsoleto e inicios concurrentes.
 Todo fue sintético/hardware-free; no se grabó la sesión R24 ni se tocó configuración.
 Vídeo/UI/colector/sincronía/recuperación quedan pendientes según CAPTURE.md.
+
+
+2026-09-30 — Incremento de LAB-09: UI/API/colector de audio + journal confirmado,
+nonce propio e inicio idempotente con Shaper #4, drenaje final completo y hashes.
+22 pruebas Weaver y 33 Shaper; build web pasa. Integración sintética real confirma
+PCM exacto. Ver CAPTURE.md para contratos y límites. No completa #17: video/mux,
+latencia medida, identidad de código/fuentes y recuperación WAV pendientes. No
+instalado sobre el workspace de pruebas; sin captura privada ni aceptación humana.

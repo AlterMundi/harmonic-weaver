@@ -1,3 +1,4 @@
+import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
 import { EvaluationPanel } from "./EvaluationPanel";
 import React, { useEffect, useRef, useState } from "react";
@@ -827,6 +828,7 @@ function App() {
               "Figura",
               "Presets",
               "Comparar",
+              "Captura",
             ].map((t) => (
               <button
                 className={tab === t ? "active" : ""}
@@ -838,6 +840,7 @@ function App() {
             ))}
           </nav>
           <div className="panel">
+            {tab === "Captura" && <CapturePanel api={api} run={run}/>}
             {tab === "Comparar" && (
               <EvaluationPanel
                 assets={assets}
