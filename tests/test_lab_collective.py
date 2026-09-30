@@ -57,3 +57,20 @@ def test_deployment_has_multiple_candidates_and_no_forced_center():
     assert not any(v["candidate"] for v in model.push(.5, {"hips": 2., "wrist": 3.}).values())
     model.push(.6, {"hips": 0., "wrist": None})
     assert model.push(.7, {"hips": 2., "wrist": 0.})["hips"]["candidate"]
+
+
+def test_propagation_compares_predictors_on_shared_target_times():
+    from harmonic_weaver.lab.collective import LaggedPropagation
+    class FixedPredictors(LaggedPropagation):
+        def _train(self,t,regions):pass
+        @staticmethod
+        def _predict(model,x):return np.array([0.])
+    model=FixedPredictors(AlgorithmSettings(window_s=2,noise_velocity=.001))
+    model.models={(None,1):(0.,.02,'own'),(0,1):(0.,.3,'augmented')}
+    for i in range(16):result=model.push(i*.05,[[0.],[i*.05]])
+    region=result['regions']['1']
+    target=region['support'][0]
+    assert target['own_history_available_samples']>target['augmented_available_samples']
+    assert target['evaluation_samples']==target['augmented_available_samples']
+    assert target['own_history_error']==pytest.approx(target['augmented_error'])
+    assert target['improvement']==pytest.approx(0.)

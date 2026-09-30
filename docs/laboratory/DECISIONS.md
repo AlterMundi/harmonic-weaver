@@ -53,3 +53,11 @@ colectiva fuera del primer milestone.
     render separada del preset portable y salida física; congelar hash del motor.
     Estado de osciladores pre-shape y PCM post-limitador son artefactos distintos.
     Una corrida reproducible no demuestra aceptación ni latencia física.
+
+2026-09-30 — Propagación compara errores de historia propia/añadida sólo en
+objetivos compartidos. Con retardos o disponibilidad diferentes, sus ventanas
+pueden tener distinto número de errores; comparar promedios sin emparejar crea
+un cambio de score aunque las predicciones sean iguales. Se requieren al menos
+cinco timestamps comunes y el diagnóstico registra soporte individual/común y
+extremos del intervalo. Defaults, selección de regiones y baseline sonoro sin
+cambios. El score continúa siendo soporte predictivo, no origen causal/Jpsh.

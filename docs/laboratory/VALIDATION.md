@@ -495,3 +495,12 @@ Pruebas de fila truncada, raw sin cambios, hashes de imagen, symlink, writer act
 complete/legacy rechazados y proceso hijo real terminado con SIGKILL. Prefijo
 verificado preserva imágenes originales; no se recupera una imagen inferida.
 Suite writer/colector y build pasan; sin cámara física ni medios privados.
+
+### Soporte común en propagación — 2026-09-30
+
+Regresión controlada: dos predictores con salida idéntica y retardos disponibles
+distintos deben producir mejora cero al evaluar objetivos compartidos. Se
+verifican tamaños distintos de soporte individual y conteo común. Suite de
+colectivo, propagación, modelos y replay verifica también predictor causal,
+retardo sintético conocido, ausencia de centros forzados y paridad del baseline.
+No hay escucha nueva ni evidencia de causalidad corporal.

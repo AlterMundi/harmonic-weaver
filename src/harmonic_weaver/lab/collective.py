@@ -199,19 +199,26 @@ class LaggedPropagation:
             errors.append((t, squared_error))
             while errors and errors[0][0] < t-self.settings.window_s:
                 errors.popleft()
-            predictions[key] = float(np.mean([e for _,e in errors])), lag, len(errors)
+            predictions[key] = dict(errors), lag
         for source in range(regions):
             support = []
             for target in range(regions):
                 baseline = predictions.get((None, target))
                 augmented = predictions.get((source, target))
-                if baseline is None or augmented is None or min(baseline[2],augmented[2]) < 5:
+                if baseline is None or augmented is None:
                     continue
-                base_error, error = baseline[0], augmented[0]
+                common=sorted(baseline[0].keys() & augmented[0].keys())
+                if len(common)<5:continue
+                base_error=float(np.mean([baseline[0][stamp] for stamp in common]))
+                error=float(np.mean([augmented[0][stamp] for stamp in common]))
                 gain = (base_error-error)/max(base_error, self.settings.noise_velocity**2)
                 support.append({"target":target+1, "improvement":float(np.clip(gain,-1,1)),
                                 "lag_s":augmented[1], "own_history_error":base_error,
-                                "augmented_error":error, "evaluation_samples":augmented[2]})
+                                "augmented_error":error, "evaluation_samples":len(common),
+                                "own_history_available_samples":len(baseline[0]),
+                                "augmented_available_samples":len(augmented[0]),
+                                "evaluation_start_s":common[0],"evaluation_end_s":common[-1],
+                                "support":"same target timestamps for both predictors"})
             if support:
                 result["regions"][str(source+1)] = {"score":float(np.mean([max(0.,s["improvement"]) for s in support])),
                                                    "support":support}

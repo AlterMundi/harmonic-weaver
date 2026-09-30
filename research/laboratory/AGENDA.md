@@ -58,3 +58,11 @@ procedencia, deduplicación y gaps explícitos; repetición corporal local sin p
 datos privados. Falta comparación amplia entre familias de predictores y
 predicción específica HIT. R01 sigue abierto;
 R02–R13 conservan sus experimentos/dependencias de esta agenda.
+
+R02/R03 — 2026-09-30: el estimador de propagación de producción empareja objetivos
+antes de calcular mejora frente a historia propia. Control reproducible en
+`tests/test_lab_collective.py`: predictores idénticos con disponibilidad desigual
+no producen una ventaja falsa. `tests/test_lab_propagation.py` conserva control de
+retardo sintético conocido y dirección inversa débil. Falta banco ampliado por
+web, comparación de modelos/cuerpos y anotaciones humanas de preparación/Jpsh;
+estos controles de software no demuestran intención ni causalidad.
