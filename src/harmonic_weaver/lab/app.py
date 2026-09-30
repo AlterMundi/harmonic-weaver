@@ -17,6 +17,7 @@ from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings
 from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
 from .capture import CaptureSettings, CaptureSession
+from .capture_export import ExportSettings, CaptureExports
 
 
 class RevisionRequest(Contract):
@@ -93,6 +94,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
                perception: PerceptionSettings | None = None, ui_dir: Path | None = None, capture_client_factory=None) -> FastAPI:
     session = store or SessionStore(data_dir)
     capture = CaptureSession(data_dir, session, runtime, client_factory=capture_client_factory) if runtime is not None else None
+    exports = CaptureExports(capture) if capture is not None else None
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -105,6 +107,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            if exports is not None:
+                exports.close()
             if capture is not None:
                 capture.close()
             if evaluation is not None:
@@ -165,6 +169,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post("/api/captures/stop")
     def stop_capture():
         return capture.stop() if capture else {"status":"idle"}
+
+    @app.get("/api/capture-exports")
+    def capture_export_state():
+        return exports.snapshot() if exports else {"status":"idle"}
+
+    @app.post("/api/captures/{ident}/export")
+    def capture_export(ident: str, body: ExportSettings):
+        if exports is None: raise ValueError("No hay runtime para exportar")
+        return exports.start(ident, body.model_dump())
+
+    @app.post("/api/capture-exports/cancel")
+    def capture_export_cancel():
+        return exports.cancel() if exports else {"status":"idle"}
 
     @app.get("/api/schemas")
     def schemas():

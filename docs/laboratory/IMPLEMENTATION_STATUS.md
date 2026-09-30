@@ -127,3 +127,11 @@ nonce propio e inicio idempotente con Shaper #4, drenaje final completo y hashes
 PCM exacto. Ver CAPTURE.md para contratos y límites. No completa #17: video/mux,
 latencia medida, identidad de código/fuentes y recuperación WAV pendientes. No
 instalado sobre el workspace de pruebas; sin captura privada ni aceptación humana.
+
+
+2026-09-30 — LAB-09: primer exportador web de video de archivo + PCM grabado,
+MKV/H.264/pcm_f32le, plan causal muestreado configurable y huecos negros. 10 tests
+plan, 6 exportación sintética real ffmpeg/OpenCV, 9 colector y 2 API (27 total);
+Chrome/Playwright 1 y build web pasan. No altera venv original ni usa medios privados.
+CAPTURE.md detalla sincronía estimada/offset, requisitos y pendientes de cámara,
+medición, recuperación, overlays, inventario y playback. #17 no completado.

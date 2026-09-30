@@ -123,3 +123,45 @@ los tres parámetros, bloqueo durante captura, detener/cierre, rutas locales y
 error visible verificados (1 prueba). 23 pruebas Weaver de colector/runtime/store/
 API pasan; incluye hash del manifest sin leer original. No hubo grabación privada,
 prueba cámara/R24 ni aceptación humana. Servidor aislado detenido al terminar.
+
+## Exportación video de archivo + PCM
+
+Implementación posterior a #42, rama `feat/laboratory-capture-video-export`.
+Pestaña Captura permite exportar una captura completa a MKV H.264 + pcm_f32le
+(sin recodificación con pérdida del audio). Controles FPS 1..120, ancho/alto pares,
+offset -5..5 s y edad máxima de observación. Exportación en thread separado,
+una a la vez; cancelación explícita y cierre al salir. No toca el instrumento ni
+los originales. Decodifica posiciones necesarias desde sus rutas existentes.
+Requiere `ffmpeg` con libx264 en PATH y el extra `[lab]` actualizado que incluye
+opencv-python-headless; aquí se probó con dependencia temporal aislada, sin
+modificar el venv del workspace original ni el laboratorio de pruebas.
+
+API: GET `/api/capture-exports`; POST `/api/captures/{id}/export` con settings;
+POST `/api/capture-exports/cancel`. Carpeta local de sesión `exports/<id>/`:
+manifest, frames.jsonl con referencias/causas de hueco, encoder.log y capture.mkv.
+El manifest verifica hashes del journal/timeline, cuenta PCM vs bloques y conserva
+hashes de entrada/salida. Errores/cancelación conservan raw de captura y manifiesto
+failed; un archivo partial no es una exportación completa. Servicio no reanuda una
+exportación tras reiniciar; consulta/inventario histórico y descarga/player web de
+estos artefactos quedan pendientes (salida local visible por ahora).
+
+Alineación **estimada**: sample index del PCM más timestamp generated_monotonic_s
+por bloque de callback; cada fotograma toma la última posición de fuente observada
+con edad inferior al umbral. No interpola entre epochs ni inventa progresión entre
+observaciones. Pausas sostienen imagen; seeks/loops aparecen al observarse. Posible
+error temporal por frecuencia de muestreo, decodificación/seeks, callback y reloj
+visual; no se trata de latencia DAC/pantalla medida. Offset positivo consulta una
+observación posterior. Intervalos no observados, sin fuente, de cámara o demasiado
+viejos van en negro, con conteos explícitos. Duración video redondea hacia arriba
+a frames; puede superar PCM en menos de 1/FPS. No shortest silencioso ni audio
+estirado. No incluye skeleton/figura ni registra pixels de cámara. Identidad del
+original permanece declarada; no se rehashea el archivo grande durante exportación.
+
+Evidencia: 10 pruebas de plan temporal; 6 de exportación real con ffmpeg/OpenCV,
+fuente roja sintética y PCM generado: muestras audio extraídas del MKV exactamente
+iguales al WAV, fotograma rojo verificado, original sin cambios, huecos negros,
+cancelación, hash alterado y servicio/cierre fallido. Chrome/Playwright aislado
+verifica controles de captura y envío de parámetros de exportación (1 prueba).
+Build TypeScript/Vite pasa. Ninguna grabación corporal privada ni escucha humana.
+LAB-09 sigue abierto: cámara, recuperación WAV, sincronía medida, overlays,
+player/download, inventario persistente y transiciones de fuente completas.
