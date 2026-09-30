@@ -340,3 +340,12 @@ instantánea de relojes 0.100059 s, sin alertas, seek a 20 s alineado. Audio mut
 no acredita escucha/aceptación. Los primeros harnesses que interceptaban/redirectaban
 medios fallaron; Chrome rechazó el redirect a loopback. Se verificó con entrega
 HTTP nativa del mismo origen, sin cambiar permisos del navegador ni de la sesión.
+
+## Base de captura Shaper — 2026-09-30
+
+32 pruebas de captura/offline/laboratorio/audio/pads, 10.28 s. Identidad exacta
+post-limitador con outdata, diferencia del tap anterior, límite 4800 muestras
+incluido último bloque parcial, cierre temprano, cola acotada bloqueando writer,
+disco fallido, gap/reloj/stream/callback status, id obsoleto e inicios concurrentes.
+Todo fue sintético/hardware-free; no se grabó la sesión R24 ni se tocó configuración.
+Vídeo/UI/colector/sincronía/recuperación quedan pendientes según CAPTURE.md.

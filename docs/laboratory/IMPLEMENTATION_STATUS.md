@@ -111,3 +111,11 @@ play/pausa/seek, interpolación dentro del bloque y recorte, cola y liberación 
 cerrar; velocidad y ajuste visual sin alterar manifest. API verifica hashes de
 fuente/artefactos y rechaza cambios. No es reloj audiovisual físico ni exportación
 renderizada. Sigue en `-dev`, fuera de la sesión corporal de prueba.
+
+## Base de captura post-limitador — 2026-09-30
+
+[Shaper #4](https://github.com/AlterMundi/harmonic-shaper/pull/4), sin merge/aplicación
+sobre la sesión de prueba: PCM exacto, writer acotado, start/status/stop, límites
+por muestras y fallos explícitos; 32 pruebas hardware-free. [CAPTURE](CAPTURE.md)
+detalla contrato/evidencia y pendientes de UI, eventos, video, sincronía y recuperación.
+LAB-09 no se declara completo.
