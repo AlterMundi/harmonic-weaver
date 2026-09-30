@@ -424,3 +424,15 @@ configuración coincidente y SHA-256 de traces, cache por fingerprint, Range/206
 rechazo de cambios. 17 tests research/API/collective, Chrome enlaces y build.
 Resultados locales sintéticos, sin publicación automática ni cambio sonoro. R01
 permanece abierto para entrada corporal/HIT específicos y protocolo ampliado.
+
+### Entornos de desarrollo independientes — 2026-09-30
+
+Weaver-dev y Shaper-dev tienen `.venv` propios, instalados sin modificar los
+originales. `start-laboratory-dev.sh --check` y `bash -n` pasan; no abren audio
+ni cámara. Weaver: 30 pruebas de colector, recuperación de journals y banco
+R01 pasan usando `.venv/bin/python` y `PYTHONPATH=src:../harmonic-shaper-dev/src`
+para el contrato entre repos. Shaper: 15 pruebas de captura/recuperación pasan
+con su propio `.venv/bin/python`. Sin ese PYTHONPATH, el test cruzado inicialmente
+falló por no encontrar Shaper; no era un fallo del colector. La conexión R24,
+latencia y aceptación del nuevo entorno siguen pendientes; no se inició el
+laboratorio de desarrollo ni se modificó el proceso habitual en ejecución.

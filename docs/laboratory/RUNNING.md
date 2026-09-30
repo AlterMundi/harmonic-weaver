@@ -188,3 +188,45 @@ El modo `--no-audio` devuelve 503 en la telemetría de voces: es un arranque de
 percepción/UI sin audio. Conectar la R24 después no habilita ese proceso.
 Detenerlo con Ctrl+C y volver a iniciar con el comando R24 de arriba, sin
 `--no-audio`. Recargar la web después del reinicio.
+
+## Arranque explícito de desarrollo
+
+Los avances posteriores al laboratorio habitual están en
+`~/Projects/harmonic-weaver-dev` y requieren el Shaper compatible de
+`~/Projects/harmonic-shaper-dev`. No reemplazan `harmonic-weaver-lab`.
+Cada checkout usa su propio `.venv`; para preparar una instalación nueva:
+
+```bash
+cd ~/Projects/harmonic-weaver-dev
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python -e '.[lab,test]'
+cd ~/Projects/harmonic-shaper-dev
+uv venv --python 3.13 .venv
+uv pip install --python .venv/bin/python -e '.[test]'
+```
+
+Las versiones instaladas forman parte de la identidad de los experimentos;
+instalar sin constraints puede resolver versiones distintas y exige producir
+un nuevo manifest, no reutilizar una identidad antigua.
+
+```bash
+cd ~/Projects/harmonic-weaver-dev
+./scripts/start-laboratory-dev.sh --check
+./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+La web de desarrollo es `http://127.0.0.1:8875`, Shaper usa `8185` y el estado
+se guarda en `~/.local/share/harmonic-weaver/laboratory-dev`. `--check` sólo
+comprueba imports y muestra destinos; no abre cámara ni audio, ni verifica la
+conexión física de la R24. Ctrl+C detiene los procesos de esa sesión.
+
+La primera apertura tiene estado independiente: importar los presets portables
+que quieras probar desde la web. No se copian selecciones corporales,
+calibraciones, fuentes ni videos del laboratorio habitual. Abrir un fragmento
+existente lo usa desde su ruta; no hace falta copiar el original grande.
+El nuevo estado puede necesitar su propio tracking. No iniciar ambos Shapers
+sobre la R24 simultáneamente. Para cambiar puertos o datos, pasar `--port`,
+`--shaper-port` o `--data-dir`; los argumentos explícitos prevalecen.
+`WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON` y `LAB_DEV_DATA_DIR` permiten
+seleccionar otras instalaciones deliberadamente; el wrapper no usa un venv
+original como alternativa silenciosa para Weaver o Shaper.
