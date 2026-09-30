@@ -174,6 +174,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def capture_export_state():
         return exports.snapshot() if exports else {"status":"idle"}
 
+    @app.get("/api/capture-exports/jobs")
+    def capture_export_jobs():
+        return exports.list() if exports else []
+
+    @app.get("/api/capture-exports/{ident}/artifacts/{name}")
+    def capture_export_artifact(ident: str, name: str):
+        if exports is None: raise ValueError("No hay exportaciones")
+        path=exports.artifact(ident,name)
+        return FileResponse(path,filename=name)
+
     @app.post("/api/captures/{ident}/export")
     def capture_export(ident: str, body: ExportSettings):
         if exports is None: raise ValueError("No hay runtime para exportar")

@@ -371,3 +371,9 @@ plan, 6 exportación sintética real ffmpeg/OpenCV, 9 colector y 2 API (27 total
 Chrome/Playwright 1 y build web pasan. No altera venv original ni usa medios privados.
 CAPTURE.md detalla sincronía estimada/offset, requisitos y pendientes de cámara,
 medición, recuperación, overlays, inventario y playback. #17 no completado.
+
+
+LAB-09 #43 actualizado: inventario de exportaciones al reiniciar, interrupted
+explícito y descarga local con hashes y Range/206. 30 tests Python, 1 Chrome
+componente y build web pasan. CAPTURE.md conserva límites y siguientes pasos;
+cámara/recuperación WAV/sincronía medida/overlays/player siguen pendientes.

@@ -108,6 +108,41 @@ class CaptureExports:
     def __init__(self,captures):
         self.captures=captures;self.thread=None;self.cancelled=threading.Event();self.job={'status':'idle'}
         self.lock=threading.Lock()
+        self.jobs={}
+        self.verified={}
+        for capture in captures.list():
+            root=Path(capture['directory'])/'exports'
+            if not root.exists(): continue
+            for folder in sorted(root.iterdir()):
+                if folder.is_symlink() or not folder.is_dir(): continue
+                try:
+                    report=json.loads((folder/'manifest.json').read_text())
+                    if report['status']=='rendering':
+                        report.update(status='interrupted',error='Export process stopped before confirmed close')
+                        atomic_json(folder/'manifest.json',report)
+                    job={**report,'id':folder.name,'capture_id':capture['id'],'directory':str(folder)}
+                    self.jobs[folder.name]=job
+                except (OSError,ValueError,KeyError): continue
+
+    def list(self):
+        return [json.loads(json.dumps(dict(job))) for job in list(self.jobs.values())]
+
+    def artifact(self, ident, name):
+        job=self.jobs.get(ident)
+        if job is None: raise ValueError('Unknown export')
+        if name not in ('capture.mkv','frames.jsonl','manifest.json'):raise ValueError('Unknown export artifact')
+        folder=Path(job['directory'])
+        if folder.is_symlink(): raise ValueError('Export directory is unavailable')
+        folder=folder.resolve();path=folder/name
+        if path.is_symlink() or not path.is_file():raise ValueError('Export artifact is unavailable')
+        if name!='manifest.json':
+            if job['status']!='complete':raise ValueError('Export is not complete')
+            expected=job['output']['sha256'] if name=='capture.mkv' else job['frame_plan_sha256']
+            stat=path.stat();fingerprint=(str(path),stat.st_dev,stat.st_ino,stat.st_size,stat.st_mtime_ns,stat.st_ctime_ns)
+            if self.verified.get(fingerprint)!=expected:
+                if sha256_file(path)!=expected:raise ValueError('Export artifact changed')
+                self.verified[fingerprint]=expected
+        return path
 
     def start(self,ident,settings):
         settings=ExportSettings.model_validate(settings)
@@ -115,8 +150,9 @@ class CaptureExports:
             if self.thread and self.thread.is_alive():raise ValueError('Ya hay una exportación activa')
             jobs={j['id']:j for j in self.captures.list()}
             if ident not in jobs or jobs[ident]['status']!='complete':raise ValueError('Elegí una captura completa')
-            manifest=jobs[ident];folder=Path(manifest['directory'])/'exports'/uuid4().hex
-            self.job={'status':'rendering','capture_id':ident,'directory':str(folder),'frames':0}
+            manifest=jobs[ident];export_id=uuid4().hex;folder=Path(manifest['directory'])/'exports'/export_id
+            self.job={'id':export_id,'status':'rendering','capture_id':ident,'directory':str(folder),'frames':0}
+            self.jobs[export_id]=self.job
             self.cancelled.clear()
             def work():
                 try:

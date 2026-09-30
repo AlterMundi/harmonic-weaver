@@ -165,3 +165,23 @@ verifica controles de captura y envío de parámetros de exportación (1 prueba)
 Build TypeScript/Vite pasa. Ninguna grabación corporal privada ni escucha humana.
 LAB-09 sigue abierto: cámara, recuperación WAV, sincronía medida, overlays,
 player/download, inventario persistente y transiciones de fuente completas.
+
+## Inventario y descarga persistentes
+
+Actualización de #43: al iniciar se descubren manifests bajo captures/<id>/exports;
+rendering sin cierre se marca interrupted y conserva diagnóstico. GET
+`/api/capture-exports/jobs` lista historial. Descargas explícitas desde la UI:
+`/api/capture-exports/{id}/artifacts/{name}` sólo admite capture.mkv, frames.jsonl
+y manifest.json. Video/timeline requieren exportación completa y hash válido;
+manifest puede descargarse también para diagnosticar fallos. Rechaza symlinks de
+carpeta/archivo y nombres fuera del contrato; no recibe una ruta arbitraria.
+FileResponse atiende Range/206 sin cargar el video completo en memoria. El hash
+se memoiza por path/dev/inode/tamaño/mtime/ctime; un cambio invalida la verificación.
+No sube ni publica archivos. No hay player web del MKV todavía.
+
+Evidencia adicional: reinicio recupera salida completa, rendering interrumpido,
+rechazo de artefacto modificado/nombre indebido y API HTTP Range/206. 30 pruebas
+colector/timeline/export/API; Chrome aislado verifica enlace de descarga y
+controles; build TypeScript/Vite. Servidor aislado detenido. No cambió la sesión
+habitual, ni hubo grabación privada o aceptación humana. Pendientes LAB-09:
+player, cámara, recuperación WAV, medición de sincronía y overlays.

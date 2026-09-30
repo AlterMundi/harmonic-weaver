@@ -95,3 +95,57 @@ def test_export_service_runs_once_and_preserves_failed_preflight(tmp_path):
     job=service.snapshot();assert job['status']=='failed'
     assert json.loads((Path(job['directory'])/'manifest.json').read_text())['status']=='failed'
     service.close()
+
+
+def test_export_inventory_survives_restart_and_rejects_changed_artifacts(tmp_path):
+    from types import SimpleNamespace
+    from harmonic_weaver.lab.capture_export import CaptureExports
+    manifest,_,_=session(tmp_path);captures=SimpleNamespace(list=lambda:[manifest])
+    service=CaptureExports(captures);service.start('synthetic',{'fps':10,'width':160,'height':120})
+    service.thread.join(10);ident=service.snapshot()['id']
+    restored=CaptureExports(captures)
+    assert restored.list()[0]['status']=='complete'
+    path=restored.artifact(ident,'capture.mkv')
+    assert path.name=='capture.mkv'
+    assert restored.artifact(ident,'capture.mkv')==path # verified fingerprint reused
+    with pytest.raises(ValueError,match='Unknown'):restored.artifact(ident,'../audio.wav')
+    path.write_bytes(b'changed')
+    with pytest.raises(ValueError,match='changed'):restored.artifact(ident,'capture.mkv')
+    assert restored.artifact(ident,'manifest.json').is_file()
+    service.close();restored.close()
+
+
+def test_export_restart_marks_rendering_interrupted(tmp_path):
+    from types import SimpleNamespace
+    from harmonic_weaver.lab.capture_export import CaptureExports
+    from harmonic_weaver.lab.cache import atomic_json
+    folder=tmp_path/'session'/'exports'/'unfinished';folder.mkdir(parents=True)
+    atomic_json(folder/'manifest.json',{'status':'rendering','capture_id':'synthetic'})
+    service=CaptureExports(SimpleNamespace(list=lambda:[{'id':'synthetic','directory':str(tmp_path/'session')}]))
+    assert service.list()[0]['status']=='interrupted'
+    assert json.loads((folder/'manifest.json').read_text())['status']=='interrupted'
+    with pytest.raises(ValueError):service.artifact('unfinished','capture.mkv')
+    assert service.artifact('unfinished','manifest.json').is_file()
+    service.close()
+
+
+def test_export_download_api_ranges_and_integrity(tmp_path):
+    from types import SimpleNamespace
+    from fastapi.testclient import TestClient
+    from harmonic_weaver.lab.app import create_app
+    from harmonic_weaver.lab.cache import atomic_json
+    capture=tmp_path/'captures'/'synthetic';folder=capture/'exports'/'export';folder.mkdir(parents=True)
+    atomic_json(capture/'manifest.json',{'id':'synthetic','directory':str(capture),'status':'complete'})
+    video=folder/'capture.mkv';video.write_bytes(b'synthetic-range-payload')
+    frames=folder/'frames.jsonl';frames.write_text('{}\n')
+    atomic_json(folder/'manifest.json',{'status':'complete','capture_id':'synthetic',
+        'output':{'file':'capture.mkv','sha256':sha256_file(video)},'frame_plan_sha256':sha256_file(frames)})
+    runtime=SimpleNamespace(library=object(),start=lambda:None,close=lambda:None,snapshot=lambda:{})
+    with TestClient(create_app(tmp_path,runtime=runtime),base_url='http://127.0.0.1') as client:
+        assert client.get('/api/capture-exports/jobs').json()[0]['id']=='export'
+        response=client.get('/api/capture-exports/export/artifacts/capture.mkv',headers={'Range':'bytes=0-8'})
+        assert response.status_code==206 and response.content==b'synthetic'
+        assert client.get('/api/capture-exports/export/artifacts/manifest.json').status_code==200
+        assert client.get('/api/capture-exports/export/artifacts/unknown').status_code==422
+        video.write_bytes(b'changed')
+        assert client.get('/api/capture-exports/export/artifacts/capture.mkv').status_code==422

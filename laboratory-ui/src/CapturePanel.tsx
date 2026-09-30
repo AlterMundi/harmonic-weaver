@@ -6,8 +6,9 @@ export function CapturePanel({api,run}:Data){
  useEffect(()=>{let live=true;const poll=()=>api('captures').then((s:Data)=>{if(live)setState(s)}).catch(()=>{});
  void poll();const id=setInterval(poll,500);return()=>{live=false;clearInterval(id)};},[api]);
  const [exportSettings,setExportSettings]=useState<Data>({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25});
+ const [exportJobs,setExportJobs]=useState<Data[]>([]);
  const [exportState,setExportState]=useState<Data>({status:'idle'});
- useEffect(()=>{let live=true;const poll=()=>api('capture-exports').then((s:Data)=>{if(live)setExportState(s)}).catch(()=>{});
+ useEffect(()=>{let live=true;const poll=()=>Promise.all([api('capture-exports'),api('capture-exports/jobs')]).then(([s,jobs]:Data[])=>{if(live){setExportState(s);setExportJobs(jobs as Data[])}}).catch(()=>{});
  void poll();const id=setInterval(poll,500);return()=>{live=false;clearInterval(id)};},[api]);
  const exporting=exportState.status==='rendering';
  const active=['starting','recording','stopping'].includes(state.current.status);
@@ -34,6 +35,11 @@ export function CapturePanel({api,run}:Data){
   <p>Exportación: {exportState.status} · {exportState.frames || 0} frames · {exportState.error || ''}</p>
   {exportState.directory && <small>Salida local: {exportState.directory}</small>}
   <button disabled={!exporting} onClick={()=>run(async()=>{setExportState(await api('capture-exports/cancel',{}));})}>Cancelar exportación</button>
+  {exportJobs.map((j:Data)=><div key={j.id}><p>Exportación {j.id.slice(0,8)} · {j.status} · {j.error || ''}</p>
+    {j.status==='complete' && <><a href={`/api/capture-exports/${j.id}/artifacts/capture.mkv`} download>Descargar video + PCM</a>{' · '}
+    <a href={`/api/capture-exports/${j.id}/artifacts/frames.jsonl`} download>Timeline de fotogramas</a>{' · '}</>}
+    <a href={`/api/capture-exports/${j.id}/artifacts/manifest.json`} download>Manifest de exportación</a>
+  </div>)}
   {state.jobs.map((j:Data)=><div key={j.id}><p>{j.status} · {j.events || 0} eventos · {j.timeline_rows || 0} observaciones · {j.error}</p>
     <button disabled={j.status!=='complete' || exporting} onClick={()=>run(async()=>{
       setExportState(await api(`captures/${j.id}/export`,exportSettings));

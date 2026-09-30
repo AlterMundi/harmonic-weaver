@@ -14,6 +14,7 @@ test('explicit capture controls preserve settings, show failures and do not star
     const api=async(path,body)=>{
       window.captureCalls.push({path,body});
       if(path==='capture-exports')return {status:'idle'};
+      if(path==='capture-exports/jobs')return [{id:'export',status:'complete'}];
       if(path==='captures/test/export')return {status:'rendering',frames:0};
       if(path==='captures/start')state={current:{status:'recording'},jobs:[]};
       if(path==='captures/stop')state={current:{status:'complete'},jobs:[{id:'test',status:'complete',events:1205,timeline_rows:7,directory:'/synthetic/session',shaper:{directory:'/synthetic/audio'}}]};
@@ -25,8 +26,9 @@ test('explicit capture controls preserve settings, show failures and do not star
   const start=page.getByRole('button',{name:'Iniciar captura'});
   const stop=page.getByRole('button',{name:'Detener captura'});
   await expect(start).toBeEnabled();await expect(stop).toBeDisabled();
+  await expect(page.getByRole('link',{name:'Descargar video + PCM'})).toHaveAttribute('href','/api/capture-exports/export/artifacts/capture.mkv');
   await page.waitForTimeout(600);
-  expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports'].includes(x.path)))).toBe(true);
+  expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports','capture-exports/jobs'].includes(x.path)))).toBe(true);
   await page.getByLabel('Duración máxima (s)').fill('60');
   await page.getByLabel('Capacidad de cola de audio (bloques)').fill('64');
   await page.getByLabel('Frecuencia del timeline (Hz)').fill('30');
