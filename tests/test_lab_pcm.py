@@ -123,12 +123,12 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
         legacy=json.loads(original_request);legacy['pcm'].pop('environment_sha256')
         request_path.write_text(json.dumps(legacy))
         rejected=client.post(f'/api/evaluations/{ident}/repeat',json={})
-        assert rejected.status_code==422 and 'legacy' in rejected.text
+        assert rejected.status_code==422 and 'configuración congelada' in rejected.text
         request_path.write_bytes(original_request)
         changed=json.loads(original_request);changed['pcm']['environment_sha256']='changed'
         request_path.write_text(json.dumps(changed))
         rejected=client.post(f'/api/evaluations/{ident}/repeat',json={})
-        assert rejected.status_code==422 and 'entorno' in rejected.text
+        assert rejected.status_code==422 and 'configuración congelada' in rejected.text
         request_path.write_bytes(original_request)
         audio_path=__import__('pathlib').Path(report['manifest']['runs'][0]['pcm']['file'])
         audio_path=__import__('pathlib').Path(job.json()['directory'])/audio_path

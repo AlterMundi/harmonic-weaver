@@ -12,6 +12,15 @@ from .runner import Request, Source, digest
 from .pcm import PCMSettings, engine_identity
 
 
+def same_request_content(first, second):
+    """JSON numeric defaults may round-trip as int/float, never bool/number."""
+    if type(first) in (int,float) and type(second) in (int,float):return first==second
+    if type(first)!=type(second):return False
+    if isinstance(first,dict):return first.keys()==second.keys() and all(same_request_content(first[key],second[key]) for key in first)
+    if isinstance(first,list):return len(first)==len(second) and all(same_request_content(a,b) for a,b in zip(first,second))
+    return first==second
+
+
 class EvaluationService:
     def __init__(self, data_dir, store, library):
         self.root = Path(data_dir)/"evaluations"
@@ -70,13 +79,28 @@ class EvaluationService:
                 raise KeyError(ident)
             if any(p is not None and p.poll() is None for p in self.processes.values()):
                 raise ValueError("Ya hay una comparación activa")
-            request = Request.model_validate_json((self.root/ident/"request.json").read_text())
+            folder=self.root/ident
+            if folder.is_symlink():raise ValueError('Directorio de comparación inválido')
+            raw=json.loads(self._artifact_path(folder,'request.json').read_text())
+            confirmed=False
+            for path,key in ((folder/'request-identity.json','sha256'),(folder/'result'/'manifest.json','request_sha256')):
+                if path.is_symlink():raise ValueError('Identidad congelada inválida')
+                if not path.is_file():continue
+                record=json.loads(path.read_text())
+                if key=='sha256':valid=record.get(key)==digest(raw)
+                else:valid=record.get(key)==digest(record.get('request')) and same_request_content(raw,record.get('request'))
+                if not valid:raise ValueError('La configuración congelada cambió desde la corrida')
+                confirmed=True
+            if not confirmed:
+                raise ValueError('La configuración congelada cambió o no tiene identidad verificable; crear una comparación nueva')
+            request = Request.model_validate(raw)
             if request.pcm.enabled and request.pcm.environment_sha256 is None:
                 raise ValueError('Corrida legacy sin entorno congelado: crear una comparación nueva; no se conoce su entorno original')
             return self._launch(request)
 
     def _launch(self, request):
-        request = request.model_copy(deep=True)
+        # Validate explicit defaults exactly as the subprocess does before hashing.
+        request = Request.model_validate_json(request.model_dump_json())
         for source in request.sources:
             if source.cache_manifest_sha256 is None:
                 source.cache_manifest_sha256 = sha256_file(source.cache_manifest)
@@ -94,6 +118,7 @@ class EvaluationService:
         folder = self.root/ident
         folder.mkdir()
         atomic_json(folder/"request.json", request.model_dump())
+        atomic_json(folder/'request-identity.json',{'format':1,'sha256':digest(request.model_dump())})
         log = (folder/"process.log").open("w")
         env = dict(os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1")
         # Child must import this checkout, including when the interpreter comes

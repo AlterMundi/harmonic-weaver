@@ -221,3 +221,25 @@ corridas cuyo entorno original no quedó registrado. La web deshabilita **Repeti
 configuración congelada** en esos casos y muestra el motivo antes del intento.
 **Ver comparación**, reproducción y descargas permanecen disponibles; no se
 ocultan resultados históricos ni se presentan como una falla nueva de audio.
+
+## Integridad al repetir
+
+Repetir verifica el contenido del request guardado contra su identidad canónica
+antes de lanzar otro proceso. Las corridas nuevas guardan request-identity.json
+antes del worker; resultados con manifest también deben coincidir con su
+request_sha256. Un request alterado no puede convertirse silenciosamente en otra
+corrida bajo la etiqueta de configuración congelada. La comprobación sobrevive
+al reinicio y no depende del preset actual editable.
+
+Resultados antiguos sin sidecar pueden usar el digest del manifest existente.
+Sin ninguna identidad confirmada, crear una comparación nueva: calcular hoy un
+hash de un archivo desconocido no confirma cuál era el request original. Esto
+no es una firma/attestation contra un atacante que reescriba todos los artefactos;
+es integridad de contenido/procedencia dentro del almacenamiento local. Los
+requisitos de código/entorno del PCM siguen verificándose por separado.
+
+Antes del hash nuevo se validan también los defaults explícitos como hará el
+worker, evitando diferencias accidentales int/float (0 frente a 0.0). Para
+históricos, el manifest debe verificar su propio digest y tener el mismo
+contenido del request; equivalencia numérica int/float no acepta bool/número,
+valores distintos, campos agregados ni presets alterados.

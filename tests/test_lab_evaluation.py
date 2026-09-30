@@ -233,3 +233,53 @@ def test_legacy_pcm_snapshot_explains_disabled_repeat_without_hiding_report(tmp_
         assert service.report(ident)['manifest']['status']=='complete'
         assert service.artifact(ident,'manifest.json').is_file()
     finally:service.close();store.close()
+
+
+def test_repeat_rejects_changed_request_after_restart(tmp_path):
+    from uuid import uuid4
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    from harmonic_weaver.lab.cache import atomic_json
+    source,_,_=source_fixture(tmp_path)
+    request=Request(presets=[Preset()],sources=[source])
+    root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident;folder.mkdir(parents=True)
+    atomic_json(folder/'request.json',request.model_dump())
+    run(request,folder/'result')
+    store=SessionStore(root,prepare=PreparedRoutes)
+    service=EvaluationService(root,store,None)
+    try:
+        raw=json.loads((folder/'request.json').read_text());raw['presets'][0]['expression']=7
+        atomic_json(folder/'request.json',raw)
+        with pytest.raises(ValueError,match='configuración congelada'):service.repeat(ident)
+        assert len(service.jobs)==1
+        atomic_json(folder/'request-identity.json',{'sha256':'changed'})
+        atomic_json(folder/'request.json',request.model_dump())
+        with pytest.raises(ValueError,match='configuración congelada'):service.repeat(ident)
+    finally:service.close();store.close()
+
+
+def test_repeat_legacy_with_matching_original_identity_still_requires_known_environment(tmp_path):
+    from uuid import uuid4
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.evaluation.runner import digest
+    source,_,_=source_fixture(tmp_path)
+    raw=Request(presets=[Preset()],sources=[source]).model_dump()
+    raw['pcm'].update(enabled=True,engine_sha256='legacy-code')
+    raw['pcm'].pop('environment_sha256')
+    root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident;folder.mkdir(parents=True)
+    atomic_json(folder/'request.json',raw)
+    atomic_json(folder/'request-identity.json',{'format':1,'sha256':digest(raw)})
+    store=SessionStore(root,prepare=PreparedRoutes)
+    service=EvaluationService(root,store,None)
+    try:
+        with pytest.raises(ValueError,match='legacy'):service.repeat(ident)
+        assert len(service.jobs)==1
+    finally:service.close();store.close()
+
+
+def test_historical_default_numeric_roundtrip_is_not_a_configuration_change():
+    from harmonic_weaver.lab.evaluation.service import same_request_content
+    assert same_request_content({'pcm':{'tail_s':0}},{'pcm':{'tail_s':0.0}})
+    assert not same_request_content({'pcm':{'enabled':False}},{'pcm':{'enabled':0}})
+    assert not same_request_content({'pcm':{'tail_s':0}},{'pcm':{'tail_s':.1}})
+    assert not same_request_content({'pcm':{'tail_s':0}},{'pcm':{'tail_s':0,'enabled':False}})

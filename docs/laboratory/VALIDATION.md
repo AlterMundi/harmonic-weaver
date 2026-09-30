@@ -549,3 +549,17 @@ Nueve pruebas replay/evaluación pasan: inventario legacy informa repetición no
 soportada mientras informe/manifest continúan accesibles. Build pasa; Chrome
 verifica botón de repetición deshabilitado con motivo visible y acceso al informe/
 artefactos. Fixtures sintéticos, sin cambios de venv, datos privados o audio.
+
+### Request congelado al repetir — 2026-09-30
+
+Pruebas de request alterado tras reiniciar, sidecar alterado, fallback a manifest
+histórico y legacy con identidad de contenido correcta pero sin entorno. Request
+modificado se rechaza antes de crear otro job; consulta de resultados se conserva.
+La prueba API de PCM distingue alteración del request de discrepancia de entorno.
+No cambia audio, presets, fuentes ni entornos originales.
+
+Se detectó y corrigió un fallo real del primer control: default tail_s 0 se
+revalidaba como 0.0 en el worker. Nuevos requests se normalizan antes del freeze;
+históricos comparan contenido con equivalencia numérica restringida y digest
+verificado. Tras corrección: 17 tests PCM/evaluación pasan; suite evaluación con
+regresión numérica adicional pasa. No se relaja identidad de código/entorno.
