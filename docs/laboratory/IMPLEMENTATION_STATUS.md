@@ -4,6 +4,23 @@
 La aceptación anterior de 01c/contraste se conserva; la escucha de realce ×10,
 articulación y modelos nuevos sigue pendiente. [Evidencia y límites](VALIDATION.md).
 
+## Estado vigente de las ramas de desarrollo (auditoría 2026-09-30)
+
+Los apartados fechados posteriores conservan historia; sus pendientes pueden estar
+resueltos por incrementos posteriores. Esta tabla resume el estado actual, sin
+confundir rama publicada con instalación, merge ni aceptación humana.
+
+| Entrega | Evidencia / alcance actual | Pendiente real |
+|---|---|---|
+| LAB-00–08 y v2 | PRs #29/#30/#37/#39; controles, modelos, cache y cuerpo por defecto; experiencia baseline previamente aceptada | Calibración/modelos/realce nuevos y latencia requieren feedback humano; CUDA no se declara reparado |
+| Comparador #18 | #40 motor PCM compartido y #41 reproducción fuente/WAV/figura; repetibilidad local documentada | Ampliar evaluación/paridad/métricas y validación humana; investigación formal no completa |
+| LAB-09 #17 | #42 colector/journal; #43 export/inventario/download; #44 PCM recovery; #45 preview cámara opt-in | Player/overlays, cámara física, sincronía medida, resolución de ack recovery, recuperación imágenes y journal completo |
+| R01–R13 | Agenda conservada, referencias/protocolos y aporte Sai–Oliva #36 revisado, sin merge | Bancos reproducibles y experimentos/evidencia/dependencias para todas las líneas aún por desarrollar |
+
+Desarrollo permanece en `harmonic-weaver-dev` y `harmonic-shaper-dev`; no sustituye
+el workspace `harmonic-weaver-lab` de pruebas ni workspaces originales. PRs listadas
+siguen abiertas en GitHub; no se ejecutaron merges. Los datos privados no se publican.
+
 ## Publicación
 
 - Segunda iteración: [PR #37](https://github.com/AlterMundi/harmonic-weaver/pull/37),

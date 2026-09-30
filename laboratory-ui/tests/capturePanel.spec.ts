@@ -10,13 +10,13 @@ test('explicit capture controls preserve settings, show failures and do not star
     import React from '/node_modules/.vite/deps/react.js';
     import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
     import {CapturePanel} from '/src/CapturePanel.tsx';
-    let state={current:{status:'idle'},jobs:[]};window.captureCalls=[];
+    let state={current:{status:'idle'},jobs:[]};let recovery={status:'idle'};window.captureCalls=[];
     const api=async(path,body)=>{
       window.captureCalls.push({path,body});
-      if(path==='capture-recovery')return {status:'idle'};
+      if(path==='capture-recovery')return recovery;
       if(path==='capture-exports')return {status:'idle'};
       if(path==='capture-exports/jobs')return [{id:'export',status:'complete'}];
-      if(path==='captures/interrupted/recover')return {status:'recovered',result:{directory:'/synthetic/recovery',recovered_samples:256}};
+      if(path==='captures/interrupted/recover'){recovery={status:'recovered',result:{directory:'/synthetic/recovery',recovered_samples:256},journal:{directory:'/synthetic/journal',files:{'events.jsonl':{rows:2},'timeline.jsonl':{rows:3}}}};return recovery;}
       if(path==='captures/test/export')return {status:'rendering',frames:0};
       if(path==='captures/start')state={current:{status:'recording'},jobs:[]};
       if(path==='captures/stop')state={current:{status:'complete'},jobs:[{id:'test',status:'complete',events:1205,timeline_rows:7,directory:'/synthetic/session',shaper:{directory:'/synthetic/audio'}},{id:'interrupted',status:'interrupted',shaper:{id:'known'}}]};
@@ -48,6 +48,7 @@ test('explicit capture controls preserve settings, show failures and do not star
   await page.getByRole('button',{name:'Recuperar audio interrup'}).click();
   expect(await page.evaluate(()=>(window as any).captureCalls.some((x:any)=>x.path==='captures/interrupted/recover'))).toBe(true);
   await expect(page.getByText('Prefijo recuperado:',{exact:false})).toContainText('256 muestras');
+  await expect(page.getByText('Bitácora parcial:',{exact:false})).toContainText('2 eventos · 3 observaciones');
   await page.evaluate(()=>(window as any).failCapture());
   await expect(page.getByRole('status')).toContainText('Synthetic disk failure');
   expect(errors).toEqual([]);

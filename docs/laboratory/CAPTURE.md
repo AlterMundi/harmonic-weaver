@@ -259,3 +259,26 @@ Pendientes LAB-09: prueba cámara real/aceptación humana, protocolo de sincron�
 player/overlays, recuperación de imágenes/journal tras kill, resolución de ack recovery.
 Captura de flujo bruto de cámara o mayor resolución/FPS es una entrega adicional,
 no una capacidad de esta preview. #17 sigue abierto.
+
+## Prefijos recuperados del journal de sesión
+
+Incremento sobre #45: después de confirmar id/PCM recuperado, conserva filas
+completas válidas de events.jsonl y timeline.jsonl en journal-recovered/<id>/.
+Checks: JSON finito/forma mínima, secuencias consecutivas de eventos y reloj
+monotónico de observaciones. Corta ante JSON/UTF-8 truncado, fila incompleta o
+invalidez, con motivo/contador. Lee líneas binarias y decodifica individualmente
+para preservar prefijos anteriores a un final UTF-8 roto. Guarda hashes raw/output
+sin modificar originales. Estado partial, no reconstrucción exacta ni garantía de
+cobertura temporal/cursor final. No agrega eventos futuros de SQLite ni inventa
+observaciones. Cámara/JPEG no se recuperan en este incremento.
+
+PCM confirmado se registra antes de intentar salvar bitácora; si ésta falla,
+resultado de audio sigue visible/persistido y journal failed separado. UI muestra
+contadores/ruta parcial o error. Si falla guardar metadata, no se declara que la
+recuperación del lado Shaper no ocurrió. Resolución de ack pendiente permanece.
+
+Evidencia: 52 tests colector/journal/cámara/plan/export/runtime/API/decoder; seis
+pruebas de prefijo incluyen final UTF-8 roto, filas/JSON/NaN/secuencias/reloj
+inválidos y raw hashes preservados. Fallo del journal no oculta PCM confirmado.
+Chrome aislado verifica presentación de contadores y build web pasa. Datos
+sintéticos; ninguna aceptación humana o grabación física. #17 sigue abierto.

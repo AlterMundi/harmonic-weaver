@@ -191,6 +191,8 @@ class CaptureSession:
         with self.lock:
             if self.recovery_thread and self.recovery_thread.is_alive(): raise ValueError('Ya hay una recuperación activa')
             job=self.jobs.get(ident)
+            if self.thread and self.thread.is_alive() and self.job and self.job['id']==ident:
+                raise ValueError('La captura todavía está cerrando')
             if not job or job['status'] not in ('failed','interrupted'): raise ValueError('Elegí una captura fallida o interrumpida')
             driver_id=(job.get('shaper') or {}).get('id')
             if not driver_id: raise ValueError('No hay identidad confirmada de la captura Shaper')
@@ -202,7 +204,12 @@ class CaptureSession:
                         response.raise_for_status();result=response.json()
                     if result.get('status')!='recovered' or result.get('capture_id')!=driver_id:
                         raise ValueError('Shaper did not confirm this recovered prefix')
-                    self.recovery_job.update(status='recovered',result=result)
+                    from .capture_journal_recovery import recover_journal
+                    self.recovery_job.update(result=result)
+                    atomic_json(Path(job['directory'])/'recovery.json',dict(self.recovery_job,status='audio_recovered',journal_status='pending'))
+                    try:journal=recover_journal(job['directory'])
+                    except (OSError,ValueError) as exc:journal={'status':'failed','error':str(exc)}
+                    self.recovery_job.update(status='recovered',result=result,journal=journal)
                     atomic_json(Path(job['directory'])/'recovery.json',self.recovery_job)
                     job['recovery']=self.recovery_snapshot()
                 except Exception as exc:self.recovery_job.update(status='failed',error=str(exc))

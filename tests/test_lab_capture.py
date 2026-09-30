@@ -191,3 +191,21 @@ def test_camera_pixels_require_opt_in_and_collector_records_refs(tmp_path):
     rows=[json.loads(line) for line in (Path(job['directory'])/'timeline.jsonl').read_text().splitlines()]
     assert rows[0]['camera_ref']['stream_id']=='camera'
     store.close()
+
+
+def test_journal_recovery_failure_does_not_hide_confirmed_pcm(tmp_path,monkeypatch):
+    from harmonic_weaver.lab import capture_journal_recovery
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    folder=capture.root/'interrupted';folder.mkdir()
+    capture.jobs['interrupted']={'id':'interrupted','directory':str(folder),'status':'interrupted','shaper':{'id':'known'}}
+    def handle(request):
+        return httpx.Response(200,json={'status':'recovered','capture_id':'known','directory':'/synthetic/pcm','recovered_samples':256})
+    capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
+    def fail(folder):raise OSError('Synthetic journal disk failure')
+    monkeypatch.setattr(capture_journal_recovery,'recover_journal',fail)
+    capture.recover('interrupted');capture.close()
+    job=capture.recovery_snapshot()
+    assert job['status']=='recovered' and job['result']['recovered_samples']==256
+    assert job['journal']['status']=='failed'
+    assert json.loads((folder/'recovery.json').read_text())['result']['directory']=='/synthetic/pcm'
+    store.close()

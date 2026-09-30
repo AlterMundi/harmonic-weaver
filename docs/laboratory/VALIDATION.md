@@ -390,3 +390,9 @@ y exportación con elección de reloj y huecos explícitos. 45 tests pertinentes
 Chrome aislado y build web; PCM MKV sintético exacto. Sin cámara física/datos privados.
 CAPTURE.md documenta preview vs flujo bruto, límites y pendientes de sincronía,
 aceptación, recuperación de imágenes/journal, player y overlays. #17 sigue abierto.
+
+
+LAB-09: recuperación conservadora de prefijos de journal, UTF-8/JSON/clock/sequence
+con cortes explícitos y hashes; PCM válido conservado ante fallo de journal.
+52 tests pertinentes y build web pasan; Chrome aislado de contadores/ruta.
+CAPTURE.md y tabla vigente de IMPLEMENTATION_STATUS.md separan estado real e historia.

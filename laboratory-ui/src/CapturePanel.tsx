@@ -57,6 +57,8 @@ export function CapturePanel({api,run}:Data){
   </div>)}
   <p>Recuperación: {recovery.status} · {recovery.error || ''}</p>
   {recovery.result && <p>Prefijo recuperado: {recovery.result.recovered_samples} muestras. Carpeta local: {recovery.result.directory}. No equivale a una captura completa.</p>}
+  {recovery.journal?.files && <p>Bitácora parcial: {recovery.journal.files['events.jsonl'].rows} eventos · {recovery.journal.files['timeline.jsonl'].rows} observaciones · {recovery.journal.directory}. Puede haber un final desconocido.</p>}
+  {recovery.journal?.error && <p>Bitácora no recuperada: {recovery.journal.error}. El prefijo PCM confirmado se conserva.</p>}
   {state.jobs.map((j:Data)=><div key={j.id}><p>{j.status} · {j.events || 0} eventos · {j.timeline_rows || 0} observaciones · {j.error}</p>
     <button disabled={j.status!=='complete' || exporting} onClick={()=>run(async()=>{
       setExportState(await api(`captures/${j.id}/export`,exportSettings));
