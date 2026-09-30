@@ -26,3 +26,16 @@
 El plan largo conserva antecedentes; consultar este registro y la agenda al
 convertirlos en tareas. No heredar el viejo orden que posponía organización
 colectiva fuera del primer milestone.
+
+12. Segunda iteración: el comparador usa el runtime live con reloj lógico,
+    ejecución separada y solicitudes congeladas. Métricas descriptivas sobre
+    soporte común; sin PCM ni afirmación de eficacia/predicción. Ver EVALUATION.
+13. No sobrescribir presets por su nombre: el 01c guardado puede haber sido
+    editado. Referencias nuevas tienen IDs nuevos; la configuración local actual
+    se conserva. Ajustar controles compatibles preserva historia de ruteo.
+14. CPU es recuperación explícita. El cache distingue dispositivo efectivo;
+    fallar/cancelar una generación no borra la anterior válida. CUDA sigue bajo
+    investigación; cambiar a CPU no prueba resuelta su causa.
+15. El aporte independiente de Oliva (#36, para #35) se revisa y contrasta sin
+    modificar su territorio ni hacer merges automáticos. Incorporar precauciones
+    de cobertura/causalidad no equivale a validar las hipótesis de HIT.

@@ -195,3 +195,48 @@ observación no genera un impulso. Se descartan residuos menores de 1e-6 para
 evitar colas infinitesimales. Frecuencia/fase permanecen sin modificar.
 Pruebas cubren factor ×10 antes del límite, decaimiento en sostenido, reset y
 ausencia de ataques ficticios al inicializar. Escucha de estos controles pendiente.
+
+## Segunda iteración — 2026-09-29
+
+Trabajo aislado en `harmonic-weaver-lab`, rama `feat/laboratory-v2`, partiendo de
+6bdb47a (PR #30). Shaper 8d6de86 y HarMoCAP 27b8fc2 sin cambios de implementación
+en esta entrega. Los workspaces originales conservan sus cambios.
+
+- Suite Weaver completa final: **243 tests y 4 subtests pasaron** (122.73 s),
+  incluidos preservación de referencias, métricas por estado y cancelación.
+  Los seis tests dirigidos del comparador también pasaron por separado.
+- Matriz sintética 2 presets × 2 fuentes: repetición con hashes iguales;
+  paridad de targets con runtime live bajo tiempos idénticos; prefijo causal,
+  escala obligatoria, detección de medio/cache cambiado; persistencia, repetición
+  congelada tras editar un preset y cancelación de subproceso.
+- Preservación de configuración guardada editada y seis voces afinadas en las
+  referencias nuevas; historia de expresión conservada en ediciones compatibles.
+- Shaper: **14 tests** de laboratorio/audio smoke pasaron (5.5 s). No se cambió
+  el motor; estas pruebas cubren continuidad técnica, no ausencia perceptual
+  universal de clicks en hardware ni aceptación musical.
+- UI: TypeScript/build Vite correcto. Recorrido con navegador real: abrir
+  Comparar, seleccionar dos referencias, agregar segundo segmento de la misma
+  fuente, editar tiempos, lanzar, ver informe y repetir configuración congelada.
+  Dos segmentos de 10 s del video local: **4/4 corridas**, repetición con solicitud,
+  hashes de JSONL y hashes de comparaciones idénticos. Datos y capturas privados.
+- Runtime real conectado a Shaper/R24, clip CPU de 60 s recuperado de cache
+  (1.800 frames). Tras calibración medida del torso, 30 muestras por modelo:
+  ganancias efectivas no nulas en local 29/30, relacional 30/30, angular 29/30,
+  colectivo 23/30. Son muestras de integración, no estimaciones comparables de
+  eficacia ni validación del tracking. Se restauró la configuración local previa.
+- Oliva PR #36, head eda50d29: **8 tests** y banco sintético ejecutados contra
+  los módulos de esta iteración. Revisión publicada; directorios reservados
+  intactos, sin merge. Se señaló colisión de tiempos entre épocas en su adaptador
+  antes de extenderlo a loops/seeks; fixtures actuales de una época no afectados.
+
+La aceptación histórica de Nicolás cubre 01c y el contraste temporal. No extender
+esa aceptación a la mezcla nueva ×10/transientes, todos los modelos, métricas de
+comparación o nuevas referencias. Cámara/hardware de captura no se volvieron a
+validar físicamente en esta segunda entrega. CUDA sigue sin causa raíz resuelta;
+se verificó recuperación CPU/cache y conservación de generación válida ante fallo
+con worker simulado, además de reapertura del cache CPU real.
+
+Pendientes explícitos: escucha humana de extremos y modelos; diagnóstico CUDA
+#31; evaluación científica, audio PCM offline, grabación opcional y sensores/3D.
+La agenda R01–R13 sigue vigente. Un visualizador polifónico no acredita cymatics
+físico, profundidad 3D, intención ni un constraint armónico causal.

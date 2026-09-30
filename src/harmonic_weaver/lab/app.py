@@ -38,6 +38,21 @@ class VideoRequest(Contract):
     force: bool = False
 
 
+class EvaluationSegment(Contract):
+    asset_id: str
+    person_id: str
+    start_s: Number = Field(default=0, ge=0)
+    end_s: Number = Field(gt=0)
+    calibration_id: str | None = None
+
+
+class EvaluationRequest(Contract):
+    preset_ids: list[str] = Field(min_length=1, max_length=32)
+    segments: list[EvaluationSegment] = Field(min_length=1, max_length=32)
+    control_hz: int = Field(default=60, ge=10, le=240)
+    preroll_s: Number = Field(default=2, ge=0, le=30)
+
+
 class CameraRequest(Contract):
     index: int = Field(default=0, ge=0, le=32)
     perception: PerceptionSettings
@@ -68,6 +83,10 @@ def _local_request(headers):
 def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=None,
                perception: PerceptionSettings | None = None, ui_dir: Path | None = None) -> FastAPI:
     session = store or SessionStore(data_dir)
+    evaluation = None
+    if runtime is not None:
+        from .evaluation.service import EvaluationService
+        evaluation = EvaluationService(data_dir, session, runtime.library)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -76,6 +95,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            if evaluation is not None:
+                evaluation.close()
             if runtime is not None:
                 runtime.close()
             if store is None:
@@ -170,6 +191,31 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return {"ok": True}
 
     if runtime is not None:
+        @app.post("/api/evaluations")
+        def start_evaluation(body: EvaluationRequest):
+            return evaluation.start(body.preset_ids, [s.model_dump() for s in body.segments],
+                                    control_hz=body.control_hz, preroll_s=body.preroll_s)
+
+        @app.get("/api/evaluations")
+        def list_evaluations():
+            return [evaluation.snapshot(i) for i in list(evaluation.jobs)]
+
+        @app.get("/api/evaluations/{ident}")
+        def evaluation_status(ident: str):
+            return evaluation.snapshot(ident)
+
+        @app.post("/api/evaluations/{ident}/cancel")
+        def cancel_evaluation(ident: str):
+            return evaluation.cancel(ident)
+
+        @app.post("/api/evaluations/{ident}/repeat")
+        def repeat_evaluation(ident: str):
+            return evaluation.repeat(ident)
+
+        @app.get("/api/evaluations/{ident}/report")
+        def evaluation_report(ident: str):
+            return evaluation.report(ident)
+
         @app.get("/api/environment")
         def environment():
             return {"perception":perception.model_dump() if perception else None}
@@ -225,6 +271,18 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         def close_source():
             runtime.close_source()
             return snapshot()
+
+        @app.post("/api/media/{job_id}/retry-cpu")
+        def retry_cpu(job_id: str):
+            return runtime.retry_cpu(job_id)
+
+        @app.get("/api/media/{job_id}/quality")
+        def media_quality(job_id: str, start_s: float = 0., end_s: float | None = None,
+                          person_id: str | None = None):
+            import math
+            if not math.isfinite(start_s) or (end_s is not None and not math.isfinite(end_s)):
+                raise ValueError("Los tiempos deben ser finitos")
+            return runtime.library.quality_report(job_id, start_s, end_s, person_id)
 
         @app.get("/api/media/{job_id}/file")
         def video_file(job_id: str):

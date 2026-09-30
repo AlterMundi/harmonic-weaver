@@ -56,7 +56,7 @@ HARMOCAP_VENV=/home/nicolas/Projects/HarMoCAP/.venv \
   --shaper-dir /home/nicolas/Projects/harmonic-shaper-lab \
   --shaper-python /home/nicolas/Projects/harmonic-shaper/.venv/bin/python \
   --checkpoint /home/nicolas/Projects/HarMoCAP/harmocap-m-pose-ft2.pt \
-  --audio-backend jack --device "Built-in Audio Analog Stereo"
+  --audio-backend jack --device "R24 Analog Stereo"
 ```
 
 Abrir **http://127.0.0.1:8765**. Shaper propio usa localhost:8085, sin MIDI ni OSC.
@@ -97,7 +97,7 @@ sus parámetros de percepción y la caché válida. Esta preferencia es local y 
 viaja en los presets. Cerrar explícitamente la fuente o elegir cámara borra esa
 preferencia; la cámara no se enciende automáticamente al arrancar.
 
-**Realce expresivo** (Instrumento): slider −1..+1, neutral en 0. Cambia la curva
+**Realce expresivo** (Instrumento): slider −1..+10, neutral en 0. Cambia la curva
 de intensidad corporal, no frecuencias, ratios, fases ni forma de onda. Positivo
 acentúa subidas y bajadas respecto de una media causal por voz, sin elevar
 el sostenido; negativo atenúa valores bajos como en la primera prueba.
@@ -125,3 +125,43 @@ Los impulsos salen del aumento de intensidad respecto de su media causal, no de
 un reloj ni de reiniciar voces. **Cola de transientes**, default 0.15 s, controla
 su caída exponencial. Primero probar una mezcla intermedia; a 100% un nivel
 constante termina en silencio. Ambos controles se guardan en presets.
+
+## Segunda iteración: probar sin perder la sesión
+
+En Legion con R24:
+
+```sh
+cd /home/nicolas/Projects/harmonic-weaver-lab
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo"
+```
+
+Si Shaper de esta sesión ya está funcionando en 8085, agregar
+`--external-shaper`: se conecta al motor existente y no lo detiene al salir.
+Un puerto ocupado no autoriza a matar un motor ajeno. La cámara sigue siendo una
+selección explícita; no se abre automáticamente al reiniciar.
+
+1. Reproducir el video cacheado. La configuración actual y los presets guardados
+   se conservan; las ediciones compatibles de realce/articulación ya no pierden
+   la historia temporal del ruteo al mover el control.
+2. **06 · Referencia 01c** recupera los valores iniciales sostenidos y afinados;
+   **07 · Exploración** propone realce 10 y articulación 30%, para escuchar.
+   Son nuevos IDs: no sobrescriben el antiguo 01c ni se aplican solos. Tampoco
+   significan que Nicolás haya aceptado esas nuevas combinaciones.
+3. Para local/relacional/angular/colectivo, calibrar con hombros y caderas
+   observados. El inspector distingue fuente, calibración, historia/faltantes,
+   ruteo sin actividad y estado del audio. Expandir las razones por señal.
+4. En Fuente, abrir **Cobertura de tracking y huecos**. Muestra proporciones
+   observadas y duración máxima de gaps por joint. Una pose puede estar equivocada
+   aunque el detector la considere observada. No elegir fragmentos sólo por energía.
+5. Ante un fallo de tracking, **Reintentar con CPU** conserva el diagnóstico y
+   reutiliza una caché CPU válida si existe. No cambia de backend silenciosamente.
+   `auto` ahora resuelve el dispositivo antes de identificar el cache; cachés
+   históricas etiquetadas `auto` pueden requerir una extracción nueva una vez.
+6. Guardar configuraciones interesantes y usar **Comparar** cuando quieras;
+   seleccionar presets, segmentos y calibración explícita si corresponde.
+   [Contrato, resultados y repetición](EVALUATION.md). No hace falta comparar para tocar.
+
+Defaults sonoros existentes intactos: realce 0, articulación 0, contraste 0.12 s,
+cola 0.15 s, suavizado de ganancia 01c 0.03 s. Pitch/fase siguen siendo ruteos
+separados; las referencias afinadas los mantienen deshabilitados. Los controles
+extremos necesitan escucha: las pruebas automáticas no juzgan empaste o musicalidad.

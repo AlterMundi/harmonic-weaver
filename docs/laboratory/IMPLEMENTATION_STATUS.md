@@ -1,7 +1,8 @@
 # Implementación: estado comprobado
 
-2026-09-29. Primera iteración local disponible para feedback. La aceptación
-humana y escucha siguen pendientes. [Evidencia y límites](VALIDATION.md).
+2026-09-29. Segunda iteración local y primer comparador disponibles para feedback.
+La aceptación anterior de 01c/contraste se conserva; la escucha de realce ×10,
+articulación y modelos nuevos sigue pendiente. [Evidencia y límites](VALIDATION.md).
 
 ## Publicación
 
@@ -78,3 +79,16 @@ de interfaz. Los máximos de latencia, precisión de tracking y fallo GPU tienen
 límites explícitos; no se declara una validación científica o fisiológica.
 
 Grabación opcional, evaluación formal y sensores siguen en la agenda posterior.
+
+## Segunda iteración
+
+Ediciones compatibles conservan suavizados/historia de expresión; referencias
+versionadas sin sobrescritura. Diagnóstico de modelo/ruteo/audio, cobertura por
+joint y recuperación CPU explícita con dispositivo efectivo en la identidad de
+cache. Comparador web/CLI: presets congelados × segmentos, runtime compartido,
+reloj/preroll/reset deterministas, features/targets/métricas y soporte común.
+[EVALUATION](EVALUATION.md) documenta operación, reproducibilidad y límites.
+
+CUDA no se declara reparado; se entrega recuperación y evidencia. Sin PCM
+offline, nuevos sensores/3D ni validación científica formal. Agenda R01–R13
+intacta. Aporte Oliva #36 revisado, pruebas ejecutadas, sin merge.

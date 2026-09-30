@@ -69,6 +69,17 @@ class PreparedRoutes:
             if self.preset.fundamental_hz*(voice.ratio+high/2) > 20000:
                 raise ValueError(f"voice {voice.id}: pitch range exceeds 20 kHz")
 
+    def inherit_state(self, previous):
+        """Preserve causal envelopes on knob edits, never on preset/reset."""
+        if previous is None:
+            return
+        unchanged = {r.id for r in self.routes if any(r == old for old in previous.routes)}
+        self.smoothed = {k: v for k, v in previous.smoothed.items() if k in unchanged}
+        gain_voices = {r.voice for r in self.routes if r.target == "gain" and r.id in unchanged}
+        self.expression_history = {k:v for k,v in previous.expression_history.items() if k in gain_voices}
+        self.transient_envelopes = {k:v for k,v in previous.transient_envelopes.items() if k in gain_voices}
+        self.last_time = previous.last_time
+
     def reset(self):
         self.smoothed.clear()
         self.expression_history.clear()

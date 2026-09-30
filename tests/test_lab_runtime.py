@@ -101,3 +101,26 @@ def test_last_video_survives_restart_but_explicit_close_clears_it(tmp_path):
     runtime.close_source()
     assert store.last_video() is None
     store.close()
+
+
+def test_calibration_diagnostic_and_compatible_edits_preserve_response(tmp_path):
+    now=[0.]
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    p=Preset(algorithm={"id":"local"},response={"pluck_enabled":False},expression=1)
+    store.edit(p,0)
+    runtime=LaboratoryRuntime(store,library=Library(),audio=Audio(),clock=lambda:now[0])
+    runtime.kind,runtime.job_id="video","test"
+    runtime.tick()
+    assert runtime.diagnostic["code"]=="calibration_required"
+    runtime.calibrate()
+    runtime.control(playing=True)
+    for i in range(20):
+        now[0]=i/30
+        runtime.tick()
+    assert runtime.diagnostic["observed_signals"]>0
+    previous=dict(runtime.routes.expression_history)
+    p.expression=2
+    store.edit(p,1)
+    runtime.tick()
+    assert runtime.routes.expression_history==previous
+    store.close()

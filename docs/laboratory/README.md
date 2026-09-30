@@ -74,3 +74,5 @@ Estas preguntas tienen seguimiento propio sin prometer implementarlas todas en e
 - Publicar cambios de contratos con fixtures compartidos antes de integrar consumidores en paralelo.
 
 [github-plan.json](github-plan.json) conserva las claves y dependencias; [GITHUB.json](GITHUB.json) registra los números/URLs publicados. Los cuerpos en [issues/](issues/) son el snapshot de publicación; el estado operativo posterior se sigue en GitHub.
+
+Segunda iteración: [comparador reproducible](EVALUATION.md), [arranque y recorrido](RUNNING.md).

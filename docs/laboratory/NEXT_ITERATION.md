@@ -1,7 +1,9 @@
 # Próxima iteración: instrumento y contraste independiente
 
-2026-09-29. Goals preparados para iniciar en próximas sesiones; esta nota no
-declara iniciada su ejecución ni asigna trabajo automáticamente a otra persona.
+2026-09-29. El goal principal se ejecutó en la segunda iteración: consultar
+[EVALUATION](EVALUATION.md), [VALIDATION](VALIDATION.md) y [RUNNING](RUNNING.md).
+Las secciones siguientes conservan el alcance y los pendientes; no asignan
+trabajo automáticamente a otra persona.
 Programa #7; continuidad de LAB-08, EVAL #18 y agenda R01–R13.
 
 ## Estado que debe preservarse

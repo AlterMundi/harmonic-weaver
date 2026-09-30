@@ -52,3 +52,31 @@ def test_video_loops_and_reopening_never_reinfer(tmp_path):
     forced = wait(reopened, reopened.open(media, config, force=True))
     assert not forced["cache_hit"] and FakeWorker.calls == 2
     reopened.close()
+
+
+def test_failed_gpu_generation_keeps_cache_and_cpu_uses_separate_key(tmp_path):
+    class Worker(FakeWorker):
+        fail = False
+        def resolve_device(self, requested):
+            return "cuda:0" if requested=="auto" else requested
+        def messages(self, settings, **kwargs):
+            yield from super().messages(settings, **kwargs)
+            if self.fail and settings.device=="cuda:0":
+                raise RuntimeError("CUDA illegal instruction")
+
+    video, model=tmp_path/"clip.mp4", tmp_path/"m.pt"
+    video.write_bytes(b"video");model.write_bytes(b"weights")
+    config=PerceptionSettings(checkpoint=str(model),device="auto")
+    library=VideoLibrary(tmp_path/"data",worker_factory=Worker)
+    original=wait(library,library.open(video,config))
+    Worker.fail=True
+    failed=library.open(video,config,force=True)
+    library.jobs[failed["id"]].thread.join(3)
+    assert library.snapshot(failed["id"])["status"]=="error"
+    reopened=wait(library,library.open(video,config))
+    assert reopened["cache_hit"] and reopened["cache_key"]==original["cache_key"]
+    cpu=wait(library,library.open(video,config.model_copy(update={"device":"cpu"})))
+    assert cpu["cache_key"] != original["cache_key"]
+    assert cpu["effective_device"]=="cpu"
+    assert (tmp_path/"data/tracking-attempts.jsonl").is_file()
+    library.close()

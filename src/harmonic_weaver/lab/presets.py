@@ -32,6 +32,16 @@ def initial_presets():
         elif route.target == "gain":
             route.smoothing_s = .03
     result.insert(2, sustained)
+    reference = sustained.model_copy(deep=True)
+    reference.id = "lab-v2-reference-sustained"
+    reference.name = "06 · Referencia 01c / afinado sostenido"
+    result.append(reference)
+    contrast = reference.model_copy(deep=True)
+    contrast.id = "lab-v2-reference-transients"
+    contrast.name = "07 · Exploración / realce ×10 y transientes 30%"
+    contrast.expression = 10.
+    contrast.transient_mix = .3
+    result.append(contrast)
     return result
 
 

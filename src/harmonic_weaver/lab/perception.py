@@ -35,6 +35,17 @@ class PerceptionWorker:
             raise RuntimeError(data.get("error", "HarMoCAP probe failed"))
         return data
 
+    def resolve_device(self, requested):
+        if requested != "auto":
+            return requested
+        # Resolve before hashing the cache: auto cannot silently reuse CPU
+        # observations when the same machine later acquires a CUDA device.
+        code = "import torch; print('cuda:0' if torch.cuda.is_available() else 'cpu')"
+        result = subprocess.run([self.python, "-c", code], capture_output=True, text=True, timeout=30)
+        if result.returncode or result.stdout.strip() not in {"cpu", "cuda:0"}:
+            raise RuntimeError("No se pudo resolver el backend de percepción")
+        return result.stdout.strip()
+
     def messages(self, settings, *, source_id, stream_id, video=None, camera=0):
         command = self.command() + ["--config-json", settings.model_dump_json(),
                                     "--source-id", source_id, "--stream-id", stream_id]

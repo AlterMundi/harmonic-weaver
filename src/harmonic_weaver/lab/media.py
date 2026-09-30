@@ -11,6 +11,7 @@ from uuid import uuid4
 from .cache import CacheCancelled, TrackingCache, atomic_json, cache_identity, sha256_file
 from .contracts import MotionFrame, PerceptionSettings
 from .perception import PerceptionWorker
+from .quality import coverage
 
 
 @dataclass
@@ -19,6 +20,8 @@ class VideoJob:
     path: Path
     settings: PerceptionSettings
     status: str = "hashing"
+    requested_device: str | None = None
+    quality: dict | None = None
     media_id: str | None = None
     cache_key: str | None = None
     cache_location: str | None = None
@@ -34,7 +37,8 @@ class VideoJob:
     def public(self):
         return {"id": self.id, "name": self.path.name, "path": str(self.path), "status": self.status,
                 "media_id": self.media_id, "cache_key": self.cache_key, "cache_location": self.cache_location,
-                "cache_hit": self.cache_hit, "error": self.error, "duration_s": self.duration_s,
+                "cache_hit": self.cache_hit, "error": self.error,
+                "requested_device": self.requested_device, "effective_device": self.settings.device, "duration_s": self.duration_s,
                 "processed_frames": len(self.frames), "prefix_s": self.times[-1] if self.times else 0.,
                 "perception": self.settings.model_dump(),
                 "width": self.frames[0].width if self.frames else None,
@@ -63,7 +67,9 @@ class VideoLibrary:
             if any(j.status in {"hashing", "probing", "building"} for j in self.jobs.values()):
                 raise ValueError("a video extraction is active; cancel it before starting another")
             job = VideoJob(uuid4().hex, path, settings.model_copy(deep=True))
+            job.requested_device = settings.device
             self.jobs[job.id] = job
+            self._attempt(job)
             job.thread = threading.Thread(target=self._extract, args=(job, force), daemon=True,
                                           name=f"lab-tracking-{job.id[:6]}")
             job.thread.start()
@@ -79,6 +85,9 @@ class VideoLibrary:
                 job.media_id = media_hash
                 job.status = "probing"
                 job.worker = worker
+            if hasattr(worker, "resolve_device"):
+                effective = worker.resolve_device(job.settings.device)
+                job.settings = job.settings.model_copy(update={"device": effective})
             extractor = worker.probe()
             key, metadata = cache_identity(media_hash, job.settings, extractor)
             if job.cancel_event.is_set():
@@ -109,10 +118,11 @@ class VideoLibrary:
                 job.times = [f.source_time_s for f in cached.frames]
                 job.duration_s = cached.manifest["duration_s"]
                 job.cache_location = str(cached.manifest_path)
+                job.quality = coverage(job.frames, end_s=job.duration_s)
                 job.status = "ready"
                 job.error = self.cache.last_problem
                 self.assets[media_hash] = {"id": media_hash, "name": job.path.name, "path": str(job.path),
-                                           "duration_s": job.duration_s, "perception": job.settings.model_dump(),
+                                           "duration_s": job.duration_s, "person_ids": sorted(job.quality["persons"]), "perception": job.settings.model_dump(),
                                            "cache_location": job.cache_location}
                 atomic_json(self.index, self.assets)
         except Exception as exc:
@@ -120,8 +130,29 @@ class VideoLibrary:
                 job.status = "cancelled" if job.cancel_event.is_set() or isinstance(exc, CacheCancelled) else "error"
                 job.error = str(exc)
         finally:
-            if job.worker is not None:
-                job.worker.stop()
+            try:
+                with self._lock:
+                    self._attempt(job)
+            finally:
+                if job.worker is not None:
+                    job.worker.stop()
+
+    def _attempt(self, job):
+        # Local lightweight record, including rejected/failed candidates.
+        with (self.data_dir / "tracking-attempts.jsonl").open("a") as handle:
+            handle.write(json.dumps(job.public(), ensure_ascii=False, allow_nan=False)+"\n")
+
+    def quality_report(self, job_id, start_s=0., end_s=None, person_id=None):
+        with self._lock:
+            job = self.jobs[job_id]
+            if job.status != "ready":
+                raise ValueError("Esperá a completar el tracking para comparar cobertura.")
+            if end_s is None and start_s == 0 and person_id is None:
+                return job.quality
+            end_s = job.duration_s if end_s is None else end_s
+            if not 0 <= start_s < end_s <= job.duration_s:
+                raise ValueError("Segmento fuera de la duración disponible")
+            return coverage(job.frames, start_s=start_s, end_s=end_s, person_id=person_id)
 
     def list_assets(self):
         with self._lock:

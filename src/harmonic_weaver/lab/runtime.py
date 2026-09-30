@@ -11,6 +11,7 @@ from .media import VideoLibrary
 from .models import MotionModel
 from .perception import LiveCamera
 from .transport import Transport
+from .quality import current_quality
 
 
 class LaboratoryRuntime:
@@ -42,6 +43,7 @@ class LaboratoryRuntime:
         self.routing = {}
         self.tick_ms = 0.
         self.last_targets = []
+        self.diagnostic = {"code": "no_source", "message": "Elegí una fuente."}
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -170,6 +172,8 @@ class LaboratoryRuntime:
                     self.model.baseline.reset()
             self.model.preset = preset.model_copy(deep=True)
             if revision != self.revision:
+                if prepared is not None:
+                    prepared.inherit_state(self.routes)
                 self.routes, self.revision = prepared, revision
                 if self.routes is None:
                     raise ValueError("runtime requires SessionStore(prepare=PreparedRoutes)")
@@ -221,11 +225,49 @@ class LaboratoryRuntime:
                          position_s=position, playing=self.transport.playing, loop=self.transport.loop,
                          status="playing" if self.transport.playing and valid else "waiting" if self.transport.playing else "paused",
                          error=None)
-            if audio["applied_revision"] >= 0:
+            if audio["applied_revision"] is not None and audio["applied_revision"] >= 0:
                 state["applied_revision"] = audio["applied_revision"]
+            self._diagnose(preset, valid, audio, metadata)
             self.store.set_runtime(**state)
             self.error = None
             self.tick_ms = (self.clock()-started)*1000
+
+    def _diagnose(self, preset, valid, audio, metadata):
+        signals = self.features.signals if self.features else {}
+        missing = {k: v.reason or "Sin observación o historia suficiente"
+                   for k, v in signals.items() if v.state != "observed"}
+        observed = sum(v.state == "observed" for v in signals.values())
+        code, message = "active", "Modelo activo: señales disponibles."
+        if self.kind is None:
+            code, message = "no_source", "Elegí un video o cámara."
+        elif metadata and metadata["status"] in {"error", "cancelled"}:
+            code, message = "source_error", "Tracking detenido; revisá la fuente o recuperá con CPU."
+        elif not valid:
+            code, message = "tracking_missing", "Esperando tracking de la persona seleccionada."
+        elif preset.algorithm.id != "baseline" and self.calibration is None:
+            code, message = "calibration_required", "Calibrá la escala con hombros y caderas visibles."
+        elif not self.transport.playing:
+            code, message = "paused", "Fuente pausada."
+        elif not observed:
+            code, message = "warming_or_missing", "Acumulando historia o faltan articulaciones para este modelo."
+        elif self.routing.get("invalid_voices"):
+            code, message = "partial", "Algunas voces no tienen todas sus señales válidas; revisá los ruteos."
+        elif not any(t.gain > 1e-6 for t in self.last_targets):
+            code, message = "silent_mapping", "Hay señales; el movimiento, mute/solo o mapeo produce silencio."
+        self.diagnostic = {"code": code, "message": message, "observed_signals": observed,
+                           "missing_signals": missing, "pose": current_quality(self.frame, self.person_id),
+                           "audio_error": audio.get("error"),
+                           "audio_status": "unavailable" if audio.get("error") else "connected"}
+
+    def retry_cpu(self, job_id):
+        if self.kind != "video" or self.job_id != job_id:
+            raise ValueError("La fuente cambió; seleccioná el video que querés recuperar.")
+        job = self.library.snapshot(job_id)
+        if job["status"] not in {"error", "cancelled", "ready"}:
+            raise ValueError("Cancelá la extracción activa antes de recuperar.")
+        settings = PerceptionSettings.model_validate(job["perception"])
+        settings.device = "cpu"
+        return self.open_video(job["path"], settings)
 
     def _run(self):
         while not self._stop.is_set():
@@ -247,7 +289,7 @@ class LaboratoryRuntime:
                     "features":self.features.model_dump() if self.features else None,
                     "calibration":self.calibration.model_dump() if self.calibration else None,
                     "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
-                               "epoch":self.transport.epoch}, **self.audio.snapshot()}
+                               "epoch":self.transport.epoch, "diagnostic":self.diagnostic}, **self.audio.snapshot()}
 
     def close(self):
         self._stop.set()

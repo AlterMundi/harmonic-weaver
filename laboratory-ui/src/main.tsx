@@ -1,3 +1,4 @@
+import { EvaluationPanel } from "./EvaluationPanel";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Figure } from "./figure";
@@ -381,6 +382,7 @@ function App() {
   const [presetName, setPresetName] = useState(""),
     [mark, setMark] = useState(""),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
+  const [quality, setQuality] = useState<Data | null>(null);
   const [algorithms, setAlgorithms] = useState<Data[]>([]);
   const [pending, setPending] = useState(false),
     [figureError, setFigureError] = useState("");
@@ -414,6 +416,14 @@ function App() {
       api("media")
         .then(setAssets)
         .catch((e) => setError(String(e)));
+  }, [state.source?.job?.id, state.source?.job?.status]);
+  useEffect(() => {
+    setQuality(null);
+    if (state.source?.job?.status === "ready") {
+      api(`media/${state.source.job.id}/quality`)
+        .then(setQuality)
+        .catch((e) => setError(String(e)));
+    }
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
     api("algorithms")
@@ -554,7 +564,10 @@ function App() {
     const position = state.session?.position_s || 0;
     if (Math.abs(el.currentTime - position) > 0.1) el.currentTime = position;
     if (state.session?.playing && el.paused)
-      void el.play().catch((e) => setError(String(e)));
+      void el.play().catch((e) => {
+        // A pause/seek may legitimately cancel a pending play promise.
+        if (e?.name !== "AbortError") setError(String(e));
+      });
     if (!state.session?.playing && !el.paused) el.pause();
   }, [state.session?.position_s, state.session?.playing, state.source?.kind]);
   useEffect(() => {
@@ -807,6 +820,7 @@ function App() {
               "Ruteos",
               "Figura",
               "Presets",
+              "Comparar",
             ].map((t) => (
               <button
                 className={tab === t ? "active" : ""}
@@ -818,6 +832,16 @@ function App() {
             ))}
           </nav>
           <div className="panel">
+            {tab === "Comparar" && (
+              <EvaluationPanel
+                assets={assets}
+                presets={presets}
+                calibrations={savedCalibrations}
+                person={session.person_id}
+                api={api}
+                run={run}
+              />
+            )}
             {tab === "Fuente" && (
               <>
                 <h2>Fuente y percepción</h2>
@@ -877,6 +901,87 @@ function App() {
                     {job.cache_hit ? "cache reutilizado" : "extracción"}{" "}
                     {job.error}
                   </p>
+                )}
+                {job && ["error", "cancelled"].includes(job.status) && (
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        await api(`media/${job.id}/retry-cpu`, {});
+                        await refresh();
+                      })
+                    }
+                  >
+                    Recuperar tracking con CPU
+                  </button>
+                )}
+                {job && (
+                  <p>
+                    Backend solicitado:{" "}
+                    {job.requested_device || job.perception?.device} · efectivo:{" "}
+                    {job.effective_device || job.perception?.device}
+                  </p>
+                )}
+                {quality && (
+                  <details>
+                    <summary>Cobertura de tracking y huecos</summary>
+                    <p>{quality.warning}</p>
+                    {Object.entries(quality.persons || {}).map(
+                      ([id, value]) => (
+                        <div key={id}>
+                          <h3>{id}</h3>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Articulación</th>
+                                <th>Observado</th>
+                                <th>Hueco máximo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries((value as Data).joints).map(
+                                ([joint, q]) => (
+                                  <tr key={joint}>
+                                    <td>
+                                      {
+                                        [
+                                          "Nariz",
+                                          "Ojo izquierdo",
+                                          "Ojo derecho",
+                                          "Oreja izquierda",
+                                          "Oreja derecha",
+                                          "Hombro izquierdo",
+                                          "Hombro derecho",
+                                          "Codo izquierdo",
+                                          "Codo derecho",
+                                          "Muñeca izquierda",
+                                          "Muñeca derecha",
+                                          "Cadera izquierda",
+                                          "Cadera derecha",
+                                          "Rodilla izquierda",
+                                          "Rodilla derecha",
+                                          "Tobillo izquierdo",
+                                          "Tobillo derecho",
+                                        ][Number(joint)]
+                                      }
+                                    </td>
+                                    <td>
+                                      {(
+                                        (q as Data).observed_fraction * 100
+                                      ).toFixed(1)}
+                                      %
+                                    </td>
+                                    <td>
+                                      {(q as Data).max_gap_s.toFixed(2)} s
+                                    </td>
+                                  </tr>
+                                ),
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      ),
+                    )}
+                  </details>
                 )}
                 <label className="file-button">
                   Elegir y cargar un video
@@ -1229,6 +1334,27 @@ function App() {
         </section>
         <aside className="inspector">
           <h2>Lo que está pasando</h2>
+          <p role="status" data-testid="model-status">
+            {state.runtime?.diagnostic?.message}
+          </p>
+          <p>
+            Señales observadas:{" "}
+            {state.runtime?.diagnostic?.observed_signals ?? 0} · Articulaciones
+            observadas: {state.runtime?.diagnostic?.pose?.observed ?? 0}/17
+          </p>
+          {state.runtime?.diagnostic?.audio_error && (
+            <p role="alert">Audio: {state.runtime.diagnostic.audio_error}</p>
+          )}
+          <details>
+            <summary>Por qué faltan señales</summary>
+            <pre>
+              {JSON.stringify(
+                state.runtime?.diagnostic?.missing_signals,
+                null,
+                2,
+              )}
+            </pre>
+          </details>
           {draft.algorithm.id !== "baseline" && !state.calibration && (
             <div role="status">
               <p>
