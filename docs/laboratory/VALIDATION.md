@@ -563,3 +563,16 @@ revalidaba como 0.0 en el worker. Nuevos requests se normalizan antes del freeze
 históricos comparan contenido con equivalencia numérica restringida y digest
 verificado. Tras corrección: 17 tests PCM/evaluación pasan; suite evaluación con
 regresión numérica adicional pasa. No se relaja identidad de código/entorno.
+
+
+## 2026-09-30 — continuidad del decoder durante drift
+
+VideoFollower corrige desfases ordinarios menores a 2 s con playbackRate limitado
+a 0.9–1.1; seeks/loops siguen usando salto explícito. No consume discontinuidades
+mientras un seek o play esté pendiente. La velocidad del audio no se modifica.
+Tres pruebas pasan, incluida reproducción real de MP4 H.264 sintético en Chrome:
+tiempo y fotogramas avanzan durante actualizaciones con desfase de 0.6 s, sin
+nuevos seeks. Build TypeScript/Vite pasa. Esto no prueba la interacción completa
+de selección de Persona ni aceptación visual de Nicolás; ambas siguen pendientes.
+La corrección está aplicada y compilada en harmonic-weaver-lab (b63ee20), sin
+reiniciar servicios ni tocar R24; esta rama mantiene la misma corrección para dev.
