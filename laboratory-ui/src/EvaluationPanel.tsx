@@ -378,6 +378,11 @@ export function EvaluationPanel({
             </tbody>
           </table>
           <button onClick={download}>Descargar informe y manifest</button>
+          {report.manifest.runs.some((r:Data)=>r.pcm) && <details>
+            <summary>Entorno del render PCM</summary>
+            <p>Las corridas nuevas fijan código y entorno. Un render legacy sin identidad de entorno no se repite como si su entorno original fuera conocido; crear una comparación nueva.</p>
+            <pre>{JSON.stringify(report.manifest.runs.find((r:Data)=>r.pcm)?.pcm?.engine?.environment || {estado:'Entorno no registrado'},null,2)}</pre>
+          </details>}
           <p>
             <a href={`/api/evaluations/${report.job_id}/artifacts/request.json`} download>Configuración congelada</a>
             {' · '}<a href={`/api/evaluations/${report.job_id}/artifacts/manifest.json`} download>Manifest original</a>

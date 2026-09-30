@@ -71,6 +71,8 @@ class EvaluationService:
             if any(p is not None and p.poll() is None for p in self.processes.values()):
                 raise ValueError("Ya hay una comparación activa")
             request = Request.model_validate_json((self.root/ident/"request.json").read_text())
+            if request.pcm.enabled and request.pcm.environment_sha256 is None:
+                raise ValueError('Corrida legacy sin entorno congelado: crear una comparación nueva; no se conoce su entorno original')
             return self._launch(request)
 
     def _launch(self, request):
@@ -82,7 +84,12 @@ class EvaluationService:
             identity = engine_identity()
             if request.pcm.engine_sha256 and request.pcm.engine_sha256 != identity["code_sha256"]:
                 raise ValueError("El motor Shaper cambió desde la corrida congelada")
+            if request.pcm.engine_sha256 and request.pcm.environment_sha256 is None:
+                raise ValueError('Corrida legacy sin entorno congelado: crear una comparación nueva')
+            if request.pcm.environment_sha256 and request.pcm.environment_sha256!=identity['environment_sha256']:
+                raise ValueError('El entorno del renderer cambió desde la corrida congelada')
             request.pcm.engine_sha256 = identity["code_sha256"]
+            request.pcm.environment_sha256 = identity['environment_sha256']
         ident = uuid4().hex
         folder = self.root/ident
         folder.mkdir()

@@ -197,3 +197,21 @@ locales y pueden contener información corporal/rutas: no se publican solas.
 Esto permite inspección e intercambio deliberado de datos para R01/R02/R07;
 no implementa todavía la ingestión corporal en esos bancos ni resuelve sus
 hipótesis. No altera calibración, presets, fuentes ni síntesis en vivo.
+
+## Identidad del entorno PCM
+
+Las corridas nuevas congelan `pcm.environment_sha256` además de `engine_sha256`.
+El entorno declarado incluye Python, plataforma, NumPy, soundfile y libsndfile;
+el manifest del renderer conserva esos valores. Un cambio se rechaza antes de
+escribir PCM: elegir deliberadamente una comparación nueva con su propia identidad.
+No cambia los venvs ni el instrumento. La web muestra el entorno del render.
+
+Los resultados legacy siguen consultables/descargables, pero su request sólo
+fijaba código: repetir no puede inventar su entorno original. Web/CLI rechazan
+re-render de un pin de código sin pin de entorno. Crear un request nuevo sin
+pins heredados es otra comparación, no una reproducción demostrada de la antigua.
+No quitar un hash del motor para forzar un resultado incompatible.
+
+Este fingerprint declara dependencias relevantes, no es una attestation completa
+de hardware/build/CPU ni prueba universal de identidad numérica. Una igualdad
+comprobada sobre fixtures tampoco mide latencia física o escucha humana.

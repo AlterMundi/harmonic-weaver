@@ -95,6 +95,7 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
             assert status['status']=='complete',status
             return client.get(f'/api/evaluations/{i}/report').json()
         report=complete(ident)
+        assert report['manifest']['request']['pcm']['environment_sha256']==engine_identity()['environment_sha256']
         from unittest.mock import patch
         from harmonic_weaver.lab.evaluation import service as service_module
         with patch.object(service_module, 'sha256_file', wraps=service_module.sha256_file) as checksum:
@@ -116,6 +117,19 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
         repeated=client.post(f'/api/evaluations/{ident}/repeat',json={}).json()
         again=complete(repeated['id'])
         assert again['manifest']['runs'][0]['pcm']['sha256']==pcm['sha256']
+        from pathlib import Path
+        request_path=tmp_path/'session'/'evaluations'/ident/'request.json'
+        original_request=request_path.read_bytes()
+        legacy=json.loads(original_request);legacy['pcm'].pop('environment_sha256')
+        request_path.write_text(json.dumps(legacy))
+        rejected=client.post(f'/api/evaluations/{ident}/repeat',json={})
+        assert rejected.status_code==422 and 'legacy' in rejected.text
+        request_path.write_bytes(original_request)
+        changed=json.loads(original_request);changed['pcm']['environment_sha256']='changed'
+        request_path.write_text(json.dumps(changed))
+        rejected=client.post(f'/api/evaluations/{ident}/repeat',json={})
+        assert rejected.status_code==422 and 'entorno' in rejected.text
+        request_path.write_bytes(original_request)
         audio_path=__import__('pathlib').Path(report['manifest']['runs'][0]['pcm']['file'])
         audio_path=__import__('pathlib').Path(job.json()['directory'])/audio_path
         audio_path.write_bytes(b'changed')
@@ -123,3 +137,24 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
         __import__('pathlib').Path(source.media_path).write_bytes(b'changed')
         assert client.get(f'/api/evaluations/{ident}/sources/0').status_code == 422
     store.close()
+
+
+def test_environment_pin_rejects_changed_renderer_before_writing_pcm(tmp_path):
+    source,_,_=source_fixture(tmp_path)
+    identity=engine_identity()
+    assert identity['environment']['numpy']==np.__version__
+    request=Request(presets=[Preset()],sources=[source],pcm=PCMSettings(enabled=True,environment_sha256='changed'))
+    with pytest.raises(ValueError,match='entorno'):run(request,tmp_path/'changed-environment')
+    assert not list((tmp_path/'changed-environment').glob('*.wav'))
+    with pytest.raises(ValueError,match='entorno'):
+        PCMWriter(tmp_path/'invalid.wav',request.pcm,begin_s=0,start_s=0,end_s=.1)
+    assert not (tmp_path/'invalid.wav').exists()
+
+
+def test_legacy_code_only_pin_cannot_be_silently_refrozen_by_cli(tmp_path):
+    source,_,_=source_fixture(tmp_path)
+    request=Request(presets=[Preset()],sources=[source],pcm=PCMSettings(enabled=True,engine_sha256=engine_identity()['code_sha256']))
+    with pytest.raises(ValueError,match='legacy'):run(request,tmp_path/'legacy')
+    with pytest.raises(ValueError,match='legacy'):
+        PCMWriter(tmp_path/'legacy.wav',request.pcm,begin_s=0,start_s=0,end_s=.1)
+    assert not (tmp_path/'legacy.wav').exists()

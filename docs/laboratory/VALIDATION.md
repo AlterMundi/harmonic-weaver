@@ -528,3 +528,17 @@ físico. Compatibilidad comprobada en Chrome local, no en todos los navegadores.
 no se iniciaron audio/cámara ni se modificó el laboratorio habitual. Se detectó
 entorno distinto entre renderer y Shaper; igualdad PCM entre procesos y pin de
 entorno son pendientes explícitos de #18, no cubiertos por estos tests.
+
+### Pin de entorno y comparación entre intérpretes — 2026-09-30
+
+Request/renderer/servicio fijan y verifican entorno separado del código. Seis
+pruebas PCM pasan, incluyendo discrepancia antes de WAV, API repeat rechazada,
+legacy rechazado por API/CLI y repetición nueva exacta. Suite previa combinada
+PCM/evaluación: 13 tests. Build y Chrome del panel pasan.
+
+Protocolo hardware-free en research/laboratory/audio_environment: controles
+sintéticos idénticos sobre ambos intérpretes, seis voces/150 bloques, shape/pan/
+fases y liberación. 38400 muestras estéreo idénticas por SHA-256, máxima diferencia
+cero, archivos del motor coincidentes. Evidencia sintética publicada, sin cuerpos.
+Sólo prueba esa secuencia: no generalizar a otros parámetros/plataformas ni
+latencia física. No se alteraron venvs ni se inició audio/cámara.

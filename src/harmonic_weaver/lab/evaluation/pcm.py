@@ -3,6 +3,7 @@ import hashlib
 import importlib
 import json
 import math
+import platform
 from pathlib import Path
 import sys
 import struct
@@ -20,6 +21,7 @@ class PCMSettings(Contract):
     shaper_master: Number = Field(default=.8, ge=0, le=1)
     tail_s: Number = Field(default=0, ge=0, le=2)
     engine_sha256: str | None = None
+    environment_sha256: str | None = None
 
 
 def engine_modules():
@@ -42,10 +44,15 @@ def engine_modules():
 
 
 def engine_identity():
+    import soundfile as sf
     modules = engine_modules()
     files = {Path(m.__file__).name: sha256_file(m.__file__) for m in modules}
     digest = hashlib.sha256(json.dumps(files,sort_keys=True,separators=(',',':')).encode()).hexdigest()
-    return {"files": files, "code_sha256": digest, "module_path": str(Path(modules[0].__file__).parent)}
+    environment={'python':platform.python_version(),'platform':platform.platform(),
+                 'numpy':np.__version__,'soundfile':sf.__version__,'libsndfile':sf.__libsndfile_version__}
+    environment_hash=hashlib.sha256(json.dumps(environment,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    return {"files": files, "code_sha256": digest, "module_path": str(Path(modules[0].__file__).parent),
+            'environment':environment,'environment_sha256':environment_hash}
 
 
 def canonicalize_wav(path):
@@ -76,6 +83,10 @@ class PCMWriter:
         identity = engine_identity()
         if settings.engine_sha256 and settings.engine_sha256 != identity['code_sha256']:
             raise ValueError("El motor Shaper cambió desde la corrida congelada")
+        if settings.engine_sha256 and settings.environment_sha256 is None:
+            raise ValueError('Corrida legacy sin entorno congelado: crear una comparación nueva')
+        if settings.environment_sha256 and settings.environment_sha256 != identity['environment_sha256']:
+            raise ValueError('El entorno del renderer cambió desde la corrida congelada')
         self.identity, self.settings = identity, settings
         self.store = modules[1].VoiceParameterStore()
         self.store.set_master_gain(settings.shaper_master)

@@ -174,8 +174,13 @@ def run(request: Request, output: Path, *, progress=None):
         identity = engine_identity()
         if request.pcm.engine_sha256 and request.pcm.engine_sha256 != identity["code_sha256"]:
             raise ValueError("El motor Shaper cambió desde la corrida congelada")
+        if request.pcm.engine_sha256 and request.pcm.environment_sha256 is None:
+            raise ValueError('Corrida legacy sin entorno congelado: crear una comparación nueva')
+        if request.pcm.environment_sha256 and request.pcm.environment_sha256!=identity['environment_sha256']:
+            raise ValueError('El entorno del renderer cambió desde la corrida congelada')
         request = request.model_copy(deep=True)
         request.pcm.engine_sha256 = identity["code_sha256"]
+        request.pcm.environment_sha256 = identity['environment_sha256']
     frozen = request.model_dump()
     atomic_json(output/"request.json", frozen)
     manifest = {"format": 1, "status": "running", "request_sha256": digest(frozen),

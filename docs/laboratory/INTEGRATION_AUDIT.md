@@ -48,3 +48,12 @@ Overlays y prefijos audiovisuales recovered; recovery in-flight con polling;
 medición física/cámara/escucha; bancos y controles R02–R13; integración del aporte
 Oliva por contrato sin modificar sus directorios reservados. Las notas históricas
 en VALIDATION no sustituyen la verificación de estas entregas faltantes.
+
+## Incremento posterior: entorno fijado y fixture entre intérpretes
+
+Requests PCM nuevos fijan environment_sha256; discrepancias y requests legacy
+sin entorno se rechazan por API/CLI. La web expone el entorno registrado.
+Protocolo audio_environment verifica igualdad exacta de 38400 muestras estéreo
+sobre seis voces sintéticas entre los intérpretes auditados, con código coincidente.
+El pendiente universal de paridad live/renderer no se cierra con un fixture;
+protocolo/identidades permiten ampliar las condiciones sin asumir resultados.
