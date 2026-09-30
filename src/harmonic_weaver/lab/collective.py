@@ -173,10 +173,11 @@ class LaggedPropagation:
 
     def push(self, t, velocities):
         velocities = np.asarray(velocities, dtype=float)
-        if velocities.ndim != 2 or not np.isfinite(velocities).all():
+        if velocities.ndim != 2 or min(velocities.shape,default=0)==0 or not np.isfinite(velocities).all() or not np.isfinite(t):
             self.history.clear(); self.models.clear(); self.errors.clear()
             return {"state":"missing", "reason":"missing regional support"}
-        if self.history and (t <= self.history[-1][0] or t-self.history[-1][0] > self.settings.max_gap_s):
+        if self.history and (velocities.shape!=self.history[-1][1].shape or
+                t <= self.history[-1][0] or t-self.history[-1][0] > self.settings.max_gap_s):
             self.history.clear(); self.models.clear(); self.errors.clear()
         while self.history and self.history[0][0] < t-self.settings.window_s:
             self.history.popleft()

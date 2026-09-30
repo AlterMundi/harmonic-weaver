@@ -504,3 +504,10 @@ verifican tamaños distintos de soporte individual y conteo común. Suite de
 colectivo, propagación, modelos y replay verifica también predictor causal,
 retardo sintético conocido, ausencia de centros forzados y paridad del baseline.
 No hay escucha nueva ni evidencia de causalidad corporal.
+
+### Cambios de forma regional — 2026-09-30
+
+Regresión: calentar predictor y luego cambiar número de regiones/dimensiones debe
+volver a warming, con una sola observación de la nueva forma y sin modelos/errores
+anteriores. Timestamp no finito y soporte vacío limpian historia. Suite de
+propagación/colectivo/modelos pasa; sin cambios de defaults o baseline aceptado.

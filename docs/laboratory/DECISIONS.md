@@ -61,3 +61,9 @@ un cambio de score aunque las predicciones sean iguales. Se requieren al menos
 cinco timestamps comunes y el diagnóstico registra soporte individual/común y
 extremos del intervalo. Defaults, selección de regiones y baseline sonoro sin
 cambios. El score continúa siendo soporte predictivo, no origen causal/Jpsh.
+
+2026-09-30 — Cambio de número de regiones/dimensiones reinicia entrenamiento y
+scores de propagación. No se apilan vectores de forma incompatible ni se conserva
+un modelo ajustado a otro soporte. Timestamp no finito o soporte vacío se trata
+como missing y limpia la historia. El orden semántico de regiones debe seguir
+siendo estable: la forma de la matriz no identifica articulaciones ni personas.

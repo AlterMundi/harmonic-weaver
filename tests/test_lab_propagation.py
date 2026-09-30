@@ -34,3 +34,19 @@ def test_missing_support_resets_training_and_zero_motion_does_not_invent_centers
     result = model.push(2., np.array([[np.nan,0.],[0.,0.]]))
     assert result['state'] == 'missing'
     assert not model.history and not model.models
+
+
+def test_regional_shape_changes_reset_models_and_warm_a_new_history():
+    model=LaggedPropagation(AlgorithmSettings(window_s=4))
+    rng=np.random.default_rng(31)
+    for i in range(40):model.push(i/30,rng.normal(size=(2,2)))
+    assert model.models and model.errors
+    for shape in ((3,2),(3,1)):
+        t=model.history[-1][0]+1/30
+        result=model.push(t,rng.normal(size=shape))
+        assert result['state']=='missing' and result['history_end_s'] is None
+        assert len(model.history)==1 and not model.models and not model.errors
+    result=model.push(float('nan'),np.zeros((3,1)))
+    assert result['reason']=='missing regional support' and not model.history
+    result=model.push(3.,np.empty((0,2)))
+    assert result['state']=='missing' and not model.history
