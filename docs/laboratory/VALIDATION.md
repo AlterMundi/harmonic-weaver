@@ -357,3 +357,9 @@ nonce propio e inicio idempotente con Shaper #4, drenaje final completo y hashes
 PCM exacto. Ver CAPTURE.md para contratos y límites. No completa #17: video/mux,
 latencia medida, identidad de código/fuentes y recuperación WAV pendientes. No
 instalado sobre el workspace de pruebas; sin captura privada ni aceptación humana.
+
+
+LAB-09 #42: prueba Chrome/Playwright aislada de controles de captura pasa;
+23 pruebas colector/runtime/store/API y hashes de identidad. Shaper identifica
+archivos/paquetes de captura. Identidades declaradas vs verificadas y limitaciones
+para fuentes cambiantes documentadas en CAPTURE.md. No altera instrumento sonoro.

@@ -100,5 +100,26 @@ Shaper y build TypeScript/Vite. Incluye 1205 eventos nuevos sin truncamiento,
 ack perdido y owner ajeno, proceso interrumpido y una integración con API/kernel
 real de Shaper usando bloques sintéticos: WAV idéntico a los buffers emitidos.
 Sin dispositivo físico, datos privados, escucha humana ni prueba browser de esta
-pestaña. Versionado completo de código/fuentes, captura audiovisual, mux/latencia,
+pestaña. Identidad de fuentes cambiantes aún no registrada con cada observación del timeline; captura audiovisual, mux/latencia,
 recuperación del WAV y verificación visual de controles siguen pendientes.
+
+## Identidad y prueba de navegador
+
+Incremento posterior sobre #42: manifest conserva head/estado del worktree,
+hashes Python de Weaver y hashes de archivos de interfaz; Shaper devuelve hashes
+de módulos de síntesis/captura y versiones Python/numpy/soundfile. Identidad de
+fuente inicial y eventos de cambio de fuente conservan media_id declarado por
+biblioteca, cache_key/generación y hash del manifest de tracking cuando está
+accesible. No se recalcula el hash del video original; esa procedencia se etiqueta
+como declarada. Un manifest inaccesible conserva un error explícito, sin fabricar
+hash ni frenar el instrumento. Regeneración automática de cache posterior al inicio
+puede aparecer sólo en timeline: no hay todavía inventario completo de cada
+transición ni hash garantizado de sus artefactos. Estas identidades permiten
+interpretar el registro; no garantizan exactitud de recomputación ni equivalencia
+entre módulos cargados y archivos editados después de arrancar el proceso.
+
+Chrome/Playwright, componente aislado y API sintética: no inicia al montar, envía
+los tres parámetros, bloqueo durante captura, detener/cierre, rutas locales y
+error visible verificados (1 prueba). 23 pruebas Weaver de colector/runtime/store/
+API pasan; incluye hash del manifest sin leer original. No hubo grabación privada,
+prueba cámara/R24 ni aceptación humana. Servidor aislado detenido al terminar.

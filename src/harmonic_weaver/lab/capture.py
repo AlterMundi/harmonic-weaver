@@ -49,10 +49,15 @@ class CaptureSession:
         with self.lock:
             if self.thread and self.thread.is_alive(): raise ValueError('Ya hay una captura activa')
             ident=uuid4().hex; folder=self.root/ident;folder.mkdir(mode=0o700)
+            from .evaluation.runner import code_identity
+            code=code_identity()
+            ui_root=Path(__file__).resolve().parents[3]/'laboratory-ui'
+            code['ui_files']={str(p.relative_to(ui_root)):sha256_file(p)
+                              for p in sorted((ui_root/'src').rglob('*')) if p.is_file()}
             boundary=self._boundary()
             self.job=dict(schema_version=1,id=ident,status='starting',error=None,settings=settings.model_dump(),
                 directory=str(folder),owner='weaver_'+ident,shaper=None,events=0,timeline_rows=0,
-                initial=boundary,requested_monotonic_s=time.monotonic(),
+                initial=boundary,code={'weaver':code},requested_monotonic_s=time.monotonic(),
                 stages={'audio':'Shaper post_shape_master_soft_limiter','video':'not_recorded'},
                 limits=['No video/camera pixels recorded','Timeline is sampled, events are committed journal entries',
                         'Warm model/router state is not serialized: no exact recomputation claim',
@@ -64,10 +69,25 @@ class CaptureSession:
             self.thread.start()
             return self.snapshot()
 
+    @staticmethod
+    def source_identity(source):
+        source=source or {}
+        job=source.get('job') or {}
+        identity={k:job.get(k) for k in ('id','path','media_id','cache_key','generation','cache_location')}
+        identity['kind']=source.get('kind')
+        identity['camera']=source.get('camera')
+        identity['media_hash_origin']='tracking library declaration; original not rehashed or copied'
+        location=job.get('cache_location')
+        if location:
+            try: identity['cache_manifest_sha256']=sha256_file(location)
+            except OSError as exc: identity['cache_manifest_error']=str(exc)
+        return identity
+
     def _record(self, settings, cursor):
         job=self.job;folder=Path(job['directory'])
         driver_id=None
         try:
+            job['initial_source_identity']=self.source_identity(job['initial']['state'].get('source'))
             with self.client_factory() as client:
                 payload={k:settings.model_dump()[k] for k in ('max_seconds','queue_blocks')}
                 payload['owner']=job['owner']
@@ -86,7 +106,7 @@ class CaptureSession:
                     while True:
                         rows=self.store.events_since(cursor)
                         for row in rows:
-                            events.write(json.dumps(row,sort_keys=True,allow_nan=False)+'\n')
+                            events.write(json.dumps(self._event_record(row),sort_keys=True,allow_nan=False)+'\n')
                             cursor=row['sequence'];job['events']+=1
                         sampled=time.monotonic()
                         state=self._boundary()['state']
@@ -113,7 +133,7 @@ class CaptureSession:
                         if not rows: raise ValueError('Journal boundary could not be drained')
                         for row in rows:
                             if row['sequence']>final_cursor: break
-                            events.write(json.dumps(row,sort_keys=True,allow_nan=False)+'\n')
+                            events.write(json.dumps(self._event_record(row),sort_keys=True,allow_nan=False)+'\n')
                             cursor=row['sequence'];job['events']+=1
                     job['final_event_cursor']=cursor
                 if driver['status']!='complete' or driver.get('writer_alive'):
@@ -130,6 +150,11 @@ class CaptureSession:
             job['ended_monotonic_s']=time.monotonic()
             try: atomic_json(folder/'manifest.json',job)
             except OSError as exc: job['status']='failed';job['error']=f'{job.get("error") or ""}; manifest: {exc}'
+
+    def _event_record(self, row):
+        if row['event']['kind']!='source': return row
+        payload=row['event']['payload']
+        return {**row,'source_identity':self.source_identity(payload)}
 
     def stop(self):
         with self.lock:

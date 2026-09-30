@@ -56,6 +56,9 @@ def test_capture_drains_more_than_history_limit_and_freezes_initial_state(tmp_pa
     job=capture.snapshot()
     assert job['status']=='complete',job
     assert job['initial']['cursor']==1
+    assert job['code']['weaver']['head']
+    assert job['code']['weaver']['ui_files']['src/CapturePanel.tsx']
+    assert job['initial_source_identity']['id']=='synthetic-source'
     assert initial['initial']['state']['source']['job']['id']=='synthetic-source'
     folder=capture.root/job['id']
     events=[json.loads(line) for line in (folder/'events.jsonl').read_text().splitlines()]
@@ -136,3 +139,14 @@ def test_collector_with_real_shaper_capture_contract(tmp_path):
         np.testing.assert_array_equal(samples,np.concatenate(emitted))
         store.close()
     engine._running=False;engine._stream=None
+
+
+def test_source_identity_hashes_manifest_without_reading_original(tmp_path):
+    manifest=tmp_path/'manifest.json';manifest.write_text('{"generation":"a"}')
+    identity=CaptureSession.source_identity({'kind':'video','job':{
+        'path':'/original/not/read.mp4','media_id':'declared','generation':'a',
+        'cache_location':str(manifest)}})
+    assert identity['cache_manifest_sha256']==sha256_file(manifest)
+    assert identity['media_id']=='declared'
+    manifest.unlink()
+    assert 'cache_manifest_error' in CaptureSession.source_identity({'job':{'cache_location':str(manifest)}})
