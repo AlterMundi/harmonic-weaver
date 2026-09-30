@@ -61,3 +61,25 @@ def test_disk_failure_is_visible_and_raw_metadata_is_retained(tmp_path,monkeypat
     capture=CameraCapture(tmp_path);capture.offer(packet());capture.close()
     assert capture.snapshot()['status']=='failed'
     assert 'disk failure' in capture.snapshot()['error']
+
+
+def test_close_rejects_late_frames_and_drains_accepted_frame(tmp_path,monkeypatch):
+    entered=threading.Event();release=threading.Event()
+    original=Path.write_bytes
+    def write(path,data):
+        if path.suffix=='.jpg':entered.set();assert release.wait(3)
+        return original(path,data)
+    monkeypatch.setattr(Path,'write_bytes',write)
+    capture=CameraCapture(tmp_path)
+    reference=capture.offer(packet());assert entered.wait(2)
+    results=[]
+    closer=threading.Thread(target=lambda:results.append(capture.close()))
+    closer.start();assert capture.stop_event.wait(2)
+    try:
+        with pytest.raises(ValueError,match='closed'):capture.offer(packet(2))
+        assert capture.accepted==1
+    finally:release.set();closer.join(timeout=3)
+    assert not closer.is_alive()
+    assert results[0]['written_frames']==1
+    assert (Path(results[0]['directory'])/reference['file']).is_file()
+    assert capture.close()['index_sha256']==results[0]['index_sha256']

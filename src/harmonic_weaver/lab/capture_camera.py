@@ -15,12 +15,18 @@ class CameraCapture:
         self.queue=deque(maxlen=queue_frames)
         self.max_frames,self.max_bytes=max_frames,max_bytes
         self.stop_event=threading.Event();self.error=None
+        self.offer_lock=threading.Lock()
         self.accepted=self.written=self.bytes=self.sequence_gaps=0
         self.last=None;self.status='recording'
         self.thread=threading.Thread(target=self._write,daemon=True,name='camera-capture-writer')
         atomic_json(self.folder/'manifest.json',self.snapshot());self.thread.start()
 
     def offer(self, packet):
+        with self.offer_lock:
+            if self.stop_event.is_set():raise ValueError('Camera capture is closed')
+            return self._offer(packet)
+
+    def _offer(self, packet):
         if self.error:raise ValueError(self.error)
         if packet is None:return None
         key=(packet['stream_id'],packet['sequence'])
@@ -68,7 +74,9 @@ class CameraCapture:
                           'Captured/available/collector clocks are software timestamps, not measured AV latency']}
 
     def close(self, error=None):
-        if error:self.error=error
-        self.stop_event.set();self.thread.join()
+        with self.offer_lock:
+            if error:self.error=error
+            self.stop_event.set()
+        self.thread.join()
         if self.error:self.status='failed'
         state=self.snapshot();atomic_json(self.folder/'manifest.json',state);return state

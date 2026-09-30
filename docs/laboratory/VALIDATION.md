@@ -480,3 +480,11 @@ procedencia/calibración sin aplicarla al instrumento. Repetición exacta de art
 resultados en estado laboratory-dev únicamente. No se abrió/capturó hardware ni se
 copió el original; lectura de cache y features. Esta evidencia no prueba precisión
 geométrica, causalidad/intención, HIT ni aceptación de la sonificación.
+
+### Carrera de cierre de cámara — 2026-09-30
+
+Prueba concurrente con JPEG sintético bloqueado: cierre iniciado, frame tardío
+rechazado, frame aceptado drenado y hash estable al repetir cierre. Cinco pruebas
+de writer y colector integradas con Shaper explícito; sin cámara física. El primer
+comando omitió PYTHONPATH del contrato cruzado y falló por import de Shaper;
+se corrigió el entorno de prueba, sin modificar entornos originales.

@@ -305,3 +305,12 @@ rechazo de resultado alterado. 53 tests pertinentes Weaver antes del último gua
 unconfirmed; 14 colector reejecutadas tras guard, incluidos ack perdido resuelto
 contra contrato compatible y legacy con un único POST/unconfirmed. No hubo UI,
 parámetros sonoros ni cambios del workspace de pruebas. Sin medios/hardware/escucha.
+
+### Cierre del writer de previews — 2026-09-30
+
+Aceptación de paquetes y señal de cierre comparten un lock breve, sin operaciones
+de disco ni join dentro del lock. Al cerrar, todo paquete previamente aceptado
+se drena; paquetes posteriores se rechazan explícitamente, incluso mientras el
+writer termina un JPEG lento. Evita devolver referencias a frames que nunca se
+escribirían. Cerrar nuevamente conserva el hash del índice. No cambia la captura
+opt-in, los budgets ni el instrumento.
