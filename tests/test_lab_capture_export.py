@@ -55,6 +55,10 @@ def test_export_stale_intervals_are_black_and_reported(tmp_path):
     result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'offset_s':-1})
     assert result['gaps']=={'unobserved':10}
     assert not result['sources']
+    import cv2
+    decoder=cv2.VideoCapture(str(tmp_path/'export'/'capture.mkv'))
+    ok,image=decoder.read();decoder.release()
+    assert ok and np.max(image)==0
 
 
 def test_export_cancellation_keeps_failure_manifest_and_originals(tmp_path):
