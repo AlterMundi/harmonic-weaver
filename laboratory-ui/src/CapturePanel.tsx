@@ -10,6 +10,9 @@ export function CapturePanel({api,run}:Data){
  const [exportState,setExportState]=useState<Data>({status:'idle'});
  useEffect(()=>{let live=true;const poll=()=>Promise.all([api('capture-exports'),api('capture-exports/jobs')]).then(([s,jobs]:Data[])=>{if(live){setExportState(s);setExportJobs(jobs as Data[])}}).catch(()=>{});
  void poll();const id=setInterval(poll,500);return()=>{live=false;clearInterval(id)};},[api]);
+ const [recovery,setRecovery]=useState<Data>({status:'idle'});
+ useEffect(()=>{let live=true;const poll=()=>api('capture-recovery').then((s:Data)=>{if(live)setRecovery(s)}).catch(()=>{});
+ void poll();const id=setInterval(poll,500);return()=>{live=false;clearInterval(id)};},[api]);
  const exporting=exportState.status==='rendering';
  const active=['starting','recording','stopping'].includes(state.current.status);
  return <>
@@ -40,10 +43,15 @@ export function CapturePanel({api,run}:Data){
     <a href={`/api/capture-exports/${j.id}/artifacts/frames.jsonl`} download>Timeline de fotogramas</a>{' · '}</>}
     <a href={`/api/capture-exports/${j.id}/artifacts/manifest.json`} download>Manifest de exportación</a>
   </div>)}
+  <p>Recuperación: {recovery.status} · {recovery.error || ''}</p>
+  {recovery.result && <p>Prefijo recuperado: {recovery.result.recovered_samples} muestras. Carpeta local: {recovery.result.directory}. No equivale a una captura completa.</p>}
   {state.jobs.map((j:Data)=><div key={j.id}><p>{j.status} · {j.events || 0} eventos · {j.timeline_rows || 0} observaciones · {j.error}</p>
     <button disabled={j.status!=='complete' || exporting} onClick={()=>run(async()=>{
       setExportState(await api(`captures/${j.id}/export`,exportSettings));
     })}>Exportar captura {j.id.slice(0,8)}</button>
+    {['failed','interrupted'].includes(j.status) && <button disabled={recovery.status==='recovering' || !j.shaper?.id}
+      onClick={()=>run(async()=>setRecovery(await api(`captures/${j.id}/recover`,{})))}>Recuperar audio {j.id.slice(0,8)}</button>}
+    {j.recovery?.result && <p>Audio recuperado: {j.recovery.result.recovered_samples} muestras · {j.recovery.result.directory}</p>}
     <small>Bitácora local: {j.directory}</small><br/><small>Audio local: {j.shaper?.directory || 'Pendiente de confirmación'}</small></div>)}
   <p>La grabación es opcional. El audio corresponde a la salida digital de Shaper; la sincronía física sigue pendiente de medición.</p>
  </>;

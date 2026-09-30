@@ -27,6 +27,8 @@ class CaptureSession:
         self.lock=threading.RLock()
         self.stop_event=threading.Event()
         self.thread=None
+        self.recovery_thread=None
+        self.recovery_job={'status':'idle'}
         self.job=None
         self.jobs={}
         for folder in sorted(self.root.iterdir()):
@@ -37,6 +39,10 @@ class CaptureSession:
                         job['status']='interrupted'
                         job['error']='Collector process stopped before a confirmed close'
                         atomic_json(folder/'manifest.json',job)
+                    recovery_path=folder/'recovery.json'
+                    if recovery_path.is_file():
+                        try: job['recovery']=json.loads(recovery_path.read_text())
+                        except (OSError,ValueError): pass
                     self.jobs[job['id']]=job
                 except (OSError,ValueError,KeyError): pass
 
@@ -162,6 +168,31 @@ class CaptureSession:
                 self.stop_event.set()
             return self.snapshot()
 
+    def recover(self, ident):
+        with self.lock:
+            if self.recovery_thread and self.recovery_thread.is_alive(): raise ValueError('Ya hay una recuperación activa')
+            job=self.jobs.get(ident)
+            if not job or job['status'] not in ('failed','interrupted'): raise ValueError('Elegí una captura fallida o interrumpida')
+            driver_id=(job.get('shaper') or {}).get('id')
+            if not driver_id: raise ValueError('No hay identidad confirmada de la captura Shaper')
+            self.recovery_job={'status':'recovering','capture_id':ident}
+            def work():
+                try:
+                    with self.client_factory() as client:
+                        response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
+                        response.raise_for_status();result=response.json()
+                    if result.get('status')!='recovered' or result.get('capture_id')!=driver_id:
+                        raise ValueError('Shaper did not confirm this recovered prefix')
+                    self.recovery_job.update(status='recovered',result=result)
+                    atomic_json(Path(job['directory'])/'recovery.json',self.recovery_job)
+                    job['recovery']=self.recovery_snapshot()
+                except Exception as exc:self.recovery_job.update(status='failed',error=str(exc))
+            self.recovery_thread=threading.Thread(target=work,daemon=True,name='lab-capture-recovery')
+            self.recovery_thread.start()
+            return self.recovery_snapshot()
+
+    def recovery_snapshot(self):return json.loads(json.dumps(dict(self.recovery_job)))
+
     def snapshot(self):
         return json.loads(json.dumps(dict(self.job))) if self.job else {'status':'idle'}
 
@@ -173,3 +204,4 @@ class CaptureSession:
         # The journal must remain open until the collector drains its final boundary.
         # HTTP calls have finite timeouts; never close SQLite under this worker.
         if self.thread: self.thread.join()
+        if self.recovery_thread: self.recovery_thread.join()

@@ -13,11 +13,13 @@ test('explicit capture controls preserve settings, show failures and do not star
     let state={current:{status:'idle'},jobs:[]};window.captureCalls=[];
     const api=async(path,body)=>{
       window.captureCalls.push({path,body});
+      if(path==='capture-recovery')return {status:'idle'};
       if(path==='capture-exports')return {status:'idle'};
       if(path==='capture-exports/jobs')return [{id:'export',status:'complete'}];
+      if(path==='captures/interrupted/recover')return {status:'recovered',result:{directory:'/synthetic/recovery',recovered_samples:256}};
       if(path==='captures/test/export')return {status:'rendering',frames:0};
       if(path==='captures/start')state={current:{status:'recording'},jobs:[]};
-      if(path==='captures/stop')state={current:{status:'complete'},jobs:[{id:'test',status:'complete',events:1205,timeline_rows:7,directory:'/synthetic/session',shaper:{directory:'/synthetic/audio'}}]};
+      if(path==='captures/stop')state={current:{status:'complete'},jobs:[{id:'test',status:'complete',events:1205,timeline_rows:7,directory:'/synthetic/session',shaper:{directory:'/synthetic/audio'}},{id:'interrupted',status:'interrupted',shaper:{id:'known'}}]};
       return state;
     };
     window.failCapture=()=>state={current:{status:'failed',error:'Synthetic disk failure'},jobs:[]};
@@ -28,7 +30,7 @@ test('explicit capture controls preserve settings, show failures and do not star
   await expect(start).toBeEnabled();await expect(stop).toBeDisabled();
   await expect(page.getByRole('link',{name:'Descargar video + PCM'})).toHaveAttribute('href','/api/capture-exports/export/artifacts/capture.mkv');
   await page.waitForTimeout(600);
-  expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports','capture-exports/jobs'].includes(x.path)))).toBe(true);
+  expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports','capture-exports/jobs','capture-recovery'].includes(x.path)))).toBe(true);
   await page.getByLabel('Duración máxima (s)').fill('60');
   await page.getByLabel('Capacidad de cola de audio (bloques)').fill('64');
   await page.getByLabel('Frecuencia del timeline (Hz)').fill('30');
@@ -40,6 +42,9 @@ test('explicit capture controls preserve settings, show failures and do not star
   await expect(page.getByText('Audio local: /synthetic/audio')).toBeVisible();
   await page.getByRole('button',{name:'Exportar captura test'}).click();
   expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/test/export').body)).toEqual({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25});
+  await page.getByRole('button',{name:'Recuperar audio interrup'}).click();
+  expect(await page.evaluate(()=>(window as any).captureCalls.some((x:any)=>x.path==='captures/interrupted/recover'))).toBe(true);
+  await expect(page.getByText('Prefijo recuperado:',{exact:false})).toContainText('256 muestras');
   await page.evaluate(()=>(window as any).failCapture());
   await expect(page.getByRole('status')).toContainText('Synthetic disk failure');
   expect(errors).toEqual([]);

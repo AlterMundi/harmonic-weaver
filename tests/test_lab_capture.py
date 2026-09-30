@@ -150,3 +150,25 @@ def test_source_identity_hashes_manifest_without_reading_original(tmp_path):
     assert identity['media_id']=='declared'
     manifest.unlink()
     assert 'cache_manifest_error' in CaptureSession.source_identity({'job':{'cache_location':str(manifest)}})
+
+
+def test_recovery_requires_interrupted_known_capture_and_preserves_raw_manifest(tmp_path):
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    with pytest.raises(ValueError):capture.recover('missing')
+    folder=capture.root/'interrupted';folder.mkdir()
+    original={'id':'interrupted','status':'interrupted','directory':str(folder),'shaper':{'id':'known'}}
+    atomic_json(folder/'manifest.json',original);capture.jobs['interrupted']=original
+    original_hash=sha256_file(folder/'manifest.json')
+    def handle(request):
+        assert request.url.path=='/api/audio/capture/recover'
+        assert json.loads(request.content)=={'id':'known'}
+        return httpx.Response(200,json={'status':'recovered','capture_id':'known','directory':'/synthetic/recovered','recovered_samples':256})
+    capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
+    capture.recover('interrupted');capture.close()
+    assert capture.recovery_snapshot()['status']=='recovered'
+    assert sha256_file(folder/'manifest.json')==original_hash
+    assert json.loads((folder/'recovery.json').read_text())['result']['recovered_samples']==256
+    restored=CaptureSession(tmp_path,store,capture.runtime,client_factory=driver.client)
+    assert restored.jobs['interrupted']['recovery']['status']=='recovered'
+    restored.close()
+    store.close()

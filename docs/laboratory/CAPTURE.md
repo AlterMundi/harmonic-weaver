@@ -185,3 +185,36 @@ colector/timeline/export/API; Chrome aislado verifica enlace de descarga y
 controles; build TypeScript/Vite. Servidor aislado detenido. No cambió la sesión
 habitual, ni hubo grabación privada o aceptación humana. Pendientes LAB-09:
 player, cámara, recuperación WAV, medición de sincronía y overlays.
+
+## Recuperación explícita de prefijos PCM
+
+Ramas `feat/laboratory-capture-recovery` de Weaver/Shaper; Shaper #5 sobre #4.
+Capturas nuevas tienen capture.json y lock POSIX del writer. Flush periódico de
+WAV/journal ocurre fuera del callback; no se afirma resistencia a corte eléctrico.
+Shaper POST `/api/audio/capture/recover` recibe sólo id bajo root configurado,
+rechaza writer activo/captura complete/capturas legacy sin contrato de lock y
+metadata. Lee RIFF float32 estéreo aun con longitudes de header obsoletas y
+recupera exclusivamente bloques completos consecutivos confirmados por el journal.
+Corta ante fila parcial/discontinua/PCM insuficiente. Nada rellena muestras.
+
+Resultado en `<Shaper-capture>/recovered/<id>/`: WAV, journal y manifest con status
+recovered, muestras confirmadas/disponibles/descartadas, motivo del corte, hashes
+de originales y resultado. Originals y manifest original no cambian. Es un
+prefijo recuperado, no una captura completa; exportador no lo promueve a complete.
+
+Web: botones Recuperar audio en capturas failed/interrupted con id Shaper conocido.
+Weaver POST `/api/captures/{id}/recover` y GET `/api/capture-recovery`; worker HTTP
+separado con timeout 120 s. Preserva manifest Weaver, registra recovery.json aparte
+y lo recupera al reiniciar. Carpeta/muestras visibles; descarga/player de prefijos
+recuperados y recuperación del journal Weaver interrumpido siguen pendientes.
+No hay recuperación automática ni grabación implícita. Fallos/timeouts visibles;
+un timeout no demuestra que Shaper no haya creado un resultado (inventario del
+lado Shaper y resolución de acknowledgements de recuperación pendientes).
+
+Evidencia: 38 tests Shaper incluidas 5 de recuperación (process kill sintético real,
+PCM exacto, hashes raw preservados, writer activo, prefijo vacío, API/id vs ruta).
+31 tests Weaver de colector/plan/export/API; prueba adicional comprueba recovery.json
+persistente y manifest original intacto por hash. Chrome aislado de botones/envío/
+resultado y build pasan. No prueba cámara/R24 ni datos privados o aceptación humana.
+Pendientes LAB-09: cámara, player, overlays, sincronía medida; recuperación legacy,
+power-loss, journal de sesión y resolución de ack perdido no se dan por hechas.

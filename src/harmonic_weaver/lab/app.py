@@ -170,6 +170,15 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def stop_capture():
         return capture.stop() if capture else {"status":"idle"}
 
+    @app.get("/api/capture-recovery")
+    def capture_recovery_state():
+        return capture.recovery_snapshot() if capture else {"status":"idle"}
+
+    @app.post("/api/captures/{ident}/recover")
+    def capture_recover(ident: str):
+        if capture is None: raise ValueError("No hay runtime para recuperar")
+        return capture.recover(ident)
+
     @app.get("/api/capture-exports")
     def capture_export_state():
         return exports.snapshot() if exports else {"status":"idle"}

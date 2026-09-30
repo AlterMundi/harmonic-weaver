@@ -377,3 +377,9 @@ LAB-09 #43 actualizado: inventario de exportaciones al reiniciar, interrupted
 explícito y descarga local con hashes y Range/206. 30 tests Python, 1 Chrome
 componente y build web pasan. CAPTURE.md conserva límites y siguientes pasos;
 cámara/recuperación WAV/sincronía medida/overlays/player siguen pendientes.
+
+
+LAB-09: recuperación explícita de prefijo PCM confirmado con lock POSIX/metadata,
+writer activo rechazado, originals conservados y estado recovered separado de
+complete. 38 tests Shaper (incluido kill sintético), 31 Weaver, Chrome componente y
+build web pasan. CAPTURE.md registra contratos/límites y trabajo aún pendiente.
