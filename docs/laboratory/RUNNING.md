@@ -168,15 +168,17 @@ extremos necesitan escucha: las pruebas automáticas no juzgan empaste o musical
 
 ## Fragmentos con varios cuerpos
 
-Cuando hay varios identificadores de cuerpo en un video, elegir **Persona**
-explícitamente. La lista incluye las personas de la generación completa para
+Al abrir un video se elige automáticamente el cuerpo con mayor cobertura
+de articulaciones observadas (no una estimación de precisión). En Fuente se
+puede elegir como alternativa el primero de la lista y desactivar la reproducción
+automática al terminar el tracking. Después podés cambiar **Persona** libremente. La lista incluye las personas de la generación completa para
 poder conservar una selección aunque el cuerpo esté momentáneamente fuera de
 cuadro. La figura atenúa los esqueletos no seleccionados; esto ayuda a verificar
 la elección. Los números de slot no son nombres ni identidades humanas.
 
 La elección queda guardada localmente para ese archivo, clave de cache y generación.
-Reabrir el mismo tracking recupera el cuerpo elegido; reprocesarlo pide revisar
-la selección. Nunca transfiere calibración: sigue siendo una acción explícita.
+Reabrir el mismo tracking recupera el cuerpo elegido; reprocesarlo elige un
+nuevo valor por defecto y lo informa para que verifiques la selección. Nunca transfiere calibración: sigue siendo una acción explícita.
 Mientras se construye un prefijo, se puede seleccionar; se guarda al terminar
 la generación válida. Si la extracción falla, esa elección parcial no reemplaza
 la preferencia de la generación anterior. Si el cuerpo elegido deja de verse,

@@ -171,6 +171,18 @@ class SessionStore:
             row = self._db.execute("SELECT payload FROM settings WHERE id='last_video'").fetchone()
             return json.loads(row[0]) if row else None
 
+    def source_preferences(self):
+        with self._lock:
+            row = self._db.execute("SELECT payload FROM settings WHERE id='source_preferences'").fetchone()
+            defaults = {"default_person": "best_coverage", "autoplay_video": True}
+            return {**defaults, **json.loads(row[0])} if row else defaults
+
+    def set_source_preferences(self, preferences):
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO settings(id,payload) VALUES ('source_preferences',?)",
+                             (_json(preferences),))
+        return preferences
+
     def source_selection(self, media_id):
         """A local explicit choice, scoped to one immutable tracking generation."""
         with self._lock:

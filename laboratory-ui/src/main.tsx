@@ -1,3 +1,4 @@
+import { VideoFollower } from "./videoFollower";
 import { EvaluationPanel } from "./EvaluationPanel";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -382,6 +383,7 @@ function App() {
   const [presetName, setPresetName] = useState(""),
     [mark, setMark] = useState(""),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
+  const [sourcePreferences, setSourcePreferences] = useState<Data>({default_person:"best_coverage", autoplay_video:true});
   const [quality, setQuality] = useState<Data | null>(null);
   const [algorithms, setAlgorithms] = useState<Data[]>([]);
   const [pending, setPending] = useState(false),
@@ -426,6 +428,7 @@ function App() {
     }
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
+    api("source-preferences").then(setSourcePreferences).catch((e) => setError(String(e)));
     api("algorithms")
       .then(setAlgorithms)
       .catch((e) => setError(String(e)));
@@ -558,18 +561,20 @@ function App() {
     }
   };
   const transport = (body: Data) => run(() => api("transport", body));
+  const playback = useRef({ position: 0, playing: false, epoch: 0 });
+  const follower = useRef<VideoFollower | null>(null);
+  playback.current = { position: state.session?.position_s || 0,
+    playing: !!state.session?.playing, epoch: state.runtime?.epoch || 0 };
   useEffect(() => {
     const el = video.current;
     if (!el || state.source?.kind !== "video") return;
-    const position = state.session?.position_s || 0;
-    if (Math.abs(el.currentTime - position) > 0.1) el.currentTime = position;
-    if (state.session?.playing && el.paused)
-      void el.play().catch((e) => {
-        // A pause/seek may legitimately cancel a pending play promise.
-        if (e?.name !== "AbortError") setError(String(e));
-      });
-    if (!state.session?.playing && !el.paused) el.pause();
-  }, [state.session?.position_s, state.session?.playing, state.source?.kind]);
+    const instance = new VideoFollower(el, () => playback.current, setError);
+    follower.current = instance;
+    instance.sync();
+    return () => { instance.dispose(); follower.current = null; };
+  }, [state.source?.kind, state.source?.job?.id, !!draft, !!schemas.Preset]);
+  useEffect(() => { follower.current?.sync(); },
+    [state.session?.position_s, state.session?.playing, state.runtime?.epoch]);
   useEffect(() => {
     if (!canvas.current) return;
     try {
@@ -669,6 +674,7 @@ function App() {
               <video
                 ref={video}
                 src={`/api/media/${job.id}/file`}
+                preload="auto"
                 muted
                 playsInline
                 onError={() =>
@@ -1059,6 +1065,24 @@ function App() {
                     Cerrar fuente / apagar cámara
                   </button>
                 </div>
+                <fieldset>
+                  <legend>Al abrir un video</legend>
+                  <label>Cuerpo por defecto
+                    <select value={sourcePreferences.default_person} onChange={(e) => run(async () => {
+                      const next={...sourcePreferences, default_person:e.target.value};
+                      setSourcePreferences(await api("source-preferences", next));
+                    })}>
+                      <option value="best_coverage">Mejor cobertura de tracking</option>
+                      <option value="first">Primera persona de la lista</option>
+                    </select>
+                  </label>
+                  <label><input type="checkbox" checked={sourcePreferences.autoplay_video}
+                    onChange={(e) => run(async () => {
+                      const next={...sourcePreferences, autoplay_video:e.target.checked};
+                      setSourcePreferences(await api("source-preferences", next));
+                    })}/>Reproducir automáticamente cuando el tracking esté listo</label>
+                  <small>La cobertura mide observaciones disponibles, no precisión. Una elección guardada tiene prioridad en el mismo tracking.</small>
+                </fieldset>
                 <label>
                   Persona
                   <select
@@ -1086,14 +1110,12 @@ function App() {
                   {
                     (
                       {
-                        automatic: "Un cuerpo detectado; selección automática.",
+                        automatic: "Selección automática del cuerpo por defecto.",
                         explicit: "Cuerpo elegido explícitamente.",
                         restored:
                           "Selección recuperada de esta misma generación de tracking.",
-                        required:
-                          "Hay varios cuerpos: elegí cuál querés escuchar.",
-                        generation_changed:
-                          "El tracking cambió: verificá y elegí nuevamente el cuerpo.",
+                        automatic_changed:
+                          "Tracking nuevo: cuerpo por defecto elegido nuevamente; verificá la selección.",
                       } as Data
                     )[state.runtime?.selection_status]
                   }

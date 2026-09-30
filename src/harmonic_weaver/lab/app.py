@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form
@@ -62,6 +63,11 @@ class TransportRequest(Contract):
     playing: bool | None = None
     position_s: Number | None = Field(default=None, ge=0)
     loop: bool | None = None
+
+
+class SourcePreferencesRequest(Contract):
+    default_person: Literal["best_coverage", "first"] = "best_coverage"
+    autoplay_video: bool = True
 
 
 class PersonRequest(Contract):
@@ -176,6 +182,14 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post("/api/presets/{preset_id}/apply")
     def apply_preset(preset_id: str, body: RevisionRequest):
         return session.edit(session.load(preset_id), body.expected_revision, reason="preset_apply")
+
+    @app.get("/api/source-preferences")
+    def source_preferences():
+        return session.source_preferences()
+
+    @app.post("/api/source-preferences")
+    def set_source_preferences(body: SourcePreferencesRequest):
+        return session.set_source_preferences(body.model_dump())
 
     @app.get("/api/calibrations")
     def calibrations():

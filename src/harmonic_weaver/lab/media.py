@@ -27,6 +27,7 @@ class VideoJob:
     cache_location: str | None = None
     generation: str | None = None
     person_ids: list[str] = field(default_factory=list)
+    default_person_id: str | None = None
     cache_hit: bool = False
     error: str | None = None
     duration_s: float = 0.
@@ -41,6 +42,7 @@ class VideoJob:
                 "media_id": self.media_id, "cache_key": self.cache_key, "cache_location": self.cache_location,
                 "cache_hit": self.cache_hit, "error": self.error,
                 "generation": self.generation, "person_ids": self.person_ids,
+                "default_person_id": self.default_person_id,
                 "requested_device": self.requested_device, "effective_device": self.settings.device, "duration_s": self.duration_s,
                 "processed_frames": len(self.frames), "prefix_s": self.times[-1] if self.times else 0.,
                 "perception": self.settings.model_dump(),
@@ -124,11 +126,15 @@ class VideoLibrary:
                 job.quality = coverage(job.frames, end_s=job.duration_s)
                 job.generation = cached.manifest["generation"]
                 job.person_ids = sorted(job.quality["persons"])
+                scores = {pid: sum(q["observed_fraction"] for q in person["joints"].values())/17
+                          for pid, person in job.quality["persons"].items()}
+                job.default_person_id = max(job.person_ids, key=lambda pid: scores[pid]) if job.person_ids else None
                 job.status = "ready"
                 job.error = self.cache.last_problem
                 self.assets[media_hash] = {"id": media_hash, "name": job.path.name, "path": str(job.path),
                                            "duration_s": job.duration_s, "person_ids": sorted(job.quality["persons"]), "perception": job.settings.model_dump(),
-                                           "cache_location": job.cache_location, "generation": job.generation}
+                                           "cache_location": job.cache_location, "generation": job.generation,
+                                           "default_person_id": job.default_person_id}
                 atomic_json(self.index, self.assets)
         except Exception as exc:
             with self._lock:

@@ -32,6 +32,7 @@ class LaboratoryRuntime:
         self.selection_status = "automatic"
         self._selection_checked = None
         self._selection_explicit = False
+        self._autoplay_pending = False
         self.frame = None
         self.features = None
         self.model = None
@@ -87,6 +88,7 @@ class LaboratoryRuntime:
             self._selection_explicit = False
             self.model = None
             self.transport.reset()
+            self._autoplay_pending = self.store.source_preferences()["autoplay_video"]
             self._reset()
         self.store.remember_video({"path": job["path"], "perception": settings.model_dump()})
         self.restore_error = None
@@ -101,6 +103,7 @@ class LaboratoryRuntime:
             self._selection_checked = None
             self._selection_explicit = False
             self.model = None
+            self._autoplay_pending = False
             self.transport.reset(playing=True)
             self._reset()
         self.store.remember_video(None)
@@ -113,6 +116,7 @@ class LaboratoryRuntime:
             self.library.cancel(self.job_id)
         with self._lock:
             self.kind, self.job_id = None, None
+            self._autoplay_pending = False
             self.frame, self.person_id, self.calibration = None, None, None
             self.transport.reset()
             self._reset()
@@ -120,6 +124,8 @@ class LaboratoryRuntime:
 
     def control(self, *, playing=None, position_s=None, loop=None):
         with self._lock:
+            if playing is not None or position_s is not None:
+                self._autoplay_pending = False
             if position_s is not None:
                 if self.kind != "video":
                     raise ValueError("only file sources support seek")
@@ -162,25 +168,22 @@ class LaboratoryRuntime:
                 else:
                     saved = self.store.source_selection(metadata["media_id"])
                     self._selection_checked = key
-                    if saved:
-                        if ((saved["cache_key"], saved["generation"]) == key and
-                                saved["person_id"] in metadata.get("person_ids", [])):
-                            self.person_id = saved["person_id"]
-                            self.selection_status = "restored"
-                        else:
-                            self.person_id = None
-                            self.selection_status = "generation_changed"
-        ids = metadata.get("person_ids", []) if metadata else []
-        if not ids and current:
-            ids = [p.person_id for p in current.persons]
-        if len(ids) > 1 and self.selection_status == "automatic":
-            self.person_id = None
-            self.selection_status = "required"
-        if self.person_id is None and ids and self.selection_status != "generation_changed":
-            if len(ids) == 1:
-                self.person_id = ids[0]
+                    if saved and ((saved["cache_key"], saved["generation"]) == key and
+                                  saved["person_id"] in metadata.get("person_ids", [])):
+                        self.person_id = saved["person_id"]
+                        self.selection_status = "restored"
+                    else:
+                        mode = self.store.source_preferences()["default_person"]
+                        ids = metadata.get("person_ids", [])
+                        self.person_id = (metadata.get("default_person_id") or (ids[0] if ids else None)) if mode == "best_coverage" else (ids[0] if ids else None)
+                        self.selection_status = "automatic_changed" if saved else "automatic"
+        if self.person_id is None and current and current.persons:
+            people = sorted(current.persons, key=lambda p: p.person_id)
+            if self.store.source_preferences()["default_person"] == "best_coverage":
+                selected = max(people, key=lambda p: sum(j.state == "observed" and j.position is not None for j in p.joints))
             else:
-                self.selection_status = "required"
+                selected = people[0]
+            self.person_id = selected.person_id
 
     def calibrate(self, calibration_id=None):
         with self._lock:
@@ -233,6 +236,9 @@ class LaboratoryRuntime:
             metadata = self.library.snapshot(self.job_id) if self.kind == "video" else None
             if metadata:
                 self.transport.duration_s = metadata["duration_s"] if metadata["status"] == "ready" else 0.
+                if self._autoplay_pending and metadata["status"] == "ready":
+                    self.transport.play(True)
+                    self._autoplay_pending = False
             position = self.transport.position()
             if self.transport.epoch != self.epoch:
                 self._reset()
@@ -297,9 +303,6 @@ class LaboratoryRuntime:
             code, message = "no_source", "Elegí un video o cámara."
         elif metadata and metadata["status"] in {"error", "cancelled"}:
             code, message = "source_error", "Tracking detenido; revisá la fuente o recuperá con CPU."
-        elif self.selection_status in {"required", "generation_changed"}:
-            code, message = "selection_required", ("El tracking cambió; revisá y elegí nuevamente el cuerpo."
-                if self.selection_status == "generation_changed" else "Hay varios cuerpos; elegí cuál querés escuchar.")
         elif not valid:
             code, message = "tracking_missing", "Esperando tracking de la persona seleccionada."
         elif preset.algorithm.id != "baseline" and self.calibration is None:

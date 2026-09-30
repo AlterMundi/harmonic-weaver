@@ -143,7 +143,7 @@ class TwoPeopleLibrary(Library):
     def snapshot(self, job):
         return {"status":self.status, "duration_s":3., "media_id":self.media_id,
                 "cache_key":"cache", "generation":self.generation if self.status=="ready" else None,
-                "person_ids":["one","two"] if self.status=="ready" else []}
+                "default_person_id":"two", "person_ids":["one","two"] if self.status=="ready" else []}
 
     def open(self, path, settings, force=False):
         return {"id":"test", "path":str(path)}
@@ -156,8 +156,7 @@ def test_two_people_selection_restores_only_same_generation_without_calibration(
     runtime=LaboratoryRuntime(store,library=TwoPeopleLibrary(),audio=Audio())
     runtime.open_video("/example.mp4",settings)
     runtime.tick()
-    assert runtime.person_id is None
-    assert runtime.diagnostic["code"]=="selection_required"
+    assert runtime.person_id == "two"
     runtime.select_person("two")
     runtime.calibrate()
     assert runtime.calibration is not None
@@ -172,8 +171,8 @@ def test_two_people_selection_restores_only_same_generation_without_calibration(
     restored.open_video("/example.mp4",settings)
     restored.library.generation="g2"
     restored.tick()
-    assert restored.person_id is None
-    assert restored.selection_status=="generation_changed"
+    assert restored.person_id == "two"
+    assert restored.selection_status=="automatic_changed"
     assert store.source_selection("media-a")["generation"]=="g1"
     restored.select_person("one")
     assert store.source_selection("media-a")["generation"]=="g2"
@@ -181,7 +180,7 @@ def test_two_people_selection_restores_only_same_generation_without_calibration(
     restored.library.media_id="media-b"
     restored.open_video("/other.mp4",settings)
     restored.tick()
-    assert restored.person_id is None and restored.selection_status=="required"
+    assert restored.person_id == "two" and restored.selection_status=="automatic"
     store.close()
 
 
@@ -192,7 +191,7 @@ def test_explicit_prefix_selection_is_pinned_when_generation_finishes(tmp_path):
     runtime=LaboratoryRuntime(store,library=library,audio=Audio())
     runtime.kind,runtime.job_id="video","test"
     runtime.tick()
-    assert runtime.person_id is None
+    assert runtime.person_id == "one"
     with pytest.raises(ValueError,match="detectada"):
         runtime.select_person("unknown")
     runtime.select_person("two")
@@ -205,4 +204,26 @@ def test_explicit_prefix_selection_is_pinned_when_generation_finishes(tmp_path):
     runtime.tick()
     assert runtime.person_id=="two"
     assert runtime.diagnostic["code"]=="tracking_missing"
+    store.close()
+
+
+def test_default_first_autoplay_waits_for_cache_and_manual_pause_wins(tmp_path):
+    from harmonic_weaver.lab.contracts import PerceptionSettings
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    store.set_source_preferences({"default_person":"first", "autoplay_video":True})
+    library=TwoPeopleLibrary(status="building")
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.open_video("/example.mp4",PerceptionSettings(checkpoint="example.pt"))
+    runtime.tick()
+    assert not runtime.transport.playing
+    library.status="ready"
+    runtime.tick()
+    assert runtime.transport.playing and runtime.person_id=="one"
+    runtime.open_video("/example.mp4",PerceptionSettings(checkpoint="example.pt"))
+    runtime.control(playing=False)
+    runtime.tick()
+    assert not runtime.transport.playing
+    store.close()
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    assert store.source_preferences()=={"default_person":"first", "autoplay_video":True}
     store.close()

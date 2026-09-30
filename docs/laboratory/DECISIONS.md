@@ -42,5 +42,7 @@ colectiva fuera del primer milestone.
 
 16. La selección explícita de cuerpo en video es una preferencia local ligada a
     media hash, clave de cache y generación; no viaja en presets ni restaura
-    calibración. Varios cuerpos requieren selección. Una generación nueva exige
-    verificarla otra vez; la ausencia del cuerpo elegido nunca selecciona otro.
+    calibración. Sin elección guardada, seleccionar mayor cobertura observada
+    o primero de la lista, configurable en Fuente; reproducción automática
+    configurable cuando el cache está listo. Una generación nueva elige su
+    propio default; la ausencia del cuerpo elegido nunca selecciona otro.
