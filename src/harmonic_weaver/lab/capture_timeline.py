@@ -3,7 +3,8 @@ from bisect import bisect_right
 import math
 
 
-def frame_plan(blocks, observations, *, fps=30, offset_s=0., max_gap_s=.25):
+def frame_plan(blocks, observations, *, fps=30, offset_s=0., max_gap_s=.25,
+               camera_frames=None, camera_clock='collector_monotonic_s'):
     """Yield sample-aligned video references; never interpolate across epochs.
 
     Audio clock is reconstructed from each block's callback entry timestamp.
@@ -17,6 +18,19 @@ def frame_plan(blocks, observations, *, fps=30, offset_s=0., max_gap_s=.25):
         raise ValueError('offset_s must be finite in -5..5')
     if not math.isfinite(max_gap_s) or not 0 < max_gap_s <= 5:
         raise ValueError('max_gap_s must be finite in (0,5]')
+    if camera_clock not in ('collector_monotonic_s','available_monotonic_s','captured_monotonic_s'):
+        raise ValueError('Unknown camera alignment clock')
+    cameras={}
+    for ref in camera_frames or []:
+        stamp=ref.get(camera_clock)
+        if not isinstance(stamp,(int,float)) or not math.isfinite(stamp):
+            raise ValueError('Missing/invalid camera clock')
+        cameras.setdefault(ref['stream_id'],[]).append(ref)
+    camera_times={}
+    for stream,refs in cameras.items():
+        stamps=[ref[camera_clock] for ref in refs]
+        if any(b<a for a,b in zip(stamps,stamps[1:])):raise ValueError('Nonmonotonic camera clock')
+        camera_times[stream]=stamps
     if not blocks: raise ValueError('No captured audio blocks')
     rate=blocks[0]['sample_rate']
     if type(rate) is not int or rate<=0: raise ValueError('Invalid sample rate')
@@ -47,16 +61,24 @@ def frame_plan(blocks, observations, *, fps=30, offset_s=0., max_gap_s=.25):
         age=target-times[observed];row['observation_age_s']=age
         if age>max_gap_s: row['reason']='stale';yield row;continue
         source=state.get('source') or {};job=source.get('job') or {}
+        if source.get('kind')=='camera':
+            stream=(source.get('camera') or {}).get('stream_id')
+            refs=cameras.get(stream,[]);stamps=camera_times.get(stream,[])
+            found=bisect_right(stamps,target)-1
+            if found<0:row['reason']='camera_not_recorded';yield row;continue
+            age=target-stamps[found]
+            if age>max_gap_s:row['reason']='camera_stale';yield row;continue
+            row['source']={**refs[found],'kind':'camera','camera_clock':camera_clock}
+            row['camera_age_s']=age;row['reason']='sampled_camera_preview';yield row;continue
         if source.get('kind')!='video' or not job.get('path'):
-            row['reason']='camera_not_recorded' if source.get('kind')=='camera' else 'no_file_source'
-            yield row;continue
+            row['reason']='no_file_source';yield row;continue
         session=state.get('session') or {}
         position=session.get('position_s')
         if not isinstance(position,(int,float)) or not math.isfinite(position) or position<0:
             row['reason']='invalid_source_position';yield row;continue
         # Hold last confirmed video position. Advancing by age could invent a
         # seek/loop occurring between observations; temporal sampling is explicit.
-        row['source']={'path':job['path'],'media_id':job.get('media_id'),
+        row['source']={'kind':'video','path':job['path'],'media_id':job.get('media_id'),
                        'generation':job.get('generation'),'position_s':position,
                        'playing':bool(session.get('playing')),
                        'epoch':(state.get('runtime') or {}).get('epoch')}

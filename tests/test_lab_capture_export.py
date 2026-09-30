@@ -149,3 +149,31 @@ def test_export_download_api_ranges_and_integrity(tmp_path):
         assert client.get('/api/capture-exports/export/artifacts/unknown').status_code==422
         video.write_bytes(b'changed')
         assert client.get('/api/capture-exports/export/artifacts/capture.mkv').status_code==422
+
+
+def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path):
+    import base64
+    import cv2
+    from harmonic_weaver.lab.capture_camera import CameraCapture
+    manifest,samples,_=session(tmp_path);folder=Path(manifest['directory'])
+    capture=CameraCapture(folder,queue_frames=16)
+    ok,jpeg=cv2.imencode('.jpg',np.full((120,160,3),(255,0,0),dtype=np.uint8));assert ok
+    rows=[]
+    for i in range(10):
+        ref=capture.offer({'jpeg':base64.b64encode(jpeg).decode(),'stream_id':'camera','sequence':i,
+                           'captured_monotonic_s':10+i/10,'available_monotonic_s':10+i/10+.01})
+        rows.append({'sampled_monotonic_s':10+i/10,'camera_ref':ref,'state':{
+            'source':{'kind':'camera','camera':{'stream_id':'camera'}},'session':{},'runtime':{}}})
+    manifest['camera']=capture.close()
+    (folder/'timeline.jsonl').write_text('\n'.join(json.dumps(row) for row in rows)+'\n')
+    manifest['hashes']['timeline.jsonl']=sha256_file(folder/'timeline.jsonl')
+    result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s'})
+    assert result['status']=='complete' and result['frames']==10 and not result['gaps']
+    decoder=cv2.VideoCapture(str(tmp_path/'export'/'capture.mkv'));ok,image=decoder.read();decoder.release()
+    assert ok and image[:,:,0].mean()>200 and image[:,:,2].mean()<20
+    raw=subprocess.check_output(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-i',
+        str(tmp_path/'export'/'capture.mkv'),'-map','0:a:0','-f','f32le','-'])
+    np.testing.assert_array_equal(np.frombuffer(raw,dtype='<f4').reshape(-1,2),samples)
+    (capture.folder/'00000000.jpg').write_bytes(b'changed')
+    with pytest.raises(ValueError,match='frame changed'):
+        render_capture(manifest,tmp_path/'changed-export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s'})

@@ -147,3 +147,10 @@ LAB-09: recuperación explícita de prefijo PCM confirmado con lock POSIX/metada
 writer activo rechazado, originals conservados y estado recovered separado de
 complete. 38 tests Shaper (incluido kill sintético), 31 Weaver, Chrome componente y
 build web pasan. CAPTURE.md registra contratos/límites y trabajo aún pendiente.
+
+
+LAB-09: opt-in de previews procesadas de cámara, budgets/cola/writer/clocks/hashes,
+y exportación con elección de reloj y huecos explícitos. 45 tests pertinentes,
+Chrome aislado y build web; PCM MKV sintético exacto. Sin cámara física/datos privados.
+CAPTURE.md documenta preview vs flujo bruto, límites y pendientes de sincronía,
+aceptación, recuperación de imágenes/journal, player y overlays. #17 sigue abierto.

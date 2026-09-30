@@ -45,3 +45,16 @@ def test_blocks_anchor_each_callback_and_do_not_stretch_audio():
 ])
 def test_invalid_alignment_is_rejected(blocks,observations,settings):
     with pytest.raises(ValueError):list(frame_plan(blocks,observations,**settings))
+
+
+def test_camera_alignment_has_explicit_clocks_stream_identity_and_age():
+    row=observation(10,0,kind='camera');row['state']['source']['camera']={'stream_id':'camera'}
+    frame={'stream_id':'camera','file':'00000000.jpg','sha256':'hash',
+           'collector_monotonic_s':10.2,'available_monotonic_s':10.1,'captured_monotonic_s':10}
+    rows=list(frame_plan([block()], [row],fps=10,max_gap_s=1,camera_frames=[frame]))
+    assert rows[0]['reason']=='camera_not_recorded'
+    assert rows[2]['source']['kind']=='camera'
+    captured=list(frame_plan([block()],[row],fps=10,max_gap_s=1,camera_frames=[frame],camera_clock='captured_monotonic_s'))
+    assert captured[0]['source']['file']=='00000000.jpg'
+    row['state']['source']['camera']['stream_id']='other'
+    assert list(frame_plan([block()],[row],camera_frames=[frame]))[0]['reason']=='camera_not_recorded'

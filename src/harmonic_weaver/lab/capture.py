@@ -1,4 +1,4 @@
-"""Explicit audio + committed event journal capture; no video/camera recording."""
+"""Explicit audio/journal capture with separately opted-in processed camera previews."""
 import json
 from pathlib import Path
 import threading
@@ -15,6 +15,10 @@ class CaptureSettings(Contract):
     max_seconds: Number = Field(default=120,ge=.1,le=3600)
     queue_blocks: int = Field(default=128,ge=4,le=1024)
     timeline_hz: int = Field(default=20,ge=1,le=60)
+    record_camera: bool = False
+    camera_queue_frames: int = Field(default=8,ge=1,le=128)
+    camera_max_frames: int = Field(default=10000,ge=1,le=216000)
+    camera_max_mb: int = Field(default=256,ge=1,le=8192)
 
 
 class CaptureSession:
@@ -64,8 +68,8 @@ class CaptureSession:
             self.job=dict(schema_version=1,id=ident,status='starting',error=None,settings=settings.model_dump(),
                 directory=str(folder),owner='weaver_'+ident,shaper=None,events=0,timeline_rows=0,
                 initial=boundary,code={'weaver':code},requested_monotonic_s=time.monotonic(),
-                stages={'audio':'Shaper post_shape_master_soft_limiter','video':'not_recorded'},
-                limits=['No video/camera pixels recorded','Timeline is sampled, events are committed journal entries',
+                stages={'audio':'Shaper post_shape_master_soft_limiter','video':'processed_camera_preview_opt_in' if settings.record_camera else 'not_recorded'},
+                limits=['Camera preview pixels only after explicit opt-in; file video referenced in place','Timeline is sampled, events are committed journal entries',
                         'Warm model/router state is not serialized: no exact recomputation claim',
                         'DAC timestamps are backend reports, not audiovisual latency measurements'])
             self.jobs[ident]=self.job
@@ -92,6 +96,7 @@ class CaptureSession:
     def _record(self, settings, cursor):
         job=self.job;folder=Path(job['directory'])
         driver_id=None
+        camera=None
         try:
             job['initial_source_identity']=self.source_identity(job['initial']['state'].get('source'))
             with self.client_factory() as client:
@@ -108,6 +113,10 @@ class CaptureSession:
                 driver_id=driver['id'];job['shaper']=driver
                 if driver['status']=='failed': raise ValueError(driver.get('error') or 'Shaper capture failed')
                 job['status']='recording';atomic_json(folder/'manifest.json',job)
+                if settings.record_camera:
+                    from .capture_camera import CameraCapture
+                    camera=CameraCapture(folder,queue_frames=settings.camera_queue_frames,
+                        max_frames=settings.camera_max_frames,max_bytes=settings.camera_max_mb*1024*1024)
                 with (folder/'events.jsonl').open('w') as events, (folder/'timeline.jsonl').open('w') as timeline:
                     while True:
                         rows=self.store.events_since(cursor)
@@ -116,7 +125,11 @@ class CaptureSession:
                             cursor=row['sequence'];job['events']+=1
                         sampled=time.monotonic()
                         state=self._boundary()['state']
-                        timeline.write(json.dumps({'sampled_monotonic_s':sampled,'state':state},sort_keys=True,allow_nan=False)+'\n')
+                        camera_ref=None
+                        if camera:
+                            camera_ref=camera.offer(self.runtime.capture_preview())
+                            job['camera']=camera.snapshot()
+                        timeline.write(json.dumps({'sampled_monotonic_s':sampled,'state':state,'camera_ref':camera_ref},sort_keys=True,allow_nan=False)+'\n')
                         job['timeline_rows']+=1
                         if job['timeline_rows']==1 or sampled-job.get('last_poll',0)>=.2:
                             response=client.get('/api/audio/capture');response.raise_for_status()
@@ -144,6 +157,9 @@ class CaptureSession:
                     job['final_event_cursor']=cursor
                 if driver['status']!='complete' or driver.get('writer_alive'):
                     raise ValueError(driver.get('error') or 'Shaper writer has not confirmed completion')
+                if camera:
+                    job['camera']=camera.close()
+                    if job['camera']['status']!='complete':raise ValueError(job['camera']['error'] or 'Camera writer failed')
                 job['status']='complete'
                 job['hashes']={p.name:sha256_file(p) for p in (folder/'events.jsonl',folder/'timeline.jsonl')}
         except Exception as exc:
@@ -153,6 +169,9 @@ class CaptureSession:
                     with self.client_factory() as client: client.post('/api/audio/capture/stop',json={'id':driver_id})
                 except Exception: pass
         finally:
+            if camera:
+                try:job['camera']=camera.close(error=job.get('error') if camera.thread.is_alive() else None)
+                except OSError as exc:job['status']='failed';job['error']=str(exc)
             job['ended_monotonic_s']=time.monotonic()
             try: atomic_json(folder/'manifest.json',job)
             except OSError as exc: job['status']='failed';job['error']=f'{job.get("error") or ""}; manifest: {exc}'

@@ -218,3 +218,44 @@ persistente y manifest original intacto por hash. Chrome aislado de botones/env�
 resultado y build pasan. No prueba cámara/R24 ni datos privados o aceptación humana.
 Pendientes LAB-09: cámara, player, overlays, sincronía medida; recuperación legacy,
 power-loss, journal de sesión y resolución de ack perdido no se dan por hechas.
+
+## Captura opcional de previews de cámara
+
+Rama `feat/laboratory-capture-camera`, sobre #44. CaptureSettings ahora expone
+record_camera=false (opt-in explícito), camera_queue_frames=8, camera_max_frames=10000
+y camera_max_mb=256. UI muestra controles y contador de previews/saltos/error. No
+enciende cámara ni añade captura retrospectiva. Guarda solamente nuevas previews
+JPEG ya producidas por tracking (máximo 960 px en worker actual), no el flujo bruto
+de adquisición ni resolución/FPS completos. Frecuencia efectiva depende de tracking,
+timeline_hz y disco. max_mb limita bytes JPEG; journal/timeline/metadata son adicionales.
+
+Lectura atómica del paquete preview/stream/sequence/timestamps bajo lock breve;
+decodificación base64 y escritura fuera del tick/audio. Writer separado con deque
+acotado, sin esperar por espacio: overflow/budget/disco fallan la captura y cierran
+su registro audio, manteniendo el instrumento/fuente operando. No se rellenan imágenes
+faltantes. Cada JPEG/hash queda en camera/, con frames.jsonl y manifest propios;
+timeline enlaza paquetes nuevos. Sequence gaps incluyen adquisición, pose y muestreo
+del recolector: no se atribuyen a sensor ni calidad sin evidencia. Stream nuevo admite
+reinicio de secuencia; un retroceso dentro del mismo stream se rechaza.
+
+Exportación reconoce cámara grabada y valida hash de índice y JPEG; respeta stream
+seleccionado en el timeline. Reloj configurable camera_clock: collector_monotonic_s
+(default, observación del recolector), available_monotonic_s (post-tracking) o
+captured_monotonic_s (captura software). Conserva los tres; no confunde sus retrasos
+con latencia audiovisual medida. Usa último JPEG con reloj <= tiempo alineado y edad
+máxima configurada. Huecos/cámara no grabada/stale en negro; archivos siguen en su
+ruta sin copia. Reloj de captura sirve para explorar la correspondencia temporal del
+movimiento; no garantiza reproducción del feedback que el operador vio en vivo.
+
+Evidencia: 45 tests cámara/plan/export/colector/runtime/API/decoder; cuatro del writer
+cubren clocks/hash/duplicados, stream/gaps, budget, overflow con disco bloqueado y
+fallo de disco. Colector comprueba ausencia de píxeles sin opt-in. Export real sintético
+con JPEG azul y PCM: imagen verificada y audio MKV idéntico por muestras; JPEG alterado
+se rechaza. Prueba Chrome aislada verifica opt-in inicialmente apagado, envío de
+límites y elección de reloj; build TypeScript/Vite pasa. Sin abrir cámara física ni
+capturar datos privados o cambiar workspace de pruebas. Servidor aislado detenido.
+
+Pendientes LAB-09: prueba cámara real/aceptación humana, protocolo de sincronía física,
+player/overlays, recuperación de imágenes/journal tras kill, resolución de ack recovery.
+Captura de flujo bruto de cámara o mayor resolución/FPS es una entrega adicional,
+no una capacidad de esta preview. #17 sigue abierto.

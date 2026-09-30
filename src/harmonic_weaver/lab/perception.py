@@ -163,6 +163,15 @@ class LiveCamera:
         with self._lock:
             return self.frame
 
+    def capture_preview(self):
+        with self._lock:
+            if self.frame is None or self.jpeg is None:return None
+            frame=self.frame
+            return {'jpeg':self.jpeg,'stream_id':frame.stream_id,'sequence':frame.sequence,
+                    'captured_monotonic_s':frame.captured_monotonic_s,
+                    'available_monotonic_s':frame.available_monotonic_s,
+                    'source_width':frame.width,'source_height':frame.height}
+
     def snapshot(self):
         with self._lock:
             origin = self.frame.captured_monotonic_s if self.frame else None

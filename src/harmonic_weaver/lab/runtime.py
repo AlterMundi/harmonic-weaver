@@ -348,6 +348,10 @@ class LaboratoryRuntime:
                     self.store.set_runtime(status="error", error=self.error)
             self._stop.wait(max(0., 1/60-(self.clock()-start)))
 
+    def capture_preview(self):
+        with self._lock:
+            return self.camera.capture_preview() if self.kind=='camera' else None
+
     def capture_boundary(self):
         # Same lock order as tick: runtime before store. No disk writer here.
         with self._lock, self.store._lock:

@@ -1,6 +1,7 @@
 """Optional file-video export from sampled capture timeline; originals stay put."""
 import json
 from pathlib import Path
+from typing import Literal
 import subprocess
 import threading
 from uuid import uuid4
@@ -17,6 +18,7 @@ class ExportSettings(Contract):
     height: int = Field(default=720,ge=64,le=1080,multiple_of=2)
     offset_s: Number = Field(default=0,ge=-5,le=5)
     max_gap_s: Number = Field(default=.25,gt=0,le=5)
+    camera_clock: Literal['collector_monotonic_s','available_monotonic_s','captured_monotonic_s'] = 'collector_monotonic_s'
 
 
 def read_lines(path, project=lambda row:row):
@@ -40,6 +42,13 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     observations=read_lines(session/'timeline.jsonl',lambda row:{
         'sampled_monotonic_s':row['sampled_monotonic_s'],
         'state':{key:row['state'].get(key) for key in ('source','session','runtime')}})
+    camera_frames=[]
+    camera_manifest=manifest.get('camera')
+    if camera_manifest:
+        if camera_manifest['status']!='complete':raise ValueError('Camera capture is not complete')
+        camera_folder=session/'camera';index=camera_folder/'frames.jsonl'
+        if sha256_file(index)!=camera_manifest['index_sha256']:raise ValueError('Camera index changed')
+        camera_frames=read_lines(index)
     # Audio count and per-block digital clock are the authoritative duration.
     import soundfile as sf
     info=sf.info(audio)
@@ -55,7 +64,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     report={'schema_version':1,'capture_id':manifest['id'],'settings':settings.model_dump(),
             'alignment':'sampled source hold against generated digital audio callback clock',
             'limits':['Not a measurement of audiovisual or acoustic latency',
-                      'No camera pixels: camera/missing/stale intervals rendered black',
+                      'Unrecorded/missing/stale camera intervals rendered black; processed preview only',
                       'Video may outlast PCM by less than one output frame',
                       'Original file identity is declared, not rehashed during export',
                       'No skeleton or harmonic figure overlay in this export'],
@@ -65,10 +74,22 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     try:
         with (folder/'encoder.log').open('wb') as log, (folder/'frames.jsonl').open('w') as timeline:
             process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=log)
-            for row in frame_plan(blocks,observations,**{k:getattr(settings,k) for k in ('fps','offset_s','max_gap_s')}):
+            for row in frame_plan(blocks,observations,**{k:getattr(settings,k) for k in ('fps','offset_s','max_gap_s','camera_clock')},camera_frames=camera_frames):
                 if cancelled and cancelled.is_set():raise ValueError('Export cancelled')
                 source=row['source'];frame=None
-                if source:
+                if source and source.get('kind')=='camera':
+                    filename=source['file']
+                    if Path(filename).name!=filename:raise ValueError('Invalid recorded camera frame name')
+                    jpeg=session/'camera'/filename
+                    if jpeg.is_symlink() or sha256_file(jpeg)!=source['sha256']:raise ValueError('Recorded camera frame changed')
+                    decoded=cv2.imread(str(jpeg))
+                    if decoded is None:raise ValueError('Recorded camera frame is undecodable')
+                    h,w=decoded.shape[:2];scale=min(settings.width/w,settings.height/h)
+                    resized=cv2.resize(decoded,(max(1,round(w*scale)),max(1,round(h*scale))))
+                    frame=np.zeros((settings.height,settings.width,3),dtype=np.uint8)
+                    rh,rw=resized.shape[:2];y=(settings.height-rh)//2;x=(settings.width-rw)//2
+                    frame[y:y+rh,x:x+rw]=resized
+                elif source:
                     if source['path']!=path:
                         if decoder is not None:decoder.release()
                         path=source['path'];decoder=cv2.VideoCapture(path);last_position=None;image=None
@@ -92,7 +113,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
             process.stdin.close()
             if process.wait(timeout=30)!=0:raise ValueError('Encoder failed: '+(folder/'encoder.log').read_text()[-2000:])
         temporary.replace(output)
-        report.update(status='complete',frames=count,output={'file':output.name,'sha256':sha256_file(output)},
+        report.update(status='complete',frames=count,camera_index_sha256=camera_manifest['index_sha256'] if camera_manifest else None,output={'file':output.name,'sha256':sha256_file(output)},
                       frame_plan_sha256=sha256_file(folder/'frames.jsonl'))
         atomic_json(folder/'manifest.json',report);return report
     except Exception as exc:

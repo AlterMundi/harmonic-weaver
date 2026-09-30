@@ -1,5 +1,6 @@
 """Capture orchestration tests: synthetic driver only, no device or private media."""
 import json
+from pathlib import Path
 import threading
 from types import SimpleNamespace
 
@@ -171,4 +172,22 @@ def test_recovery_requires_interrupted_known_capture_and_preserves_raw_manifest(
     restored=CaptureSession(tmp_path,store,capture.runtime,client_factory=driver.client)
     assert restored.jobs['interrupted']['recovery']['status']=='recovered'
     restored.close()
+    store.close()
+
+
+def test_camera_pixels_require_opt_in_and_collector_records_refs(tmp_path):
+    import base64
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    packet={'jpeg':base64.b64encode(b'synthetic-preview').decode(),'stream_id':'camera','sequence':1,
+            'captured_monotonic_s':10,'available_monotonic_s':10.1}
+    calls=[]
+    capture.runtime.capture_preview=lambda:(calls.append(True) or packet)
+    capture.start({});assert driver.started.wait(2);capture.close()
+    assert not calls and 'camera' not in capture.snapshot()
+    driver.started.clear()
+    capture.start({'record_camera':True});assert driver.started.wait(2);capture.close()
+    job=capture.snapshot();assert job['status']=='complete',job
+    assert calls and job['camera']['written_frames']==1
+    rows=[json.loads(line) for line in (Path(job['directory'])/'timeline.jsonl').read_text().splitlines()]
+    assert rows[0]['camera_ref']['stream_id']=='camera'
     store.close()
