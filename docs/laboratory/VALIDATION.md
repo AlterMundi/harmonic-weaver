@@ -311,3 +311,32 @@ continúa en la rama anterior; esta implementación está en los worktrees `-dev
 
 Para el test UI aislado, iniciar `npm run dev -- --port 8767` en laboratory-ui y:
 `LAB_COMPONENT_TEST_URL=http://127.0.0.1:8767 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/evaluationPCM.spec.ts tests/videoFollower.spec.ts`.
+
+## Reproducción conjunta — 2026-09-30
+
+13 pruebas específicas PCM/evaluación/API pasan, incluidas fuentes congeladas,
+rechazo de fuente/artefacto alterados, requests Range y reutilización del checksum
+cuando el archivo no cambió. Cuatro Playwright aislados: controles PCM, reloj de
+muestras, seguidor live y reproductor conjunto. Video/audio sintéticos: decodifica
+cuadros, sincronía visual dentro de 0.25 s, pausa, seek a un punto fuente conocido,
+píxeles de la figura con seis voces y audio detenido al cerrar. El reloj unitario
+comprueba offset del bloque recortado, interpolación gain/phase y no extrapolación
+fuera de soporte. Build TypeScript/Vite pasa. No prueba latencia física ni escucha.
+
+Durante el test se corrigió el arranque mientras el decoder estaba haciendo seek;
+el harness también debe emular Range/206, como FileResponse, para que seek no se
+reinicie a cero. Sólo se usaron imágenes sintéticas, sin tocar la sesión compartida.
+
+Para repetir el test de navegador, generar un MP4 sintético con ffmpeg lavfi
+`testsrc2=size=320x180:rate=30:duration=4`, H.264 y yuv420p. Iniciar Vite aislado
+en puerto 8767 y ejecutar:
+`LAB_COMPONENT_TEST_URL=http://127.0.0.1:8767 LAB_PLAYER_VIDEO=/ruta/synthetic.mp4 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/comparisonPlayer.spec.ts tests/replayClock.spec.ts tests/evaluationPCM.spec.ts tests/videoFollower.spec.ts`.
+El test crea WAV/estado sintéticos en memoria; no publica medios corporales.
+
+La misma prueba cubre recuperación sin WebGL: informa el problema y conserva
+coordinación de video/audio. Prueba local adicional con MP4 y WAV float reales,
+servidos por HTTP aparte de la sesión: 25 cuadros decodificados, diferencia
+instantánea de relojes 0.100059 s, sin alertas, seek a 20 s alineado. Audio muted:
+no acredita escucha/aceptación. Los primeros harnesses que interceptaban/redirectaban
+medios fallaron; Chrome rechazó el redirect a loopback. Se verificó con entrega
+HTTP nativa del mismo origen, sin cambiar permisos del navegador ni de la sesión.

@@ -234,6 +234,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             return FileResponse(path, filename=filename,
                 media_type="audio/wav" if path.suffix == ".wav" else "application/x-ndjson")
 
+        @app.get("/api/evaluations/{ident}/sources/{source_index}")
+        def evaluation_source(ident: str, source_index: int):
+            return FileResponse(evaluation.source_file(ident, source_index))
+
         @app.get("/api/evaluations/{ident}/report")
         def evaluation_report(ident: str):
             return evaluation.report(ident)

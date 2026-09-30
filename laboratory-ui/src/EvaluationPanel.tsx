@@ -1,3 +1,4 @@
+import { ComparisonPlayer } from "./ComparisonPlayer";
 import { useEffect, useState } from "react";
 type Data = Record<string, any>;
 
@@ -22,6 +23,7 @@ export function EvaluationPanel({
   });
   const [jobs, setJobs] = useState<Data[]>([]);
   const [report, setReport] = useState<Data | null>(null);
+  const [playRun, setPlayRun] = useState<Data | null>(null);
   useEffect(() => {
     let live = true;
     const poll = () =>
@@ -280,9 +282,10 @@ export function EvaluationPanel({
           {j.status === "complete" && (
             <button
               onClick={() =>
-                run(async () =>
-                  setReport(await api(`evaluations/${j.id}/report`)),
-                )
+                run(async () => {
+                  setPlayRun(null);
+                  setReport(await api(`evaluations/${j.id}/report`));
+                })
               }
             >
               Ver comparación
@@ -310,6 +313,14 @@ export function EvaluationPanel({
             Features y targets antes de Shaper; WAV opcional después de
             síntesis. No son medidas de volumen percibido ni eficacia corporal.
           </p>
+          {playRun && (
+            <ComparisonPlayer
+              key={report.job_id + ":" + playRun.file}
+              report={report}
+              run={playRun}
+              onClose={() => setPlayRun(null)}
+            />
+          )}
           <table>
             <thead>
               <tr>
@@ -330,6 +341,9 @@ export function EvaluationPanel({
                   <td>
                     {r.pcm ? (
                       <>
+                        <button onClick={() => setPlayRun(r)}>
+                          Ver video, sonido y figura
+                        </button>
                         <audio
                           controls
                           preload="none"

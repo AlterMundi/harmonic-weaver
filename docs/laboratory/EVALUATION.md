@@ -91,7 +91,7 @@ Anni. El banco no valida HIT ni eficacia corporal.
 
 Permanecen en #18/#19 y agenda R01–R13: predicción con targets independientes,
 reservas por sesión, controles marginales/no lineales y selección predeclarada,
-publicación formal, reproducción/render visual sincronizado, grabación opcional (#17), sensores/3D,
+publicación formal, exportación de video/figura, grabación opcional (#17), sensores/3D,
 comparación de cymatics físicos y aceptación humana. No son requisitos para jugar.
 
 ## Render PCM opcional
@@ -116,7 +116,7 @@ versiones NumPy/soundfile/libsndfile, configuración, duración en muestras, RMS
 lineal y pico post-limitador. No son loudness percibido ni medidas fisiológicas.
 La figura representa todos los osciladores y conserva la distinción entre
 pre-shape y PCM. El JSONL permite reconstruirla, pero todavía no entrega un video
-renderizado de la figura ni reproducción conjunta de fuente/figura/WAV.
+renderizado de la figura. El reproductor conjunto está descrito abajo.
 
 El timestamp de pared del chunk WAV PEAK se fija en cero: es un render lógico,
 no una grabación física. Las muestras y los picos no se alteran. Una repetición
@@ -144,3 +144,34 @@ La solicitud añade `pcm: {"enabled": true, "sample_rate": 48000,
 "block_frames": 256, "shaper_master": 0.8, "tail_s": 0}`. La API devuelve el
 reporte y permite escuchar/descargar los artefactos declarados en el manifest
 sólo cuando la corrida está completa. No publica archivos automáticamente.
+
+## Reproducción conjunta de una corrida
+
+Después de Ver comparación, elegir **Ver video, sonido y figura** en una corrida
+con PCM. El WAV es el reloj: el reproductor mueve el video al inicio del segmento
+más el tiempo del audio y reconstruye todas las voces a partir de sus bloques
+pre-shape. En bloques recortados conserva la posición original dentro del bloque;
+interpola gain/phase-offset y avanza fases, sin volver a analizar movimiento.
+No recalcula tracking ni cambia presets/ruteos del instrumento en vivo.
+
+Play, pausa y seek usan los controles del WAV. Durante la cola el video permanece
+en el último tiempo visual del segmento (fin exacto con ajuste 0). Cerrar o cambiar de corrida detiene su reproductor. La
+figura limpia persistencia al hacer seek. El selector de velocidad conserva pitch
+mediante el navegador; esa transformación de escucha no es el PCM original ni
+una nueva simulación de osciladores. **Ajuste visual del video** desplaza sólo la
+imagen; no altera resultados ni el manifest, y no constituye una calibración de
+latencia física. Comenzar con 1× y ajuste 0 para comparar el render congelado.
+
+Video/WAV/voice-frames se sirven sólo desde corridas completas, con verificación
+de hashes. Un archivo cambiado se rechaza. El checksum se reutiliza para requests
+Range sólo mientras identidad/tamaño/mtime/ctime del archivo sigan iguales; evita
+releer todo el video en cada seek. No se duplica ni sube la fuente. Navegador y
+formatos pueden limitar reproducción (usar MP4 H.264 cuando sea necesario).
+
+Esta coordinación usa relojes de elementos HTML media, no una salida audiovisual
+con reloj físico común: la prueba de navegador usa tolerancia de 0.25 s para el
+video y verifica pausa/seek/dibujo. El JSONL conserva el reloj exacto de muestras
+para análisis. Exportar un video sincronizado de la figura sigue pendiente.
+
+Si WebGL no está disponible, se informa la ausencia de figura y video/audio
+siguen coordinados. El reproductor no necesita WebGL para avanzar el video.

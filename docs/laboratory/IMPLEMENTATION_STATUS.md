@@ -102,4 +102,12 @@ Rama `feat/laboratory-offline-render` en Weaver y Shaper; no instalada sobre la
 sesión local de prueba ni fusionada. Render optional web/CLI, WAV float estéreo,
 voice-frames por bloque, hashes del motor, preroll/recorte/cola, repetición y
 artefactos locales. Motor compartido sample-for-sample con el callback. Falta
-reproducción conjunta fuente/audio/figura, captura #17 y bancos científicos.
+exportación visual de fuente/figura/audio, captura #17 y bancos científicos.
+
+## Reproductor de comparación en desarrollo — 2026-09-30
+
+Reproducción web conjunta fuente/WAV/figura de todas las voces. Reloj del WAV,
+play/pausa/seek, interpolación dentro del bloque y recorte, cola y liberación al
+cerrar; velocidad y ajuste visual sin alterar manifest. API verifica hashes de
+fuente/artefactos y rechaza cambios. No es reloj audiovisual físico ni exportación
+renderizada. Sigue en `-dev`, fuera de la sesión corporal de prueba.

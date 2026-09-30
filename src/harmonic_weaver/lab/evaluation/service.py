@@ -20,6 +20,7 @@ class EvaluationService:
         self._lock = threading.RLock()
         self.jobs = {}
         self.processes = {}
+        self._verified_files = {}
         for folder in sorted(self.root.iterdir()):
             if folder.is_dir() and (folder/"request.json").is_file():
                 manifest = folder/"result/manifest.json"
@@ -151,14 +152,46 @@ class EvaluationService:
         if Path(filename).name != filename:
             raise ValueError("Nombre de archivo inválido")
         report = self.report(ident)
-        allowed = {r['pcm'][key] for r in report['manifest']['runs'] if r.get('pcm')
-                   for key in ('file','voice_frames')}
+        allowed = {r['pcm'][key]: r['pcm'][checksum] for r in report['manifest']['runs'] if r.get('pcm')
+                   for key, checksum in (('file','sha256'), ('voice_frames','voice_frames_sha256'))}
         if filename not in allowed:
             raise ValueError("Archivo no declarado en el manifest")
         path = Path(self.jobs[ident]['directory'])/filename
         if not path.is_file():
             raise ValueError("Archivo ausente")
+        self._verify_file(path, allowed[filename], "El artefacto cambió desde la corrida")
         return path
+
+    def source_file(self, ident, source_index):
+        report = self.report(ident)
+        sources = report['manifest']['request']['sources']
+        if not 0 <= source_index < len(sources):
+            raise ValueError("Fuente fuera de la corrida")
+        source = sources[source_index]
+        path = Path(source['media_path'])
+        record = report['manifest']['source_records'][source_index]
+        self._verify_file(path, record['cache_manifest']['media_sha256'],
+                          "El video cambió o ya no está disponible")
+        return path
+
+    def _verify_file(self, path, expected, message):
+        if not path.is_file():
+            raise ValueError(message)
+        def signature():
+            s = path.stat()
+            return (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+        before = signature()
+        key = (str(path.resolve()), before)
+        actual = self._verified_files.get(key)
+        if actual is None:
+            actual = sha256_file(path)
+            if signature() != before:
+                raise ValueError("El archivo cambió durante la verificación")
+            if len(self._verified_files) >= 256:
+                self._verified_files.clear()
+            self._verified_files[key] = actual
+        if actual != expected:
+            raise ValueError(message)
 
     def close(self):
         for ident in list(self.processes):

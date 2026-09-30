@@ -95,6 +95,13 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
             assert status['status']=='complete',status
             return client.get(f'/api/evaluations/{i}/report').json()
         report=complete(ident)
+        from unittest.mock import patch
+        from harmonic_weaver.lab.evaluation import service as service_module
+        with patch.object(service_module, 'sha256_file', wraps=service_module.sha256_file) as checksum:
+            assert client.get(f'/api/evaluations/{ident}/sources/0').content == b'a'
+            assert client.get(f'/api/evaluations/{ident}/sources/0',headers={'Range':'bytes=0-0'}).status_code == 206
+            assert checksum.call_count == 1
+        assert client.get(f'/api/evaluations/{ident}/sources/1').status_code == 422
         pcm=report['manifest']['runs'][0]['pcm']
         result=client.get(f'/api/evaluations/{ident}/artifacts/{pcm["file"]}')
         assert result.status_code==200 and result.headers['content-type']=='audio/wav'
@@ -103,4 +110,10 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
         repeated=client.post(f'/api/evaluations/{ident}/repeat',json={}).json()
         again=complete(repeated['id'])
         assert again['manifest']['runs'][0]['pcm']['sha256']==pcm['sha256']
+        audio_path=__import__('pathlib').Path(report['manifest']['runs'][0]['pcm']['file'])
+        audio_path=__import__('pathlib').Path(job.json()['directory'])/audio_path
+        audio_path.write_bytes(b'changed')
+        assert client.get(f'/api/evaluations/{ident}/artifacts/{pcm["file"]}').status_code == 422
+        __import__('pathlib').Path(source.media_path).write_bytes(b'changed')
+        assert client.get(f'/api/evaluations/{ident}/sources/0').status_code == 422
     store.close()
