@@ -171,6 +171,25 @@ class SessionStore:
             row = self._db.execute("SELECT payload FROM settings WHERE id='last_video'").fetchone()
             return json.loads(row[0]) if row else None
 
+    def source_selection(self, media_id):
+        """A local explicit choice, scoped to one immutable tracking generation."""
+        with self._lock:
+            row = self._db.execute("SELECT payload FROM settings WHERE id=?",
+                                   (f"source_selection:{media_id}",)).fetchone()
+            return json.loads(row[0]) if row else None
+
+    def remember_source_selection(self, media_id, cache_key, generation, person_id):
+        if not all((media_id, cache_key, generation, person_id)):
+            raise ValueError("A completed tracking generation and person are required")
+        selection = dict(media_id=media_id, cache_key=cache_key, generation=generation,
+                         person_id=person_id)
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO settings(id,payload) VALUES (?,?)",
+                             (f"source_selection:{media_id}", _json(selection)))
+            self._event("mark", {"text": "Selección explícita de cuerpo",
+                                 "source_selection": selection})
+        return selection
+
     def list_presets(self):
         with self._lock:
             presets = [Preset.model_validate_json(row[0]).model_dump()

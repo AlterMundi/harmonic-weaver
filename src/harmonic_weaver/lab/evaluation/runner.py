@@ -124,6 +124,7 @@ def replay(preset, source, frames, duration, request):
         runtime = LaboratoryRuntime(store, library=ReplayLibrary(frames, duration),
                                     audio=audio, clock=lambda: now[0])
         runtime.kind, runtime.job_id, runtime.person_id = "video", "replay", source.person_id
+        runtime.selection_status = "explicit"
         if source.torso_scale is not None:
             runtime.calibration = Calibration(source_id=frames[0].source_id, person_id=source.person_id,
                 torso_scale=source.torso_scale, measured_at="logical_replay",

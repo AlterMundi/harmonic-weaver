@@ -242,3 +242,21 @@ Pendientes explícitos: escucha humana de extremos y modelos; diagnóstico CUDA
 #31; evaluación científica, audio PCM offline, grabación opcional y sensores/3D.
 La agenda R01–R13 sigue vigente. Un visualizador polifónico no acredita cymatics
 físico, profundidad 3D, intención ni un constraint armónico causal.
+
+## Selección de cuerpo por generación — 2026-09-30
+
+Suite Weaver: 246 tests + 4 subtests pasaron (138.41 s). Build TypeScript/Vite
+correcto. Pruebas cubren elección requerida con dos personas, preferencia que
+sobrevive a un store/runtime nuevo, invalidación al cambiar generación/fuente,
+selección del prefijo guardada sólo tras completar y ausencia del cuerpo elegido
+sin sustitución por otro. Replay conserva la persona elegida en una fuente doble.
+
+Verificación adicional contra el cache local completo del nuevo minuto: dos
+runtimes/stores sucesivos recuperan la selección de la derecha sin calibración
+heredada. Se verificó checksum/medio usando el loader del comparador, sin arrancar
+servicios ni tocar la configuración de Nicolás. El test local conserva sus datos
+fuera de GitHub; no es validación de precisión de pose ni aceptación auditiva.
+
+A pedido de Nicolás, los servicios iniciados por Codex se apagaron y no se
+reinician durante sus pruebas. Arranque canónico: `scripts/start-laboratory.sh`
+con R24 conectada; el modo `--no-audio` explica el 503 de telemetría observado.

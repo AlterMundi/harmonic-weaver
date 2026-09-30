@@ -48,9 +48,11 @@ def test_video_loops_and_reopening_never_reinfer(tmp_path):
     second = wait(reopened, reopened.open(media, config))
     assert second["cache_hit"] and FakeWorker.calls == 1
     assert second["media_id"] == first["media_id"]
+    assert second["generation"] == first["generation"]
     assert reopened.list_assets()[0]["path"] == str(media)
     forced = wait(reopened, reopened.open(media, config, force=True))
     assert not forced["cache_hit"] and FakeWorker.calls == 2
+    assert forced["generation"] != first["generation"]
     reopened.close()
 
 

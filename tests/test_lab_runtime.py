@@ -124,3 +124,85 @@ def test_calibration_diagnostic_and_compatible_edits_preserve_response(tmp_path)
     runtime.tick()
     assert runtime.routes.expression_history==previous
     store.close()
+
+
+class TwoPeopleLibrary(Library):
+    def __init__(self, *, generation="g1", media_id="media-a", status="ready"):
+        super().__init__()
+        self.generation, self.media_id, self.status = generation, media_id, status
+        for frame in self.frames:
+            if not frame.persons:
+                continue
+            other = frame.persons[0].model_copy(deep=True)
+            other.person_id = "two"
+            for joint in other.joints:
+                if joint.position is not None:
+                    joint.position[0] += .5
+            frame.persons.append(other)
+
+    def snapshot(self, job):
+        return {"status":self.status, "duration_s":3., "media_id":self.media_id,
+                "cache_key":"cache", "generation":self.generation if self.status=="ready" else None,
+                "person_ids":["one","two"] if self.status=="ready" else []}
+
+    def open(self, path, settings, force=False):
+        return {"id":"test", "path":str(path)}
+
+
+def test_two_people_selection_restores_only_same_generation_without_calibration(tmp_path):
+    from harmonic_weaver.lab.contracts import PerceptionSettings
+    settings=PerceptionSettings(checkpoint="example.pt")
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    runtime=LaboratoryRuntime(store,library=TwoPeopleLibrary(),audio=Audio())
+    runtime.open_video("/example.mp4",settings)
+    runtime.tick()
+    assert runtime.person_id is None
+    assert runtime.diagnostic["code"]=="selection_required"
+    runtime.select_person("two")
+    runtime.calibrate()
+    assert runtime.calibration is not None
+    store.close()
+
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    restored=LaboratoryRuntime(store,library=TwoPeopleLibrary(),audio=Audio())
+    restored.restore_video()
+    restored.tick()
+    assert restored.person_id=="two" and restored.selection_status=="restored"
+    assert restored.calibration is None
+    restored.open_video("/example.mp4",settings)
+    restored.library.generation="g2"
+    restored.tick()
+    assert restored.person_id is None
+    assert restored.selection_status=="generation_changed"
+    assert store.source_selection("media-a")["generation"]=="g1"
+    restored.select_person("one")
+    assert store.source_selection("media-a")["generation"]=="g2"
+    # Identical slot names in another source do not grant identity continuity.
+    restored.library.media_id="media-b"
+    restored.open_video("/other.mp4",settings)
+    restored.tick()
+    assert restored.person_id is None and restored.selection_status=="required"
+    store.close()
+
+
+def test_explicit_prefix_selection_is_pinned_when_generation_finishes(tmp_path):
+    import pytest
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    library=TwoPeopleLibrary(status="building")
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.kind,runtime.job_id="video","test"
+    runtime.tick()
+    assert runtime.person_id is None
+    with pytest.raises(ValueError,match="detectada"):
+        runtime.select_person("unknown")
+    runtime.select_person("two")
+    assert store.source_selection("media-a") is None
+    library.status="ready"
+    runtime.tick()
+    assert store.source_selection("media-a")["person_id"]=="two"
+    # An temporarily absent chosen person must never switch to the other body.
+    library.frames[0].persons=[library.frames[0].persons[0]]
+    runtime.tick()
+    assert runtime.person_id=="two"
+    assert runtime.diagnostic["code"]=="tracking_missing"
+    store.close()

@@ -8,6 +8,21 @@ contract manifests. It has no UI of its own: all UIs are thin clients of the
 same contract-manifest protocol, served over WebSocket (web first,
 mobile/Quest later).
 
+## Current local movement laboratory
+
+For the video/camera laboratory with web controls, presets, tracking cache and
+comparisons, use `start-laboratory.sh` from the prepared laboratory checkout:
+
+```sh
+cd ~/Projects/harmonic-weaver-lab
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+Connect the R24 first, then open **http://127.0.0.1:8765**. Ctrl+C stops the
+laboratory and the Shaper process it started. The historical
+`start-kinetic-consonance.sh` command below launches the earlier instrument.
+[Laboratory setup and walkthrough](docs/laboratory/RUNNING.md).
+
 ## Headless Weaver
 
 Install the project and run the Stage Contract server on the local-only default

@@ -1,6 +1,6 @@
 # Arranque y primer recorrido local
 
-Estado: primera iteración local disponible; ver IMPLEMENTATION_STATUS. La escucha y
+Estado: segunda iteración local disponible; ver IMPLEMENTATION_STATUS. La escucha y
 aceptación de Nicolás no se infieren de las pruebas automatizadas.
 
 [Evidencia, mediciones y límites conocidos](VALIDATION.md).
@@ -11,7 +11,7 @@ En Legion, el comando corto prepara la web e inicia la sesión:
 
 ```sh
 cd /home/nicolas/Projects/harmonic-weaver-lab
-./scripts/start-laboratory.sh
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
 ```
 
 El modo `auto` prefiere JACK sobre PipeWire si está disponible y selecciona una salida estéreo JACK. En Legion, el camino ALSA `pipewire` puede reportar callbacks activos sin salida útil; se usa JACK. `--audio-backend native` y `--device` permiten elegir otra ruta.
@@ -165,3 +165,24 @@ Defaults sonoros existentes intactos: realce 0, articulación 0, contraste 0.12 
 cola 0.15 s, suavizado de ganancia 01c 0.03 s. Pitch/fase siguen siendo ruteos
 separados; las referencias afinadas los mantienen deshabilitados. Los controles
 extremos necesitan escucha: las pruebas automáticas no juzgan empaste o musicalidad.
+
+## Fragmentos con varios cuerpos
+
+Cuando hay varios identificadores de cuerpo en un video, elegir **Persona**
+explícitamente. La lista incluye las personas de la generación completa para
+poder conservar una selección aunque el cuerpo esté momentáneamente fuera de
+cuadro. La figura atenúa los esqueletos no seleccionados; esto ayuda a verificar
+la elección. Los números de slot no son nombres ni identidades humanas.
+
+La elección queda guardada localmente para ese archivo, clave de cache y generación.
+Reabrir el mismo tracking recupera el cuerpo elegido; reprocesarlo pide revisar
+la selección. Nunca transfiere calibración: sigue siendo una acción explícita.
+Mientras se construye un prefijo, se puede seleccionar; se guarda al terminar
+la generación válida. Si la extracción falla, esa elección parcial no reemplaza
+la preferencia de la generación anterior. Si el cuerpo elegido deja de verse,
+el instrumento espera sus datos y no cambia a otro cuerpo automáticamente.
+
+El modo `--no-audio` devuelve 503 en la telemetría de voces: es un arranque de
+percepción/UI sin audio. Conectar la R24 después no habilita ese proceso.
+Detenerlo con Ctrl+C y volver a iniciar con el comando R24 de arriba, sin
+`--no-audio`. Recargar la web después del reinicio.

@@ -29,6 +29,9 @@ class LaboratoryRuntime:
         self.job_id = None
         self.person_id = None
         self.calibration = None
+        self.selection_status = "automatic"
+        self._selection_checked = None
+        self._selection_explicit = False
         self.frame = None
         self.features = None
         self.model = None
@@ -79,6 +82,9 @@ class LaboratoryRuntime:
         with self._lock:
             self.kind, self.job_id = "video", job["id"]
             self.person_id, self.calibration, self.frame = None, None, None
+            self.selection_status = "automatic"
+            self._selection_checked = None
+            self._selection_explicit = False
             self.model = None
             self.transport.reset()
             self._reset()
@@ -91,6 +97,9 @@ class LaboratoryRuntime:
         with self._lock:
             self.kind, self.job_id = "camera", None
             self.person_id, self.calibration, self.frame = None, None, None
+            self.selection_status = "automatic"
+            self._selection_checked = None
+            self._selection_explicit = False
             self.model = None
             self.transport.reset(playing=True)
             self._reset()
@@ -124,10 +133,54 @@ class LaboratoryRuntime:
 
     def select_person(self, person_id):
         with self._lock:
+            known = {p.person_id for p in self.frame.persons} if self.frame else set()
+            metadata = self.library.snapshot(self.job_id) if self.kind == "video" else None
+            if metadata:
+                known.update(metadata.get("person_ids", []))
+            if person_id not in known:
+                raise ValueError("Elegí una persona detectada en esta fuente.")
             self.person_id = person_id
+            self.selection_status = "explicit"
+            self._selection_explicit = True
+            self._remember_selection(metadata)
             self.calibration = None
             self.model = None
             self._reset()
+
+    def _remember_selection(self, metadata):
+        if metadata and metadata["status"] == "ready" and metadata.get("generation"):
+            self.store.remember_source_selection(metadata["media_id"], metadata["cache_key"],
+                                                  metadata["generation"], self.person_id)
+            self._selection_checked = (metadata["cache_key"], metadata["generation"])
+
+    def _resolve_selection(self, metadata, current):
+        if metadata and metadata["status"] == "ready" and metadata.get("generation"):
+            key = (metadata["cache_key"], metadata["generation"])
+            if self._selection_checked != key:
+                if self._selection_explicit:
+                    self._remember_selection(metadata)
+                else:
+                    saved = self.store.source_selection(metadata["media_id"])
+                    self._selection_checked = key
+                    if saved:
+                        if ((saved["cache_key"], saved["generation"]) == key and
+                                saved["person_id"] in metadata.get("person_ids", [])):
+                            self.person_id = saved["person_id"]
+                            self.selection_status = "restored"
+                        else:
+                            self.person_id = None
+                            self.selection_status = "generation_changed"
+        ids = metadata.get("person_ids", []) if metadata else []
+        if not ids and current:
+            ids = [p.person_id for p in current.persons]
+        if len(ids) > 1 and self.selection_status == "automatic":
+            self.person_id = None
+            self.selection_status = "required"
+        if self.person_id is None and ids and self.selection_status != "generation_changed":
+            if len(ids) == 1:
+                self.person_id = ids[0]
+            else:
+                self.selection_status = "required"
 
     def calibrate(self, calibration_id=None):
         with self._lock:
@@ -205,8 +258,10 @@ class LaboratoryRuntime:
             else:
                 current = None
             self.frame = current
-            if self.person_id is None and current and current.persons:
-                self.person_id = current.persons[0].person_id
+            previous_person = self.person_id
+            self._resolve_selection(metadata, current)
+            if previous_person != self.person_id:
+                self._reset()
             valid = current is not None and any(p.person_id == self.person_id for p in current.persons)
             if self.kind == "video" and current:
                 valid &= position-current.source_time_s <= preset.algorithm.max_gap_s
@@ -242,6 +297,9 @@ class LaboratoryRuntime:
             code, message = "no_source", "Elegí un video o cámara."
         elif metadata and metadata["status"] in {"error", "cancelled"}:
             code, message = "source_error", "Tracking detenido; revisá la fuente o recuperá con CPU."
+        elif self.selection_status in {"required", "generation_changed"}:
+            code, message = "selection_required", ("El tracking cambió; revisá y elegí nuevamente el cuerpo."
+                if self.selection_status == "generation_changed" else "Hay varios cuerpos; elegí cuál querés escuchar.")
         elif not valid:
             code, message = "tracking_missing", "Esperando tracking de la persona seleccionada."
         elif preset.algorithm.id != "baseline" and self.calibration is None:
@@ -289,7 +347,8 @@ class LaboratoryRuntime:
                     "features":self.features.model_dump() if self.features else None,
                     "calibration":self.calibration.model_dump() if self.calibration else None,
                     "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
-                               "epoch":self.transport.epoch, "diagnostic":self.diagnostic}, **self.audio.snapshot()}
+                               "epoch":self.transport.epoch, "diagnostic":self.diagnostic,
+                               "selection_status":self.selection_status}, **self.audio.snapshot()}
 
     def close(self):
         self._stop.set()

@@ -158,3 +158,18 @@ def test_reference_presets_do_not_replace_edited_saved_instrument(tmp_path):
         assert store.load("lab-v2-reference-transients").expression == 10
     finally:
         store.close()
+
+
+def test_replay_keeps_explicit_body_in_a_two_person_source(tmp_path):
+    source,frames,duration=source_fixture(tmp_path)
+    for frame in frames:
+        if frame.persons:
+            other=frame.persons[0].model_copy(deep=True)
+            other.person_id="right-body"
+            frame.persons.append(other)
+    source.person_id="right-body"
+    preset=next(p for p in initial_presets() if p.id=="lab-v2-reference-sustained")
+    rows=list(replay(preset,source,frames,duration,Request(presets=[preset],sources=[source])))
+    assert any(row["features"] for row in rows)
+    assert all(row["features"]["person_id"]=="right-body" for row in rows if row["features"])
+    assert not any(row["diagnostic"]["code"]=="selection_required" for row in rows)

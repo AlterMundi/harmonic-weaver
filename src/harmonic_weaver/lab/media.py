@@ -25,6 +25,8 @@ class VideoJob:
     media_id: str | None = None
     cache_key: str | None = None
     cache_location: str | None = None
+    generation: str | None = None
+    person_ids: list[str] = field(default_factory=list)
     cache_hit: bool = False
     error: str | None = None
     duration_s: float = 0.
@@ -38,6 +40,7 @@ class VideoJob:
         return {"id": self.id, "name": self.path.name, "path": str(self.path), "status": self.status,
                 "media_id": self.media_id, "cache_key": self.cache_key, "cache_location": self.cache_location,
                 "cache_hit": self.cache_hit, "error": self.error,
+                "generation": self.generation, "person_ids": self.person_ids,
                 "requested_device": self.requested_device, "effective_device": self.settings.device, "duration_s": self.duration_s,
                 "processed_frames": len(self.frames), "prefix_s": self.times[-1] if self.times else 0.,
                 "perception": self.settings.model_dump(),
@@ -119,11 +122,13 @@ class VideoLibrary:
                 job.duration_s = cached.manifest["duration_s"]
                 job.cache_location = str(cached.manifest_path)
                 job.quality = coverage(job.frames, end_s=job.duration_s)
+                job.generation = cached.manifest["generation"]
+                job.person_ids = sorted(job.quality["persons"])
                 job.status = "ready"
                 job.error = self.cache.last_problem
                 self.assets[media_hash] = {"id": media_hash, "name": job.path.name, "path": str(job.path),
                                            "duration_s": job.duration_s, "person_ids": sorted(job.quality["persons"]), "perception": job.settings.model_dump(),
-                                           "cache_location": job.cache_location}
+                                           "cache_location": job.cache_location, "generation": job.generation}
                 atomic_json(self.index, self.assets)
         except Exception as exc:
             with self._lock:

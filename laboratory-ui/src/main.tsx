@@ -1067,13 +1067,39 @@ function App() {
                       run(() => api("person", { person_id: e.target.value }))
                     }
                   >
-                    <option value="">Esperando cuerpo…</option>
-                    {state.motion_frame?.persons.map((p: Data) => (
-                      <option key={p.person_id}>{p.person_id}</option>
+                    <option value="" disabled>
+                      Elegir cuerpo…
+                    </option>
+                    {[
+                      ...new Set<string>([
+                        ...(state.source?.job?.person_ids || []),
+                        ...(state.motion_frame?.persons || []).map(
+                          (p: Data) => p.person_id,
+                        ),
+                      ]),
+                    ].map((id) => (
+                      <option key={id}>{id}</option>
                     ))}
                   </select>
                 </label>
+                <p role="status">
+                  {
+                    (
+                      {
+                        automatic: "Un cuerpo detectado; selección automática.",
+                        explicit: "Cuerpo elegido explícitamente.",
+                        restored:
+                          "Selección recuperada de esta misma generación de tracking.",
+                        required:
+                          "Hay varios cuerpos: elegí cuál querés escuchar.",
+                        generation_changed:
+                          "El tracking cambió: verificá y elegí nuevamente el cuerpo.",
+                      } as Data
+                    )[state.runtime?.selection_status]
+                  }
+                </p>
                 <button
+                  disabled={!session.person_id}
                   onClick={() =>
                     run(async () => {
                       await api("calibrate", {});

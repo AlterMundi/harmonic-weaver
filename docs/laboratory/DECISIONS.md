@@ -39,3 +39,8 @@ colectiva fuera del primer milestone.
 15. El aporte independiente de Oliva (#36, para #35) se revisa y contrasta sin
     modificar su territorio ni hacer merges automáticos. Incorporar precauciones
     de cobertura/causalidad no equivale a validar las hipótesis de HIT.
+
+16. La selección explícita de cuerpo en video es una preferencia local ligada a
+    media hash, clave de cache y generación; no viaja en presets ni restaura
+    calibración. Varios cuerpos requieren selección. Una generación nueva exige
+    verificarla otra vez; la ausencia del cuerpo elegido nunca selecciona otro.
