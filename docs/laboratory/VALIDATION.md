@@ -454,3 +454,12 @@ repetición exacta, timestamps de origen/fit y ausencia de scores para historia
 insuficiente. TypeScript/Vite pasa. Evidencia sintética 1/6/15 pasos repetida
 sobre 149 objetivos comunes; scripts/configuraciones/hashes preservados. No hay
 prueba de anticipación humana, causalidad corporal ni HIT.
+
+### Descarga verificada de datos del comparador — 2026-09-30
+
+12 pruebas de evaluación/PCM pasan con venv propio y checkout Shaper explícito.
+Verifican restauración, descarga de request/manifest/features/comparaciones,
+Range/206 y content-type, rechazo de archivos no declarados, alteración de
+request/trace/comparación y symlink de trace; el informe también rechaza una
+comparación modificada. Build TypeScript/Vite pasa. Fixtures sintéticos: no se
+capturaron ni publicaron cuerpos y no se inició hardware.

@@ -302,7 +302,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         def evaluation_artifact(ident: str, filename: str):
             path = evaluation.artifact(ident, filename)
             return FileResponse(path, filename=filename,
-                media_type="audio/wav" if path.suffix == ".wav" else "application/x-ndjson")
+                media_type="audio/wav" if path.suffix == ".wav" else "application/json" if path.suffix=='.json' else "application/x-ndjson")
 
         @app.get("/api/evaluations/{ident}/sources/{source_index}")
         def evaluation_source(ident: str, source_index: int):

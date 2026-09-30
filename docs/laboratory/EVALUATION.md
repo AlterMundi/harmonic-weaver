@@ -175,3 +175,25 @@ para análisis. Exportar un video sincronizado de la figura sigue pendiente.
 
 Si WebGL no está disponible, se informa la ausencia de figura y video/audio
 siguen coordinados. El reproductor no necesita WebGL para avanzar el video.
+
+## Descargar datos congelados desde la web
+
+Al abrir una comparación terminada, cada corrida ofrece **Features y targets**:
+JSONL con reloj/tick, señales/unidades/estados/causas, targets y diagnóstico del
+runtime compartido. No requiere habilitar PCM. También se pueden descargar la
+configuración congelada, el manifest original y los `comparison-*.json` con
+estadísticas sobre soporte común; WAV y estado de osciladores conservan sus
+controles existentes.
+
+La API `/api/evaluations/{id}/artifacts/{filename}` sirve únicamente archivos
+declarados de una corrida completa. Traces y comparaciones se verifican por los
+hashes del manifest; request debe coincidir con su digest y contenido congelado.
+Una comparación alterada se rechaza también al abrir el informe, no se muestra
+como evidencia intacta. Rechaza nombres fuera del contrato y symlinks de
+artefactos. JSON usa `application/json`, traces `application/x-ndjson` y WAV
+`audio/wav`; Range/206 permite lectura parcial. Las descargas siguen siendo
+locales y pueden contener información corporal/rutas: no se publican solas.
+
+Esto permite inspección e intercambio deliberado de datos para R01/R02/R07;
+no implementa todavía la ingestión corporal en esos bancos ni resuelve sus
+hipótesis. No altera calibración, presets, fuentes ni síntesis en vivo.

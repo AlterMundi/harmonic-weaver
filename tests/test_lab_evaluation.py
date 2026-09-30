@@ -173,3 +173,41 @@ def test_replay_keeps_explicit_body_in_a_two_person_source(tmp_path):
     assert any(row["features"] for row in rows)
     assert all(row["features"]["person_id"]=="right-body" for row in rows if row["features"])
     assert not any(row["diagnostic"]["code"]=="selection_required" for row in rows)
+
+
+def test_analysis_artifacts_are_verified_after_restart_and_changes_rejected(tmp_path):
+    from uuid import uuid4
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    source,_,_=source_fixture(tmp_path)
+    preset=initial_presets()[0]
+    request=Request(presets=[preset],sources=[source])
+    ident=uuid4().hex;session=tmp_path/'session'
+    folder=session/'evaluations'/ident;folder.mkdir(parents=True)
+    (folder/'request.json').write_text(request.model_dump_json())
+    manifest=run(request,folder/'result')
+    store=SessionStore(session,prepare=PreparedRoutes)
+    service=EvaluationService(session,store,None)
+    try:
+        trace=manifest['runs'][0]['file']
+        assert service.artifact(ident,trace).is_file()
+        assert service.artifact(ident,'request.json').is_file()
+        assert service.artifact(ident,'manifest.json').is_file()
+        comparison='comparison-00.json'
+        assert service.artifact(ident,comparison).is_file()
+        with pytest.raises(ValueError):service.artifact(ident,'../request.json')
+        with pytest.raises(ValueError):service.artifact(ident,'process.log')
+        path=folder/'result'/trace
+        original=path.read_bytes();path.write_bytes(b'changed')
+        with pytest.raises(ValueError,match='cambió'):service.artifact(ident,trace)
+        path.write_bytes(original)
+        outside=tmp_path/'outside.jsonl';outside.write_bytes(original)
+        path.unlink();path.symlink_to(outside)
+        with pytest.raises(ValueError,match='inválido'):service.artifact(ident,trace)
+        path.unlink();path.write_bytes(original)
+        frozen=folder/'result'/'request.json'
+        settings=json.loads(frozen.read_text());settings['preroll_s']=0
+        frozen.write_text(json.dumps(settings))
+        with pytest.raises(ValueError,match='configuración'):service.artifact(ident,'request.json')
+        (folder/'result'/comparison).write_text('{}')
+        with pytest.raises(ValueError,match='comparación'):service.report(ident)
+    finally:service.close();store.close()

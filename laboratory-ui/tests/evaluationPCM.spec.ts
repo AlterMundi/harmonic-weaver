@@ -24,7 +24,7 @@ test("optional PCM controls submit explicit settings and expose local artifacts"
     import { EvaluationPanel } from '/src/EvaluationPanel.tsx';
     const job={id:'test-job',status:'complete',directory:'/private/local/results'};
     let jobs=[];
-    const report={job_id:'test-job',manifest:{runs:[{source_index:0,preset_id:'ref',rows:60,sounding_fraction:.8,
+    const report={job_id:'test-job',manifest:{comparison_hashes:{'comparison-00.json':'fixture'},runs:[{source_index:0,preset_id:'ref',rows:60,sounding_fraction:.8,file:'features.jsonl',
       pcm:{file:'signal.wav',voice_frames:'signal.voice-frames.jsonl',rms:.1,peak:.3,samples:48000}}]},comparisons:[]};
     async function api(path,body){
       if(path==='evaluations'&&body){window.pcmRequest=body;jobs=[job];return job;}
@@ -70,4 +70,7 @@ test("optional PCM controls submit explicit settings and expose local artifacts"
     "href",
     "/api/evaluations/test-job/artifacts/signal.voice-frames.jsonl",
   );
+  await expect(page.getByRole('link',{name:'Features y targets'})).toHaveAttribute('href','/api/evaluations/test-job/artifacts/features.jsonl');
+  await expect(page.getByRole('link',{name:'Configuración congelada'})).toHaveAttribute('href','/api/evaluations/test-job/artifacts/request.json');
+  await expect(page.getByRole('link',{name:'comparison-00.json'})).toHaveAttribute('href','/api/evaluations/test-job/artifacts/comparison-00.json');
 });

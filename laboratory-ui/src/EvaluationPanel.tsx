@@ -327,6 +327,7 @@ export function EvaluationPanel({
                 <th>Fuente</th>
                 <th>Preset</th>
                 <th>Ticks</th>
+                <th>Datos del análisis</th>
                 <th>Con sonido previsto</th>
                 <th>Render local</th>
               </tr>
@@ -337,6 +338,7 @@ export function EvaluationPanel({
                   <td>{r.source_index + 1}</td>
                   <td>{r.preset_id}</td>
                   <td>{r.rows}</td>
+                  <td><a href={`/api/evaluations/${report.job_id}/artifacts/${r.file}`} download>Features y targets</a></td>
                   <td>{(r.sounding_fraction * 100).toFixed(1)}%</td>
                   <td>
                     {r.pcm ? (
@@ -376,6 +378,11 @@ export function EvaluationPanel({
             </tbody>
           </table>
           <button onClick={download}>Descargar informe y manifest</button>
+          <p>
+            <a href={`/api/evaluations/${report.job_id}/artifacts/request.json`} download>Configuración congelada</a>
+            {' · '}<a href={`/api/evaluations/${report.job_id}/artifacts/manifest.json`} download>Manifest original</a>
+            {Object.keys(report.manifest.comparison_hashes || {}).map(name=><span key={name}>{' · '}<a href={`/api/evaluations/${report.job_id}/artifacts/${name}`} download>{name}</a></span>)}
+          </p>
           <p>
             Contiene rutas y resultados locales: revisar antes de compartir.
           </p>

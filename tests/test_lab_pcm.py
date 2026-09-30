@@ -106,7 +106,13 @@ def test_service_api_freezes_pcm_repeats_and_serves_only_declared_artifacts(tmp_
         result=client.get(f'/api/evaluations/{ident}/artifacts/{pcm["file"]}')
         assert result.status_code==200 and result.headers['content-type']=='audio/wav'
         assert result.content[:4]==b'RIFF'
-        assert client.get(f'/api/evaluations/{ident}/artifacts/request.json').status_code==422
+        frozen=client.get(f'/api/evaluations/{ident}/artifacts/request.json')
+        assert frozen.status_code==200 and frozen.json()==report['manifest']['request']
+        assert frozen.headers['content-type']=='application/json'
+        trace=report['manifest']['runs'][0]['file']
+        partial=client.get(f'/api/evaluations/{ident}/artifacts/{trace}',headers={'Range':'bytes=0-9'})
+        assert partial.status_code==206 and len(partial.content)==10
+        assert client.get(f'/api/evaluations/{ident}/artifacts/process.log').status_code==422
         repeated=client.post(f'/api/evaluations/{ident}/repeat',json={}).json()
         again=complete(repeated['id'])
         assert again['manifest']['runs'][0]['pcm']['sha256']==pcm['sha256']

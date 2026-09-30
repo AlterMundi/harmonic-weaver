@@ -8,7 +8,7 @@ import threading
 from uuid import uuid4
 
 from ..cache import atomic_json, sha256_file
-from .runner import Request, Source
+from .runner import Request, Source, digest
 from .pcm import PCMSettings, engine_identity
 
 
@@ -145,20 +145,43 @@ class EvaluationService:
         if job["status"] != "complete":
             raise ValueError("La comparación no está completa")
         directory = Path(job["directory"])
-        return {"job_id": ident, "manifest": json.loads((directory/"manifest.json").read_text()),
-                "comparisons": [json.loads(p.read_text()) for p in sorted(directory.glob("comparison-*.json"))]}
+        manifest_path=directory/'manifest.json'
+        if manifest_path.is_symlink():raise ValueError('Manifest inválido')
+        manifest=json.loads(manifest_path.read_text())
+        comparisons=[]
+        for name,expected in sorted(manifest.get('comparison_hashes',{}).items()):
+            path=self._artifact_path(directory,name)
+            self._verify_file(path,expected,'La comparación cambió desde la corrida')
+            comparisons.append(json.loads(path.read_text()))
+        return {"job_id": ident, "manifest": manifest,"comparisons": comparisons}
+
+    @staticmethod
+    def _artifact_path(directory, filename):
+        if Path(filename).name!=filename or filename in ('.','..'):
+            raise ValueError('Nombre de archivo inválido')
+        path=directory/filename
+        if path.is_symlink() or not path.is_file():raise ValueError('Artefacto ausente o inválido')
+        return path
 
     def artifact(self, ident, filename):
         if Path(filename).name != filename:
             raise ValueError("Nombre de archivo inválido")
         report = self.report(ident)
+        directory=Path(self.jobs[ident]['directory'])
+        if filename=='manifest.json':return self._artifact_path(directory,filename)
+        if filename=='request.json':
+            path=self._artifact_path(directory,filename)
+            request=json.loads(path.read_text())
+            if digest(request)!=report['manifest']['request_sha256'] or request!=report['manifest']['request']:
+                raise ValueError('La configuración congelada cambió desde la corrida')
+            return path
         allowed = {r['pcm'][key]: r['pcm'][checksum] for r in report['manifest']['runs'] if r.get('pcm')
                    for key, checksum in (('file','sha256'), ('voice_frames','voice_frames_sha256'))}
+        allowed.update({r['file']:r['sha256'] for r in report['manifest']['runs']})
+        allowed.update(report['manifest'].get('comparison_hashes',{}))
         if filename not in allowed:
             raise ValueError("Archivo no declarado en el manifest")
-        path = Path(self.jobs[ident]['directory'])/filename
-        if not path.is_file():
-            raise ValueError("Archivo ausente")
+        path = self._artifact_path(directory,filename)
         self._verify_file(path, allowed[filename], "El artefacto cambió desde la corrida")
         return path
 
