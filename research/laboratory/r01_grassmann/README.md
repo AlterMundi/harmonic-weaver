@@ -156,3 +156,47 @@ Los manifests producidos conservan identidad de código y paquetes para
 inspeccionar diferencias de entorno. Las configuraciones congeladas también
 pueden importarse individualmente en la web desde el campo `settings` de cada
 corrida de la evidencia.
+
+### Features corporales desde una comparación congelada
+
+En Investigación, **R01 · Features del comparador** permite elegir comparación
+terminada, corrida (preset/fuente), intervalo y 2–16 señales de la misma unidad.
+Se muestran persona y unidad de la fuente congelada. Controles independientes:
+semilla, componentes, ventana, umbral, ridge, horizonte y gap máximo. Exportar/
+importar configuración corporal conserva señales y parámetros, sin transportar
+identidad, fuente o calibración. Elegir la fuente sigue siendo explícito.
+
+API POST `/api/research/r01/trace`: `evaluation_id`, `run_index`, `signal_ids`,
+`start_s`, `end_s` y esos parámetros. Sólo acepta una corrida completa con trace
+verificada y segmento contenido en el intervalo evaluado (máximo 120 s/14400
+observaciones). No recibe una ruta arbitraria ni abre video/cámara. Congela un
+`input.json` local con señales, valores/causas, timestamps y procedencia: hash de
+trace/request/preset, código, fuente, tracking y calibración de la evaluación.
+El worker exige el hash del snapshot. Request, input, manifest y traces pueden
+descargarse por el contrato de artefactos; siguen siendo datos corporales locales.
+
+El reloj es el timestamp del FeatureFrame, no el control clock. Repeticiones del
+mismo frame se excluyen para no premiar mantener el último valor durante ticks
+sin nueva observación. Exige lookahead cero y rechaza persona diferente de la
+fuente congelada. Faltantes/cambios de soporte o gaps mayores al umbral cortan
+segmentos y descartan historia/forecasts pendientes. Sin interpolar, imputar ni
+buscar un cuerpo alternativo. Los controles conservan los límites de segmentos;
+shuffle sólo permuta dentro de cada segmento válido.
+
+El horizonte cuenta muestras de features; si sus timestamps son irregulares,
+**no equivale a una duración constante**. `horizon_elapsed_s` registra la duración
+real por objetivo. MSE es promedio por muestra, en unidades originales al cuadrado;
+no pondera duración. Rotación ortogonal ocurre en el espacio de señales derivadas,
+no implica una rotación física del cuerpo. No mezcla unidades, no aplica escalado
+futuro ni infiere que normalización/compresión prueben harmonicidad.
+
+Verificación local del fragmento del dúo: se reutilizaron fuente/tracking y elección
+previamente verificada del cuerpo a la derecha. Comparación sin PCM, seis señales
+de velocidad, dos componentes y horizonte seis; dos corridas producen hashes de
+traces idénticos. Los outputs y el registro `body-research-verification.json` quedan
+en el estado privado `laboratory-dev`, fuera del repo/GitHub. No es una nueva
+verificación de exactitud de pose, identidad humana, musicalidad o hipótesis HIT.
+
+Pendientes científicos: formular predicciones HIT específicas, controlar el efecto
+de señales derivadas/modelos, ampliar familias de predictores, splits reservados,
+normalización causal explícita cuando se requiera y evaluación entre cuerpos/tareas.

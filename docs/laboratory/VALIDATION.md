@@ -463,3 +463,20 @@ Range/206 y content-type, rechazo de archivos no declarados, alteración de
 request/trace/comparación y symlink de trace; el informe también rechaza una
 comparación modificada. Build TypeScript/Vite pasa. Fixtures sintéticos: no se
 capturaron ni publicaron cuerpos y no se inició hardware.
+
+### Ingestión de features en R01 — 2026-09-30
+
+Contrato/snapshot/worker web conectado al comparador verificado. Suite R01+replay:
+28 tests pasaron antes del cuarto test corporal de lookahead/persona; ese test se
+agregó y se verificó por separado. Dos pruebas Chrome aisladas y build pasan.
+Se prueban hashes, faltantes, reset de forecasts, tiempos irregulares, no-score,
+deduplicación, unidades incompatibles, segmento fuera de fuente, snapshot alterado,
+worker real/reinicio/download, API de selección y límites. Sin datos privados en
+fixtures/commits.
+
+Corrida corporal local separada: fragmento dúo de 60 s, fuente/persona/cache de la
+evaluación previamente verificada, seis velocidades en T/s. Snapshot conserva
+procedencia/calibración sin aplicarla al instrumento. Repetición exacta de artefactos;
+resultados en estado laboratory-dev únicamente. No se abrió/capturó hardware ni se
+copió el original; lectura de cache y features. Esta evidencia no prueba precisión
+geométrica, causalidad/intención, HIT ni aceptación de la sonificación.

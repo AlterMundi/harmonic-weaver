@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {BodyResearchPanel} from './BodyResearchPanel';
 type Data=Record<string,any>;
 const defaults={seed:0,samples:360,control_hz:30,dimensions:8,signal_rank:3,components:3,window_s:2,noise_std:.01,noise_threshold:.02,ridge:.1,horizon_steps:1,scenario:'fixed_span',rotation_deg_s:30,temporal_memory:.95};
 export function ResearchPanel({api,run}:Data){
@@ -29,7 +30,9 @@ export function ResearchPanel({api,run}:Data){
   <button onClick={()=>run(async()=>setSettings(JSON.parse(text)))}>Importar configuración JSON</button>
   <p>Original, rotación global y orden temporal mezclado usan las mismas muestras. El residuo de reconstrucción y el error de predicción son observables distintos. Compará métodos dentro del soporte común de cada control.</p>
   <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
+  <BodyResearchPanel api={api} run={run} onStarted={async()=>setJobs(await api('research/r01'))}/>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>
+   {j.input_kind==='evaluation_features' && <p>Features: {j.signal_ids.join(', ')} · unidad {j.unit} · {j.contiguous_segments} segmentos válidos · {j.invalid_observations} faltantes · {j.duplicate_control_holds_excluded} repeticiones excluidas</p>}
    {j.status==='running' && <button onClick={()=>run(async()=>{await api(`research/r01/${j.id}/cancel`,{});setJobs(await api('research/r01'));})}>Cancelar corrida R01</button>}
    <a href={`/api/research/r01/${j.id}/artifacts/manifest.json`} download>Manifest R01</a>
    {j.status==='complete' && <div>

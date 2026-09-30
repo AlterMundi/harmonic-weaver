@@ -20,6 +20,7 @@ from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
+from .research.body import BodyRequest
 
 
 class RevisionRequest(Contract):
@@ -218,6 +219,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post("/api/research/r01/{ident}/cancel")
     def research_cancel(ident: str):return research.cancel(ident)
+
+    @app.post("/api/research/r01/trace")
+    def research_body(body: BodyRequest):
+        if evaluation is None:raise ValueError('No comparison library available')
+        return research.start_body(body.model_dump(),evaluation)
 
     @app.get("/api/schemas")
     def schemas():

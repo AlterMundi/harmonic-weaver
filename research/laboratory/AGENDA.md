@@ -53,6 +53,8 @@ R01: [primer banco sintético de subespacios y predicción](r01_grassmann/README
 configurable por web/CLI y basado en estimador colectivo de producción. Evidencia
 sintética real/repetida, controles y límites preservados. Incluye soporte pareado
 entre controles y horizontes configurables con forecasts congelados en su origen.
-Falta entrada corporal, comparación amplia entre familias de predictores y
+Incluye entrada de features desde comparaciones congeladas, con unidades,
+procedencia, deduplicación y gaps explícitos; repetición corporal local sin publicar
+datos privados. Falta comparación amplia entre familias de predictores y
 predicción específica HIT. R01 sigue abierto;
 R02–R13 conservan sus experimentos/dependencias de esta agenda.

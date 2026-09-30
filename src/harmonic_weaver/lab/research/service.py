@@ -33,7 +33,7 @@ class ResearchService:
 
     def artifact(self, ident, name):
         if not re.fullmatch(r'[a-f0-9]{32}',ident):raise ValueError('Invalid research job id')
-        if name not in ('request.json','manifest.json','original.jsonl','global_rotation.jsonl','temporal_shuffle.jsonl','paired.jsonl'):
+        if name not in ('request.json','manifest.json','input.json','original.jsonl','global_rotation.jsonl','temporal_shuffle.jsonl','paired.jsonl'):
             raise ValueError('Unknown research artifact')
         folder=self.root/ident
         if folder.is_symlink() or not folder.is_dir():raise ValueError('Research job is unavailable')
@@ -57,14 +57,27 @@ class ResearchService:
 
     def start(self,settings):
         settings=Settings.model_validate(settings)
+        return self._launch(settings.model_dump(),'harmonic_weaver.lab.research.grassmann')
+
+    def start_body(self, request, evaluation):
+        from .body import BodyRequest, snapshot
+        request=BodyRequest.model_validate(request)
+        if request.input_sha256 is not None:raise ValueError('Input hash is assigned when freezing the selected trace')
+        document=snapshot(evaluation,request)
+        return self._launch(request.model_dump(),'harmonic_weaver.lab.research.body',document)
+
+    def _launch(self, settings, module, document=None):
         with self.lock:
             if any(p.poll() is None for p in self.processes.values()):raise ValueError('Ya hay un banco R01 corriendo')
             ident=uuid4().hex;folder=self.root/ident;folder.mkdir(mode=0o700)
-            atomic_json(folder/'request.json',settings.model_dump());atomic_json(folder/'manifest.json',{'status':'running','line':'R01'})
+            if document is not None:
+                atomic_json(folder/'input.json',document)
+                settings={**settings,'input_sha256':sha256_file(folder/'input.json')}
+            atomic_json(folder/'request.json',settings);atomic_json(folder/'manifest.json',{'status':'running','line':'R01'})
             env=dict(os.environ)
             env.update(OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1')
             with (folder/'worker.log').open('wb') as log:
-                process=subprocess.Popen([sys.executable,'-m','harmonic_weaver.lab.research.grassmann',
+                process=subprocess.Popen([sys.executable,'-m',module,
                     '--request',str(folder/'request.json'),'--output',str(folder)],env=env,stdout=log,stderr=log)
             self.processes[ident]=process
             return {'id':ident,'status':'running','directory':str(folder)}
