@@ -56,3 +56,26 @@ def test_completed_result_is_not_overwritten(tmp_path):
     before=(tmp_path/'result'/'manifest.json').read_bytes()
     with pytest.raises(ValueError,match='already'):run(settings.model_dump(),tmp_path/'result')
     assert (tmp_path/'result'/'manifest.json').read_bytes()==before
+
+
+def test_paired_controls_exclude_unequal_support_before_scoring():
+    from harmonic_weaver.lab.research.grassmann import pair_controls
+    def row(t,value):return {'time_s':t,'prediction_mse':dict(persistence=value,full_ridge=value,subspace_ridge=value),'reconstruction_residual':value}
+    evaluations={'original':{'rows':[row(0,100),row(1,2),row(2,4)]},
+                 'global_rotation':{'rows':[row(1,2),row(2,4),row(3,100)]},
+                 'temporal_shuffle':{'rows':[row(2,6)]}}
+    paired,traces=pair_controls(evaluations)
+    assert paired['common_samples']==1 and [r['time_s'] for r in traces]==[2]
+    assert paired['results']['original']['mean_prediction_mse']['persistence']==4
+    assert paired['mean_mse_delta_vs_original']['global_rotation']['persistence']==0
+    assert paired['mean_mse_delta_vs_original']['temporal_shuffle']['persistence']==2
+    assert paired['excluded_by_control']['original']==2
+
+
+def test_no_common_support_is_not_a_zero_error_score():
+    from harmonic_weaver.lab.research.grassmann import pair_controls
+    row={'time_s':1,'prediction_mse':{},'reconstruction_residual':0}
+    paired,traces=pair_controls({'a':{'rows':[row]},'b':{'rows':[]}})
+    assert paired['common_samples']==0 and not traces
+    assert paired['results']['a']['mean_prediction_mse']=={}
+    assert paired['results']['a']['mean_reconstruction_residual'] is None

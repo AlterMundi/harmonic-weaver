@@ -185,3 +185,10 @@ rotación/shuffle y dinámica no armónica. Evidencia real/repetida sin datos co
 research/laboratory/r01_grassmann/README.md registra observables y siguientes pasos.
 Pruebas causalidad/rotación/repetición/worker/inmutabilidad, Chrome y build. No
 completa R01 ni agenda R02–R13; no cambia instrumento/presets/aceptación humana.
+
+
+R01: soporte compartido entre controles, paired.jsonl/hash, conteos de exclusión y
+deltas sin inferencia causal/estadística. Vista pareada default sólo en Investigación,
+reversible por checkbox; instrumento sin cambios. 15 tests research/API/collective,
+Chrome aislado y build pasan. Evidencia sintética real/repetida en
+research/laboratory/r01_grassmann/evidence-paired-2026-09-30.json. R01 no completado.

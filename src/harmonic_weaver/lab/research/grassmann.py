@@ -88,6 +88,29 @@ def evaluate(settings, t, data):
         'mean_reconstruction_residual':float(np.mean([row['reconstruction_residual'] for row in common])) if common else None}}
 
 
+def pair_controls(evaluations):
+    if not evaluations:raise ValueError('No controls to pair')
+    indexed={name:{row['time_s']:row for row in evaluation['rows'] if 'prediction_mse' in row}
+             for name,evaluation in evaluations.items()}
+    times=sorted(set.intersection(*(set(rows) for rows in indexed.values())))
+    traces=[{'time_s':stamp,'controls':{name:rows[stamp] for name,rows in indexed.items()}} for stamp in times]
+    results={}
+    for name,rows in indexed.items():
+        errors={key:float(np.mean([rows[stamp]['prediction_mse'][key] for stamp in times]))
+                for key in ('persistence','full_ridge','subspace_ridge')} if times else {}
+        results[name]={'common_samples':len(times),'mean_prediction_mse':errors,
+            'mean_reconstruction_residual':float(np.mean([rows[stamp]['reconstruction_residual'] for stamp in times])) if times else None}
+    deltas={}
+    if times and 'original' in results:
+        deltas={name:{key:float(np.mean([rows[stamp]['prediction_mse'][key]-indexed['original'][stamp]['prediction_mse'][key]
+                        for stamp in times])) for key in ('persistence','full_ridge','subspace_ridge')}
+                for name,rows in indexed.items() if name!='original'}
+    return {'common_samples':len(times),'results':results,'mean_mse_delta_vs_original':deltas,
+            'eligible_by_control':{name:len(rows) for name,rows in indexed.items()},
+            'excluded_by_control':{name:len(rows)-len(times) for name,rows in indexed.items()},
+            'pairing':'Same logical clock slots; shuffled vectors are not the same observation'},traces
+
+
 def run(settings, output):
     settings=Settings.model_validate(settings);output=Path(output)
     manifest=output/'manifest.json'
@@ -95,18 +118,22 @@ def run(settings, output):
         raise ValueError('Output already contains a result; choose a new folder')
     output.mkdir(mode=0o700,parents=True,exist_ok=True)
     from ..evaluation.runner import code_identity
-    t,controls=generate(settings);results={};hashes={};artifact_hashes={}
+    t,controls=generate(settings);results={};hashes={};artifact_hashes={};evaluations={}
     for name,data in controls.items():
-        result=evaluate(settings,t,data);rows=output/f'{name}.jsonl'
+        result=evaluate(settings,t,data);evaluations[name]=result;rows=output/f'{name}.jsonl'
         rows.write_text(''.join(json.dumps(row,sort_keys=True,allow_nan=False)+'\n' for row in result['rows']))
         artifact_hashes[rows.name]=sha256_file(rows)
         results[name]=result['metrics'];hashes[name]=hashlib.sha256(data.astype('<f8').tobytes()).hexdigest()
+    paired,traces=pair_controls(evaluations)
+    trace=output/'paired.jsonl'
+    trace.write_text(''.join(json.dumps(row,sort_keys=True,allow_nan=False)+'\n' for row in traces))
+    artifact_hashes[trace.name]=sha256_file(trace)
     report={'schema_version':1,'status':'complete','line':'R01','settings':settings.model_dump(),
-        'code':code_identity(),'input_hashes':hashes,'artifact_hashes':artifact_hashes,'results':results,
+        'code':code_identity(),'input_hashes':hashes,'artifact_hashes':artifact_hashes,'results':results,'paired':paired,
         'limits':['Synthetic dimensionless trajectories, not evidence about bodies or HIT',
                   'One-step prediction fitted strictly to past pairs; common support within each control',
                   'Reconstruction residual is distinct from future prediction error',
-                  'Across-control aggregate scores may have different support; inspect exported row times',
+                  'Unpaired control summaries may differ in support; paired summaries use shared clock slots',
                   'Global rotation control shares exact samples; shuffle retains vectors but changes chronology',
                   'No physical constraint, intention or particle-scattering law is inferred']}
     atomic_json(output/'manifest.json',report);return report

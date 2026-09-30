@@ -1,0 +1,123 @@
+{
+  "artifact_hashes": {
+    "global_rotation.jsonl": "43eafb7a5a9a6aec389e67d17bbfd35e91a049c1bc1d5c1c0e4aaca9da2ac98a",
+    "original.jsonl": "4841e659a4b844ded6a5df6df576c86c12a56fdd4aab2c3d656dc0e8a817244a",
+    "paired.jsonl": "3aef7e1e8dd7ae0de9e0e8e881fa3b5bd3f1bc6748ed28292024d0a9632284ba",
+    "temporal_shuffle.jsonl": "67179af497dbb9b4bc4500389de27011bdfe537423ff3b1d4ee99b4ece3a2672"
+  },
+  "input_hashes": {
+    "global_rotation": "48d089c5a9458224759d66e0f3dcfca2f883b3f14775baef473d9537bb786611",
+    "original": "815678f93aa8a7606761ac6f3049a2f13b085e0ead80575a5f894b05edfaf9bb",
+    "temporal_shuffle": "6e0ac6d249e087d076f66f59874e12a8c1d0d762fff92e3a78fa3beaa66fc562"
+  },
+  "kind": "synthetic paired software benchmark, not bodily or HIT evidence",
+  "limits": [
+    "Synthetic dimensionless trajectories, not evidence about bodies or HIT",
+    "One-step prediction fitted strictly to past pairs; common support within each control",
+    "Reconstruction residual is distinct from future prediction error",
+    "Unpaired control summaries may differ in support; paired summaries use shared clock slots",
+    "Global rotation control shares exact samples; shuffle retains vectors but changes chronology",
+    "No physical constraint, intention or particle-scattering law is inferred"
+  ],
+  "module_sha256": "f32ab666c8ab8afac6dc5557639124f1d297feb2685cb7fd5db3fa3dec0ad910",
+  "numpy": "2.5.1",
+  "paired": {
+    "common_samples": 234,
+    "eligible_by_control": {
+      "global_rotation": 234,
+      "original": 234,
+      "temporal_shuffle": 234
+    },
+    "excluded_by_control": {
+      "global_rotation": 0,
+      "original": 0,
+      "temporal_shuffle": 0
+    },
+    "mean_mse_delta_vs_original": {
+      "global_rotation": {
+        "full_ridge": 2.217170276019769e-18,
+        "persistence": 1.1845140401535008e-18,
+        "subspace_ridge": -4.622222595177518e-18
+      },
+      "temporal_shuffle": {
+        "full_ridge": 0.3119919827116156,
+        "persistence": 0.5187090568708803,
+        "subspace_ridge": 0.22535481338076327
+      }
+    },
+    "pairing": "Same logical clock slots; shuffled vectors are not the same observation",
+    "results": {
+      "global_rotation": {
+        "common_samples": 234,
+        "mean_prediction_mse": {
+          "full_ridge": 0.004004576444992467,
+          "persistence": 0.004940846754245168,
+          "subspace_ridge": 0.06591297248976487
+        },
+        "mean_reconstruction_residual": 0.4131027325970325
+      },
+      "original": {
+        "common_samples": 234,
+        "mean_prediction_mse": {
+          "full_ridge": 0.004004576444992465,
+          "persistence": 0.004940846754245166,
+          "subspace_ridge": 0.06591297248976487
+        },
+        "mean_reconstruction_residual": 0.4131027325970325
+      },
+      "temporal_shuffle": {
+        "common_samples": 234,
+        "mean_prediction_mse": {
+          "full_ridge": 0.3159965591566079,
+          "persistence": 0.5236499036251254,
+          "subspace_ridge": 0.29126778587052815
+        },
+        "mean_reconstruction_residual": 0.4870910176569728
+      }
+    }
+  },
+  "settings": {
+    "components": 2,
+    "control_hz": 30,
+    "dimensions": 6,
+    "noise_std": 0.01,
+    "noise_threshold": 0.02,
+    "ridge": 0.1,
+    "rotation_deg_s": 60.0,
+    "samples": 240,
+    "scenario": "rotating_span",
+    "seed": 0,
+    "signal_rank": 3,
+    "temporal_memory": 0.95,
+    "window_s": 2.0
+  },
+  "unpaired_results": {
+    "global_rotation": {
+      "common_samples": 234,
+      "mean_prediction_mse": {
+        "full_ridge": 0.004004576444992467,
+        "persistence": 0.004940846754245168,
+        "subspace_ridge": 0.06591297248976487
+      },
+      "mean_reconstruction_residual": 0.4131027325970325
+    },
+    "original": {
+      "common_samples": 234,
+      "mean_prediction_mse": {
+        "full_ridge": 0.004004576444992465,
+        "persistence": 0.004940846754245166,
+        "subspace_ridge": 0.06591297248976487
+      },
+      "mean_reconstruction_residual": 0.4131027325970325
+    },
+    "temporal_shuffle": {
+      "common_samples": 234,
+      "mean_prediction_mse": {
+        "full_ridge": 0.3159965591566079,
+        "persistence": 0.5236499036251254,
+        "subspace_ridge": 0.29126778587052815
+      },
+      "mean_reconstruction_residual": 0.4870910176569728
+    }
+  }
+}

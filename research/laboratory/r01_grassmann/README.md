@@ -62,3 +62,30 @@ presentación separada de métricas. No escucha ni evaluación corporal/humana.
 4. Grassmanniano positivo/amplituedro y solitones requieren representación y
    observable propios; no se identifican con una PCA cualquiera. Mantener R01/R06.
 5. R02–R13 conservan su agenda; este incremento no los sustituye ni resuelve R01.
+
+## Comparación sobre tiempos compartidos
+
+Incremento posterior a #48: `paired` usa la intersección de tiempos con los tres
+predictores válidos en todos los controles. Conserva conteos elegibles/excluidos,
+scores pareados y diferencias MSE por instante frente a original. `paired.jsonl`
+conserva los mismos tiempos y resultados de cada control, con hash en manifest.
+Sin intersección no hay score (no se presenta cero como éxito). Se mantienen los
+agregados individuales originales. La UI muestra pareados por defecto; checkbox
+permite ver agregados individuales, sin recalcular ni tocar el instrumento.
+
+Emparejar posiciones del reloj no significa emparejar el mismo vector: el control
+de shuffle modifica la observación de ese instante. No es una estimación causal
+sobre cuerpos, ni p-value ni intervalo de confianza. La inferencia estadística y
+entradas corporales con soporte adecuado permanecen pendientes.
+
+[evidence-paired-2026-09-30.json](evidence-paired-2026-09-30.json) conserva ejecución
+real/repetida: subespacio rotante, 240 muestras, dos componentes estimados en seis
+dimensiones. 234 tiempos compartidos en los tres controles. Diferencias por
+rotación global próximas a cero numérico; en esta configuración subspace ridge
+es peor que ridge completo en el original. No se presupone superioridad de la
+reducción dimensional. Los resultados son de este generador/configuración y no
+validan HIT. Se preserva la evidencia anterior de #48 con su identidad de código.
+
+Pruebas añadidas: soportes artificialmente distintos excluidos antes de puntuar;
+intersección vacía devuelve ausencia de score. Chrome verifica conmutación de
+vista pareada/individual, y traces/metrics se repiten exactamente en esta máquina.

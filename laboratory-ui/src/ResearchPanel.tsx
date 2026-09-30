@@ -3,7 +3,7 @@ type Data=Record<string,any>;
 const defaults={seed:0,samples:360,control_hz:30,dimensions:8,signal_rank:3,components:3,window_s:2,noise_std:.01,noise_threshold:.02,ridge:.1,scenario:'fixed_span',rotation_deg_s:30,temporal_memory:.95};
 export function ResearchPanel({api,run}:Data){
  const [settings,setSettings]=useState<Data>(defaults),[jobs,setJobs]=useState<Data[]>([]);
- const [text,setText]=useState('');
+ const [text,setText]=useState(''),[paired,setPaired]=useState(true);
  useEffect(()=>{let live=true;const poll=()=>api('research/r01').then((j:Data[])=>{if(live)setJobs(j)}).catch(()=>{});
  void poll();const timer=setInterval(poll,1000);return()=>{live=false;clearInterval(timer)};},[api]);
  const active=jobs.some(j=>j.status==='running');
@@ -26,9 +26,11 @@ export function ResearchPanel({api,run}:Data){
   <textarea aria-label="Configuración R01 JSON" value={text} onChange={e=>setText(e.target.value)}/>
   <button onClick={()=>run(async()=>setSettings(JSON.parse(text)))}>Importar configuración JSON</button>
   <p>Original, rotación global y orden temporal mezclado usan las mismas muestras. El residuo de reconstrucción y el error de predicción son observables distintos. Compará métodos dentro del soporte común de cada control.</p>
+  <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>
+   {j.paired && <p>Soporte pareado: {j.paired.common_samples} instantes. Empareja posiciones del reloj; el shuffle cambia el vector observado.</p>}
    {j.results && <table><thead><tr><th>Control</th><th>Muestras comunes</th><th>Persistencia MSE</th><th>Ridge completo MSE</th><th>Ridge subespacio MSE</th><th>Residuo reconstrucción</th></tr></thead>
-    <tbody>{Object.entries(j.results).map(([name,value]:[string,any])=><tr key={name}><td>{name}</td><td>{value.common_samples}</td>
+    <tbody>{Object.entries(paired && j.paired ? j.paired.results : j.results).map(([name,value]:[string,any])=><tr key={name}><td>{name}</td><td>{value.common_samples}</td>
     {['persistence','full_ridge','subspace_ridge'].map(k=><td key={k}>{value.mean_prediction_mse[k]?.toPrecision(5) ?? 'Sin soporte'}</td>)}
     <td>{value.mean_reconstruction_residual?.toPrecision(5) ?? 'Sin soporte'}</td></tr>)}</tbody></table>}
   </section>)}
