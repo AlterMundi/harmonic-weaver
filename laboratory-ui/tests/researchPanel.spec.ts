@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+test('R01 synthetic research controls freeze settings and show separate metrics',async({page})=>{
+ test.skip(!process.env.LAB_COMPONENT_TEST_URL,'requires isolated Vite');const origin=process.env.LAB_COMPONENT_TEST_URL!;
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(String(e)));
+ await page.route(`${origin}/research-test`,r=>r.fulfill({contentType:'text/html',body:'<div id="root"></div>'}));
+ await page.goto(`${origin}/research-test`);
+ await page.addScriptTag({type:'module',content:`
+ import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
+ import {ResearchPanel} from '/src/ResearchPanel.tsx';
+ let jobs=[];window.requests=[];
+ const api=async(path,body)=>{if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1},mean_reconstruction_residual:.001}}}];}return jobs;};
+ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ResearchPanel,{api,run:fn=>fn()}));
+ `});
+ await expect(page.getByRole('button',{name:'Correr banco R01'})).toBeEnabled();
+ expect(await page.evaluate(()=>(window as any).requests)).toEqual([]);
+ await page.getByLabel('Dinámica sintética').selectOption('stochastic_span');
+ await page.getByLabel('Memoria estocástica').fill('0');
+ await page.getByLabel('Muestras',{exact:true}).fill('120');
+ await page.getByRole('button',{name:'Exportar configuración JSON'}).click();
+ const json=JSON.parse(await page.getByLabel('Configuración R01 JSON').inputValue());
+ expect(json.scenario).toBe('stochastic_span');expect(json.temporal_memory).toBe(0);
+ await page.getByRole('button',{name:'Correr banco R01'}).click();
+ expect(await page.evaluate(()=>(window as any).requests[0])).toEqual(json);
+ await expect(page.getByRole('columnheader',{name:'Residuo reconstrucción'})).toBeVisible();
+ await expect(page.getByRole('columnheader',{name:'Ridge subespacio MSE'})).toBeVisible();
+ expect(errors).toEqual([]);
+});

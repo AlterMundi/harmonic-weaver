@@ -1,0 +1,67 @@
+{
+  "artifact_hashes": {
+    "global_rotation.jsonl": "58497053a74a4dddc979b3c16fd485f76cb43cf0e2e85adc45657460fe9a4e2a",
+    "original.jsonl": "e1fd996d05d3962cc0786317a6d77dd956e092bab1ff789ee5fe80f20f74e5e2",
+    "temporal_shuffle.jsonl": "d1115da3d6575d61a2411b16e70519919fd0a25b1544e71d68a7d05ecf28cdb2"
+  },
+  "input_hashes": {
+    "global_rotation": "303e97b0f0487d3adc769ac72466e719188f4e4a6035bd610afc21d41e4d5653",
+    "original": "22b1e3c4f1c17535de30048a4c9b262fe8d9c437d80b170d51c20e37991f784e",
+    "temporal_shuffle": "c4606d39928eb419a7ddcd203535b72dc33bc171687bdc21d74d42271441992c"
+  },
+  "kind": "synthetic software benchmark; not bodily/HIT evidence",
+  "limits": [
+    "Synthetic dimensionless trajectories, not evidence about bodies or HIT",
+    "One-step prediction fitted strictly to past pairs; common support within each control",
+    "Reconstruction residual is distinct from future prediction error",
+    "Across-control aggregate scores may have different support; inspect exported row times",
+    "Global rotation control shares exact samples; shuffle retains vectors but changes chronology",
+    "No physical constraint, intention or particle-scattering law is inferred"
+  ],
+  "module_sha256": "520ca6a3d8e604ae26df1439f8877350d51dc6e23eff64153c02349abc5d4cdd",
+  "numpy": "2.5.1",
+  "results": {
+    "global_rotation": {
+      "common_samples": 174,
+      "mean_prediction_mse": {
+        "full_ridge": 0.5809320320267062,
+        "persistence": 1.0758658277503352,
+        "subspace_ridge": 0.5809320320267062
+      },
+      "mean_reconstruction_residual": 5.887251720229022e-16
+    },
+    "original": {
+      "common_samples": 174,
+      "mean_prediction_mse": {
+        "full_ridge": 0.5809320320267063,
+        "persistence": 1.0758658277503357,
+        "subspace_ridge": 0.5809320320267063
+      },
+      "mean_reconstruction_residual": 5.93113478241658e-16
+    },
+    "temporal_shuffle": {
+      "common_samples": 174,
+      "mean_prediction_mse": {
+        "full_ridge": 0.6347859458992136,
+        "persistence": 1.0257423782230046,
+        "subspace_ridge": 0.6347859458992136
+      },
+      "mean_reconstruction_residual": 6.0856736857964e-16
+    }
+  },
+  "settings": {
+    "components": 3,
+    "control_hz": 30,
+    "dimensions": 6,
+    "noise_std": 0.0,
+    "noise_threshold": 0.02,
+    "ridge": 0.1,
+    "rotation_deg_s": 30.0,
+    "samples": 180,
+    "scenario": "stochastic_span",
+    "seed": 0,
+    "signal_rank": 3,
+    "temporal_memory": 0.0,
+    "window_s": 2.0
+  }
+}

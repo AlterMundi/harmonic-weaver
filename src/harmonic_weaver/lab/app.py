@@ -18,6 +18,8 @@ from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
+from .research.grassmann import Settings as GrassmannSettings
+from .research.service import ResearchService
 
 
 class RevisionRequest(Contract):
@@ -95,6 +97,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     session = store or SessionStore(data_dir)
     capture = CaptureSession(data_dir, session, runtime, client_factory=capture_client_factory) if runtime is not None else None
     exports = CaptureExports(capture) if capture is not None else None
+    research = ResearchService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -107,6 +110,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            research.close()
             if exports is not None:
                 exports.close()
             if capture is not None:
@@ -201,6 +205,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post("/api/capture-exports/cancel")
     def capture_export_cancel():
         return exports.cancel() if exports else {"status":"idle"}
+
+    @app.get("/api/research/r01")
+    def research_jobs():return research.list()
+
+    @app.post("/api/research/r01")
+    def research_r01(body: GrassmannSettings):return research.start(body.model_dump())
 
     @app.get("/api/schemas")
     def schemas():

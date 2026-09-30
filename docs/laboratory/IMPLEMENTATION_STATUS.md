@@ -177,3 +177,11 @@ LAB-09: reintento de recuperación sólo con contrato idempotente; evidencia raw
 sin cambios reutiliza resultado verificado, tampering se rechaza. 39 Shaper,
 53 Weaver pertinentes y 14 colector tras estado unconfirmed pasan. Lock/recovery
 in-flight todavía necesita job polling; ver CAPTURE.md. No modifica sonido/UI.
+
+
+R01: banco sintético configurable web/CLI, procesos separados y request/manifests/
+traces congelados. Estimador colectivo compartido, predictores sólo del pasado,
+rotación/shuffle y dinámica no armónica. Evidencia real/repetida sin datos corporales;
+research/laboratory/r01_grassmann/README.md registra observables y siguientes pasos.
+Pruebas causalidad/rotación/repetición/worker/inmutabilidad, Chrome y build. No
+completa R01 ni agenda R02–R13; no cambia instrumento/presets/aceptación humana.

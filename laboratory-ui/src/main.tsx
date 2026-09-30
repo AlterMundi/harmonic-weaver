@@ -1,3 +1,4 @@
+import { ResearchPanel } from "./ResearchPanel";
 import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
 import { EvaluationPanel } from "./EvaluationPanel";
@@ -829,6 +830,7 @@ function App() {
               "Presets",
               "Comparar",
               "Captura",
+              "Investigación",
             ].map((t) => (
               <button
                 className={tab === t ? "active" : ""}
@@ -840,6 +842,7 @@ function App() {
             ))}
           </nav>
           <div className="panel">
+            {tab === "Investigación" && <ResearchPanel api={api} run={run}/>}
             {tab === "Captura" && <CapturePanel api={api} run={run}/>}
             {tab === "Comparar" && (
               <EvaluationPanel
