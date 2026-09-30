@@ -7,10 +7,13 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  await page.addScriptTag({type:'module',content:`
  import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
  import {ResearchPanel} from '/src/ResearchPanel.tsx';
- let jobs=[];window.requests=[];
- const api=async(path,body)=>{if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3},mean_reconstruction_residual:.002}}}}];}return jobs;};
+ let jobs=[{id:'pending',status:'running',directory:'/synthetic'}];window.requests=[];window.cancelled=[];
+ const api=async(path,body)=>{if(path.endsWith('/cancel')){window.cancelled.push(path);jobs=[{id:'pending',status:'cancelled',directory:'/synthetic'}];return jobs[0];}if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3},mean_reconstruction_residual:.002}}}}];}return jobs;};
  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ResearchPanel,{api,run:fn=>fn()}));
  `});
+ await expect(page.getByRole('button',{name:'Correr banco R01'})).toBeDisabled();
+ await page.getByRole('button',{name:'Cancelar corrida R01'}).click();
+ expect(await page.evaluate(()=>(window as any).cancelled)).toEqual(['research/r01/pending/cancel']);
  await expect(page.getByRole('button',{name:'Correr banco R01'})).toBeEnabled();
  expect(await page.evaluate(()=>(window as any).requests)).toEqual([]);
  await page.getByLabel('Dinámica sintética').selectOption('stochastic_span');

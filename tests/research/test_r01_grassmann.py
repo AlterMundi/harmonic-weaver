@@ -123,3 +123,82 @@ def test_research_download_api_ranges_and_corrupt_trace(tmp_path):
         assert client.get(f"/api/research/r01/{job['id']}/artifacts/worker.log").status_code==422
         (Path(job['directory'])/'paired.jsonl').write_text('changed')
         assert client.get(url).status_code==422
+
+
+def test_cancel_owned_worker_preserves_partial_files_and_survives_restart(tmp_path):
+    import json
+    import subprocess
+    import sys
+    from uuid import uuid4
+    import pytest
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research.service import ResearchService
+    service=ResearchService(tmp_path)
+    ident=uuid4().hex;folder=service.root/ident;folder.mkdir()
+    atomic_json(folder/'manifest.json',{'status':'running','line':'R01'})
+    partial=folder/'original.jsonl';partial.write_text('partial diagnostic')
+    process=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)'])
+    service.processes[ident]=process
+    try:
+        result=service.cancel(ident)
+        assert process.poll() is not None and result['status']=='cancelled'
+        assert partial.read_text()=='partial diagnostic'
+        restored=ResearchService(tmp_path)
+        assert restored.list()[0]['status']=='cancelled'
+        assert service.cancel(ident)==result
+        with pytest.raises(ValueError,match='not complete'):restored.artifact(ident,'original.jsonl')
+        with pytest.raises(ValueError):service.cancel('../outside')
+        service.close()
+        assert json.loads((folder/'manifest.json').read_text())['status']=='cancelled'
+    finally:
+        if process.poll() is None:process.kill();process.wait()
+
+
+def test_cancel_does_not_relabel_completed_or_unowned_results(tmp_path):
+    from uuid import uuid4
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research.service import ResearchService
+    service=ResearchService(tmp_path)
+    for status in ('complete','running'):
+        ident=uuid4().hex;folder=service.root/ident;folder.mkdir()
+        atomic_json(folder/'manifest.json',{'status':status,'line':'R01'})
+        before=(folder/'manifest.json').read_bytes()
+        result=service.cancel(ident)
+        if status=='complete':
+            assert result['status']=='complete'
+            assert (folder/'manifest.json').read_bytes()==before
+        else:assert result['status']=='interrupted'
+    service.close()
+
+
+def test_completion_during_cancel_wins_and_shutdown_is_interrupted(tmp_path):
+    from uuid import uuid4
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research.service import ResearchService
+    service=ResearchService(tmp_path)
+    ident=uuid4().hex;folder=service.root/ident;folder.mkdir()
+    manifest=folder/'manifest.json';atomic_json(manifest,{'status':'running'})
+    class CompletingWorker:
+        done=False
+        def poll(self):return 0 if self.done else None
+        def terminate(self):
+            atomic_json(manifest,{'status':'complete','result':'committed'})
+            self.done=True
+        def wait(self,timeout):return 0
+    service.processes[ident]=CompletingWorker()
+    assert service.cancel(ident)['result']=='committed'
+    assert service.list()[0]['status']=='complete'
+    # Closing a real live worker is an interruption, not a human cancellation.
+    import subprocess
+    import sys
+    second=uuid4().hex;other=service.root/second;other.mkdir()
+    atomic_json(other/'manifest.json',{'status':'running'})
+    worker=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)'])
+    service.processes[second]=worker
+    try:
+        service.close()
+        report=next(j for j in service.list() if j['id']==second)
+        assert report['status']=='interrupted' and report['error']=='Service shutdown'
+        assert worker.poll() is not None
+    finally:
+        if worker.poll() is None:worker.kill();worker.wait()

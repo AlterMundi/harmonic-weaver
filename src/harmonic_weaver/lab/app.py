@@ -216,6 +216,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post("/api/research/r01")
     def research_r01(body: GrassmannSettings):return research.start(body.model_dump())
 
+    @app.post("/api/research/r01/{ident}/cancel")
+    def research_cancel(ident: str):return research.cancel(ident)
+
     @app.get("/api/schemas")
     def schemas():
         return {c.__name__: c.model_json_schema() for c in PERSISTED_CONTRACTS}

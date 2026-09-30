@@ -436,3 +436,12 @@ con su propio `.venv/bin/python`. Sin ese PYTHONPATH, el test cruzado inicialmen
 falló por no encontrar Shaper; no era un fallo del colector. La conexión R24,
 latencia y aceptación del nuevo entorno siguen pendientes; no se inició el
 laboratorio de desarrollo ni se modificó el proceso habitual en ejecución.
+
+### Cancelación del banco R01 — 2026-09-30
+
+13 pruebas R01 pasan: terminación de un proceso hijo real sintético, preservación
+de archivos parciales, idempotencia, restauración del estado cancelado,
+rechazo de descarga de trazas incompletas, protección de resultados completos,
+finalización concurrente y distinción del cierre del servicio. El build de UI
+pasa. No se abrieron fuentes corporales, audio ni cámara; no cambia la evidencia
+científica ni los defaults del instrumento.

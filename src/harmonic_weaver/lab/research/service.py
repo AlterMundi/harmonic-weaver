@@ -69,9 +69,27 @@ class ResearchService:
             self.processes[ident]=process
             return {'id':ident,'status':'running','directory':str(folder)}
 
-    def close(self):
-        for process in self.processes.values():
-            if process.poll() is None:
+    def cancel(self, ident, *, shutdown=False):
+        if not re.fullmatch(r'[a-f0-9]{32}',ident):raise ValueError('Invalid research job id')
+        with self.lock:
+            folder=self.root/ident
+            if folder.is_symlink() or not folder.is_dir():raise ValueError('Research job is unavailable')
+            manifest=folder/'manifest.json'
+            if manifest.is_symlink():raise ValueError('Research manifest is unavailable')
+            process=self.processes.get(ident)
+            if process is not None and process.poll() is None:
                 process.terminate()
                 try:process.wait(timeout=5)
                 except subprocess.TimeoutExpired:process.kill();process.wait(timeout=5)
+            # The worker can finish during cancellation. Preserve its committed
+            # result instead of relabelling a complete experiment as cancelled.
+            report=json.loads(manifest.read_text())
+            if report.get('status')=='running':
+                report={**report,'status':'cancelled' if process is not None and not shutdown else 'interrupted',
+                        'error':('Service shutdown' if shutdown else 'Cancelled by user') if process is not None else 'No owned worker to cancel'}
+                atomic_json(manifest,report)
+            return {**report,'id':ident,'directory':str(folder)}
+
+    def close(self):
+        for ident in list(self.processes):
+            self.cancel(ident,shutdown=True)

@@ -104,3 +104,15 @@ leer fragmentos sin cargar toda la trace en memoria. No sube ni publica resultad
 Pruebas adicionales: worker real/reinicio, alteración de request/trace, selección
 cerrada de nombres, HTTP Range/206 y enlaces Chrome. 17 research/API/collective tests
 más Chrome aislado y build. Sólo fixtures/datos sintéticos; instrumento intacto.
+
+### Cancelación desde la web
+
+Una corrida activa muestra **Cancelar corrida R01**. Se termina y espera sólo
+su proceso hijo, sin intervenir en el tracking ni el audio. El manifest queda
+`cancelled` y los archivos parciales se conservan para diagnóstico; no se
+ofrecen como trazas completas. Si el worker confirmó `complete` antes de
+terminar, ese resultado se preserva. Cancelar de nuevo es idempotente.
+Cerrar el servicio interrumpe sus workers con estado `interrupted`; no se
+atribuye esa interrupción a una acción humana. Tras reiniciar, un worker sin
+proceso propio tampoco se presenta como completado ni se intenta matar otro
+proceso. No hay reanudación automática de un cálculo parcial.

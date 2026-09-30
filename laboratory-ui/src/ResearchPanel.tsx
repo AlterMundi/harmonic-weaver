@@ -28,6 +28,7 @@ export function ResearchPanel({api,run}:Data){
   <p>Original, rotación global y orden temporal mezclado usan las mismas muestras. El residuo de reconstrucción y el error de predicción son observables distintos. Compará métodos dentro del soporte común de cada control.</p>
   <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>
+   {j.status==='running' && <button onClick={()=>run(async()=>{await api(`research/r01/${j.id}/cancel`,{});setJobs(await api('research/r01'));})}>Cancelar corrida R01</button>}
    <a href={`/api/research/r01/${j.id}/artifacts/manifest.json`} download>Manifest R01</a>
    {j.status==='complete' && <div>
     <a href={`/api/research/r01/${j.id}/artifacts/request.json`} download>Configuración de corrida</a>
