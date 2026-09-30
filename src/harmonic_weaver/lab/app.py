@@ -15,6 +15,7 @@ from pydantic import Field
 
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
+from .evaluation.pcm import PCMSettings
 
 
 class RevisionRequest(Contract):
@@ -52,6 +53,7 @@ class EvaluationRequest(Contract):
     segments: list[EvaluationSegment] = Field(min_length=1, max_length=32)
     control_hz: int = Field(default=60, ge=10, le=240)
     preroll_s: Number = Field(default=2, ge=0, le=30)
+    pcm: PCMSettings = Field(default_factory=PCMSettings)
 
 
 class CameraRequest(Contract):
@@ -208,7 +210,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         @app.post("/api/evaluations")
         def start_evaluation(body: EvaluationRequest):
             return evaluation.start(body.preset_ids, [s.model_dump() for s in body.segments],
-                                    control_hz=body.control_hz, preroll_s=body.preroll_s)
+                                    control_hz=body.control_hz, preroll_s=body.preroll_s, pcm=body.pcm.model_dump())
 
         @app.get("/api/evaluations")
         def list_evaluations():
@@ -225,6 +227,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         @app.post("/api/evaluations/{ident}/repeat")
         def repeat_evaluation(ident: str):
             return evaluation.repeat(ident)
+
+        @app.get("/api/evaluations/{ident}/artifacts/{filename}")
+        def evaluation_artifact(ident: str, filename: str):
+            path = evaluation.artifact(ident, filename)
+            return FileResponse(path, filename=filename,
+                media_type="audio/wav" if path.suffix == ".wav" else "application/x-ndjson")
 
         @app.get("/api/evaluations/{ident}/report")
         def evaluation_report(ident: str):

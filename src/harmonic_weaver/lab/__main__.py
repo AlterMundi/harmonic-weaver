@@ -58,6 +58,7 @@ def main():
     child = None
     store = None
     try:
+        os.environ["SHAPER_DIR"] = str(args.shaper_dir.expanduser().resolve())
         if not args.external_shaper:
             shaper = args.shaper_dir.expanduser().resolve()
             python = args.shaper_python or str(shaper/".venv/bin/python")

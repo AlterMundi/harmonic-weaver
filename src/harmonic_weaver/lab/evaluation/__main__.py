@@ -3,7 +3,7 @@ from pathlib import Path
 from .runner import Request, run
 
 def main():
-    parser = argparse.ArgumentParser(description="Replay causal de presets × fuentes; sin audio")
+    parser = argparse.ArgumentParser(description="Replay causal de presets × fuentes; PCM opcional sin dispositivo")
     parser.add_argument("request", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()

@@ -13,6 +13,13 @@ export function EvaluationPanel({
   const [segments, setSegments] = useState<Data>({});
   const [preroll, setPreroll] = useState(2);
   const [hz, setHz] = useState(60);
+  const [pcm, setPCM] = useState<Data>({
+    enabled: false,
+    sample_rate: 48000,
+    block_frames: 256,
+    shaper_master: 0.8,
+    tail_s: 0,
+  });
   const [jobs, setJobs] = useState<Data[]>([]);
   const [report, setReport] = useState<Data | null>(null);
   useEffect(() => {
@@ -47,7 +54,7 @@ export function EvaluationPanel({
       <h2>Comparación reproducible</h2>
       <p>
         Corre aparte de la sesión en vivo. Usa presets guardados y tracking
-        completo; no genera audio ni cambia lo que está sonando.
+        completo; puede renderizar audio aparte sin cambiar lo que está sonando.
       </p>
       <fieldset>
         <legend>Presets guardados</legend>
@@ -198,6 +205,44 @@ export function EvaluationPanel({
           />
         </label>
       </div>
+      <fieldset>
+        <legend>Render de audio opcional</legend>
+        <label>
+          <input
+            type="checkbox"
+            checked={pcm.enabled}
+            onChange={(e) => setPCM({ ...pcm, enabled: e.target.checked })}
+          />
+          Generar WAV y estado de osciladores
+        </label>
+        {pcm.enabled && (
+          <div className="fields">
+            {[
+              ["sample_rate", "Frecuencia de muestreo (Hz)", 8000, 192000, 1],
+              ["block_frames", "Muestras por bloque", 16, 4096, 1],
+              ["shaper_master", "Master de Shaper para el render", 0, 1, 0.01],
+              ["tail_s", "Cola después del segmento (s)", 0, 2, 0.01],
+            ].map(([key, label, min, max, step]) => (
+              <label key={key}>
+                {label}
+                <input
+                  type="number"
+                  value={pcm[key]}
+                  min={min}
+                  max={max}
+                  step={step}
+                  onChange={(e) => setPCM({ ...pcm, [key]: +e.target.value })}
+                />
+              </label>
+            ))}
+          </div>
+        )}
+        <p>
+          WAV estéreo float después del timbre, master y limitador. La figura
+          usa los osciladores antes del timbre y limitador. Bloques y master son
+          independientes de la salida física: igualalos para comparar.
+        </p>
+      </fieldset>
       <button
         disabled={
           !selected.length ||
@@ -211,6 +256,7 @@ export function EvaluationPanel({
               segments: Object.values(segments),
               preroll_s: preroll,
               control_hz: hz,
+              pcm,
             });
             setJobs(await api("evaluations"));
           })
@@ -261,8 +307,8 @@ export function EvaluationPanel({
       {report && (
         <>
           <p>
-            Etapa: targets antes de Shaper. No son medidas de volumen percibido
-            ni eficacia corporal.
+            Features y targets antes de Shaper; WAV opcional después de
+            síntesis. No son medidas de volumen percibido ni eficacia corporal.
           </p>
           <table>
             <thead>
@@ -271,6 +317,7 @@ export function EvaluationPanel({
                 <th>Preset</th>
                 <th>Ticks</th>
                 <th>Con sonido previsto</th>
+                <th>Render local</th>
               </tr>
             </thead>
             <tbody>
@@ -280,6 +327,36 @@ export function EvaluationPanel({
                   <td>{r.preset_id}</td>
                   <td>{r.rows}</td>
                   <td>{(r.sounding_fraction * 100).toFixed(1)}%</td>
+                  <td>
+                    {r.pcm ? (
+                      <>
+                        <audio
+                          controls
+                          preload="none"
+                          src={`/api/evaluations/${report.job_id}/artifacts/${r.pcm.file}`}
+                        />
+                        <a
+                          href={`/api/evaluations/${report.job_id}/artifacts/${r.pcm.file}`}
+                          download
+                        >
+                          WAV
+                        </a>
+                        {" · "}
+                        <a
+                          href={`/api/evaluations/${report.job_id}/artifacts/${r.pcm.voice_frames}`}
+                          download
+                        >
+                          Osciladores
+                        </a>
+                        <small>
+                          RMS {r.pcm.rms.toFixed(4)} · pico{" "}
+                          {r.pcm.peak.toFixed(4)} · {r.pcm.samples} muestras
+                        </small>
+                      </>
+                    ) : (
+                      "Sin render"
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

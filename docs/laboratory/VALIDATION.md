@@ -276,3 +276,38 @@ Playwright del seguidor y build TypeScript/Vite pasan. Chrome headless decodific
 transporte compartido). Esto verifica decodificación, no aceptación visual del
 recorrido completo. La primera corrida de evaluación usó por error el venv del
 workspace original sin PYTHONPATH; al usar PYTHONPATH=src pasó la corrida completa.
+
+## PCM compartido — 2026-09-30
+
+Weaver: **251 pruebas + 4 subtests**, 152.16 s, con Shaper compatible disponible
+explícitamente en PYTHONPATH. Incluye cuatro pruebas de PCM: targets/features
+idénticos con y sin render, longitud/recorte no alineado al reloj, muestras/hashes
+repetibles, archivo y voice-frames, rechazo de motor congelado modificado y
+servicio/API/repetición/artefactos permitidos. Estas cuatro pruebas se omiten si
+no se instala un Shaper compatible; una suite sin ese repo no acredita PCM.
+
+Shaper: **24 pruebas**, 10.59 s (offline, laboratorio, smoke audio, pads). Paridad
+exacta del kernel offline/callback para 1/6/32 voces con timbre/pan/fase/release;
+lease lógico, reloj inválido y rechazo de render sobre engine live.
+UI: dos pruebas Playwright aisladas (controles PCM/links, seguidor de video) y
+build TypeScript/Vite pasan. El harness de componentes usa Vite aparte, sin
+API ni configuraciones de la sesión corporal compartida.
+
+Fuente local real: minuto de dos cuerpos, slot derecho previamente verificado,
+preset baseline de referencia con seis voces, 48 kHz / 256 samples, master Shaper
+0.8, cola 0.2 s. Produjo **2 889 600 muestras estéreo**, pico 0.137206 y RMS lineal
+0.038922. Repetición congelada CLI: hashes iguales de WAV, voice-frames y filas de
+features/targets. No se copió el video; resultados permanecen en biblioteca local.
+Estas medidas no son escucha, sensación corporal, loudness ni precisión de pose.
+
+Una prueba inicial detectó que libsndfile escribe un timestamp de pared en PEAK:
+las muestras eran idénticas pero el archivo difería. Render lógico pone ese campo
+en cero, conservando picos y muestras, y lo declara en el manifest.
+
+Recorrido de prueba: activar render en Comparar, seleccionar preset/segmento,
+revisar master/sample-rate/bloque, ejecutar, escuchar/descargar WAV y repetir.
+La escucha y la aceptación de esta entrega siguen pendientes. La sesión de prueba
+continúa en la rama anterior; esta implementación está en los worktrees `-dev`.
+
+Para el test UI aislado, iniciar `npm run dev -- --port 8767` en laboratory-ui y:
+`LAB_COMPONENT_TEST_URL=http://127.0.0.1:8767 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/evaluationPCM.spec.ts tests/videoFollower.spec.ts`.

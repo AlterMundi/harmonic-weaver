@@ -46,3 +46,10 @@ colectiva fuera del primer milestone.
     o primero de la lista, configurable en Fuente; reproducción automática
     configurable cuando el cache está listo. Una generación nueva elige su
     propio default; la ausencia del cuerpo elegido nunca selecciona otro.
+
+17. PCM offline usa el kernel de producción de Shaper con reloj lógico explícito,
+    controles cuantizados al próximo límite de bloque y motor nuevo por corrida.
+    Preroll calienta síntesis y análisis; recorte por muestra. Configuración de
+    render separada del preset portable y salida física; congelar hash del motor.
+    Estado de osciladores pre-shape y PCM post-limitador son artefactos distintos.
+    Una corrida reproducible no demuestra aceptación ni latencia física.

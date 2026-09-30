@@ -1,7 +1,8 @@
-# Comparador local v1
+# Comparador local
 
 Segunda iteración, 2026-09-29. Primer corte de #18: comparación descriptiva de
-presets congelados × segmentos; no render PCM ni evaluación científica formal.
+presets congelados × segmentos. Extensión 2026-09-30: render PCM opcional
+con el motor compartido de Shaper; evaluación científica formal pendiente.
 
 ## Desde la web
 
@@ -15,7 +16,7 @@ medida de esa fuente/persona. La UI no inventa ni transfiere escalas.
 **Comparar presets** congela los valores, la escala/procedencia y el checksum del
 manifest de tracking. Corre en un proceso separado, con un único trabajo activo
 y un thread por biblioteca numérica. No modifica la configuración en vivo, no
-controla Shaper y no copia el video. Puede competir por CPU/disco: no constituye
+controla la instancia en vivo de Shaper y no copia el video. Puede competir por CPU/disco: no constituye
 una garantía de latencia bajo carga. Se puede cancelar; las corridas interrumpidas
 se distinguen al reiniciar. Los trabajos terminados vuelven a aparecer.
 
@@ -40,7 +41,10 @@ historia previa; la ventana evaluada es [inicio, fin), muestreada sobre ese relo
 - `result/manifest.json`: estado, hashes de solicitud/código/medios/cache/salidas,
   head y estado Git, versiones Python/NumPy/Pydantic, parámetros y cobertura.
 - `result/source-NN-preset-NN.jsonl`: ticks con features, estados/razones,
-  targets y diagnóstico/ruteo; nunca PCM.
+  targets y diagnóstico/ruteo.
+- Con render habilitado: `source-NN-preset-NN.wav` estéreo float después del
+  timbre, master y soft limiter; `*.voice-frames.jsonl` contiene el estado de
+  osciladores por bloque antes del timbre/limitador, con recorte y reloj lógico.
 - `result/comparison-NN.json`: señales del mismo nombre/unidad comparadas sobre
   exactamente los mismos ticks observados por **todos** los presets seleccionados.
 
@@ -87,5 +91,56 @@ Anni. El banco no valida HIT ni eficacia corporal.
 
 Permanecen en #18/#19 y agenda R01–R13: predicción con targets independientes,
 reservas por sesión, controles marginales/no lineales y selección predeclarada,
-publicación formal, render PCM offline, grabación opcional (#17), sensores/3D,
+publicación formal, reproducción/render visual sincronizado, grabación opcional (#17), sensores/3D,
 comparación de cymatics físicos y aceptación humana. No son requisitos para jugar.
+
+## Render PCM opcional
+
+En Comparar, activar **Generar WAV y estado de osciladores**. Configurar frecuencia
+(48 kHz inicial), bloque (256 muestras), master de Shaper (0.8, default del motor)
+y cola (0 s inicialmente, hasta 2 s). Estos controles no cambian la sesión live.
+El master del preset ya está incluido en los targets; el master de Shaper es otra
+etapa y debe igualarse explícitamente a la salida real para comparar.
+
+El runner usa el mismo runtime causal y el mismo `AudioEngine.render_block` que
+invoca el kernel del callback de Shaper. No abre PortAudio. Cada preset comienza
+con motor nuevo; el preroll calienta tanto análisis como fases/envolventes, luego
+se recorta el intervalo solicitado con precisión de muestra. Los controles se
+consumen en el primer límite de bloque posterior a su timestamp lógico, sin
+partir bloques; el manifest declara una cuantización máxima bloque/sample-rate.
+La cola libera las voces al final; su comienzo también se cuantiza al bloque.
+No reproduce jitter de red/dispositivo ni acredita latencia física.
+
+El render guarda hashes de archivos de síntesis y del WAV/estado de voces,
+versiones NumPy/soundfile/libsndfile, configuración, duración en muestras, RMS
+lineal y pico post-limitador. No son loudness percibido ni medidas fisiológicas.
+La figura representa todos los osciladores y conserva la distinción entre
+pre-shape y PCM. El JSONL permite reconstruirla, pero todavía no entrega un video
+renderizado de la figura ni reproducción conjunta de fuente/figura/WAV.
+
+El timestamp de pared del chunk WAV PEAK se fija en cero: es un render lógico,
+no una grabación física. Las muestras y los picos no se alteran. Una repetición
+local debe producir hashes idénticos con el mismo motor y bibliotecas; no se
+promete igualdad entre plataformas. Si cambió el motor congelado, repetir falla
+explícitamente y se debe crear una nueva corrida.
+
+Se requiere un Shaper compatible con `render_block`. El launcher pasa el checkout
+seleccionado mediante `SHAPER_DIR`; la CLI acepta esa variable. No sustituye el
+motor silenciosamente si falta o si ya se importó otro checkout. Instalar Weaver
+con extras `[lab]` incluye soundfile; Shaper sigue siendo un repositorio separado.
+En Legion, el desarrollo está en `harmonic-weaver-dev` / `harmonic-shaper-dev`;
+la carpeta de prueba `harmonic-weaver-lab` sigue en la entrega anterior hasta
+aplicar explícitamente esta revisión.
+
+Ejemplo de render desde desarrollo, sin reiniciar ni tocar la salida R24:
+
+```sh
+SHAPER_DIR=../harmonic-shaper-dev PYTHONPATH=src \
+  ../harmonic-weaver/.venv/bin/python -m harmonic_weaver.lab.evaluation \
+  /ruta/local/request-con-pcm.json --output /ruta/local/resultado-nuevo
+```
+
+La solicitud añade `pcm: {"enabled": true, "sample_rate": 48000,
+"block_frames": 256, "shaper_master": 0.8, "tail_s": 0}`. La API devuelve el
+reporte y permite escuchar/descargar los artefactos declarados en el manifest
+sólo cuando la corrida está completa. No publica archivos automáticamente.

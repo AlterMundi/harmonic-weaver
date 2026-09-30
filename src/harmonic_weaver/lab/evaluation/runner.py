@@ -17,6 +17,7 @@ from ..quality import coverage
 from ..routing import PreparedRoutes
 from ..runtime import LaboratoryRuntime
 from ..store import SessionStore
+from .pcm import PCMSettings, PCMWriter, engine_identity
 
 
 class Source(Contract):
@@ -44,6 +45,7 @@ class Request(Contract):
     sources: list[Source] = Field(min_length=1, max_length=32)
     control_hz: int = Field(default=60, ge=10, le=240)
     preroll_s: Number = Field(default=2., ge=0, le=30)
+    pcm: PCMSettings = Field(default_factory=PCMSettings)
 
     @model_validator(mode="after")
     def compatible(self):
@@ -114,7 +116,7 @@ def load_source(source, cache):
     return track
 
 
-def replay(preset, source, frames, duration, request):
+def replay(preset, source, frames, duration, request, *, include_preroll=False):
     """Same tick/reset/calibration/model/router as live, on a logical 60 Hz clock."""
     now = [0.]
     audio = ReplayAudio()
@@ -138,7 +140,7 @@ def replay(preset, source, frames, duration, request):
                 now[0] = tick/request.control_hz
                 runtime.tick()
                 position = runtime.transport.position()
-                if position+1e-9 < source.start_s:
+                if position+1e-9 < source.start_s and not include_preroll:
                     continue
                 features = runtime.features.model_dump() if runtime.features else None
                 # available_monotonic_s is a LOGICAL replay time, not measured latency.
@@ -168,14 +170,21 @@ def code_identity():
 def run(request: Request, output: Path, *, progress=None):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
+    if request.pcm.enabled:
+        identity = engine_identity()
+        if request.pcm.engine_sha256 and request.pcm.engine_sha256 != identity["code_sha256"]:
+            raise ValueError("El motor Shaper cambió desde la corrida congelada")
+        request = request.model_copy(deep=True)
+        request.pcm.engine_sha256 = identity["code_sha256"]
     frozen = request.model_dump()
     atomic_json(output/"request.json", frozen)
     manifest = {"format": 1, "status": "running", "request_sha256": digest(frozen),
                 "code": code_identity(), "request": frozen, "seed": 0,
                 "clock": "logical_replay", "output_stage": "voice_targets_before_shaper",
+                "audio_stage": "post_shape_master_soft_limiter" if request.pcm.enabled else None,
                 "units": "per FeatureFrame signal; no combined scientific score",
                 "source_records": [], "runs": [],
-                "limits": ["No PCM/audio rendering or physical latency measurement",
+                "limits": ["Logical block rendering is not physical latency or subjective loudness" if request.pcm.enabled else "No PCM/audio rendering or physical latency measurement",
                            "Coverage is availability, not geometric precision",
                            "Private local paths and features: review before sharing"]}
     atomic_json(output/"manifest.json", manifest)
@@ -192,32 +201,42 @@ def run(request: Request, output: Path, *, progress=None):
                 name = f"source-{source_index:02d}-preset-{preset_index:02d}.jsonl"
                 support, summaries = {}, {}
                 gain_sum, sounding, nrows = 0., 0, 0
-                with (output/name).open("w") as handle:
-                    for row in replay(preset, source, track.frames, track.manifest["duration_s"], request):
-                        handle.write(canonical(row)+"\n")
-                        nrows += 1
-                        active = [t["gain"] for t in row["targets"]]
-                        gain_sum += sum(active)
-                        sounding += any(g > 1e-6 for g in active)
-                        signals = (row["features"] or {}).get("signals", {})
-                        for key, signal in signals.items():
-                            unit = signal["unit"]
-                            entry = summaries.setdefault(key, {"unit": unit, "count": 0, "sum": 0.,
-                                "states": {}, "reasons": {}, "gap": 0, "max_gap": 0})
-                            if unit != entry["unit"]:
-                                raise ValueError("Signal unit changed within a run")
-                            state = signal["state"]
-                            entry["states"][state] = entry["states"].get(state, 0)+1
-                            if state != "observed" or signal["value"] is None:
-                                reason = signal.get("reason") or state
-                                entry["reasons"][reason] = entry["reasons"].get(reason, 0)+1
-                                entry["gap"] += 1
-                                entry["max_gap"] = max(entry["max_gap"], entry["gap"])
-                                continue
-                            entry["gap"] = 0
-                            support.setdefault(key, set()).add(row["tick"])
-                            entry["count"] += 1
-                            entry["sum"] += signal["value"]
+                writer = PCMWriter(output/Path(name).with_suffix('.wav'), request.pcm,
+                    begin_s=max(0.,source.start_s-request.preroll_s),
+                    start_s=source.start_s,end_s=source.end_s) if request.pcm.enabled else None
+                pcm_result = None
+                try:
+                    with (output/name).open("w") as handle:
+                        for row in replay(preset, source, track.frames, track.manifest["duration_s"], request, include_preroll=bool(writer)):
+                            if writer: writer.feed(row)
+                            if row['source_time_s']+1e-9 < source.start_s: continue
+                            handle.write(canonical(row)+"\n")
+                            nrows += 1
+                            active = [t["gain"] for t in row["targets"]]
+                            gain_sum += sum(active)
+                            sounding += any(g > 1e-6 for g in active)
+                            signals = (row["features"] or {}).get("signals", {})
+                            for key, signal in signals.items():
+                                unit = signal["unit"]
+                                entry = summaries.setdefault(key, {"unit": unit, "count": 0, "sum": 0.,
+                                    "states": {}, "reasons": {}, "gap": 0, "max_gap": 0})
+                                if unit != entry["unit"]:
+                                    raise ValueError("Signal unit changed within a run")
+                                state = signal["state"]
+                                entry["states"][state] = entry["states"].get(state, 0)+1
+                                if state != "observed" or signal["value"] is None:
+                                    reason = signal.get("reason") or state
+                                    entry["reasons"][reason] = entry["reasons"].get(reason, 0)+1
+                                    entry["gap"] += 1
+                                    entry["max_gap"] = max(entry["max_gap"], entry["gap"])
+                                    continue
+                                entry["gap"] = 0
+                                support.setdefault(key, set()).add(row["tick"])
+                                entry["count"] += 1
+                                entry["sum"] += signal["value"]
+                    if writer: pcm_result = writer.finish()
+                finally:
+                    if writer: writer.close()
                 entry = {"source_index": source_index, "preset_index": preset_index, "preset_id": preset.id,
                          "preset_sha256": digest(preset.model_dump()), "file": name,
                          "sha256": sha256_file(output/name), "rows": nrows,
@@ -228,6 +247,7 @@ def run(request: Request, output: Path, *, progress=None):
                                         "states": v["states"], "invalid_reasons": v["reasons"],
                                         "max_invalid_s_on_control_clock": v["max_gap"]/request.control_hz,
                                         "observed_fraction_on_control_clock": v["count"]/max(nrows, 1)} for k,v in summaries.items()}}
+                if pcm_result: entry["pcm"] = pcm_result
                 manifest["runs"].append(entry)
                 per_source.append((entry, support))
                 atomic_json(output/"manifest.json", manifest)

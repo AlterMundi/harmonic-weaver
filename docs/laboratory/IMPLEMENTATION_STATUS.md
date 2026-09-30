@@ -95,3 +95,11 @@ reloj/preroll/reset deterministas, features/targets/métricas y soporte común.
 CUDA no se declara reparado; se entrega recuperación y evidencia. Sin PCM
 offline, nuevos sensores/3D ni validación científica formal. Agenda R01–R13
 intacta. Aporte Oliva #36 revisado, pruebas ejecutadas, sin merge.
+
+## Render PCM en desarrollo — 2026-09-30
+
+Rama `feat/laboratory-offline-render` en Weaver y Shaper; no instalada sobre la
+sesión local de prueba ni fusionada. Render optional web/CLI, WAV float estéreo,
+voice-frames por bloque, hashes del motor, preroll/recorte/cola, repetición y
+artefactos locales. Motor compartido sample-for-sample con el callback. Falta
+reproducción conjunta fuente/audio/figura, captura #17 y bancos científicos.

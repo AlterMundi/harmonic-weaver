@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from ..cache import atomic_json, sha256_file
 from .runner import Request, Source
+from .pcm import PCMSettings, engine_identity
 
 
 class EvaluationService:
@@ -37,7 +38,7 @@ class EvaluationService:
                                          "directory": str(folder/"result")}
                 self.processes[folder.name] = None
 
-    def start(self, preset_ids, segments, *, control_hz=60, preroll_s=2.):
+    def start(self, preset_ids, segments, *, control_hz=60, preroll_s=2., pcm=None):
         with self._lock:
             if any(p is not None and p.poll() is None for p in self.processes.values()):
                 raise ValueError("Ya hay una comparación activa")
@@ -59,7 +60,7 @@ class EvaluationService:
                     torso_scale=calibration["torso_scale"] if calibration else None,
                     calibration_provenance=calibration["provenance"] if calibration else None))
             request = Request(presets=[self.store.load(i) for i in preset_ids], sources=sources,
-                              control_hz=control_hz, preroll_s=preroll_s)
+                              control_hz=control_hz, preroll_s=preroll_s, pcm=PCMSettings.model_validate(pcm or {}))
             return self._launch(request)
 
     def repeat(self, ident):
@@ -76,12 +77,21 @@ class EvaluationService:
         for source in request.sources:
             if source.cache_manifest_sha256 is None:
                 source.cache_manifest_sha256 = sha256_file(source.cache_manifest)
+        if request.pcm.enabled:
+            identity = engine_identity()
+            if request.pcm.engine_sha256 and request.pcm.engine_sha256 != identity["code_sha256"]:
+                raise ValueError("El motor Shaper cambió desde la corrida congelada")
+            request.pcm.engine_sha256 = identity["code_sha256"]
         ident = uuid4().hex
         folder = self.root/ident
         folder.mkdir()
         atomic_json(folder/"request.json", request.model_dump())
         log = (folder/"process.log").open("w")
         env = dict(os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1")
+        # Child must import this checkout, including when the interpreter comes
+        # from a preserved original workspace.
+        source_root = str(Path(__file__).resolve().parents[3])
+        env["PYTHONPATH"] = os.pathsep.join([source_root, env.get("PYTHONPATH", "")])
         try:
             process = subprocess.Popen([sys.executable, "-m", "harmonic_weaver.lab.evaluation",
                 str(folder/"request.json"), "--output", str(folder/"result")],
@@ -134,8 +144,21 @@ class EvaluationService:
         if job["status"] != "complete":
             raise ValueError("La comparación no está completa")
         directory = Path(job["directory"])
-        return {"manifest": json.loads((directory/"manifest.json").read_text()),
+        return {"job_id": ident, "manifest": json.loads((directory/"manifest.json").read_text()),
                 "comparisons": [json.loads(p.read_text()) for p in sorted(directory.glob("comparison-*.json"))]}
+
+    def artifact(self, ident, filename):
+        if Path(filename).name != filename:
+            raise ValueError("Nombre de archivo inválido")
+        report = self.report(ident)
+        allowed = {r['pcm'][key] for r in report['manifest']['runs'] if r.get('pcm')
+                   for key in ('file','voice_frames')}
+        if filename not in allowed:
+            raise ValueError("Archivo no declarado en el manifest")
+        path = Path(self.jobs[ident]['directory'])/filename
+        if not path.is_file():
+            raise ValueError("Archivo ausente")
+        return path
 
     def close(self):
         for ident in list(self.processes):
