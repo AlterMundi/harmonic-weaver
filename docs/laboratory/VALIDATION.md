@@ -218,7 +218,9 @@ en esta entrega. Los workspaces originales conservan sus cambios.
   Comparar, seleccionar dos referencias, agregar segundo segmento de la misma
   fuente, editar tiempos, lanzar, ver informe y repetir configuración congelada.
   Dos segmentos de 10 s del video local: **4/4 corridas**, repetición con solicitud,
-  hashes de JSONL y hashes de comparaciones idénticos. Datos y capturas privados.
+  hashes de JSONL y hashes de comparaciones idénticos. Dos matrices adicionales
+  sobre el código final 3cbd869 también conservaron identidad de código/solicitud
+  y todos esos hashes. Datos y capturas privados.
 - Runtime real conectado a Shaper/R24, clip CPU de 60 s recuperado de cache
   (1.800 frames). Tras calibración medida del torso, 30 muestras por modelo:
   ganancias efectivas no nulas en local 29/30, relacional 30/30, angular 29/30,

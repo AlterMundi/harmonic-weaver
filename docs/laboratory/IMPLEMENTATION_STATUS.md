@@ -6,6 +6,9 @@ articulación y modelos nuevos sigue pendiente. [Evidencia y límites](VALIDATIO
 
 ## Publicación
 
+- Segunda iteración: [PR #37](https://github.com/AlterMundi/harmonic-weaver/pull/37),
+  rama `feat/laboratory-v2`, apilada sobre #30; sin merge automático.
+
 - Weaver baseline: PR #29; integración: PR #30, apilada sobre #29 e incluye plan #28.
 - HarMoCAP baseline: AlterMundi/HarMoCAP#1. Seis fallos por Gradio ausente en la suite
   ampliada fueron declarados; las pruebas específicas de captura pasaron.
