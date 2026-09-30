@@ -520,3 +520,11 @@ fallo de preview sin perder MKV. Build pasa. Chrome aislado reprodujo MP4 sinté
 metadata lista, pausado al abrir, tiempo avanzó tras play silenciado y cierre quitó
 el elemento. UI verificó opt-in/bitrate enviados. Sin cuerpos, cámara real ni audio
 físico. Compatibilidad comprobada en Chrome local, no en todos los navegadores.
+
+### Auditoría acumulada de integración — 2026-09-30
+
+[Auditoría](INTEGRATION_AUDIT.md): 143 tests laboratorio/R01 Weaver, 153 Shaper,
+7 Chrome aislados pasan en los heads publicados #60/#6. Servidor de prueba detenido;
+no se iniciaron audio/cámara ni se modificó el laboratorio habitual. Se detectó
+entorno distinto entre renderer y Shaper; igualdad PCM entre procesos y pin de
+entorno son pendientes explícitos de #18, no cubiertos por estos tests.
