@@ -66,6 +66,7 @@ export function CapturePanel({api,run}:Data){
     <a href={`/api/capture-exports/${j.id}/artifacts/manifest.json`} download>Manifest de exportación</a>
   </div>)}
   <p>Recuperación: {recovery.status} · {recovery.error || ''}</p>
+  {recovery.persistence_error && <p role="alert">No se pudo guardar el estado de recuperación: {recovery.persistence_error}. El resultado mostrado sólo está confirmado en memoria.</p>}
   {recovery.result && <p>Prefijo recuperado: {recovery.result.recovered_samples} muestras. Carpeta local: {recovery.result.directory}. No equivale a una captura completa.</p>}
   {recovery.journal?.files && <p>Bitácora parcial: {recovery.journal.files['events.jsonl'].rows} eventos · {recovery.journal.files['timeline.jsonl'].rows} observaciones · {recovery.journal.directory}. Puede haber un final desconocido.</p>}
   {recovery.journal?.error && <p>Bitácora no recuperada: {recovery.journal.error}. El prefijo PCM confirmado se conserva.</p>}
@@ -79,6 +80,7 @@ export function CapturePanel({api,run}:Data){
       onClick={()=>run(async()=>setRecovery(await api(`captures/${j.id}/recover`,{})))}>Recuperar audio {j.id.slice(0,8)}</button>}
     {j.camera && <p>Cámara: {j.camera.status} · {j.camera.written_frames}/{j.camera.accepted_frames} previews · {j.camera.observed_sequence_gaps} saltos de secuencia · {j.camera.error || ''}</p>}
     {j.recovery && <p>Recuperación de esta captura: {j.recovery.status} · {j.recovery.phase || ''} · {j.recovery.error || ''}</p>}
+    {j.recovery?.persistence_error && <p role="alert">Estado de recuperación sin guardar: {j.recovery.persistence_error}</p>}
     {j.recovery?.result && <p>Audio recuperado: {j.recovery.result.recovered_samples} muestras · {j.recovery.result.directory}</p>}
     <small>Bitácora local: {j.directory}</small><br/><small>Audio local: {j.shaper?.directory || 'Pendiente de confirmación'}</small></div>)}
   <p>La grabación es opcional. El audio corresponde a la salida digital de Shaper; la sincronía física sigue pendiente de medición.</p>

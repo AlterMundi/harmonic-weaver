@@ -282,3 +282,27 @@ def test_restart_recovery_keeps_confirmed_pcm_and_marks_collector_interrupted(tm
     assert recovery['status']=='interrupted' and recovery['result']==result
     assert json.loads((folder/'recovery.json').read_text())==recovery
     restored.close();capture.close();store.close()
+
+
+def test_recovery_disk_failure_keeps_confirmed_result_visible(tmp_path,monkeypatch):
+    from harmonic_weaver.lab import capture as module
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    folder=capture.root/'interrupted';folder.mkdir()
+    capture.jobs['interrupted']={'id':'interrupted','status':'interrupted','directory':str(folder),'shaper':{'id':'known'}}
+    def handle(request):
+        if request.method=='GET':return httpx.Response(404)
+        return httpx.Response(200,json={'status':'recovered','capture_id':'known','directory':'/synthetic/pcm','recovered_samples':256})
+    capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
+    original=module.atomic_json
+    def fail_after_start(path,value):
+        if Path(path).name=='recovery.json' and value.get('result'):
+            raise OSError('Synthetic disk full')
+        return original(path,value)
+    monkeypatch.setattr(module,'atomic_json',fail_after_start)
+    capture.recover('interrupted');capture.close()
+    current=capture.recovery_snapshot();listed=capture.list()[0]['recovery']
+    assert current==listed
+    assert current['result']['recovered_samples']==256
+    assert current['persistence_error']=='Synthetic disk full'
+    assert json.loads((folder/'recovery.json').read_text())['status']=='recovering'
+    store.close()

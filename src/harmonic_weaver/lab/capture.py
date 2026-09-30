@@ -240,7 +240,9 @@ class CaptureSession:
                     status='unconfirmed' if acknowledgement_lost and 'result' not in self.recovery_job else 'failed'
                     self.recovery_job.update(status=status,error=str(exc))
                     try:persist()
-                    except OSError as disk_error:self.recovery_job['persistence_error']=str(disk_error)
+                    except OSError as disk_error:
+                        self.recovery_job['persistence_error']=str(disk_error)
+                        job['recovery']=self.recovery_snapshot()
             self.recovery_thread=threading.Thread(target=work,daemon=True,name='lab-capture-recovery')
             self.recovery_thread.start()
             return self.recovery_snapshot()

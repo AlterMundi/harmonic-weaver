@@ -362,3 +362,13 @@ se exponen en memoria como persistence_error; no se promete durabilidad si falla
 el disco. 16 pruebas de captura pasan, incluidas respuesta perdida y restauración
 del PCM parcial. No sustituye el job polling pendiente en Shaper ni permite
 exportar prefijos como capturas completas.
+
+
+### Fallo de disco al persistir recuperación
+
+Prueba adicional con OSError después de confirmar PCM: el snapshot global y el
+listado de capturas conservan el mismo resultado y persistence_error. La web
+muestra explícitamente que el estado no pudo guardarse; no queda sólo una
+recuperación histórica en curso. El archivo anterior puede seguir en recovering
+y será interrupted al reiniciar, sin afirmar persistencia del resultado perdido.
+17 pruebas de captura, panel Chrome y build pasan. No se abrió audio físico.
