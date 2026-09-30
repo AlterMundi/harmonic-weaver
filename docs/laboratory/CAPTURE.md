@@ -349,3 +349,16 @@ No abre cámaras, no captura fuentes nuevas y no modifica el sonido en vivo.
 Todavía sin overlays de esqueleto/figura, exportación de prefijos recovered ni
 validación de sincronía física. Reproducir PCM con la figura sigue en Comparar;
 esta preview AAC no es una validación sample-for-sample de esa figura.
+
+
+## 2026-09-30 — estado durable de recuperación
+
+El recolector persiste inicio, PCM confirmado antes de recuperar bitácora y
+resultado terminal, incluida confirmación perdida. El listado expone estos
+estados durante la operación y después de reiniciar; la web muestra el error de
+cada captura. Un estado en curso al reiniciar se marca interrupted, conserva PCM
+confirmado y no relanza trabajo automáticamente. Fallos de persistencia terminal
+se exponen en memoria como persistence_error; no se promete durabilidad si falla
+el disco. 16 pruebas de captura pasan, incluidas respuesta perdida y restauración
+del PCM parcial. No sustituye el job polling pendiente en Shaper ni permite
+exportar prefijos como capturas completas.

@@ -75,9 +75,10 @@ export function CapturePanel({api,run}:Data){
     <button disabled={j.status!=='complete' || exporting} onClick={()=>run(async()=>{
       setExportState(await api(`captures/${j.id}/export`,exportSettings));
     })}>Exportar captura {j.id.slice(0,8)}</button>
-    {['failed','interrupted'].includes(j.status) && <button disabled={recovery.status==='recovering' || !j.shaper?.id}
+    {['failed','interrupted'].includes(j.status) && <button disabled={recovery.status==='recovering' || j.recovery?.status==='recovering' || !j.shaper?.id}
       onClick={()=>run(async()=>setRecovery(await api(`captures/${j.id}/recover`,{})))}>Recuperar audio {j.id.slice(0,8)}</button>}
     {j.camera && <p>Cámara: {j.camera.status} · {j.camera.written_frames}/{j.camera.accepted_frames} previews · {j.camera.observed_sequence_gaps} saltos de secuencia · {j.camera.error || ''}</p>}
+    {j.recovery && <p>Recuperación de esta captura: {j.recovery.status} · {j.recovery.phase || ''} · {j.recovery.error || ''}</p>}
     {j.recovery?.result && <p>Audio recuperado: {j.recovery.result.recovered_samples} muestras · {j.recovery.result.directory}</p>}
     <small>Bitácora local: {j.directory}</small><br/><small>Audio local: {j.shaper?.directory || 'Pendiente de confirmación'}</small></div>)}
   <p>La grabación es opcional. El audio corresponde a la salida digital de Shaper; la sincronía física sigue pendiente de medición.</p>

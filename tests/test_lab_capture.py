@@ -245,3 +245,40 @@ def test_legacy_shaper_transport_failure_is_not_retried(tmp_path):
     assert calls==['/api/audio/capture/recover']
     assert capture.recovery_snapshot()['status']=='unconfirmed'
     store.close()
+
+
+def test_recovery_inflight_and_lost_ack_state_are_durable(tmp_path):
+    import threading
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    folder=capture.root/'interrupted';folder.mkdir()
+    original={'id':'interrupted','status':'interrupted','directory':str(folder),'shaper':{'id':'known'}}
+    atomic_json(folder/'manifest.json',original);capture.jobs['interrupted']=original
+    entered=threading.Event();release=threading.Event()
+    def handle(request):
+        if request.method=='GET':return httpx.Response(404)
+        entered.set(); assert release.wait(3)
+        raise httpx.ReadTimeout('Lost acknowledgement',request=request)
+    capture.client_factory=lambda:httpx.Client(base_url='http://synthetic',transport=httpx.MockTransport(handle))
+    try:
+        capture.recover('interrupted');assert entered.wait(2)
+        assert capture.list()[0]['recovery']['status']=='recovering'
+        assert json.loads((folder/'recovery.json').read_text())['status']=='recovering'
+    finally:
+        release.set();capture.close()
+    assert capture.list()[0]['recovery']['status']=='unconfirmed'
+    restored=CaptureSession(tmp_path,store,capture.runtime,client_factory=driver.client)
+    assert restored.list()[0]['recovery']['status']=='unconfirmed'
+    restored.close();store.close()
+
+
+def test_restart_recovery_keeps_confirmed_pcm_and_marks_collector_interrupted(tmp_path):
+    driver=Driver();store,capture=collector(tmp_path,driver)
+    folder=capture.root/'interrupted';folder.mkdir()
+    atomic_json(folder/'manifest.json',{'id':'interrupted','status':'interrupted','directory':str(folder),'shaper':{'id':'known'}})
+    result={'status':'recovered','capture_id':'known','recovered_samples':256}
+    atomic_json(folder/'recovery.json',{'status':'recovering','phase':'journal','result':result})
+    restored=CaptureSession(tmp_path,store,capture.runtime,client_factory=driver.client)
+    recovery=restored.list()[0]['recovery']
+    assert recovery['status']=='interrupted' and recovery['result']==result
+    assert json.loads((folder/'recovery.json').read_text())==recovery
+    restored.close();capture.close();store.close()

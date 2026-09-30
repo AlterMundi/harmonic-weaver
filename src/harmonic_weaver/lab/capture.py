@@ -45,7 +45,12 @@ class CaptureSession:
                         atomic_json(folder/'manifest.json',job)
                     recovery_path=folder/'recovery.json'
                     if recovery_path.is_file():
-                        try: job['recovery']=json.loads(recovery_path.read_text())
+                        try:
+                            recovery=json.loads(recovery_path.read_text())
+                            if recovery.get('status') in ('recovering','audio_recovered'):
+                                recovery.update(status='interrupted',error='Recovery collector stopped before a confirmed finish')
+                                atomic_json(recovery_path,recovery)
+                            job['recovery']=recovery
                         except (OSError,ValueError): pass
                     self.jobs[job['id']]=job
                 except (OSError,ValueError,KeyError): pass
@@ -197,6 +202,11 @@ class CaptureSession:
             driver_id=(job.get('shaper') or {}).get('id')
             if not driver_id: raise ValueError('No hay identidad confirmada de la captura Shaper')
             self.recovery_job={'status':'recovering','capture_id':ident}
+            def persist():
+                snapshot=self.recovery_snapshot()
+                atomic_json(Path(job['directory'])/'recovery.json',snapshot)
+                job['recovery']=snapshot
+            persist()
             def work():
                 acknowledgement_lost=False
                 try:
@@ -215,7 +225,8 @@ class CaptureSession:
                         raise ValueError('Shaper did not confirm this recovered prefix')
                     from .capture_journal_recovery import recover_journal
                     self.recovery_job.update(result=result)
-                    atomic_json(Path(job['directory'])/'recovery.json',dict(self.recovery_job,status='audio_recovered',journal_status='pending'))
+                    self.recovery_job.update(phase='journal',journal_status='pending')
+                    persist()
                     try:journal=recover_journal(job['directory'])
                     except (OSError,ValueError) as exc:journal={'status':'failed','error':str(exc)}
                     camera={'status':'not_recorded'}
@@ -224,11 +235,12 @@ class CaptureSession:
                         try:camera=recover_camera(job['directory'])
                         except (OSError,ValueError) as exc:camera={'status':'failed','error':str(exc)}
                     self.recovery_job.update(status='recovered',result=result,journal=journal,camera=camera)
-                    atomic_json(Path(job['directory'])/'recovery.json',self.recovery_job)
-                    job['recovery']=self.recovery_snapshot()
+                    persist()
                 except Exception as exc:
                     status='unconfirmed' if acknowledgement_lost and 'result' not in self.recovery_job else 'failed'
                     self.recovery_job.update(status=status,error=str(exc))
+                    try:persist()
+                    except OSError as disk_error:self.recovery_job['persistence_error']=str(disk_error)
             self.recovery_thread=threading.Thread(target=work,daemon=True,name='lab-capture-recovery')
             self.recovery_thread.start()
             return self.recovery_snapshot()
