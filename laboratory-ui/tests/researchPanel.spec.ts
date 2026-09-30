@@ -19,9 +19,12 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  await page.getByLabel('Dinámica sintética').selectOption('stochastic_span');
  await page.getByLabel('Memoria estocástica').fill('0');
  await page.getByLabel('Muestras',{exact:true}).fill('120');
+ await page.getByLabel('Horizonte de predicción (pasos)').fill('12');
  await page.getByRole('button',{name:'Exportar configuración JSON'}).click();
  const json=JSON.parse(await page.getByLabel('Configuración R01 JSON').inputValue());
  expect(json.scenario).toBe('stochastic_span');expect(json.temporal_memory).toBe(0);
+ expect(json.horizon_steps).toBe(12);
+ await expect(page.getByText('Horizonte: 0.400 s.',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:'Correr banco R01'}).click();
  expect(await page.evaluate(()=>(window as any).requests[0])).toEqual(json);
  await expect(page.getByRole('columnheader',{name:'Residuo reconstrucción'})).toBeVisible();

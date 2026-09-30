@@ -445,3 +445,12 @@ rechazo de descarga de trazas incompletas, protección de resultados completos,
 finalización concurrente y distinción del cierre del servicio. El build de UI
 pasa. No se abrieron fuentes corporales, audio ni cámara; no cambia la evidencia
 científica ni los defaults del instrumento.
+
+### Horizonte causal R01 — 2026-09-30
+
+17 pruebas R01 pasan. Se verifica ajuste directo por pares separados, forecasts
+inmutables al alterar observaciones entre origen y objetivo, rotación global,
+repetición exacta, timestamps de origen/fit y ausencia de scores para historia
+insuficiente. TypeScript/Vite pasa. Evidencia sintética 1/6/15 pasos repetida
+sobre 149 objetivos comunes; scripts/configuraciones/hashes preservados. No hay
+prueba de anticipación humana, causalidad corporal ni HIT.

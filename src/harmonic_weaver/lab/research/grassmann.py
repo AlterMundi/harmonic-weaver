@@ -24,6 +24,7 @@ class Settings(Contract):
     noise_std: Number = Field(default=.01,ge=0,le=1)
     noise_threshold: Number = Field(default=.02,ge=.0001,le=2)
     ridge: Number = Field(default=.1,ge=.00001,le=100)
+    horizon_steps: int = Field(default=1,ge=1,le=30)
     scenario: Literal['fixed_span','rotating_span','stochastic_span'] = 'fixed_span'
     temporal_memory: Number = Field(default=.95,ge=0,le=.999)
     rotation_deg_s: Number = Field(default=30,ge=0,le=360)
@@ -56,8 +57,8 @@ def generate(settings):
     return t,{'original':data,'global_rotation':data@rotation,'temporal_shuffle':data[permutation]}
 
 
-def predict(past, basis, ridge):
-    x=past[:-1];y=past[1:];mx=x.mean(axis=0);my=y.mean(axis=0)
+def predict(past, basis, ridge, horizon_steps=1):
+    x=past[:-horizon_steps];y=past[horizon_steps:];mx=x.mean(axis=0);my=y.mean(axis=0)
     x=(x-mx)@basis;y=(y-my)@basis
     coefficients=np.linalg.solve(x.T@x+ridge*np.eye(x.shape[1]),x.T@y)
     return my+((past[-1]-mx)@basis@coefficients)@basis.T
@@ -66,20 +67,33 @@ def predict(past, basis, ridge):
 def evaluate(settings, t, data):
     model=CausalSubspace(AlgorithmSettings(id='collective',components=settings.components,
         window_s=settings.window_s,noise_velocity=settings.noise_threshold,max_gap_s=.5))
-    history=[];rows=[];ids=[f'synthetic.{i}' for i in range(settings.dimensions)]
-    for stamp,value in zip(t,data):
+    history=[];rows=[];pending={};ids=[f'synthetic.{i}' for i in range(settings.dimensions)]
+    for index,(stamp,value) in enumerate(zip(t,data)):
         history=[item for item in history if item[0]>=stamp-settings.window_s]
         state=model.push(float(stamp),value,ids)
         row={'time_s':float(stamp),'state':state['state'],'reason':state.get('reason'),
              'past_samples':state['past_samples'],'history_end_s':state.get('history_end_s')}
         if state['state']=='observed':
             past=np.stack([item[1] for item in history]);basis=np.array(state['basis'])
-            predictions={'persistence':past[-1],
-                'full_ridge':predict(past,np.eye(settings.dimensions),settings.ridge),
-                'subspace_ridge':predict(past,basis,settings.ridge)}
             row.update(rank=state['rank'],components=state['components'],
-                reconstruction_residual=state['residual'],principal_angles_deg=state['principal_angles_deg'],
-                prediction_mse={key:float(np.mean((prediction-value)**2)) for key,prediction in predictions.items()})
+                reconstruction_residual=state['residual'],principal_angles_deg=state['principal_angles_deg'])
+            # Commit the forecast at its origin. Subsequent observations cannot
+            # update its fitted basis, coefficients or predicted vectors.
+            target=index+settings.horizon_steps-1
+            if len(past)-settings.horizon_steps>=2 and target<len(t):
+                predictions={'persistence':past[-1].copy(),
+                    'full_ridge':predict(past,np.eye(settings.dimensions),settings.ridge,settings.horizon_steps),
+                    'subspace_ridge':predict(past,basis,settings.ridge,settings.horizon_steps)}
+                pending[target]={'predictions':predictions,'origin_s':history[-1][0],
+                    'fit_end_s':history[-1][0],'training_pairs':len(past)-settings.horizon_steps}
+        forecast=pending.pop(index,None)
+        if forecast is not None and state['state']=='observed':
+            row.update(prediction_origin_s=forecast['origin_s'],prediction_fit_end_s=forecast['fit_end_s'],
+                prediction_training_pairs=forecast['training_pairs'],horizon_steps=settings.horizon_steps,
+                predictions={key:prediction.tolist() for key,prediction in forecast['predictions'].items()},
+                prediction_mse={key:float(np.mean((prediction-value)**2)) for key,prediction in forecast['predictions'].items()})
+        else:
+            row['prediction_reason']='No valid forecast from the required past origin' if forecast is None else 'Current reconstruction support unavailable'
         rows.append(row);history.append((float(stamp),value.copy()))
     common=[row for row in rows if 'prediction_mse' in row]
     metrics={key:float(np.mean([row['prediction_mse'][key] for row in common])) for key in
@@ -131,7 +145,8 @@ def run(settings, output):
     report={'schema_version':1,'status':'complete','line':'R01','settings':settings.model_dump(),
         'code':code_identity(),'input_hashes':hashes,'artifact_hashes':artifact_hashes,'results':results,'paired':paired,
         'limits':['Synthetic dimensionless trajectories, not evidence about bodies or HIT',
-                  'One-step prediction fitted strictly to past pairs; common support within each control',
+                  'Direct horizon prediction frozen at origin, fitted to pairs ending no later than origin',
+                  'Reconstruction uses the target-time past window; forecast uses its earlier origin window',
                   'Reconstruction residual is distinct from future prediction error',
                   'Unpaired control summaries may differ in support; paired summaries use shared clock slots',
                   'Global rotation control shares exact samples; shuffle retains vectors but changes chronology',

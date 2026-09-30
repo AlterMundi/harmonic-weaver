@@ -202,3 +202,47 @@ def test_completion_during_cancel_wins_and_shutdown_is_interrupted(tmp_path):
         assert worker.poll() is not None
     finally:
         if worker.poll() is None:worker.kill();worker.wait()
+
+
+def test_long_horizon_forecasts_cannot_use_intervening_observations():
+    settings=Settings(samples=120,dimensions=5,signal_rank=2,components=2,horizon_steps=12)
+    t,controls=generate(settings);data=controls['original']
+    first=evaluate(settings,t,data)
+    changed=data.copy();changed[80:]+=np.arange(5)*.3
+    second=evaluate(settings,t,changed)
+    compared=0
+    for a,b in zip(first['rows'],second['rows']):
+        if a.get('prediction_origin_s',np.inf)<t[80] and 'predictions' in b:
+            assert a['predictions']==b['predictions']
+            assert a['prediction_fit_end_s']<=a['prediction_origin_s']
+            np.testing.assert_allclose(a['time_s']-a['prediction_origin_s'],12/30,atol=1e-12)
+            if a['time_s']>=t[80]:compared+=1
+    assert compared>0  # Includes targets after the modified suffix begins.
+
+
+def test_direct_horizon_fit_uses_lagged_pairs_and_last_available_anchor():
+    from harmonic_weaver.lab.research.grassmann import predict
+    past=np.arange(10,dtype=float)[:,None]
+    result=predict(past,np.eye(1),1e-8,horizon_steps=3)
+    np.testing.assert_allclose(result,[12],atol=1e-7)
+
+
+def test_long_horizon_rotation_and_repetition_have_common_support(tmp_path):
+    settings=Settings(samples=90,dimensions=5,signal_rank=2,components=2,horizon_steps=9)
+    first=run(settings.model_dump(),tmp_path/'first')
+    second=run(settings.model_dump(),tmp_path/'second')
+    assert first['artifact_hashes']==second['artifact_hashes']
+    assert first['paired']['common_samples']>0
+    for key,value in first['paired']['results']['original']['mean_prediction_mse'].items():
+        np.testing.assert_allclose(value,first['paired']['results']['global_rotation']['mean_prediction_mse'][key],rtol=1e-9,atol=1e-12)
+
+
+def test_insufficient_horizon_history_is_explicit_not_nan_or_zero_score():
+    settings=Settings(samples=60,dimensions=4,signal_rank=2,components=2,horizon_steps=30,window_s=.3)
+    t,controls=generate(settings);result=evaluate(settings,t,controls['original'])
+    assert result['metrics']['common_samples']==0
+    assert result['metrics']['mean_prediction_mse']=={}
+    assert any(row['prediction_reason']=='No valid forecast from the required past origin' for row in result['rows'])
+    import pytest
+    with pytest.raises(ValueError):Settings(horizon_steps=0)
+    with pytest.raises(ValueError):Settings(horizon_steps=31)

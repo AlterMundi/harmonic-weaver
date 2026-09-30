@@ -116,3 +116,43 @@ Cerrar el servicio interrumpe sus workers con estado `interrupted`; no se
 atribuye esa interrupción a una acción humana. Tras reiniciar, un worker sin
 proceso propio tampoco se presenta como completado ni se intenta matar otro
 proceso. No hay reanudación automática de un cálculo parcial.
+
+### Horizonte y origen de predicción
+
+El control web **Horizonte de predicción (pasos)** admite 1–30; a 30 Hz,
+12 pasos equivalen a 0.4 s. Default 1 conserva el predictor anterior y no cambia
+el instrumento. Ridge ajusta directamente pares separados por ese horizonte,
+sin realimentar observaciones intermedias. Base y coeficientes usan únicamente
+la ventana que termina en el origen; el vector pronosticado queda congelado
+hasta observar su objetivo. La trace registra origen, fin de ajuste, número
+de pares y vectores previstos, además del error. Sin suficientes pares o sin
+soporte no hay score: no se sustituye por cero.
+
+El residuo geométrico sigue siendo descriptivo del objetivo y usa la ventana
+pasada de ese instante. Para horizontes largos esa ventana es posterior al
+origen de predicción: no interpretar su residuo como información disponible al
+pronosticar. Comparaciones entre horizontes también requieren soporte común.
+
+[Evidencia sintética de horizontes](evidence-horizons-2026-09-30.json): semilla 17,
+180 muestras, 1/6/15 pasos, 149 objetivos comunes entre todos los horizontes y
+controles. Cada corrida se repitió con hashes de traces idénticos. En el original,
+MSE de persistencia: 0.002832/0.088616/0.424002; ridge completo:
+0.003613/0.256265/2.268094. Esta configuración empeora a horizontes mayores y
+ridge no supera persistencia. No se seleccionó sólo un resultado favorable.
+Es una semilla sintética: sin intervalo de confianza, generalización corporal
+ni conclusión HIT. La rotación global sirve como control de representación;
+shuffle conserva vectores pero cambia la cronología.
+
+Reproducir con el checkout/paquetes de la evidencia, en un directorio nuevo:
+
+```bash
+cd ~/Projects/harmonic-weaver-dev
+OPENBLAS_NUM_THREADS=1 .venv/bin/python research/laboratory/r01_grassmann/reproduce_horizons.py --output /tmp/r01-horizons-reproduction
+```
+
+El script exige identidad del módulo y hashes exactos de entradas/traces;
+rechaza diferencias en lugar de declarar una reproducción que no ocurrió.
+Los manifests producidos conservan identidad de código y paquetes para
+inspeccionar diferencias de entorno. Las configuraciones congeladas también
+pueden importarse individualmente en la web desde el campo `settings` de cada
+corrida de la evidencia.
