@@ -28,6 +28,11 @@ export function ResearchPanel({api,run}:Data){
   <p>Original, rotación global y orden temporal mezclado usan las mismas muestras. El residuo de reconstrucción y el error de predicción son observables distintos. Compará métodos dentro del soporte común de cada control.</p>
   <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>
+   <a href={`/api/research/r01/${j.id}/artifacts/manifest.json`} download>Manifest R01</a>
+   {j.status==='complete' && <div>
+    <a href={`/api/research/r01/${j.id}/artifacts/request.json`} download>Configuración de corrida</a>
+    {Object.keys(j.artifact_hashes || {}).map(name=><span key={name}>{' · '}<a href={`/api/research/r01/${j.id}/artifacts/${name}`} download>{name}</a></span>)}
+   </div>}
    {j.paired && <p>Soporte pareado: {j.paired.common_samples} instantes. Empareja posiciones del reloj; el shuffle cambia el vector observado.</p>}
    {j.results && <table><thead><tr><th>Control</th><th>Muestras comunes</th><th>Persistencia MSE</th><th>Ridge completo MSE</th><th>Ridge subespacio MSE</th><th>Residuo reconstrucción</th></tr></thead>
     <tbody>{Object.entries(paired && j.paired ? j.paired.results : j.results).map(([name,value]:[string,any])=><tr key={name}><td>{name}</td><td>{value.common_samples}</td>

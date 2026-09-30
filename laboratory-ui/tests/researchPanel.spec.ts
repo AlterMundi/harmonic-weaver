@@ -8,7 +8,7 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
  import {ResearchPanel} from '/src/ResearchPanel.tsx';
  let jobs=[];window.requests=[];
- const api=async(path,body)=>{if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3},mean_reconstruction_residual:.002}}}}];}return jobs;};
+ const api=async(path,body)=>{if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3},mean_reconstruction_residual:.002}}}}];}return jobs;};
  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ResearchPanel,{api,run:fn=>fn()}));
  `});
  await expect(page.getByRole('button',{name:'Correr banco R01'})).toBeEnabled();
@@ -22,6 +22,8 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  await page.getByRole('button',{name:'Correr banco R01'}).click();
  expect(await page.evaluate(()=>(window as any).requests[0])).toEqual(json);
  await expect(page.getByRole('columnheader',{name:'Residuo reconstrucción'})).toBeVisible();
+ await expect(page.getByRole('link',{name:'Configuración de corrida'})).toHaveAttribute('href','/api/research/r01/synthetic/artifacts/request.json');
+ await expect(page.getByRole('link',{name:'paired.jsonl',exact:true})).toHaveAttribute('href','/api/research/r01/synthetic/artifacts/paired.jsonl');
  await expect(page.getByRole('columnheader',{name:'Ridge subespacio MSE'})).toBeVisible();
  await expect(page.getByLabel('Comparar controles sobre instantes comunes')).toBeChecked();
  await expect(page.getByRole('row').filter({hasText:'original'})).toContainText('0.40000');

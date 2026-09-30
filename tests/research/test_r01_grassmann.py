@@ -79,3 +79,47 @@ def test_no_common_support_is_not_a_zero_error_score():
     assert paired['common_samples']==0 and not traces
     assert paired['results']['a']['mean_prediction_mse']=={}
     assert paired['results']['a']['mean_reconstruction_residual'] is None
+
+
+def test_research_artifacts_restore_and_reject_changed_data(tmp_path):
+    import json
+    import pytest
+    from harmonic_weaver.lab.research.service import ResearchService
+    service=ResearchService(tmp_path)
+    job=service.start(Settings(samples=60,dimensions=4,signal_rank=2,components=2).model_dump())
+    assert service.processes[job['id']].wait(timeout=20)==0
+    restored=ResearchService(tmp_path)
+    assert restored.artifact(job['id'],'request.json').is_file()
+    path=restored.artifact(job['id'],'paired.jsonl')
+    assert restored.artifact(job['id'],'paired.jsonl')==path
+    with pytest.raises(ValueError):restored.artifact(job['id'],'../worker.log')
+    path.write_text('changed')
+    with pytest.raises(ValueError,match='changed'):restored.artifact(job['id'],'paired.jsonl')
+    request=restored.artifact(job['id'],'request.json');settings=json.loads(request.read_text());settings['seed']=99
+    request.write_text(json.dumps(settings))
+    with pytest.raises(ValueError,match='changed'):restored.artifact(job['id'],'request.json')
+    assert restored.artifact(job['id'],'manifest.json').is_file()
+    service.close();restored.close()
+
+
+def test_research_download_api_ranges_and_corrupt_trace(tmp_path):
+    import time
+    from pathlib import Path
+    from fastapi.testclient import TestClient
+    from harmonic_weaver.lab.app import create_app
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        job=client.post('/api/research/r01',json=Settings(samples=60,dimensions=4,signal_rank=2,components=2).model_dump()).json()
+        deadline=time.monotonic()+20;report=None
+        while time.monotonic()<deadline:
+            reports=client.get('/api/research/r01').json()
+            report=next(j for j in reports if j['id']==job['id'])
+            if report['status']!='running':break
+            time.sleep(.05)
+        assert report['status']=='complete',report
+        url=f"/api/research/r01/{job['id']}/artifacts/paired.jsonl"
+        response=client.get(url,headers={'Range':'bytes=0-9'})
+        assert response.status_code==206 and len(response.content)==10
+        assert client.get(f"/api/research/r01/{job['id']}/artifacts/request.json").json()['samples']==60
+        assert client.get(f"/api/research/r01/{job['id']}/artifacts/worker.log").status_code==422
+        (Path(job['directory'])/'paired.jsonl').write_text('changed')
+        assert client.get(url).status_code==422

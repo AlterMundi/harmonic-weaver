@@ -209,6 +209,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/research/r01")
     def research_jobs():return research.list()
 
+    @app.get("/api/research/r01/{ident}/artifacts/{name}")
+    def research_artifact(ident: str, name: str):
+        return FileResponse(research.artifact(ident,name),filename=name)
+
     @app.post("/api/research/r01")
     def research_r01(body: GrassmannSettings):return research.start(body.model_dump())
 

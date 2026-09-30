@@ -192,3 +192,10 @@ deltas sin inferencia causal/estadística. Vista pareada default sólo en Invest
 reversible por checkbox; instrumento sin cambios. 15 tests research/API/collective,
 Chrome aislado y build pasan. Evidencia sintética real/repetida en
 research/laboratory/r01_grassmann/evidence-paired-2026-09-30.json. R01 no completado.
+
+
+R01: descarga web de configuración/manifest/traces por id y contrato de nombres;
+configuración coincidente y SHA-256 de traces, cache por fingerprint, Range/206 y
+rechazo de cambios. 17 tests research/API/collective, Chrome enlaces y build.
+Resultados locales sintéticos, sin publicación automática ni cambio sonoro. R01
+permanece abierto para entrada corporal/HIT específicos y protocolo ampliado.

@@ -89,3 +89,18 @@ validan HIT. Se preserva la evidencia anterior de #48 con su identidad de códig
 Pruebas añadidas: soportes artificialmente distintos excluidos antes de puntuar;
 intersección vacía devuelve ausencia de score. Chrome verifica conmutación de
 vista pareada/individual, y traces/metrics se repiten exactamente en esta máquina.
+
+## Descarga desde la web
+
+La lista de corridas ofrece manifest, configuración y traces declaradas con hash.
+API `/api/research/r01/{id}/artifacts/{name}` acepta únicamente request.json,
+manifest.json y las cuatro traces conocidas. Configuración/traces requieren status
+complete: configuración canonizada coincide con settings del manifest y traces se
+verifican por SHA-256. Manifest puede descargarse para diagnóstico de un fallo.
+Rechaza symlinks/nombres fuera del contrato; no recibe una ruta arbitraria. Hash
+memoizado por fingerprint de archivo se invalida si cambia. HTTP Range/206 permite
+leer fragmentos sin cargar toda la trace en memoria. No sube ni publica resultados.
+
+Pruebas adicionales: worker real/reinicio, alteración de request/trace, selección
+cerrada de nombres, HTTP Range/206 y enlaces Chrome. 17 research/API/collective tests
+más Chrome aislado y build. Sólo fixtures/datos sintéticos; instrumento intacto.
