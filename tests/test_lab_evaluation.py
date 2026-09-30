@@ -211,3 +211,25 @@ def test_analysis_artifacts_are_verified_after_restart_and_changes_rejected(tmp_
         (folder/'result'/comparison).write_text('{}')
         with pytest.raises(ValueError,match='comparación'):service.report(ident)
     finally:service.close();store.close()
+
+
+def test_legacy_pcm_snapshot_explains_disabled_repeat_without_hiding_report(tmp_path):
+    from uuid import uuid4
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    from harmonic_weaver.lab.cache import atomic_json
+    source,_,_=source_fixture(tmp_path)
+    request=Request(presets=[Preset()],sources=[source])
+    root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident;folder.mkdir(parents=True)
+    atomic_json(folder/'request.json',request.model_dump())
+    manifest=run(request,folder/'result')
+    manifest['request']['pcm']={'enabled':True,'engine_sha256':'legacy-code'}
+    atomic_json(folder/'result'/'manifest.json',manifest)
+    store=SessionStore(root,prepare=PreparedRoutes)
+    service=EvaluationService(root,store,None)
+    try:
+        job=service.snapshot(ident)
+        assert job['status']=='complete' and job['repeat_supported'] is False
+        assert 'Entorno original' in job['repeat_reason']
+        assert service.report(ident)['manifest']['status']=='complete'
+        assert service.artifact(ident,'manifest.json').is_file()
+    finally:service.close();store.close()

@@ -22,7 +22,7 @@ test("optional PCM controls submit explicit settings and expose local artifacts"
     import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
     const { createRoot } = ReactDOM;
     import { EvaluationPanel } from '/src/EvaluationPanel.tsx';
-    const job={id:'test-job',status:'complete',directory:'/private/local/results'};
+    const job={id:'test-job',status:'complete',directory:'/private/local/results',repeat_supported:false,repeat_reason:'Entorno original no registrado; crear una comparación nueva'};
     let jobs=[];
     const report={job_id:'test-job',manifest:{comparison_hashes:{'comparison-00.json':'fixture'},runs:[{source_index:0,preset_id:'ref',rows:60,sounding_fraction:.8,file:'features.jsonl',
       pcm:{file:'signal.wav',voice_frames:'signal.voice-frames.jsonl',rms:.1,peak:.3,samples:48000}}]},comparisons:[]};
@@ -61,6 +61,8 @@ test("optional PCM controls submit explicit settings and expose local artifacts"
       shaper_master: 0.6,
       tail_s: 0,
     });
+  await expect(page.getByRole("button", { name: "Repetir configuración congelada" })).toBeDisabled();
+  await expect(page.getByText("Entorno original no registrado; crear una comparación nueva",{exact:true})).toBeVisible();
   await page.getByRole("button", { name: "Ver comparación" }).click();
   await expect(page.locator("audio")).toHaveAttribute(
     "src",

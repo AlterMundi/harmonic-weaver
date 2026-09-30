@@ -215,3 +215,9 @@ No quitar un hash del motor para forzar un resultado incompatible.
 Este fingerprint declara dependencias relevantes, no es una attestation completa
 de hardware/build/CPU ni prueba universal de identidad numérica. Una igualdad
 comprobada sobre fixtures tampoco mide latencia física o escucha humana.
+
+El inventario de comparaciones declara `repeat_supported` y `repeat_reason` para
+corridas cuyo entorno original no quedó registrado. La web deshabilita **Repetir
+configuración congelada** en esos casos y muestra el motivo antes del intento.
+**Ver comparación**, reproducción y descargas permanecen disponibles; no se
+ocultan resultados históricos ni se presentan como una falla nueva de audio.

@@ -293,7 +293,7 @@ export function EvaluationPanel({
           )}
           {j.status !== "running" && (
             <button
-              disabled={jobs.some((job) => job.status === "running")}
+              disabled={j.repeat_supported===false || jobs.some((job) => job.status === "running")}
               onClick={() =>
                 run(async () => {
                   await api(`evaluations/${j.id}/repeat`, {});
@@ -304,6 +304,7 @@ export function EvaluationPanel({
               Repetir configuración congelada
             </button>
           )}
+          {j.repeat_reason && <p>{j.repeat_reason}</p>}
           <small>Resultados locales: {j.directory}</small>
         </div>
       ))}

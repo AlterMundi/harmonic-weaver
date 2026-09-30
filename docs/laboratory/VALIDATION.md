@@ -542,3 +542,10 @@ fases y liberación. 38400 muestras estéreo idénticas por SHA-256, máxima dif
 cero, archivos del motor coincidentes. Evidencia sintética publicada, sin cuerpos.
 Sólo prueba esa secuencia: no generalizar a otros parámetros/plataformas ni
 latencia física. No se alteraron venvs ni se inició audio/cámara.
+
+### Diagnóstico de repetición legacy — 2026-09-30
+
+Nueve pruebas replay/evaluación pasan: inventario legacy informa repetición no
+soportada mientras informe/manifest continúan accesibles. Build pasa; Chrome
+verifica botón de repetición deshabilitado con motivo visible y acceso al informe/
+artefactos. Fixtures sintéticos, sin cambios de venv, datos privados o audio.

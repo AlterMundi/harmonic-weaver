@@ -121,6 +121,10 @@ class EvaluationService:
                 job["completed_runs"] = len(manifest["runs"])
                 job["total_runs"] = len(manifest["request"]["presets"])*len(manifest["request"]["sources"])
                 job["error"] = manifest.get("error")
+                pcm=manifest['request'].get('pcm',{})
+                legacy=pcm.get('enabled',False) and not pcm.get('environment_sha256')
+                job['repeat_supported']=not legacy
+                job['repeat_reason']='Entorno original no registrado; crear una comparación nueva' if legacy else None
             code = process.poll() if process is not None else None
             if job["status"] != "cancelled" and code is not None:
                 job["status"] = "complete" if code == 0 else "failed"
