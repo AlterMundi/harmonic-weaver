@@ -791,3 +791,9 @@ running mientras activo. Tras SIGKILL y wait del mismo proceso, restaura
 interrupted preservando hashes y sin resultado/relaunch; lectura posterior
 idempotente. Relee manifest bajo lock para no pisar completion concurrente.
 Servicio R01 usa otro formato y requiere adapter R03; API/UI aún pendientes.
+
+
+Servicio R03: 5 tests worker/contraste pasan, incluido subprocess real vía
+CoincidenceService, inventario restaurado y resultado igual a corrida directa.
+Whitelist/traversal/alteración de artifact comprobados. Cancelación y API/UI
+aún requieren integración/cobertura; no se abrió audio ni tracking.

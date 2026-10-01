@@ -192,3 +192,12 @@ complete y result.json con hash. No sobrescribe manifest existente. Registra
 hashes de módulos R03/Python, no fingerprint completo de dependencias. Dos
 directorios sintéticos dan mismo hash resultado. Aún no CLI de preparación,
 worker administrado/API/UI/controles ni interpretación científica.
+
+
+CoincidenceService administra workers R03 en research/r03: congela tres entradas,
+registra queued separado del manifest del worker, lista/restaura mediante lock,
+y sirve whitelist con hashes de entradas/resultado. Un worker activo por
+servicio. Cancel/close sólo procesos propios, completion concurrente preservado.
+Prueba de subprocess real y restauración completa pasa, igual SHA a ejecución
+directa; descarga alterada/traversal rechazada. API/UI y validación específica
+de cancelación/inicios concurrentes pendientes. No comparte inventario R01.

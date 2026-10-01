@@ -32,6 +32,18 @@ def test_joined_frozen_comparison_repeats_and_rejects_mixed_inputs(tmp_path):
             assert manifest['output']['sha256']==sha256_file(folder/'result.json')
             with pytest.raises(ValueError,match='already'):run_frozen(folder)
         assert sha256_file(tmp_path/'first/result.json')==sha256_file(tmp_path/'repeat/result.json')
+        from harmonic_weaver.lab.research.coincidence_service import CoincidenceService
+        service=CoincidenceService(tmp_path/'managed')
+        managed=service.start(kwargs,marks,features)
+        assert service.processes[managed['id']].wait(timeout=10)==0
+        restored=CoincidenceService(tmp_path/'managed')
+        assert restored.list()[0]['status']=='complete'
+        assert sha256_file(restored.artifact(managed['id'],'result.json'))==manifest['output']['sha256']
+        assert restored.artifact(managed['id'],'marks.json').is_file()
+        with pytest.raises(ValueError,match='Unknown'):restored.artifact(managed['id'],'../marks.json')
+        restored.artifact(managed['id'],'result.json').write_text('{}')
+        with pytest.raises(ValueError,match='changed'):restored.artifact(managed['id'],'result.json')
+        service.close();restored.close()
         changed=deepcopy(features);changed['rows'][0]['value']=2.
         with pytest.raises(ValueError,match='changed'):compare_frozen(marks,changed,**kwargs)
         changed=deepcopy(features);changed['provenance']['source']['person_id']='left'
