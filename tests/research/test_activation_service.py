@@ -143,3 +143,15 @@ def test_interval_surrogate_contract_is_verified_not_just_hashed(tmp_path,mutati
     atomic_json(folder/'result.json',report)
     manifest=json.loads((folder/'manifest.json').read_text());manifest['output_sha256']=sha256_file(folder/'result.json');atomic_json(folder/'manifest.json',manifest)
     with pytest.raises(ValueError):verify(folder)
+
+
+@pytest.mark.parametrize('mutation',['seed','summary','child_clock'])
+def test_replicate_bank_inventory_summary_and_child_contract_are_verified(tmp_path,mutation):
+    run({**config(),'interval_shuffle':True,'replicate_seeds':[18]},tmp_path/'run')
+    folder=tmp_path/'run';verify(folder);report=json.loads((folder/'result.json').read_text())
+    if mutation=='seed':report['replicates'][0]['seed']=19
+    elif mutation=='summary':report['replicate_summary']['base']['phi']['rms']['mean']+=1
+    else:report['replicates'][0]['report']['clock']['total_frames']+=1
+    atomic_json(folder/'result.json',report)
+    manifest=json.loads((folder/'manifest.json').read_text());manifest['output_sha256']=sha256_file(folder/'result.json');atomic_json(folder/'manifest.json',manifest)
+    with pytest.raises(ValueError):verify(folder)

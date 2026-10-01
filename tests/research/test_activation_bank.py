@@ -76,3 +76,25 @@ def test_interval_surrogates_preserve_exact_gaps_support_and_dose_without_forcin
     assert report['conditions']['rational']==report['conditions']['rational_interval_shuffle']
     assert all(c['input_squared_norm']==pytest.approx(8) for c in report['conditions'].values())
     assert 'interval_shuffle' not in Settings.model_validate(config()).model_dump()
+
+
+def test_seed_bank_retains_each_result_and_describes_variability_without_pooling_trials():
+    settings=config(interval_shuffle=True,replicate_seeds=[18,19],medium_controls=[{'sample_rate':8000}])
+    report=probe(settings);assert report==probe(settings)
+    assert [r['seed'] for r in report['replicates']]==[18,19]
+    for item in report['replicates']:
+        for name in ['rational','phi','sqrt2']:
+            assert item['report']['conditions'][name]==report['conditions'][name]
+        assert item['report']['conditions']['random']['event_samples']!=report['conditions']['random']['event_samples']
+    summary=report['replicate_summary']['base']['rational']['rms']
+    assert summary['count']==3 and summary['min']==summary['max'] and summary['std_population']==0
+    assert report['replicate_summary']['base']==report['replicate_summary']['control_0']
+    for seeds in [[],[17],[18,18],[-1],[2147483648],[True]]:
+        with pytest.raises(ValueError):Settings.model_validate(config(replicate_seeds=seeds))
+    assert 'replicate_seeds' not in Settings.model_validate(config()).model_dump()
+
+
+def test_seed_bank_limits_total_trace_before_computation():
+    with pytest.raises(ValueError,match='aggregate bank'):
+        Settings.model_validate(config(replicate_seeds=list(range(1,9)),interval_shuffle=True,trace_stride=2,
+            excitation_span_s=1,tail_s=1,medium_controls=[{'sample_rate':8000}]*4))

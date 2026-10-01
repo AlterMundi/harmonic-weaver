@@ -85,3 +85,13 @@ incluyen ocho condiciones y funcionan con medium_controls. Verificador reconstru
 calendarios y soporte. Campo false omitido conserva formato anterior.
 Pendientes bancos de múltiples semillas, controles de fase/espectro cuando se
 definan observables, hipótesis HIT explícitas y protocolos físicos/humanos.
+
+R06 — banco de semillas explícitas (2026-10-01): replicate_seeds opcional,
+1–8 semillas adicionales únicas y distintas de principal, congeladas en request.
+Todos los calendarios validados antes de encolar; cap agregado144000 puntos.
+Conserva principal y cada réplica con sus medios. Resumen descriptivo por medio/
+calendario/métrica (count/mean/min/max/std_population), sin p-values; condiciones
+deterministas pueden repetirse. UI checkbox/JSON/preset y selector que cambia
+tablas y trace conjuntamente. 29 tests + Chrome real + build pasan. Campo None
+omitido conserva formatos anteriores. Pendientes controles fase/espectro con
+observable definido, hipótesis HIT y protocolos físicos/humanos.

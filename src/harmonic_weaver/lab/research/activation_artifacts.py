@@ -69,9 +69,20 @@ def validate_report(report,settings):
         for index,(medium,output) in enumerate(zip(controls,outputs)):
             if type(output['index']) is not int or output['index']!=index or output['medium']!=medium.model_dump():
                 raise ValueError('Medium control differs from frozen configuration')
-            child=settings.model_copy(update={'medium':medium,'medium_controls':None})
+            child=settings.model_copy(update={'medium':medium,'medium_controls':None,'replicate_seeds':None})
             validate_report({'schema_version':1,'line':'R06','settings':child.model_dump(),
                 'clock':report['clock'],'impulse_vector':report['impulse_vector'],'conditions':output['conditions']},child)
             expected={name:{key:(value-report['conditions'][name]['metrics'][key] if value is not None else None)
                 for key,value in condition['metrics'].items()} for name,condition in output['conditions'].items()}
             if output['metric_difference_vs_base']!=expected:raise ValueError('Medium control metric differences mismatch')
+    seeds=settings.replicate_seeds
+    if seeds is None:
+        if 'replicates' in report or 'replicate_summary' in report:raise ValueError('Unexpected replicate bank')
+    else:
+        outputs=report.get('replicates',[])
+        if [item['seed'] for item in outputs]!=seeds or any(type(item['seed']) is not int for item in outputs):
+            raise ValueError('Replicate seed inventory differs from frozen bank')
+        for item in outputs:
+            validate_report(item['report'],settings.model_copy(update={'seed':item['seed'],'replicate_seeds':None}))
+        from .activation_bank import replicate_summary
+        if report.get('replicate_summary')!=replicate_summary(report):raise ValueError('Replicate descriptive summary mismatch')

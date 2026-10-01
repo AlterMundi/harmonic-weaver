@@ -7,6 +7,7 @@ test('R06 controls portable preset real workers and comparison survive restore',
  for(const [key,value] of Object.entries({excitation_span_s:'.1',tail_s:'.1',seed:'43',impulse_strength:'.7',block_size:'317',trace_stride:'64'}))await page.getByLabel(`${key} R06`,{exact:true}).fill(value);
  await page.getByLabel('medium.topology R06',{exact:true}).selectOption('ring');
  await page.getByLabel('medium.coupling_per_s R06',{exact:true}).fill('2');
+ await page.getByRole('checkbox',{name:'Banco de semillas R06',exact:true}).check();
  await page.getByRole('checkbox',{name:'Permutar intervalos R06',exact:true}).check();
  await page.getByRole('checkbox',{name:'Comparar medios R06',exact:true}).check();
  const controls=page.getByLabel('medium_controls R06',{exact:true});
@@ -14,7 +15,7 @@ test('R06 controls portable preset real workers and comparison survive restore',
  await controls.fill(JSON.stringify(media));
  await page.getByRole('button',{name:'Exportar configuración R06',exact:true}).click();
  const text=page.getByLabel('Configuración R06 JSON',{exact:true});await expect(text).not.toHaveValue('');
- const preset=JSON.parse(await text.inputValue());expect(preset.settings.seed).toBe(43);expect(preset.settings.interval_shuffle).toBe(true);expect(preset.settings.medium.topology).toBe('ring');expect(preset.settings.medium_controls[0].damping_per_s).toEqual(Array(6).fill(8));
+ const preset=JSON.parse(await text.inputValue());expect(preset.settings.seed).toBe(43);expect(preset.settings.interval_shuffle).toBe(true);expect(preset.settings.replicate_seeds).toEqual([44]);expect(preset.settings.medium.topology).toBe('ring');expect(preset.settings.medium_controls[0].damping_per_s).toEqual(Array(6).fill(8));
  const before=await(await page.request.get(`${origin}/api/research/r06`)).json();
  await page.getByLabel('seed R06',{exact:true}).fill('9');
  await page.getByRole('button',{name:'Importar configuración R06',exact:true}).click();
@@ -35,6 +36,9 @@ test('R06 controls portable preset real workers and comparison survive restore',
   const response=await page.request.get(`${origin}/api/research/r06/${job.id}/artifacts/result.json`);expect(response.status()).toBe(200);results.push(await response.body());
  }
  expect(results[0].equals(results[1])).toBe(true);
+ await page.getByLabel('Semilla de resultado R06',{exact:true}).selectOption('0');
+ await expect(page.getByText('Resultado congelado de semilla 44',{exact:false})).toBeVisible();
+ await page.getByText('Resumen descriptivo del banco R06',{exact:true}).click();
  await page.getByLabel('Medio de traza R06',{exact:true}).selectOption('0');
  await page.getByLabel('Calendario de traza R06',{exact:true}).selectOption('phi_interval_shuffle');
  await expect(page.getByLabel('Traza R06',{exact:true})).toContainText('muestra');

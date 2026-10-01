@@ -13,6 +13,7 @@ from .resonators import Settings as Medium,Resonators
 class Settings(Contract):
     medium:Medium=Field(default_factory=Medium)
     medium_controls:list[Medium]|None=Field(default=None,min_length=1,max_length=4)
+    replicate_seeds:list[int]|None=Field(default=None,min_length=1,max_length=8)
     interval_shuffle:bool=False
     event_count:int=Field(default=8,ge=4,le=32)
     excitation_span_s:Number=Field(default=1,ge=.05,le=5)
@@ -27,16 +28,24 @@ class Settings(Contract):
         value=handler(self)
         if self.medium_controls is None:value.pop('medium_controls',None)
         if not self.interval_shuffle:value.pop('interval_shuffle',None)
+        if self.replicate_seeds is None:value.pop('replicate_seeds',None)
         return value
 
     @model_validator(mode='after')
     def capacity(self):
+        if self.replicate_seeds is not None:
+            seeds=self.replicate_seeds
+            if len(set(seeds))!=len(seeds) or self.seed in seeds or any(s<0 or s>2147483647 for s in seeds):
+                raise ValueError('Additional seeds must be unique, in range and different from primary seed')
         for control in self.medium_controls or []:
             if any(getattr(control,key)!=getattr(self.medium,key) for key in ('fundamental_hz','ratios','sample_rate')):
                 raise ValueError('Medium controls must preserve carriers, ratios and sample rate')
         total=math.ceil(self.excitation_span_s*self.medium.sample_rate)+math.ceil(self.tail_s*self.medium.sample_rate)
         if math.ceil(total/self.trace_stride)+self.event_count+1>14400:
             raise ValueError('Select trace_stride for at most 14400 trace observations per condition')
+        if self.replicate_seeds is not None:
+            points=(math.ceil(total/self.trace_stride)+self.event_count+1)*(8 if self.interval_shuffle else 4)*(1+len(self.medium_controls or []))*(1+len(self.replicate_seeds))
+            if points>144000:raise ValueError('Increase trace_stride for aggregate bank limit of 144000 trace points')
         return self
 
 
@@ -57,6 +66,8 @@ def schedules(settings):
             rng=np.random.default_rng(np.random.SeedSequence([settings.seed,606,index]))
             gaps=rng.permutation(np.diff(indices))
             result[name+'_interval_shuffle']=[0]+np.cumsum(gaps).tolist()
+    for seed in settings.replicate_seeds or []:
+        schedules(settings.model_copy(update={'seed':seed,'replicate_seeds':None}))
     return result
 
 
@@ -101,7 +112,7 @@ def _probe_one(settings):
             'No body data, sound acceptance, p-values, intention inference or physical cymatics']}
 
 
-def probe(settings):
+def _probe_seed(settings):
     settings=Settings.model_validate(settings)
     base=settings.model_copy(update={'medium_controls':None})
     report=_probe_one(base)
@@ -123,6 +134,36 @@ def probe(settings):
         report['medium_controls']=controls
         report['limits']+=['Optional medium controls preserve carrier frequencies/clock and identical event samples/dose',
                            'Medium differences change damping/coupling/graph only; metric deltas are control minus base, not efficacy scores']
+    return report
+
+
+def replicate_summary(report):
+    reports=[report]+[item['report'] for item in report.get('replicates',[])]
+    result={}
+    for index in range(-1,len(report.get('medium_controls',[]))):
+        label='base' if index<0 else f'control_{index}'
+        conditions=[r['conditions'] if index<0 else r['medium_controls'][index]['conditions'] for r in reports]
+        result[label]={}
+        for name in conditions[0]:
+            result[label][name]={}
+            for metric in conditions[0][name]['metrics']:
+                values=[c[name]['metrics'][metric] for c in conditions if c[name]['metrics'][metric] is not None]
+                mean=values[0]+math.fsum(v-values[0] for v in values)/len(values) if values else None
+                result[label][name][metric]={'count':len(values),'mean':mean,'min':min(values) if values else None,
+                    'max':max(values) if values else None,
+                    'std_population':math.sqrt(math.fsum((v-mean)**2 for v in values)/len(values)) if values else None}
+    return result
+
+
+def probe(settings):
+    settings=Settings.model_validate(settings);schedules(settings);primary=settings.model_copy(update={'replicate_seeds':None})
+    report=_probe_seed(primary);report['settings']=settings.model_dump()
+    if settings.replicate_seeds is not None:
+        report['replicates']=[{'seed':seed,'report':_probe_seed(primary.model_copy(update={'seed':seed}))} for seed in settings.replicate_seeds]
+        report['replicate_summary']=replicate_summary(report)
+        report['limits']+=['Explicit additional seeds are frozen, with primary and every replicate result retained',
+                           'Descriptive population mean/range/std only; deterministic calendars may repeat across seeds',
+                           'Seeds are not independent human trials or a null distribution; no p-value, ranking or HIT inference']
     return report
 
 

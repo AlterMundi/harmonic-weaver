@@ -1760,3 +1760,25 @@ verificador de surrogates y bool estricto registrada abajo.
 
 Corrida final: 24 tests R06 pasan (7.16 s), incluidos rechazos de eventos/inventario
 surrogate alterados aun con hashes reescritos y interval_shuffle no booleano.
+
+## R06: banco de semillas congeladas — 2026-10-01
+
+Settings agrega replicate_seeds opcional 1..8, únicas/dentro de rango/distintas
+de principal, omitido por defecto. Probe valida calendarios de todas antes de
+calcular. Conserva cada report con configuración/eventos/métricas/medios; resumen
+poblacional descriptivo sobre principal+adicionales, por medio/calendario/métrica.
+Cap agregado144000 puntos. Verificador reconstruye inventario de semillas,
+valida cada report hijo y recalcula agregados desde sus métricas guardadas; no
+rerenderiza esas métricas ni las convierte en contraste científico.
+
+29 tests R06 pasan (9.39 s): semillas/repetición/constantes deterministas,
+contratos/cap agregado, rechazo de seed/summary/clock hijo alterados aunque se
+actualice hash, y lifecycle/API existentes. Chrome HTTP real pasa (6.8 s):
+principal43/adicional44, ocho condiciones y medio de control, export/import,
+dos results byte-idénticos verificados, selección semilla44 con tablas/traces
+consistentes, resumen y reload. Build pasa. Servidor propio apagado.
+No audio físico, cuerpos ni aceptación humana; un banco de semillas no es una
+población de participantes ni distribución nula. No calcula p-values.
+
+Referencia CLI R06 anterior sigue verificándose complete: compatibilidad de
+lectura/formato sin afirmar reproducción numérica universal entre versiones.

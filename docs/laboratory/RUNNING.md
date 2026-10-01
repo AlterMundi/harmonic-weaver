@@ -345,3 +345,18 @@ de orden superior. El checkbox se exporta/importa y aplica también a medios de
 control; selector de calendario permite inspeccionar *_interval_shuffle.
 Default apagado y campo omitido conservan presets anteriores. Una sola semilla
 no constituye una distribución nula ni un contraste estadístico de significancia.
+
+R06: «Banco de semillas R06» agrega una lista JSON de hasta ocho semillas
+adicionales, únicas y distintas de la principal. El preset congela la lista.
+Validación comprueba todos los calendarios antes de encolar y limita el trace
+agregado a 144000 puntos; aumentar trace_stride si se excede. La corrida retiene
+el resultado principal y cada repetición, incluidos sus medios de control.
+«Semilla de resultado R06» cambia juntas las tablas/trazas visibles; el resultado
+permanece congelado y no aplica cambios del draft actual.
+
+«Resumen descriptivo del banco R06» muestra count/media/min/max/desvío poblacional
+por medio, calendario y métrica. Incluye principal y adicionales. Calendarios
+racional/phi/sqrt2 pueden ser idénticos entre semillas; random y permutations
+cambian según su stream. No asumir ensayos humanos independientes, distribución
+nula, significancia, un ganador ni eficacia HIT. Opción apagada por defecto;
+campo omitido mantiene formato previo.
