@@ -54,6 +54,13 @@ Diez pruebas conjuntas pasan, incluyendo repetición, particiones, comparación
 directa con campo, rechazo de reloj/ventana e integridad alterada. Integración
 con pares R05, worker/API/UI y controles de campo siguen pendientes.
 
+Quinto corte: selector explícito `arm=single|excited|mapped`. Para pares, verifica
+también el padre y el brazo no seleccionado antes/después de proyectar; devuelve
+hash del manifest del par y del brazo. No compara corridas independientes como
+si compartieran input/reloj. Doce pruebas pasan: incluye ambos mecanismos sobre
+un soporte idéntico, rechazo por alteración del brazo no seleccionado y mutación
+de un input durante la proyección. Worker/API/UI y banco de controles pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

@@ -1,5 +1,6 @@
 """R07 causal membrane RMS window from a verified single R05 PCM run."""
 from pathlib import Path
+from typing import Literal
 from pydantic import Field
 import numpy as np
 import soundfile as sf
@@ -7,9 +8,11 @@ from ..contracts import Contract
 from ..cache import sha256_file
 from .membrane import Settings, Membrane, FieldWindow
 from .resonator_artifacts import verify
+from .mechanism_run import verify as verify_pair
 
 
 class Request(Contract):
+    arm: Literal['single', 'excited', 'mapped'] = 'single'
     membrane: Settings = Field(default_factory=Settings)
     start_sample: int = Field(default=0, ge=0)
     stop_sample_exclusive: int = Field(gt=0)
@@ -21,6 +24,13 @@ class Request(Contract):
 def project(folder, request):
     request = Request.model_validate(request)
     folder = Path(folder)
+    parent = folder
+    pair_manifest = None
+    pair_hash = None
+    if request.arm != 'single':
+        pair_manifest = verify_pair(parent)
+        pair_hash = sha256_file(parent/'manifest.json')
+        folder = parent/request.arm
     manifest = verify(folder)
     manifest_hash = sha256_file(folder/'manifest.json')
     sr = manifest['pcm']['sample_rate']
@@ -49,9 +59,12 @@ def project(folder, request):
     # Full verification binds all source inputs and components, not just sum.
     if verify(folder) != manifest or sha256_file(folder/'manifest.json') != manifest_hash:
         raise ValueError('R05 artifacts changed during membrane projection')
+    if pair_manifest is not None and (verify_pair(parent) != pair_manifest or sha256_file(parent/'manifest.json') != pair_hash):
+        raise ValueError('R05 comparison changed during membrane projection')
     result['rms'] = result['rms'].reshape(request.grid_y, request.grid_x).tolist()
     return {'schema_version': 1, 'line': 'R07', 'request': request.model_dump(),
             'window': result, 'source_manifest_sha256': manifest_hash,
+            'source_pair_manifest_sha256': pair_hash,
             'source_component_sha256': manifest['output_hashes']['sum.wav'],
             'history_start_sample': 0, 'initial_state': 'zero',
             'limits': ['Sound-only final mix, no pose or gesture labels',

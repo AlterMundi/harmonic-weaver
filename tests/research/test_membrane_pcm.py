@@ -33,3 +33,34 @@ def test_invalid_clock_window_and_tampering_rejected(tmp_path):
         with pytest.raises(ValueError): project(folder, request)
     with (folder/'sum.wav').open('ab') as handle: handle.write(b'changed')
     with pytest.raises(ValueError): project(folder, {'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 100})
+
+
+def test_paired_arm_selection_verifies_unselected_arm_too(tmp_path):
+    from harmonic_weaver.lab.research.mechanism_run import run
+    from test_mechanism_run import document
+    folder = tmp_path/'pair'
+    run(document(), {'resonators': {'sample_rate': 8000}}, folder)
+    request = {'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 1000,
+               'grid_x': 4, 'grid_y': 4}
+    excited = project(folder, {**request, 'arm': 'excited'})
+    mapped = project(folder, {**request, 'arm': 'mapped'})
+    assert excited['source_pair_manifest_sha256'] == mapped['source_pair_manifest_sha256']
+    assert excited['window']['sample_count'] == mapped['window']['sample_count']
+    assert excited['source_component_sha256'] != mapped['source_component_sha256']
+    assert excited['window']['rms'] != mapped['window']['rms']
+    (folder/'mapped/sum.wav').write_bytes(b'changed')
+    with pytest.raises(ValueError): project(folder, {**request, 'arm': 'excited'})
+
+
+def test_source_mutation_during_projection_is_rejected(tmp_path, monkeypatch):
+    from harmonic_weaver.lab.research import membrane_pcm
+    folder = tmp_path/'run'
+    fixture(folder)
+    original = membrane_pcm.FieldWindow.report
+    def changed(self, x, y):
+        result = original(self, x, y)
+        with (folder/'input.json').open('ab') as handle: handle.write(b'changed')
+        return result
+    monkeypatch.setattr(membrane_pcm.FieldWindow, 'report', changed)
+    with pytest.raises(ValueError):
+        project(folder, {'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 100})
