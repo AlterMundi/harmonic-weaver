@@ -20,3 +20,15 @@ def test_frozen_annotations_require_exact_context_and_hash(tmp_path):
         store.mark('Pending',category='deployment',observed_epoch=2,transport_epoch=3)
         with pytest.raises(ValueError,match='discontinuity'):verified_marks(store.marks_snapshot(),**context)
     finally:store.close()
+
+
+def test_source_binding_rejects_different_generation_or_missing_identity():
+    from harmonic_weaver.lab.research.mark_input import verify_source_binding
+    identity={'kind':'video','media_id':'media','cache_key':'key','generation':'generation','cache_manifest_sha256':'hash'}
+    snapshot={'marks':[{'event':{'payload':{'source_identity':identity}}}]}
+    candidate={'provenance':{'source_record':{'cache_manifest_sha256':'hash','cache_manifest':{'media_sha256':'media','key':'key','generation':'generation'}}}}
+    assert verify_source_binding(snapshot,candidate)['media_id']=='media'
+    identity['generation']='other'
+    with pytest.raises(ValueError,match='generation'):verify_source_binding(snapshot,candidate)
+    snapshot['marks'][0]['event']['payload'].pop('source_identity')
+    with pytest.raises(ValueError,match='identity'):verify_source_binding(snapshot,candidate)

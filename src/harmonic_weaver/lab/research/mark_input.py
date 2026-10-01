@@ -36,3 +36,19 @@ def verified_marks(snapshot,*,source_id,person_id,session_id,observed_epoch,cate
                        'observed_epoch':observed_epoch,'category':category},
             'limits':['Hash verifies content, not provenance attestation',
                       'Button/source clock is not corrected for reaction or physical AV latency']}
+
+
+def verify_source_binding(snapshot,candidate_document):
+    """Bind marks to the exact replay cache generation, not similar paths."""
+    record=candidate_document['provenance']['source_record']
+    cache=record['cache_manifest']
+    expected={'cache_manifest_sha256':record.get('cache_manifest_sha256'),
+              'generation':cache.get('generation'),'cache_key':cache.get('key'),
+              'media_id':cache.get('media_sha256')}
+    if any(not isinstance(value,str) or not value for value in expected.values()):
+        raise ValueError('Replay source identity is incomplete')
+    for row in snapshot['marks']:
+        identity=row['event']['payload'].get('source_identity') or {}
+        if identity.get('kind')!='video' or any(identity.get(key)!=value for key,value in expected.items()):
+            raise ValueError('Annotation source differs from replay generation or lacks identity')
+    return expected

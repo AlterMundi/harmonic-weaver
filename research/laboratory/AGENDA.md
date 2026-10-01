@@ -163,3 +163,12 @@ holds; no lee ni copia video. Conserva filas inválidas/provenance y genera
 candidatos causales. Integración con replay sintético pasa. Pendientes: unir
 marcas/features con identidad de fuente verificable (IDs runtime y asset no son
 intercambiables), soporte común explícito, controles, worker/manifests y UI.
+
+
+Vínculo fuente R03: nuevas marcas runtime incluyen source_identity usando el
+contrato de captura (biblioteca declarada + hash del cache manifest, sin rehash
+del video ni copias). verify_source_binding exige video, media_id equivalente
+a cache.media_sha256, cache_key/key, generation y cache_manifest_sha256 iguales
+al replay. Históricos sin identidad no se relabelan. Validación del snapshot SHA
+es paso previo separado. Pendiente job integrado que ejecute ambas verificaciones
+y contraste sobre soporte explícito; ninguna coincidencia de rutas basta.

@@ -755,3 +755,10 @@ R03 adapter features: 6 tests candidate_input/body pasan; adapter con fixture
 de missingness y reader real sobre comparación/replay sintético. Se verifica
 procedencia compartida, T/s, una señal y holds excluidos. No prueba todavía
 compatibilidad de identidad entre marca live y asset replay ni banco completo.
+
+
+Identidad de marcas live/replay: 18 tests runtime/API/mark_input pasan; controles
+de binding prueban otra generación e identidad ausente. Cache usa media_sha256
+(no media_id); adapter explicita correspondencia. Hash de biblioteca declarado
+no constituye verificación nueva del video ni identidad biométrica. No banco
+integrado ni prueba corporal de ese binding todavía.

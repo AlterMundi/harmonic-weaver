@@ -355,10 +355,12 @@ class LaboratoryRuntime:
     def mark(self, text, *, category="note"):
         # Match the stored observation epoch, not an unprocessed seek/loop.
         with self._lock, self.store._lock:
+            from .capture import CaptureSession
+            identity=CaptureSession.source_identity(self.snapshot()["source"])
             self.store.mark(text, category=category,
                             observed_epoch=self.epoch if self.epoch>=0 else None,
                             transport_epoch=self.transport.epoch,
-                            frame_time_s=self.frame.source_time_s if self.frame else None)
+                            frame_time_s=self.frame.source_time_s if self.frame else None,source_identity=identity)
 
     def capture_boundary(self):
         # Same lock order as tick: runtime before store. No disk writer here.
