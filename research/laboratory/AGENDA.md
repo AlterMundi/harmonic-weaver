@@ -112,3 +112,9 @@ frame anterior. No inferir alineación nueva de ese frame. Épocas se interpreta
 junto al session_id del evento, no son globales entre reinicios. Sin runtime o
 marca histórica, datos desconocidos quedan null/ausentes. Pendiente filtro web
 por sesión/época y comparación de candidatos sobre soporte temporal común.
+
+
+Filtro session_id/observed_epoch disponible por API y web, con sesión obligatoria
+si se limita época. Selection integra ambos en hash; marcas sin época quedan
+fuera del filtro. Siguiente entrega: contraste reproducible de candidatos sobre
+features congeladas y anotaciones seleccionadas, con controles y soporte común.

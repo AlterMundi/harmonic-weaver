@@ -265,7 +265,9 @@ class SessionStore:
                                  "observed_epoch": observed_epoch, "transport_epoch": transport_epoch,
                                  "frame_time_s": frame_time_s})
 
-    def marks_snapshot(self, *, source_id=None, person_id=None, start_s=None, end_s=None, category=None):
+    def marks_snapshot(self, *, source_id=None, person_id=None, start_s=None, end_s=None, category=None, session_id=None, observed_epoch=None):
+        if observed_epoch is not None and (type(observed_epoch) is not int or observed_epoch<0 or not session_id):
+            raise ValueError("Observed epoch requires an explicit session and nonnegative integer")
         for value in (start_s,end_s):
             if value is not None and (type(value) not in (int,float) or not math.isfinite(value) or value<0):
                 raise ValueError("Mark interval requires finite nonnegative times")
@@ -277,11 +279,13 @@ class SessionStore:
             cursor=self._db.execute("SELECT COALESCE(MAX(sequence),0) FROM events").fetchone()[0]
             rows=self._db.execute("SELECT sequence,payload FROM events WHERE sequence<=? AND json_extract(payload,'$.kind')='mark' ORDER BY sequence",(cursor,)).fetchall()
             result={"schema_version":1,"through_sequence":cursor,
-                    "selection":{"source_id":source_id,"person_id":person_id,"start_s":start_s,"end_s":end_s,"category":category,"interval":"[start_s,end_s)"},
+                    "selection":{"source_id":source_id,"person_id":person_id,"start_s":start_s,"end_s":end_s,"category":category,"interval":"[start_s,end_s)","session_id":session_id,"observed_epoch":observed_epoch},
                     "marks":[{"sequence":seq,"event":event} for seq,payload in rows
                              if (event:=json.loads(payload)) is not None
                              and (source_id is None or event['payload'].get('source_id')==source_id)
                              and (person_id is None or event['payload'].get('person_id')==person_id)
+                             and (session_id is None or event['session_id']==session_id)
+                             and (observed_epoch is None or event['payload'].get('observed_epoch')==observed_epoch)
                              and (category is None or event['payload'].get('annotation_category')==category)
                              and (start_s is None or event.get('source_time_s') is not None and event['source_time_s']>=start_s)
                              and (end_s is None or event.get('source_time_s') is not None and event['source_time_s']<end_s)],

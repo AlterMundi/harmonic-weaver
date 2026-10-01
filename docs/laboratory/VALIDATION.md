@@ -704,3 +704,10 @@ antes del siguiente tick conserva distinción observado/transporte y frame previ
 tras tick, épocas coinciden y frame avanza. Primer fallo fue cleanup del fixture
 Audio sin close, corregido sin tocar audio de producción. Sin hardware ni prueba
 de latencia humana.
+
+
+Selección sesión/época: 8 tests API/store y build pasan. observed_epoch exige
+session_id explícito, entero no negativo; selección distinta vacía, marcas
+sin época no se reinterpretan. Web ofrece campos opcionales; interacción de
+estos campos pendiente. Valores pueden consultarse en el JSON descargado, no
+son identidad biométrica ni onset físico.

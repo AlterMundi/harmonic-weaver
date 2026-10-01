@@ -117,3 +117,19 @@ def test_mark_interval_and_category_selection_are_explicit_and_validated(tmp_pat
         assert client.get('/api/marks/snapshot',params={'start_s':1,'end_s':3,'category':'deployment'}).json()==selected
         for params in ({'start_s':3,'end_s':1},{'start_s':'nan'},{'end_s':-1},{'category':'unknown'}):
             assert client.get('/api/marks/snapshot',params=params).status_code==422
+
+
+def test_epoch_filter_requires_session_and_does_not_infer_historical_epochs(tmp_path):
+    from harmonic_weaver.lab.store import SessionStore
+    store=SessionStore(tmp_path)
+    try:
+        store.mark('Known',observed_epoch=2)
+        session_id=store.events()[0]['session_id']
+        store.mark('Unknown')
+    finally:store.close()
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert client.get('/api/marks/snapshot',params={'observed_epoch':2}).status_code==422
+        selected=client.get('/api/marks/snapshot',params={'session_id':session_id,'observed_epoch':2}).json()
+        assert len(selected['marks'])==1
+        assert selected['marks'][0]['event']['payload']['text']=='Known'
+        assert client.get('/api/marks/snapshot',params={'session_id':'other','observed_epoch':2}).json()['marks']==[]
