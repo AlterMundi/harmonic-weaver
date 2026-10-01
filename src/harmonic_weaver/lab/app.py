@@ -27,7 +27,7 @@ from .research.resonators import Settings as ResonatorSettings
 from .research.excitation import Settings as ExcitationSettings
 from .research.resonator_render import Settings as ResonatorRenderSettings
 from .research.parameter_render import Settings as MappingSettings
-from .research.model_projection import Request as ModelProjectionRequest, project as project_model
+from .research.model_projection import Request as ModelProjectionRequest
 from .research.relational_input import EndpointRequest
 from .research.body import BodyRequest
 from .research.candidate_input import CandidateRequest, candidate_snapshot
@@ -372,8 +372,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post("/api/research/r05/{ident}/projection")
     def resonator_projection(ident: str,body: ModelProjectionRequest):
-        if resonators.report(ident)['status']!='complete':raise ValueError('Completed R05 run required')
-        return project_model(resonators.folder(ident),body)
+        return resonators.projection(ident,body)
 
     @app.get("/api/schemas")
     def schemas():

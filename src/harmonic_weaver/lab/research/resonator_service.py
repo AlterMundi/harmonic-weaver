@@ -2,6 +2,7 @@
 from .coincidence_service import CoincidenceService
 from .resonator_render import Render
 from .resonator_artifacts import verify
+from .projection_reader import ProjectionReader
 
 
 class ResonatorService(CoincidenceService):
@@ -10,6 +11,19 @@ class ResonatorService(CoincidenceService):
     artifacts = ('request.json','input.json','sum.wav','voices.wav','quadrature.wav','manifest.json',
                  'result.json','excited-sum.wav','excited-voices.wav','excited-quadrature.wav',
                  'mapped-sum.wav','mapped-voices.wav','mapped-quadrature.wav')
+
+    def __init__(self,data_dir):
+        super().__init__(data_dir);self.projection_reader=ProjectionReader()
+
+    def projection(self,ident,request):
+        with self.lock:
+            if self.closed:raise ValueError('R05 service is closed')
+            if self.report(ident)['status']!='complete':raise ValueError('Completed R05 run required')
+            from .model_projection import project
+            return project(self.folder(ident),request,reader=self.projection_reader)
+
+    def close(self):
+        super().close();self.projection_reader.close()
 
     def start(self, request, document):
         if set(request) - {'resonators','excitation','render','mapping'}:

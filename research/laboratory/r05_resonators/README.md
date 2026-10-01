@@ -306,3 +306,20 @@ ambos workflows; ocho proyección repetidos tras límites 6–32 arrays. Primer
 intento corrigió nombre reservado pytest, sin relajar contratos. Audio intacto.
 Pendiente lector eficiente/preview sincronizado/UI/presets de proyección y
 aceptación humana, además de modalidades restantes del protocolo.
+
+
+R05 — lector acotado y caché de verificación (2026-09-30): ProjectionReader
+por servicio, LRU máximo8 entradas, verifica hashes/PCM/preparación una vez
+antes de primer acceso y compara fingerprint lstat de directorios/archivos
+(inode/dev/mode/size/mtime_ns/ctime_ns) antes/después de cada ventana. Incluye
+ambos brazos/informe en comparación, no sólo brazo mostrado. Cualquier cambio
+invalida/reverifica; symlink/faltante/cambio durante read rechaza y descarta.
+No persiste caché entre sesiones ni presume firma/custodia; semántica FS normal,
+no defensa contra atacante que controle kernel. API usa lector; módulo project
+sin lector conserva verificación íntegra por llamada. Modo expuesto en respuesta.
+16 tests reader/proyección/API pasan: verificación invocada una vez por ventanas
+repetidas single/paired, reescritura igual con mtime restaurado invalida por ctime,
+tamper del otro brazo también invalida, cambio durante read/symlink/capacidad/
+close. No render/retracking ni copias de video. Ventanas bounded PCM; latencia
+UI y sincronía física aún no medidas. Próximo UI/player/presets de proyección;
+audio live/defaults intactos y aceptación humana pendiente.

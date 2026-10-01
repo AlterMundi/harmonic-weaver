@@ -21,9 +21,12 @@ class Request(Contract):
     scale_y:Number=Field(default=1,gt=0,le=100)
 
 
-def project(folder,request):
+def project(folder,request,*,reader=None):
     request=Request.model_validate(request);folder=Path(folder)
-    if request.arm=='single':manifest=verify_arm(folder);arm=folder
+    if reader is not None:
+        manifest,fingerprint=reader.prepare(folder,request.arm)
+        arm=folder if request.arm=='single' else folder/request.arm
+    elif request.arm=='single':manifest=verify_arm(folder);arm=folder
     else:
         verify_pair(folder);arm=folder/request.arm;manifest=verify_arm(arm)
     if 'quadrature.wav' not in manifest['output_hashes']:
@@ -48,17 +51,21 @@ def project(folder,request):
     indices=request.start_sample+np.arange(len(points))*request.stride
     preparation=manifest['preparation'];selection=preparation.get('selection') or preparation['excitation']['selection']
     # Read-only response remains tied to the files verified before the bounded read.
-    for name in ('voices.wav','quadrature.wav'):
-        if (arm/name).is_symlink() or sha256_file(arm/name)!=manifest['output_hashes'][name]:
-            raise ValueError('Projection components changed during read')
+    if reader is not None:reader.check(folder,request.arm,fingerprint)
+    else:
+        for name in ('voices.wav','quadrature.wav'):
+            if (arm/name).is_symlink() or sha256_file(arm/name)!=manifest['output_hashes'][name]:
+                raise ValueError('Projection components changed during read')
     return {'schema_version':1,'settings':request.model_dump(),'sample_rate':sr,'voices':n,
         'sample_indices':indices.tolist(),'elapsed_s':((indices+1)/sr).tolist(),
         'source_time_s':(selection['start_s']+(indices+1)/sr).tolist(),
         'tail':(indices>=preparation['segment_frames']).tolist(),'points':points.tolist(),
         'component_hashes':{name:manifest['output_hashes'][name] for name in ('voices.wav','quadrature.wav')},
+        'verification_mode':'cached_hashes_with_file_metadata_checks' if reader is not None else 'full_hashes_per_call',
         'limits':['Projection sums every stored voice with explicit weights and phase offsets',
             'Actual sampled model state, no future carrier extrapolation or Hilbert inference',
             'Sample timestamps are right edges of exact PCM steps; tail is instrument activity',
             'Stride is display decimation without antialias filtering, not an audio-rate conversion',
             'No automatic scale normalization or physical cymatic interpretation',
-            'Full artifact verification per call; not yet a low-latency live display path']}
+            'Local integrity only, not signed custody; metadata cache assumes ordinary filesystem semantics',
+            'UI playback latency and physical audio/display synchronization still unmeasured']}
