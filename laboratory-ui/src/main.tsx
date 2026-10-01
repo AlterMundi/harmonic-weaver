@@ -1,3 +1,4 @@
+import {MovementMarks} from "./MovementMarks";
 import { ResearchPanel } from "./ResearchPanel";
 import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
@@ -383,8 +384,6 @@ function App() {
     [assets, setAssets] = useState<Data[]>([]),
     [presets, setPresets] = useState<Data[]>([]);
   const [presetName, setPresetName] = useState(""),
-    [mark, setMark] = useState(""),
-    [markCategory, setMarkCategory] = useState("note"),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
   const [sourcePreferences, setSourcePreferences] = useState<Data>({default_person:"best_coverage", autoplay_video:true});
   const [quality, setQuality] = useState<Data | null>(null);
@@ -1460,31 +1459,7 @@ function App() {
               );
             })}
           </div>
-          <label>Tipo de marca<select value={markCategory} onChange={e=>setMarkCategory(e.target.value)}>
-            <option value="note">Nota libre</option><option value="preparation">Preparación percibida</option>
-            <option value="deployment">Despliegue percibido</option><option value="release">Liberación percibida</option>
-            <option value="experience">Experiencia / sensación</option>
-          </select></label>
-          <small>Marca al presionar: no corrige tu tiempo de reacción ni confirma intención o causalidad.</small>
-          <label>
-            Marcar un momento
-            <input
-              value={mark}
-              onChange={(e) => setMark(e.target.value)}
-              placeholder="Esto se sintió bien…"
-            />
-          </label>
-          <button
-            disabled={!mark}
-            onClick={() =>
-              run(async () => {
-                await api("marks", { text: mark, category: markCategory });
-                setMark("");
-              })
-            }
-          >
-            Guardar marca
-          </button>
+          <MovementMarks api={api} run={run}/>
           <details>
             <summary>Diagnóstico del modelo</summary>
             <pre>{JSON.stringify(state.features?.diagnostics, null, 2)}</pre>

@@ -671,3 +671,11 @@ cambia audio, presets ni defaults.
 persistencia/reinicio, categoría preparation y rechazo de categoría desconocida
 sin nuevo evento. Nota libre queda default y clientes antiguos siguen aceptados.
 UI compilada, interacción/aceptación humana pendientes. No cambia audio.
+
+
+Marcas R03 — interacción Chrome: el componente utilizado por main se verifica
+con Vite aislado. Categoría/texto no generan llamadas; guardar envía payload
+correcto; error conserva texto; éxito limpia texto y mantiene categoría. Default
+nota libre y botón vacío deshabilitado comprobados. Una prueba Chrome y build
+pasan. API es fixture en esta prueba; integración de persistencia cubierta por
+los tests API anteriores, no aceptación humana.
