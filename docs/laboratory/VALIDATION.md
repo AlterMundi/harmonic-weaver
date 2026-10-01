@@ -636,3 +636,14 @@ captura parcial. El primer intento descubrió un selector de prueba ambiguo entr
 el aviso de exportación y prefijo PCM; se corrigió con coincidencia de inicio.
 No prueba el recorrido completo API/server ni cámara real/sincronía física.
 Artefactos sintéticos en /tmp/weaver-prefix-preview-validation, fuera del repo.
+
+
+## Export recuperado por API y reinicio — 2026-09-30
+
+15 pruebas export pasan. Nueva integración con FastAPI TestClient y FFmpeg real:
+POST rechaza captura interrumpida sin recovered_prefix; con opción explícita
+produce MKV/MP4, polling confirma export completo y captura parcial. Un segundo
+create_app reconstruye inventario, sirve preview con HTTP Range 206 y rechaza
+contenido alterado con 422. Captura original sigue interrupted. Runtime sintético
+no abre dispositivos. Complementa Chrome del panel; no es un navegador unido a
+servidor por red ni verifica cámara física, sincronía o aceptación humana.

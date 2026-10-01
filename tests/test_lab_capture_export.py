@@ -241,3 +241,49 @@ def test_recovered_prefix_exports_exact_pcm_without_promoting_capture(tmp_path):
     assert result['status']=='complete' and result['capture_completeness']=='recovered_partial'
     raw=subprocess.check_output(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-i',str(tmp_path/'prefix-export/capture.mkv'),'-map','0:a:0','-f','f32le','-'])
     np.testing.assert_array_equal(np.frombuffer(raw,dtype='<f4').reshape(-1,2),samples)
+
+
+def test_recovered_export_api_roundtrip_restart_and_preview_integrity(tmp_path):
+    import time
+    from types import SimpleNamespace
+    from fastapi.testclient import TestClient
+    from harmonic_weaver.lab.app import create_app
+    from harmonic_weaver.lab.cache import atomic_json
+    manifest,_,_=session(tmp_path)
+    old=Path(manifest['directory']);folder=tmp_path/'captures'/'synthetic'
+    folder.parent.mkdir();old.rename(folder)
+    pcm=Path(manifest['shaper']['directory'])
+    manifest.update(status='interrupted',directory=str(folder))
+    manifest['shaper']['id']='confirmed'
+    manifest['recovery']={'status':'recovered','result':{'status':'recovered','capture_id':'confirmed',
+      'directory':str(pcm),'recovered_samples':48000,
+      'hashes':{name:sha256_file(pcm/name) for name in ('audio.wav','blocks.jsonl')}},
+      'journal':{'status':'partial','directory':str(folder),'files':{
+        name:{'output_sha256':sha256_file(folder/name)} for name in ('events.jsonl','timeline.jsonl')}}}
+    atomic_json(folder/'manifest.json',manifest)
+    atomic_json(folder/'recovery.json',manifest['recovery'])
+    runtime=lambda:SimpleNamespace(library=object(),start=lambda:None,close=lambda:None,snapshot=lambda:{})
+    with TestClient(create_app(tmp_path,runtime=runtime()),base_url='http://127.0.0.1') as client:
+        assert client.post('/api/captures/synthetic/export',json={}).status_code==422
+        response=client.post('/api/captures/synthetic/export',json={
+          'recovered_prefix':True,'browser_preview':True,'fps':10,'width':160,'height':120})
+        assert response.status_code==200,response.text
+        ident=response.json()['id'];deadline=time.monotonic()+10
+        while True:
+            jobs=client.get('/api/capture-exports/jobs').json()
+            job=next(j for j in jobs if j['id']==ident)
+            if job['status']!='rendering':break
+            assert time.monotonic()<deadline
+            time.sleep(.02)
+        assert job['status']=='complete',job
+        assert job['capture_completeness']=='recovered_partial'
+        preview=client.get(f'/api/capture-exports/{ident}/artifacts/preview.mp4')
+        assert preview.status_code==200 and preview.content
+    with TestClient(create_app(tmp_path,runtime=runtime()),base_url='http://127.0.0.1') as client:
+        job=next(j for j in client.get('/api/capture-exports/jobs').json() if j['id']==ident)
+        assert job['capture_completeness']=='recovered_partial'
+        response=client.get(f'/api/capture-exports/{ident}/artifacts/preview.mp4',headers={'Range':'bytes=0-31'})
+        assert response.status_code==206 and response.content==preview.content[:32]
+        (Path(job['directory'])/'preview.mp4').write_bytes(b'changed')
+        assert client.get(f'/api/capture-exports/{ident}/artifacts/preview.mp4').status_code==422
+        assert client.get('/api/captures').json()['jobs'][0]['status']=='interrupted'
