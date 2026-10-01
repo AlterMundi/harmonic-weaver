@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from harmonic_weaver.lab.research.membrane import Membrane, Settings, FieldWindow
+from harmonic_weaver.lab.research.membrane import Membrane, Settings, FieldWindow, RollingFieldWindow
 
 
 def test_mode_frequency_boundaries_and_nodes():
@@ -95,3 +95,39 @@ def test_window_rejects_gaps_duplicates_nonfinite_without_mutation():
         np.testing.assert_array_equal(window.cross_sum, before)
         assert window.stop_sample == 1
     with pytest.raises(ValueError): FieldWindow(model, True)
+
+
+def test_rolling_window_matches_exact_past_support_and_partition():
+    model = Membrane(Settings(modes_x=2, modes_y=2, sample_rate=8000))
+    q = model.render(np.sin(np.arange(1000)*.1))['modal_displacement']
+    rolling = RollingFieldWindow(model, 200)
+    rolling.append(q[:100], 0)
+    assert rolling.report([.3], [.4])['warmup']
+    rolling.append(q[100:317], 100)
+    report = rolling.report([.3], [.4])
+    assert report['start_sample'] == 117 and report['stop_sample_exclusive'] == 317
+    assert not report['warmup']
+    np.testing.assert_allclose(report['rms'], model.field_rms(q[117:317], [.3], [.4]), atol=1e-18)
+    rolling.append(q[317:], 317)
+    whole = RollingFieldWindow(model, 200)
+    whole.append(q, 0)
+    np.testing.assert_array_equal(rolling.report([.3], [.4])['rms'], whole.report([.3], [.4])['rms'])
+    assert rolling.history.shape == (200, 4)
+
+
+def test_rolling_gap_reset_and_history_ownership():
+    model = Membrane(Settings(modes_x=1, modes_y=1))
+    rolling = RollingFieldWindow(model, 3)
+    values = np.array([[1.], [2.]])
+    rolling.append(values, 0)
+    values.fill(100)
+    np.testing.assert_array_equal(rolling.history[:, 0], [1., 2.])
+    for start in (0, 3):
+        with pytest.raises(ValueError): rolling.append([[3.]], start)
+    assert rolling.stop_sample == 2
+    rolling.reset(50)
+    with pytest.raises(ValueError): rolling.report([.5], [.5])
+    rolling.append([[4.]], 50)
+    assert rolling.report([.5], [.5])['start_sample'] == 50
+    with pytest.raises(ValueError): RollingFieldWindow(model, True)
+    with pytest.raises(ValueError): RollingFieldWindow(model, 8_000_001)

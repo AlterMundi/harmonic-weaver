@@ -160,3 +160,50 @@ class FieldWindow:
                 'first_output_time_s': (self.start_sample+1)/sr,
                 'last_output_time_s': self.stop_sample/sr,
                 'rms': rms}
+
+
+class RollingFieldWindow:
+    """Last W modal samples, never future samples. Gaps require explicit reset.
+
+    Bounded modal history; computes covariance from retained samples at report
+    time to avoid long-run cancellation drift from subtracting covariance.
+    """
+    def __init__(self, membrane, window_samples, start_sample=0):
+        if type(window_samples) is not int or window_samples < 1:
+            raise ValueError('Positive integer window size required')
+        if window_samples*len(membrane.indices) > 8_000_000:
+            raise ValueError('Rolling history exceeds bounded element budget')
+        self.membrane = membrane
+        self.window_samples = window_samples
+        self.reset(start_sample)
+
+    def reset(self, start_sample=0):
+        if type(start_sample) is not int or start_sample < 0:
+            raise ValueError('Nonnegative integer clock required')
+        self.stop_sample = start_sample
+        self.history = np.empty((0, len(self.membrane.indices)))
+
+    def append(self, modal_displacement, start_sample):
+        q = np.asarray(modal_displacement, dtype=float)
+        if type(start_sample) is not int or start_sample != self.stop_sample:
+            raise ValueError('Rolling window requires contiguous sample support')
+        if q.ndim != 2 or q.shape[1] != len(self.membrane.indices) or not np.isfinite(q).all():
+            raise ValueError('Finite frames × retained modes required')
+        if q.size > 8_000_000:
+            raise ValueError('Rolling input exceeds bounded element budget')
+        if len(q) >= self.window_samples:
+            history = q[-self.window_samples:].copy()
+        elif len(q):
+            keep = min(len(self.history), self.window_samples-len(q))
+            history = np.concatenate((self.history[-keep:] if keep else self.history[:0], q))
+        else:
+            return
+        self.history = history
+        self.stop_sample += len(q)
+
+    def report(self, x, y):
+        window = FieldWindow(self.membrane, self.stop_sample-len(self.history))
+        window.append(self.history, window.start_sample)
+        result = window.report(x, y)
+        return {**result, 'requested_window_samples': self.window_samples,
+                'warmup': len(self.history) < self.window_samples}

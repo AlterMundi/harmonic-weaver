@@ -145,6 +145,14 @@ negativo, NaN, historia, source, pair, settings). Conjunto R07 backend/API:
 todo valor interior positivo haya sido calculado honestamente: no rerender ni
 firma de custodia. IMPLEMENTATION_STATUS registra alcance y pendientes actuales.
 
+Decimoquinto corte: `RollingFieldWindow` mantiene exactamente las últimas W
+muestras modales, sin futuro ni relleno. Warmup explícito si aún hay menos de W;
+gaps/duplicados rechazados, reset explícito con nuevo reloj, buffers propios.
+Presupuesto de ocho millones de elementos de historial; covarianza recalculada
+al observar para evitar deriva acumulada por resta de ventanas. Diez pruebas
+del núcleo pasan, incluidas paridad con soporte pasado directo y particiones.
+Es infraestructura de animación, todavía no conectada a worker/artifacts/UI.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
