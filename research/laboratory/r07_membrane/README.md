@@ -209,6 +209,15 @@ coincide con fuerza/ω² y forcing coseno muestreado converge a amplitud/fase
 predichas (cola de simulación 2 s), bordes nulos/rechazos. Es control analítico
 para banco/convergencia, todavía sin UI ni interpretación como medio calibrado.
 
+Vigésimo tercer corte: `membrane_transfer.compare` compara resoluciones
+modales anidadas declaradas sobre idénticas frecuencias/puntos/medio. Exporta
+respuesta compleja cruda, magnitud, diferencia compleja y diferencia de fase
+respecto al paso previo; fase a respuesta exactamente cero es null, cerca de
+cero puede ser inestable. Seis pruebas pasan: repetición, bordes, diferencias,
+rechazo de resoluciones repetidas/no anidadas y reloj/medio/puntos inválidos.
+No declara convergencia al continuo ni usa el último corte como verdad física.
+Pendientes: artifacts reproducibles, API/UI y señales transientes de control.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
