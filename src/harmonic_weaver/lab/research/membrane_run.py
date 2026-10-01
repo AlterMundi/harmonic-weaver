@@ -2,6 +2,7 @@
 import argparse
 import json
 import platform
+import re
 from pathlib import Path
 import numpy as np
 import scipy
@@ -52,19 +53,28 @@ def verify(folder):
     result = json.loads((folder/'result.json').read_text())
     if result.get('request') != request.model_dump() or result.get('line') != 'R07' or result.get('schema_version') != 1:
         raise ValueError('R07 frozen request mismatch')
+    if result.get('history_start_sample') != 0 or type(result.get('history_start_sample')) is not int or result.get('initial_state') != 'zero':
+        raise ValueError('R07 zero-state causal history required')
     window = result['window']
     sr = request.membrane.sample_rate
     expected = {'start_sample': request.start_sample, 'stop_sample_exclusive': request.stop_sample_exclusive,
                 'sample_count': request.stop_sample_exclusive-request.start_sample,
                 'sample_rate': sr, 'first_output_time_s': (request.start_sample+1)/sr,
                 'last_output_time_s': request.stop_sample_exclusive/sr}
-    if expected['sample_count'] <= 0 or any(window.get(k) != v for k, v in expected.items()):
+    if set(window) != set(expected)|{'rms'} or expected['sample_count'] <= 0 or any(window.get(k) != v for k, v in expected.items()):
         raise ValueError('R07 window clock mismatch')
+    if any(type(window[k]) is not int for k in ('start_sample','stop_sample_exclusive','sample_count','sample_rate')):
+        raise ValueError('Integer R07 sample clock required')
     rms = np.asarray(window['rms'], dtype=float)
     if rms.shape != (request.grid_y, request.grid_x) or not np.isfinite(rms).all() or (rms < 0).any() or np.any(rms[[0, -1], :]) or np.any(rms[:, [0, -1]]):
         raise ValueError('R07 finite nonnegative fixed-boundary field required')
     if manifest['source'] != {k: result[k] for k in manifest['source']} or set(manifest['source']) != {'source_manifest_sha256', 'source_component_sha256', 'source_pair_manifest_sha256'}:
         raise ValueError('R07 source binding mismatch')
+    for key, digest in manifest['source'].items():
+        if key == 'source_pair_manifest_sha256' and request.arm == 'single':
+            if digest is not None: raise ValueError('Single run must not declare a pair')
+        elif not isinstance(digest, str) or not re.fullmatch('[a-f0-9]{64}', digest):
+            raise ValueError('Valid R07 source SHA256 required')
     if any((folder/name).is_symlink() or sha256_file(folder/name) != digest for name, digest in snapshot.items()):
         raise ValueError('R07 artifacts changed during verification')
     return manifest

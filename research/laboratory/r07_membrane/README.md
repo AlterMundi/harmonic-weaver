@@ -137,6 +137,14 @@ No dispositivos de audio, cámara ni datos corporales; servidor de prueba deteni
 Esto verifica el recorrido estático HTTP, no escucha humana ni sincronización
 física ni animación de ventanas durante reproducción.
 
+Decimocuarto corte: verifier refuerza reloj entero, soporte/grilla exactos,
+historia inicial cero, formato SHA256 y consistencia de fuente individual/par.
+Ocho mutaciones semánticas con checksum reescrito se rechazan (reloj, borde,
+negativo, NaN, historia, source, pair, settings). Conjunto R07 backend/API:
+29 pruebas pasan en 7.07 s. Esto detecta incompatibilidades, no certifica que
+todo valor interior positivo haya sido calculado honestamente: no rerender ni
+firma de custodia. IMPLEMENTATION_STATUS registra alcance y pendientes actuales.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
