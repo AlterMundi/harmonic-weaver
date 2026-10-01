@@ -171,3 +171,21 @@ Servidor propio cerrado; no se tocaron servicios del usuario. No prueba de
 main/WebSocket/R24 ni escucha/experiencia humana. Pendientes campos extremos/
 grafos/contratos inválidos desde browser, carreras/interrupción abrupta, comparación
 de mecanismos y figura experimental sincronizada. Audio live/defaults intactos.
+
+
+R05 — brazo experimental de mapeo de amplitud (2026-09-30): parameter_render
+usa la misma selección single-signal, unidad y clocks que resonadores. Mapea
+max(0,value)/reference_scale × gain, limitado por max_amplitude, a 6–32
+portadoras f1×ratios/pesos explícitos. Attack/release one-pole por muestra,
+max_hold_s explícito; expire/missing/crop liberan amplitud. Ceil a muestras no
+anticipa observaciones; fases de portadoras continuas por reloj de muestras,
+sin reataques al actualizar valor sostenido ni fase corporal inferida. Tail
+es liberación del instrumento, no actividad corporal medida.
+Exige carriers isolated/coupling0; damping_per_s y missing_policy heredados se
+registran explícitamente como no usados. No es núcleo Shaper aceptado ni claim
+paridad con live. Sin normalización/limitador/audio dispositivo. Tres tests pasan:
+carrier/suma analítica, held/expiry/missing, partición y repetición exactas,
+prefijo causal, cola/negativos/contratos. Settings mapping declarados: escala,
+gain, max_amplitude, attack/release, max_hold y pesos. Pendientes comparación
+persistida de ambos brazos sobre input común, niveles/latencias, UI de este
+brazo y evaluación humana. No da por resuelta organización vs instrumento.
