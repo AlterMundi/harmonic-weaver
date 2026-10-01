@@ -225,3 +225,19 @@ exacto, fallo segundo brazo/tamper/no carpeta en contrato inválido probados.
 Métricas/niveles crudos; sin ajuste loudness ni aceptación humana. Pendientes
 worker/API/UI de comparación pareada (API R05 actual sigue corrida resonador),
 latencias/escucha/figura experimental. Audio live/defaults intactos.
+
+
+R05 — comparación pareada worker/API/UI (2026-09-30): request/config opcional
+mapping habilita mecanismo pareado explícito; ausente conserva corrida anterior.
+Servicio valida/prepara ambos antes de encolar; mismo worker/lock/propiedad/cancel,
+verificación del padre y brazos antes de promover carpetas/result/manifiesto.
+Descargas whitelist alias excited-sum/voices.wav y mapped-sum/voices.wav,
+result.json e inputs; verifica comparación integral en cualquier descarga completa.
+Panel checkbox habilita mapping configurable/preset portable, tabla regiones/
+muestras/RMS/pico, identidad congelada y ganancia diagnóstica no aplicada.
+Diez tests API/service/persistencia pasan con dos workflows y restore/tamper;
+cuatro API repetidos tras preset opcional. Build TypeScript/Vite pasa. Prueba
+navegador de variante pareada todavía pendiente; anterior sólo resonador verificada.
+No PCM automático en navegador, sin loudness matching perceptual ni escucha
+humana. Pendientes red real pareada, interrupción abrupta/carreras, sincronización
+figura y modalidades transposición/audificación/más controles. Sonido live intacto.

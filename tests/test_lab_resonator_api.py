@@ -1,5 +1,6 @@
 """Real synthetic-pose evaluation -> verified selection -> HTTP -> R05 worker."""
 import time
+import pytest
 from uuid import uuid4
 from fastapi.testclient import TestClient
 from harmonic_weaver.lab.app import create_app
@@ -17,7 +18,8 @@ class Runtime:
     def close(self):pass
 
 
-def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path):
+@pytest.mark.parametrize('paired',[False,True])
+def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path,paired):
     source,_,_=source_fixture(tmp_path)
     root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident
     folder.mkdir(parents=True)
@@ -27,6 +29,9 @@ def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path):
     store=SessionStore(root,prepare=PreparedRoutes)
     body=dict(selection=dict(evaluation_id=ident,run_index=0,signal_id='zone.1.speed',start_s=.2,end_s=2),
               resonators={'sample_rate':8000},excitation={'high':.1,'low':.02},render={'tail_s':.1})
+    if paired:body['mapping']={'attack_s':.01,'release_s':.05}
+    sum_name='excited-sum.wav' if paired else 'sum.wav'
+    voice_name='mapped-voices.wav' if paired else 'voices.wav'
     outputs=[];jobs=[]
     try:
         with TestClient(create_app(root,store=store,runtime=Runtime()),base_url='http://127.0.0.1') as client:
@@ -39,12 +44,16 @@ def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path):
                     if report['status'] not in ('queued','running'):break
                     assert time.monotonic()<deadline;time.sleep(.02)
                 assert report['status']=='complete',report
-                assert report['levels']['frames']==15200
+                if paired:
+                    result=client.get(f'/api/research/r05/{job}/artifacts/result.json')
+                    assert result.status_code==200 and result.json()['clock']['total_frames']==15200
+                    assert result.json()['mapping_preparation']['mapping']['attack_s']==.01
+                else:assert report['levels']['frames']==15200
                 frozen=client.get(f'/api/research/r05/{job}/artifacts/input.json').json()
                 assert frozen['provenance']['source']['person_id']=='one'
                 assert frozen['duplicate_control_holds_excluded']>0 and frozen['unit']
                 assert frozen['request']['high']==.1 and frozen['request']['low']==.02
-                wav=client.get(f'/api/research/r05/{job}/artifacts/sum.wav')
+                wav=client.get(f'/api/research/r05/{job}/artifacts/{sum_name}')
                 assert wav.status_code==200;outputs.append(wav.content)
             assert outputs[0]==outputs[1]
             bad={**body,'render':{'tail_s':11}}
@@ -55,9 +64,10 @@ def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path):
             assert len(client.get('/api/research/r05').json())==2
         with TestClient(create_app(root,store=store,runtime=Runtime()),base_url='http://127.0.0.1') as client:
             assert len(client.get('/api/research/r05').json())==2
-            assert client.get(f'/api/research/r05/{jobs[0]}/artifacts/sum.wav').content==outputs[0]
-            (root/'research/r05'/jobs[0]/'sum.wav').write_bytes(b'broken')
-            assert client.get(f'/api/research/r05/{jobs[0]}/artifacts/voices.wav').status_code==422
+            assert client.get(f'/api/research/r05/{jobs[0]}/artifacts/{sum_name}').content==outputs[0]
+            path=root/'research/r05'/jobs[0]
+            (path/('mapped/sum.wav' if paired else 'sum.wav')).write_bytes(b'broken')
+            assert client.get(f'/api/research/r05/{jobs[0]}/artifacts/{voice_name}').status_code==422
     finally:store.close()
 
 
@@ -77,6 +87,11 @@ def test_portable_configuration_validates_without_job_or_source(tmp_path):
         assert set(config)=={'schema_version','resonators','excitation','render'}
         config['excitation']['mode']='positive_delta';config['render']['tail_s']=10
         assert client.post('/api/research/r05/configuration',json=config).json()==config
+        paired={**config,'mapping':{'attack_s':.01}}
+        validated=client.post('/api/research/r05/configuration',json=paired)
+        assert validated.status_code==200 and validated.json()['mapping']['attack_s']==.01
+        assert len(validated.json()['mapping']['voice_weights'])==6
+        assert client.post('/api/research/r05/configuration',json={**config,'mapping':{'voice_weights':[1]*7}}).status_code==422
         for bad in ({**config,'selection':{}},{**config,'schema_version':2},
                     {**config,'excitation':{**config['excitation'],'voice_weights':[1]*7}},
                     {**config,'resonators':{**config['resonators'],'topology':'custom','adjacency':[[0]]}}):

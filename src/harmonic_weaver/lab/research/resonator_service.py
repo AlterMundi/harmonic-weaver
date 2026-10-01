@@ -7,25 +7,38 @@ from .resonator_artifacts import verify
 class ResonatorService(CoincidenceService):
     line = 'R05'
     module = 'harmonic_weaver.lab.research.resonator_worker'
-    artifacts = ('request.json','input.json','sum.wav','voices.wav','manifest.json')
+    artifacts = ('request.json','input.json','sum.wav','voices.wav','manifest.json',
+                 'result.json','excited-sum.wav','excited-voices.wav','mapped-sum.wav','mapped-voices.wav')
 
     def start(self, request, document):
-        if set(request) - {'resonators','excitation','render'}:
+        if set(request) - {'resonators','excitation','render','mapping'}:
             raise ValueError('Unknown R05 request field')
         prepared = Render(document, request.get('resonators',{}),
                           request.get('excitation',{}), request.get('render',{}))
         frozen = {'resonators':prepared.resonators.model_dump(),
                   'excitation':prepared.excitation['settings'], 'render':prepared.settings.model_dump()}
+        if 'mapping' in request:
+            from .parameter_render import Render as ParameterRender
+            carriers={**frozen['resonators'],'coupling_per_s':0.,'topology':'isolated','adjacency':None}
+            mapped=ParameterRender(document,carriers,request['mapping'],frozen['render'])
+            frozen['mapping']=mapped.mapping.model_dump()
         return self._start({'request.json':frozen, 'input.json':document})
 
     def artifact(self, ident, name):
         if name not in self.artifacts:
             raise ValueError('Unknown R05 artifact')
-        folder = self.folder(ident); report = self.report(ident); path = folder/name
+        folder = self.folder(ident); report = self.report(ident)
+        paired=report.get('kind')=='mechanism_comparison'
+        if name.startswith(('excited-','mapped-')):
+            arm,file=name.split('-',1);path=folder/arm/file
+        else:path=folder/name
         if path.is_symlink() or not path.is_file():
             raise ValueError('R05 artifact unavailable')
         if name == 'manifest.json': return path
         if report['status'] != 'complete':
             raise ValueError('R05 result is not complete')
-        verify(folder)
+        if paired:
+            from .mechanism_run import verify as verify_pair
+            verify_pair(folder)
+        else:verify(folder)
         return path

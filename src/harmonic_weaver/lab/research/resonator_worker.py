@@ -23,13 +23,18 @@ def run_frozen(folder):
         manifest = {'schema_version':1, 'line':'R05', 'status':'running', 'input_hashes':hashes}
         atomic_json(folder/'manifest.json', manifest)
         try:
-            run(json.loads((folder/'input.json').read_text()),
-                json.loads((folder/'request.json').read_text()), folder/'computed')
-            computed = verify(folder/'computed')
+            document=json.loads((folder/'input.json').read_text())
+            request=json.loads((folder/'request.json').read_text())
+            paired='mapping' in request
+            if paired:
+                from .mechanism_run import run as compute,verify as inspect
+            else:compute,inspect=run,verify
+            compute(document,request,folder/'computed')
+            computed = inspect(folder/'computed')
             if any((folder/name).is_symlink() or sha256_file(folder/name) != digest
                    for name,digest in hashes.items()):
                 raise ValueError('R05 frozen input changed')
-            for name in ('sum.wav','voices.wav'):
+            for name in (('excited','mapped','result.json') if paired else ('sum.wav','voices.wav')):
                 (folder/'computed'/name).replace(folder/name)
             manifest = {**computed, 'input_hashes':hashes}
             manifest['code_hashes'].update(resonator_worker=sha256_file(Path(__file__)),
@@ -39,6 +44,7 @@ def run_frozen(folder):
         except Exception as exc:
             manifest.update(status='failed', error_type=type(exc).__name__)
             manifest.pop('output_hashes', None)
+            manifest.pop('output',None);manifest.pop('arm_manifest_hashes',None)
             atomic_json(folder/'manifest.json', manifest)
             raise
 

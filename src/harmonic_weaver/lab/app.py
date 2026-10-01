@@ -26,6 +26,7 @@ from .research.resonator_service import ResonatorService
 from .research.resonators import Settings as ResonatorSettings
 from .research.excitation import Settings as ExcitationSettings
 from .research.resonator_render import Settings as ResonatorRenderSettings
+from .research.parameter_render import Settings as MappingSettings
 from .research.relational_input import EndpointRequest
 from .research.body import BodyRequest
 from .research.candidate_input import CandidateRequest, candidate_snapshot
@@ -105,6 +106,7 @@ class ResonatorRequest(Contract):
     resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
     excitation: ExcitationSettings = Field(default_factory=ExcitationSettings)
     render: ResonatorRenderSettings = Field(default_factory=ResonatorRenderSettings)
+    mapping: MappingSettings | None = None
 
 
 class ResonatorConfig(Contract):
@@ -112,6 +114,7 @@ class ResonatorConfig(Contract):
     resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
     excitation: ExcitationSettings = Field(default_factory=ExcitationSettings)
     render: ResonatorRenderSettings = Field(default_factory=ResonatorRenderSettings)
+    mapping: MappingSettings | None = None
 
 
 class CameraRequest(Contract):
@@ -343,7 +346,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def resonator_configuration(body: ResonatorConfig):
         if len(body.excitation.voice_weights) != len(body.resonators.ratios):
             raise ValueError('One explicit excitation weight per resonator required')
-        return body.model_dump()
+        if body.mapping is not None and len(body.mapping.voice_weights)!=len(body.resonators.ratios):
+            raise ValueError('One mapping weight per carrier required')
+        result=body.model_dump()
+        if body.mapping is None:result.pop('mapping')
+        return result
 
     @app.post("/api/research/r05")
     def resonator_start(body: ResonatorRequest):
@@ -351,8 +358,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         candidate = CandidateRequest.model_validate({**body.selection.model_dump(),
             **{name:getattr(body.excitation,name) for name in ('high','low','refractory_s','max_gap_s')}})
         features = candidate_snapshot(evaluation,candidate)
-        return resonators.start({name:getattr(body,name).model_dump()
-                                for name in ('resonators','excitation','render')},features)
+        parameters={name:getattr(body,name).model_dump() for name in ('resonators','excitation','render')}
+        if body.mapping is not None:parameters['mapping']=body.mapping.model_dump()
+        return resonators.start(parameters,features)
 
     @app.post("/api/research/r05/{ident}/cancel")
     def resonator_cancel(ident: str): return resonators.cancel(ident)
