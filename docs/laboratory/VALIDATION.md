@@ -783,3 +783,11 @@ sustituye en estos últimos controles para provocar la carrera deliberadamente,
 no son pruebas científicas. Worker.lock symlink rechazado. Falta crash/restart
 y administración API/UI; no se promete protección frente a cambios/restauración
 entre checks ni fallo de disco al escribir manifest.
+
+
+R03 crash/restart: 5 tests de contraste/worker pasan. Un child real mantiene
+writer lock durante comparación sintética bloqueada; inspect_run conserva
+running mientras activo. Tras SIGKILL y wait del mismo proceso, restaura
+interrupted preservando hashes y sin resultado/relaunch; lectura posterior
+idempotente. Relee manifest bajo lock para no pisar completion concurrente.
+Servicio R01 usa otro formato y requiere adapter R03; API/UI aún pendientes.

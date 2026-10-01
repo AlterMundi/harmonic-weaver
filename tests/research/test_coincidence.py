@@ -72,3 +72,37 @@ def test_worker_rejects_inputs_changed_while_computing(tmp_path,monkeypatch,repl
     with pytest.raises(ValueError,match='changed'):coincidence.run_frozen(tmp_path)
     assert json.loads((tmp_path/'manifest.json').read_text())['status']=='failed'
     assert not (tmp_path/'result.json').exists()
+
+
+def test_real_worker_crash_is_restored_without_relaunch(tmp_path):
+    import json,subprocess,sys,time
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research.coincidence import inspect_run
+    for name in ('request.json','marks.json','features.json'):atomic_json(tmp_path/name,{})
+    program="""import sys,time
+from pathlib import Path
+from harmonic_weaver.lab.research import coincidence
+folder=Path(sys.argv[1])
+def hold(*args,**kwargs):
+ (folder/'ready').write_text('ready')
+ time.sleep(30)
+ return {}
+coincidence.compare_frozen=hold
+coincidence.run_frozen(folder)
+"""
+    process=subprocess.Popen([sys.executable,'-c',program,str(tmp_path)])
+    try:
+        deadline=time.monotonic()+5
+        while not (tmp_path/'ready').exists():
+            assert process.poll() is None
+            assert time.monotonic()<deadline
+            time.sleep(.01)
+        assert inspect_run(tmp_path)['status']=='running'
+        process.kill();process.wait(timeout=5)
+        restored=inspect_run(tmp_path)
+        assert restored['status']=='interrupted' and restored['input_hashes']
+        assert json.loads((tmp_path/'manifest.json').read_text())==restored
+        assert inspect_run(tmp_path)==restored
+        assert not (tmp_path/'result.json').exists()
+    finally:
+        if process.poll() is None:process.kill();process.wait(timeout=5)

@@ -81,6 +81,28 @@ def run_frozen(folder):
             raise
 
 
+def inspect_run(folder):
+    """Restore state only after proving that the writer lock is not held."""
+    import fcntl
+    from pathlib import Path
+    from ..cache import atomic_json
+    folder=Path(folder);manifest=folder/'manifest.json';lock_path=folder/'worker.lock'
+    if folder.is_symlink() or manifest.is_symlink() or not manifest.is_file():
+        raise ValueError('R03 run unavailable')
+    report=json.loads(manifest.read_text())
+    if report.get('status')!='running':return report
+    if lock_path.is_symlink() or not lock_path.is_file():raise ValueError('Cannot establish R03 worker ownership')
+    with lock_path.open('rb') as lock:
+        try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError:return report
+        # A worker may have committed its result while this reader was acquiring.
+        report=json.loads(manifest.read_text())
+        if report.get('status')=='running':
+            report.update(status='interrupted',error='No active writer and no confirmed completion')
+            atomic_json(manifest,report)
+        return report
+
+
 if __name__=='__main__':
     import argparse
     parser=argparse.ArgumentParser();parser.add_argument('--folder',required=True)
