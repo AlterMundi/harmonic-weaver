@@ -272,6 +272,13 @@ RMS por punto y energía proxy final. Build y prueba API con worker real pasan.
 Defaults del instrumento no cambian. Pendiente Chrome real de este panel,
 interrupción durante publicación y protocolo de recuperación de atributos.
 
+Trigésimo primer corte: Chrome HTTP real del banco transiente pasó (2 s):
+preset seed29/800 muestras validado sin job, worker real, tabla de cuatro
+entradas, artifact con dosis declarada y recuperación al recargar. Servidor
+aislado detenido; señales sintéticas sin hardware/participantes. Permanece
+pendiente kill durante publicación de este banco, recuperación de atributos
+en soporte reservado y protocolos/calibración físicos.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
