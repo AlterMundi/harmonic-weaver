@@ -252,3 +252,16 @@ Preset R05 y preset de proyección se exportan/importan como JSON separados;
 no transportan persona/calibración/fuente/segmento/muestra. Importar proyección
 detiene audio y no lo reinicia. Se descarga PCM DOUBLE/verificador para evidencia;
 la vista float32 sirve para escuchar en Chrome. Escucha/aceptación humanas pendientes.
+
+### Video de origen en la exploración R05
+
+En una corrida terminada, abrir «Explorar figura» y «Mostrar video de origen R05».
+La fuente se resuelve desde la evaluación congelada y se verifican su medio,
+tracking y procedencia; no se copia el video ni se ejecuta tracking nuevo. Cargar
+el audio R05 y reproducirlo desde sus controles. El video está silenciado y sigue
+el reloj del audio: cero corresponde al inicio del segmento seleccionado; al
+llegar a su final se pausa mientras continúa la cola del instrumento. Pausas,
+seeks y loops del audio se propagan al video. «Ocultar video» detiene ese elemento.
+Se muestra la persona registrada en el experimento, sin afirmar identidad ni
+transferir calibración. Una fuente ausente/alterada o no decodificable deja un
+error visible. El video no contiene aún overlay de pose ni offset ajustable.

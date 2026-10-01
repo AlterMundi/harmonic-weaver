@@ -1,10 +1,14 @@
 import {useEffect,useRef,useState} from 'react';
 import {pastWindow} from './projectionClock';
+import {VideoFollower} from './videoFollower';
+import {sourcePlayback} from './sourcePlayback';
 type Data=Record<string,any>;
 const defaults={arm:'single',points:512,stride:1,weights:null,phase_offsets_rad:null,scale_x:1,scale_y:1};
 const playbackDefaults={follow_audio:true,refresh_hz:10,preview_gain:1,loop_audio:false};
 export function ModelProjectionPanel({job,api,run}:Data){
  const [settings,setSettings]=useState<Data>({...defaults,arm:job.kind==='mechanism_comparison'?'excited':'single'}),[sample,setSample]=useState(0),[arrays,setArrays]=useState<Data>({}),[text,setText]=useState(''),[result,setResult]=useState<Data|null>(null),[busy,setBusy]=useState(false);
+ const video=useRef<HTMLVideoElement>(null),videoEpoch=useRef(0);
+ const [source,setSource]=useState<Data|null>(null),[sourceError,setSourceError]=useState('');
  const canvas=useRef<HTMLCanvasElement>(null),generation=useRef(0);
  const audio=useRef<HTMLAudioElement>(null),inFlight=useRef(false),pendingFollow=useRef(false),lastWindow=useRef(-1);
  const [playback,setPlayback]=useState<Data>(playbackDefaults),[audioSrc,setAudioSrc]=useState(''),[metadata,setMetadata]=useState<Data|null>(null),[playing,setPlaying]=useState(false),[playerError,setPlayerError]=useState('');
@@ -29,6 +33,7 @@ export function ModelProjectionPanel({job,api,run}:Data){
  useEffect(()=>{invalidate();},[settings,arrays,playback.follow_audio]);
  useEffect(()=>{let frame=0,last=-Infinity;const tick=(now:number)=>{if(audio.current && !audio.current.paused && now-last>=1000/latest.current.playback.refresh_hz){last=now;void followWindow();}frame=requestAnimationFrame(tick);};if(audioSrc)frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);},[audioSrc]);
  useEffect(()=>()=>{audio.current?.pause();},[]);
+ useEffect(()=>{const el=video.current;if(!el || !source)return;let frame=0,last=-1;const follower=new VideoFollower(el,()=>{const a=audio.current;return sourcePlayback(a?.currentTime || 0,!!a && !a.paused,source.source_start_s,source.source_end_s,videoEpoch.current);},setSourceError);const tick=()=>{const t=audio.current?.currentTime || 0;if(t<last)videoEpoch.current++;last=t;follower.sync();frame=requestAnimationFrame(tick);};tick();return()=>{cancelAnimationFrame(frame);follower.dispose();el.pause();};},[source,audioSrc]);
  const refresh=()=>run(async()=>{const current=++generation.current;setBusy(true);try{const value=await api(`research/r05/${job.id}/projection`,{...settingsValue(),start_sample:sample});if(current===generation.current)setResult(value);}finally{if(current===generation.current)setBusy(false);}});
  useEffect(()=>()=>{generation.current++;},[]);
  useEffect(()=>{const el=canvas.current,ctx=el?.getContext('2d');if(!el || !ctx)return;ctx.fillStyle='#041020';ctx.fillRect(0,0,el.width,el.height);if(!result)return;ctx.strokeStyle='#74e6d2';ctx.lineWidth=1;ctx.beginPath();result.points.forEach(([x,y]:number[],i:number)=>{const px=el.width/2+x*el.width/2,py=el.height/2-y*el.height/2;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);});ctx.stroke();},[result]);
@@ -43,7 +48,10 @@ export function ModelProjectionPanel({job,api,run}:Data){
   <label>Ganancia de vista audio R05<input type="number" min={0} max={10} step=".1" value={playback.preview_gain} onChange={e=>{stopAudio();setPlayback({...playback,preview_gain:+e.target.value});}}/></label>
   <label><input type="checkbox" checked={playback.loop_audio} onChange={e=>setPlayback({...playback,loop_audio:e.target.checked})}/>Loop de audio R05</label>
   <button onClick={()=>run(async()=>{const version=++generation.current;const validated=await api('research/r05/projection/configuration',{schema_version:1,settings:settingsValue(),playback});const meta=await api(`research/r05/${job.id}/projection`,{...validated.settings,start_sample:0,points:2});if(version!==generation.current)return;stopAudio();setMetadata(meta);setAudioSrc(`/api/research/r05/${job.id}/listen/${validated.settings.arm}?gain=${validated.playback.preview_gain}`);setPlayerError('');})}>Cargar audio R05</button>
-  {audioSrc && <audio ref={audio} aria-label="Reproductor de vista R05" controls preload="metadata" src={audioSrc} loop={playback.loop_audio} onPlay={()=>{invalidate();setPlaying(true);}} onPause={()=>setPlaying(false)} onSeeking={invalidate} onSeeked={()=>void followWindow()} onEnded={()=>{setPlaying(false);void followWindow();}} onError={()=>setPlayerError(audio.current?.error?.message || 'No se pudo decodificar audio R05')}/>}
+  {audioSrc && <audio ref={audio} aria-label="Reproductor de vista R05" controls preload="metadata" src={audioSrc} loop={playback.loop_audio} onPlay={()=>{invalidate();setPlaying(true);}} onPause={()=>setPlaying(false)} onSeeking={()=>{videoEpoch.current++;invalidate();}} onSeeked={()=>void followWindow()} onEnded={()=>{setPlaying(false);void followWindow();}} onError={()=>setPlayerError(audio.current?.error?.message || 'No se pudo decodificar audio R05')}/>}
+  <button onClick={()=>run(async()=>{try{const info=await api(`research/r05/${job.id}/source-info`);setSource(info);setSourceError('');}catch(e){setSourceError(String(e));setSource(null);}})}>Mostrar video de origen R05</button>
+  {source && <><video ref={video} aria-label="Video de origen R05" src={`/api/research/r05/${job.id}/source`} muted playsInline preload="metadata" style={{width:'100%',maxWidth:600}} onError={()=>setSourceError('No se pudo decodificar el video de origen R05')}/><p>Persona congelada: {source.person_id} · fuente {source.source_start_s}–{source.source_end_s} s. Video sigue el reloj de audio; se detiene en la cola del instrumento. Sin tracking nuevo ni calibración transferida.</p><button onClick={()=>setSource(null)}>Ocultar video de origen R05</button></>}
+  {sourceError && <p role="alert">{sourceError}</p>}
   {playerError && <p role="alert">{playerError}</p>}
   <p>Escucha float32 derivada del WAV DOUBLE: ganancia explícita, sin normalización/limitador. Ventana de figura sólo sobre muestras ya reproducidas. Frecuencia de actualización solicitada, no latencia física medida.</p>
   <button disabled={busy || playing && playback.follow_audio} onClick={refresh}>Leer ventana de proyección R05</button>

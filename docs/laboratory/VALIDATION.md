@@ -1492,3 +1492,22 @@ sin reemplazar los tests existentes. Una primera corrida sin canal de navegador
 falló por falta del Chromium de Playwright. La corrida declarada arriba usó
 `PLAYWRIGHT_CHANNEL=chrome` y seleccionó las tres pruebas del elemento simulado;
 no ejecutó la prueba del decoder real, que requiere Vite y un MP4 sintético.
+
+## R05: video de origen en UI — 2026-10-01
+
+ModelProjectionPanel ofrece carga explícita de la fuente verificada por
+`source-info`/`source`. El seguidor reutiliza VideoFollower y el reloj del audio;
+el helper sourcePlayback suma el inicio del crop, limita al final y pausa en la
+cola. Un retroceso del reloj genera nuevo epoch. No hay autoplay del audio,
+retracking, copia del medio ni cambio del instrumento live.
+
+Build TypeScript/Vite y un test Playwright del cálculo de reloj pasan: crop,
+cola, pausa, retroceso e inputs temporales inválidos. Esto no verifica todavía
+reproducción conjunta real de audio/video, latencia física, formato del medio
+corporal ni aceptación humana. Próximo paso: fixture MP4 decodificable y prueba
+HTTP/Chrome del recorrido completo. Overlay de pose y offset ajustable pendientes.
+
+Además, 13 tests de source_binding/API R05 pasan (20.87 s), incluyendo selección
+congelada y rechazo de cambios de procedencia/medio/tracking. Esas fixtures
+contienen bytes de video sintéticos no decodificables; no amplían la evidencia
+de reproducción audiovisual.
