@@ -1581,3 +1581,24 @@ Corrida final: 15 tests source_binding/API pasan (24.14 s), incluyendo source-po
 para single/paired, crop exacto, filas de ausencia, clock ordenado, metadatos de
 coordenadas y rechazo de payload alterado. Son datos sintéticos; no prueban UI
 del overlay ni precisión de pose.
+
+## R05: overlay visible de pose congelada — 2026-10-01
+
+ModelProjectionPanel carga pose explícitamente y superpone joints observados y
+conexiones entre joints observados sobre el video. Selección por binary search
+de última fila no futura respecto del currentTime del video; edad máxima
+configurable >0..5 s, default .1 s. Rechaza ausencia, fila vieja, world/unit o
+3D incompatibles; oculta durante seek. Diagnóstico visible sin sustitución,
+interpolación o nuevas inferencias. Checkbox y edad quedan en preset portable.
+
+Build TypeScript/Vite, test de selección temporal (incluye backward seek y
+rechazo de world) y dos recorridos HTTP/Chrome single/mapped pasan (10.5 s).
+Chrome comprueba 17 joints de fixture observada, ausencia explícita sin dibujo,
+gap inducido al reducir edad y ocultar/mostrar; también mantiene pruebas de
+video/audio/offset/export/import. Generación MP4 y pose sintéticas, API/worker
+reales. Servidor propio apagado. No implica precisión corporal, latencia física,
+escucha ni aceptación humana. Matriz de estado actualizada; modalidades R05
+restantes y pruebas físicas/humanas siguen pendientes.
+
+Cuatro tests API pasan (9.14 s), incluyendo defaults normalizados, rechazo de
+edad cero/negativa/no finita/fuera de rango y conservación de checkbox/edad.

@@ -444,3 +444,12 @@ Este incremento prepara el overlay: todavía no lo dibuja en la interfaz ni
 asegura que coordenadas world sean proyectables sobre video. Próximo paso:
 selección causal acotada por edad/soporte y dibujo exclusivo de joints observados
 en coordenadas de cámara; descarte visible de estados incompatibles.
+
+R05 — overlay web verificado (2026-10-01): dibujo exclusivo de joints observados
+con pose cargada explícitamente; selección no futura al tiempo del video,
+antigüedad configurable y diagnósticos de gap/ausencia/coordenadas incompatibles.
+show_pose=true y pose_max_age_s=.1 son defaults de visualización, sin efecto
+sonoro. Preset portable conserva ambos. Chrome single/mapped pasa con presencia,
+ausencia, edad reducida y ocultamiento; test causal/world y build pasan.
+Sustituye pendiente UI de pose de entradas previas; no valida precisión corporal
+ni escucha humana. Recorrido y evidencia en RUNNING/VALIDATION.

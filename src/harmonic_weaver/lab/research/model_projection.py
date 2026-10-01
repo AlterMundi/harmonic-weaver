@@ -34,6 +34,8 @@ class PlaybackSettings(Contract):
     preview_gain:Number=Field(default=1,ge=0,le=10)
     loop_audio:bool=False
     video_offset_s:Number=Field(default=0,ge=-10,le=10)
+    show_pose:bool=True
+    pose_max_age_s:Number=Field(default=.1,gt=0,le=5)
 
 
 class Configuration(Contract):

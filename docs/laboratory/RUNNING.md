@@ -273,3 +273,14 @@ crop; al empezar antes del crop o terminar después, la imagen queda retenida.
 Durante la cola se congela la posición desplazada del final del segmento, también
 con offsets negativos. No corrige ni modifica timestamps, features o PCM; es una
 hipótesis visual explícita, no una latencia medida. Importar detiene la escucha.
+
+R05: después de mostrar el video, «Cargar pose congelada R05» recupera el tracking
+verificado de la persona registrada. «Mostrar pose R05» oculta/muestra el dibujo;
+«Antigüedad máxima pose R05 (s)» controla cuánto puede durar una observación,
+default 0.1 s (rango >0 hasta 5 s). Ambos controles se guardan en el preset.
+Sólo se dibujan joints observados y conexiones entre dos joints observados,
+en coordenadas de cámara 2D/frame_height. La observación elegida nunca es futura
+respecto del video; no se interpola. Gap, cuerpo ausente, seek en curso o
+coordenadas no proyectables dejan la figura vacía y un diagnóstico visible.
+El offset audiovisual también desplaza la pose: sigue el tiempo real del video,
+no la muestra de audio. No convierte coordenadas world/3D a imagen.
