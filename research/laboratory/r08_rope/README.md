@@ -46,3 +46,10 @@ Parent debe ser revisión verificable del mismo medio al crear hija; conservar
 su hash no equivale a resolver toda la cadena después. Cuatro pruebas pasan,
 incluyendo padre intacto, no overwrite y report alterado con checksum reescrito.
 Estado actual del video requiere rebind explícito; UI/API y asistencia pendientes.
+
+Cuarto corte: RopeService guarda sólo carpetas de revisión nuevas con IDs
+UUID, inventario verificable restaurable, descarga whitelist y rebind explícito
+al medio vigente. Resolución de source queda a cargo de biblioteca/API posterior;
+no se guarda ruta privada en artifacts. Prueba con MP4 sintético real pasa:
+dos revisiones/lineage/restauración/rebind, IDs/rutas inválidos, report alterado
+y medio modificado rechazados. UI/API y anotaciones humanas aún pendientes.
