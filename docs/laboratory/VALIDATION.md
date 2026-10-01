@@ -1135,3 +1135,15 @@ optimizar índice mantienen igualdad exacta al partir bloques y reejecutar.
 Cola sin nuevas observaciones, ring/reset y silencio/crop exacto verificados.
 Sin WAV/PCM persistido, worker/API/UI/comparador/niveles ni aceptación humana.
 No se integra al Shaper aceptado ni abre dispositivos.
+
+
+R05 — persistencia PCM experimental (2026-09-30): sum.wav y voices.wav DOUBLE
+por bloques, entradas congeladas, hashes de código/entorno/PCM, manifest final
+complete sólo tras verificar entradas y cantidad de muestras; fallos quedan
+failed sin output_hashes. Peak/RMS/full-scale explícitos sin normalización.
+16 tests R05 pasan; 3 de persistencia repetidos tras completar hashes de código.
+Roundtrip/suma exactos, repetibilidad y partición 256/317 con hashes WAV iguales,
+no sobrescritura y alteración de entrada verificadas. CLI y límites en
+research/laboratory/r05_resonators/README.md. Worker/API/UI/comparación de
+mecanismos, recuperación tras kill y aceptación humana siguen pendientes.
+No cambia Shaper/live ni abre dispositivos; datos corporales permanecen locales.

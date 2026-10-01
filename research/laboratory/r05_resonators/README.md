@@ -61,3 +61,29 @@ optimizar índice mantienen igualdad exacta al partir bloques y reejecutar.
 Cola sin nuevas observaciones, ring/reset y silencio/crop exacto verificados.
 Sin WAV/PCM persistido, worker/API/UI/comparador/niveles ni aceptación humana.
 No se integra al Shaper aceptado ni abre dispositivos.
+
+Persistencia inicial: `resonator_run.run(document, request, folder)` valida antes
+de crear una carpeta nueva (0700), congela input/request y escribe por bloques
+`sum.wav` mono y `voices.wav` multicanal, WAV DOUBLE (float64) sin clipping ni
+normalización. Manifest running/complete/failed, hashes de entradas/salidas/código,
+Python/NumPy/SciPy/SoundFile/libsndfile/platform, preparación y reloj completo.
+Peak, RMS y cantidad de muestras sobre full scale son diagnóstico: amplitudes
+mayores que uno siguen intactas; comprobar niveles antes de reproducir. Rehash
+de entradas antes del commit final; archivos parciales de fallos no son resultados
+completos. No se sobrescribe una carpeta existente. No hay recuperación automática
+tras kill, verificador público, worker/API/UI ni comparador de mecanismos todavía.
+
+```sh
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.resonator_run \
+  --input /ruta/local/features.json --request /ruta/local/r05-request.json \
+  --output /ruta/local/corrida-r05-nueva
+```
+
+Request contiene exclusivamente `resonators`, `excitation`, `render` (objetos
+opcionales con defaults descritos arriba). Input es la selección single-signal
+congelada, con unidad, filas y procedencia; el CLI no verifica por sí mismo su
+relación con un cache corporal original. No usar artefactos sintéticos como
+evidencia de movimiento humano. Tres tests nuevos prueban roundtrip PCM exacto,
+repetición/hash idéntico con bloques 256/317, suma de voces, niveles, no sobrescritura,
+rechazo previo a crear carpeta e invalidación por entrada alterada durante render.
+Dieciséis tests R05 pasan; no escucha ni aceptación humana realizada.
