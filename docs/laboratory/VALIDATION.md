@@ -774,3 +774,12 @@ R03 run_frozen: prueba integrada pasa con dos corridas independientes, SHA
 result.json idéntico, output verificado y rechazo de sobrescritura. Inputs
 SQLite/sintéticos preparados localmente. Lock/errores de proceso y API/UI
 requieren cobertura adicional; sin hardware ni datos corporales publicados.
+
+
+Worker R03 — 20 tests de núcleos/worker pasan. Lock ocupado rechaza sin crear
+manifest; request desconocido deja failed sin output; mutación y sustitución
+por symlink durante compare impiden result.json y dejan failed. El cálculo se
+sustituye en estos últimos controles para provocar la carrera deliberadamente,
+no son pruebas científicas. Worker.lock symlink rechazado. Falta crash/restart
+y administración API/UI; no se promete protección frente a cambios/restauración
+entre checks ni fallo de disco al escribir manifest.

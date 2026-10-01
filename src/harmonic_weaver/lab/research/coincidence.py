@@ -49,6 +49,7 @@ def run_frozen(folder):
     from ..cache import atomic_json,sha256_file
     folder=Path(folder)
     if folder.is_symlink() or not folder.is_dir():raise ValueError('Local run directory unavailable')
+    if (folder/'worker.lock').is_symlink():raise ValueError('Worker lock unavailable')
     with (folder/'worker.lock').open('a+b') as lock:
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError as exc:raise ValueError('R03 worker is active') from exc
@@ -69,7 +70,7 @@ def run_frozen(folder):
             if set(request)-allowed:raise ValueError('Unknown R03 request fields')
             result=compare_frozen(json.loads((folder/'marks.json').read_text()),
                                  json.loads((folder/'features.json').read_text()),**request)
-            if any(sha256_file(folder/name)!=value for name,value in hashes.items()):
+            if any((folder/name).is_symlink() or sha256_file(folder/name)!=value for name,value in hashes.items()):
                 raise ValueError('Frozen inputs changed during comparison')
             atomic_json(folder/'result.json',result)
             manifest.update(status='complete',output={'file':'result.json','sha256':sha256_file(folder/'result.json')})

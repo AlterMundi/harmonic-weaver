@@ -37,3 +37,38 @@ def test_joined_frozen_comparison_repeats_and_rejects_mixed_inputs(tmp_path):
         changed=deepcopy(features);changed['provenance']['source']['person_id']='left'
         with pytest.raises(ValueError,match='person'):compare_frozen(marks,changed,**{**kwargs,'feature_sha256':content_hash(changed)})
     finally:store.close()
+
+
+def test_worker_lock_and_invalid_request_preserve_terminal_state(tmp_path):
+    import fcntl,json
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research.coincidence import run_frozen
+    for name in ('request.json','marks.json','features.json'):atomic_json(tmp_path/name,{})
+    with (tmp_path/'worker.lock').open('a+b') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        with pytest.raises(ValueError,match='active'):run_frozen(tmp_path)
+        assert not (tmp_path/'manifest.json').exists()
+    atomic_json(tmp_path/'request.json',{'unknown':True})
+    with pytest.raises(ValueError,match='Unknown'):run_frozen(tmp_path)
+    manifest=json.loads((tmp_path/'manifest.json').read_text())
+    assert manifest['status']=='failed' and 'output' not in manifest
+    assert not (tmp_path/'result.json').exists()
+
+
+@pytest.mark.parametrize('replacement',['content','symlink'])
+def test_worker_rejects_inputs_changed_while_computing(tmp_path,monkeypatch,replacement):
+    import json
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research import coincidence
+    for name in ('request.json','marks.json','features.json'):atomic_json(tmp_path/name,{})
+    def mutate(*args,**kwargs):
+        if replacement=='content':atomic_json(tmp_path/'features.json',{'changed':True})
+        else:
+            original=(tmp_path/'features.json').read_bytes()
+            (tmp_path/'other.json').write_bytes(original)
+            (tmp_path/'features.json').unlink();(tmp_path/'features.json').symlink_to(tmp_path/'other.json')
+        return {'synthetic':True}
+    monkeypatch.setattr(coincidence,'compare_frozen',mutate)
+    with pytest.raises(ValueError,match='changed'):coincidence.run_frozen(tmp_path)
+    assert json.loads((tmp_path/'manifest.json').read_text())['status']=='failed'
+    assert not (tmp_path/'result.json').exists()
