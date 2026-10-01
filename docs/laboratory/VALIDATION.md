@@ -724,3 +724,9 @@ Cursor repetible de marcas: 9 tests API/store y build pasan. Descargar, agregar
 marca y repetir through_sequence conserva JSON/hash exactos; cursor cero vacío
 y valores negativos/futuros rechazados. Campo web compilado; interacción de
 este campo pendiente. No cambia defaults del instrumento.
+
+
+R03 matching temporal: 7 tests sintéticos pasan (one-to-one, mínimo lag, soporte
+común/gaps/extremo excluido, offset declarado, repetición y vacíos/invalidación).
+Sin datos corporales ni cambio del instrumento. Integración API/UI y estudio
+con anotaciones/candidatos reales pendientes.

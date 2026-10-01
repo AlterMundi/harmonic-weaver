@@ -126,3 +126,15 @@ posterior al journal, cero produce conjunto vacío. Conservar JSON y hash sigue
 siendo necesario: cursor identifica un corte de esta base local, no cualquier
 otra instalación. Selección fuente/persona/sesión/época/intervalo/categoría se
 reaplica explícitamente. No certifica ausencia de cambios externos a SQLite.
+
+
+R03 — núcleo de coincidencia temporal: lab/research/temporal_match.py compara
+eventos con matching monótono uno-a-uno, máxima cardinalidad y mínimo lag
+absoluto entre empates. Tolerancia/offset explícitos; soporte común de intervalos
+[start,end), sin cruzar gaps. Offset mueve marcas y soporte conjuntamente; no
+estima reacción. Métricas precision/recall desconocidas sin denominador. Máximo
+500 eventos por lado acota costo cuadrático. Siete controles sintéticos pasan.
+Es núcleo preliminar, NO banco completo ni resultado corporal: pendiente carga
+verificada de snapshots/targets, identidad/sesión/época, extracción causal de
+candidatos configurable, controles temporales, manifests y UI. No inferir
+intención/Jpsh ni causalidad de coincidencia temporal.
