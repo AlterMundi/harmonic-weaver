@@ -60,6 +60,8 @@ def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path,paired)
                 assert projection.status_code==200,projection.text
                 assert projection.json()['sample_indices']==list(range(800,864,2))
                 assert projection.json()['voices']==6 and len(projection.json()['points'])==32
+                listen=client.get(f'/api/research/r05/{job}/listen/'+('mapped' if paired else 'single'),headers={'Range':'bytes=0-43'})
+                assert listen.status_code==206 and listen.content[:4]==b'RIFF'
             assert outputs[0]==outputs[1]
             bad={**body,'render':{'tail_s':11}}
             assert client.post('/api/research/r05',json=bad).status_code==422

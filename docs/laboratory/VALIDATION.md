@@ -1411,3 +1411,19 @@ Servidor propio cerrado (PID de sesión 52997); no servicios/hardware usuario.
 No afirmar seguimiento de audio ni sincronía física: próximo player/reloj de
 reproducción y control de respuestas obsoletas durante seeks. Modalidades
 restantes, niveles/latencias/percepción y investigación formal pendientes.
+
+
+R05 — vista escucha compatible y seek (2026-09-30): Chrome actual rechazó
+WAV DOUBLE con DEMUXER_ERROR_NO_SUPPORTED_STREAMS (diagnóstico sin play).
+GET /api/research/r05/{id}/listen/{single|excited|mapped}?gain=1 verifica fuente
+y sirve vista WAV IEEE FLOAT32 generada por bloques4096; raw DOUBLE original
+permanece intacto/no copias persistidas. Ganancia0–10 explícita, sin normalización
+ni limiter. Cabeceras declaran conversión, gain y no-store; ranges bytes simples,
+suffix/open-ended/416 permiten seeks. Metadatos fuente controlados al transmitir.
+Seis tests preview/API pasan: roundtrip exacto del casteo f64×gain→f32, ranges
+incluyendo límites no alineados a muestra, full-scale>1 intacto, original sin
+cambios y endpoints reales. Chrome contra API/worker real decode duration1.9s,
+seek0.5s y paused true pasa sin ejecutar play, con fixture pose sintética.
+Servidor propio cerrado. Esto es decodificación/seek, NO escucha/aceptación ni
+sincronía física. Próximo integrar audio controls y reloj al panel de figura;
+audio live/defaults/R24 intactos. No considerar vista float32 PCM científico exacto.

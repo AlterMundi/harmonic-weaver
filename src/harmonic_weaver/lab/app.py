@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -377,6 +377,14 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post("/api/research/r05/{ident}/projection")
     def resonator_projection(ident: str,body: ModelProjectionRequest):
         return resonators.projection(ident,body)
+
+    @app.get("/api/research/r05/{ident}/listen/{arm}")
+    def resonator_listen(ident: str,arm: Literal['single','excited','mapped'],request: Request,
+                        gain: float=Query(default=1,ge=0,le=10,allow_inf_nan=False)):
+        from .research.audio_preview import preview_response
+        name='sum.wav' if arm=='single' else f'{arm}-sum.wav'
+        path=resonators.artifact(ident,name)
+        return preview_response(path,gain=gain,range_header=request.headers.get('range'))
 
     @app.get("/api/schemas")
     def schemas():
