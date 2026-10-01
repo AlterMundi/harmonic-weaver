@@ -76,3 +76,29 @@ def test_real_frozen_pose_endpoints_repeat_gaps_and_changed_generation_rejected(
         atomic_json(path,manifest)
         with pytest.raises(ValueError,match='changed'):endpoint_snapshot(evaluation,selection)
     finally:evaluation.close();store.close()
+
+
+def test_uncalibrated_baseline_cannot_silently_become_relational_body_input(tmp_path):
+    from fastapi.testclient import TestClient
+    from harmonic_weaver.lab.app import create_app
+    source,_,_=source_fixture(tmp_path)
+    source=source.model_copy(update={'torso_scale':None,'calibration_provenance':None})
+    root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident;folder.mkdir(parents=True)
+    preset=next(p for p in initial_presets() if p.algorithm.id=='baseline')
+    request=Request(presets=[preset],sources=[source])
+    atomic_json(folder/'request.json',request.model_dump());run(request,folder/'result')
+    store=SessionStore(root);evaluation=EvaluationService(root,store,None)
+    selection=dict(evaluation_id=ident,run_index=0,parent_joint=7,child_joint=9,start_s=.2,end_s=2)
+    class Runtime:
+        library=None
+        def start(self):pass
+        def close(self):pass
+    try:
+        before=store.calibrations()
+        with pytest.raises(ValueError,match='scale'):endpoint_snapshot(evaluation,selection)
+        with TestClient(create_app(root,store=store,runtime=Runtime()),base_url='http://127.0.0.1') as client:
+            response=client.post('/api/research/r04/trace',json={'selection':selection})
+            assert response.status_code==422 and 'scale' in response.json()['detail']
+            assert client.get('/api/research/r04').json()==[]
+        assert store.calibrations()==before
+    finally:evaluation.close();store.close()

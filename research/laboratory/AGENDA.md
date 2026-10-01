@@ -446,3 +446,15 @@ globales conservan invariancia; no se exige invariancia local. Dos Chrome
 panel/body pasan edición/payload/JSON y build pasa. Network tests actualizados
 a nuevos conteos pero no reejecutados en este incremento. Control de tarea/
 valor global, ruido/emparejamiento y anotación humana siguen pendientes.
+
+
+R04 requisito de calibración auditado: evaluación local existente del fragmento
+de dos personas/cuerpo indicado está complete pero baseline sin escala ni
+procedencia. No se ejecutó R04 real inventando normalización ni se alteró
+inventario/calibraciones privadas. Próxima corrida corporal exige calibración
+explícita para esa fuente/persona y una evaluación nueva que la congele.
+Test de integración nuevo con replay baseline sin escala confirma endpoint
+reader y POST /trace rechazan antes de worker; inventario R04 vacío y tabla
+de calibraciones idéntica. Dos tests integración pasan, incluido positivo
+con escala explícita. Esto no bloquea bancos independientes ni cierra R04.
+No publicar IDs/rutas/hashes/medios privados.
