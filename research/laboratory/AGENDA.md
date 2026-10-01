@@ -269,3 +269,24 @@ confirma controles congelados, Chrome panel pasa payload/invalid/export.
 17 tests núcleo/worker/API pasan antes de ampliar API a controles; luego 12
 núcleo/API y Chrome pasan con controles. Build TS/Vite pasa. No evidencia
 corporal/humana ni significación; controles elegidos post-hoc son exploratorios.
+
+
+R03 browser→HTTP→lector replay→worker completo: Chrome contra Uvicorn
+localhost aislado sirve bundle CoincidencePanel con fetch real, sin route mocks.
+Fixture pose/cache y marcas sintéticas, sin dispositivos ni medios privados.
+Selecciona comparación/señal/grupo, declara cobertura y shifts ±0.1 s, ejecuta
+dos workers; resultados iguales byte a byte, tabla de tres condiciones visible,
+features.json descarga real con nombre esperado. No errores de API visibles.
+No es recorrido completo de main/WebSocket ni escucha/aceptación corporal.
+Servidor propio detenido al terminar. Reproducción:
+
+```bash
+npx --prefix laboratory-ui vite build laboratory-ui/tests/r03_harness --outDir /tmp/weaver-r03-network-ui --emptyOutDir
+PYTHONPATH=src:tests:../harmonic-shaper-dev/src .venv/bin/python tests/r03_http_fixture.py --root /tmp/weaver-r03-fresh-unique --ui /tmp/weaver-r03-network-ui --port 8879
+# En otro terminal, desde laboratory-ui:
+LAB_R03_NETWORK_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/coincidenceNetwork.spec.ts --reporter=line
+```
+
+Root de fixture debe ser nuevo (no sobreescribe); Ctrl+C cierra servicio y
+workers propios. Prueba exige endpoint de fixture explícito, no usa lab del
+usuario por defecto. Aún pendiente experimento humano y agenda científica R03.
