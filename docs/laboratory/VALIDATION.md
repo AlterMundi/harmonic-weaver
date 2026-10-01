@@ -1217,3 +1217,17 @@ Interacción navegador R05 todavía no probada: próximo paso harness aislado y
 red real; no afirmar aceptación/escucha humana. Comparación de mecanismos,
 figura sincronizada para esta variante experimental y experiencias pendientes.
 Defaults live/sonido aceptado intactos; controles R05 son offline separados.
+
+
+R05 — navegador/red real (2026-09-30): harness aislado r05_harness, Chrome
+headless contra Uvicorn create_app sobre evaluación/pose sintética congelada;
+fetch/endpoints/reader y dos workers reales, sin mocks de API, audio ni cámaras.
+resonatorNetwork.spec.ts pasa: configuración seis voces export/import server,
+selección señal/persona/segmento conservada al importar (sin jobs), dos corridas
+14400 muestras a 8k/1.7s+0.1tail, PCM descargado byte-idéntico, descarga browser
+sum.wav terminada sin error. Los primeros intentos corrigieron sólo expectativas
+de selector accesible y decimal .3/0.3; no se cambió producto para hacer pasar.
+Servidor propio cerrado; no se tocaron servicios del usuario. No prueba de
+main/WebSocket/R24 ni escucha/experiencia humana. Pendientes campos extremos/
+grafos/contratos inválidos desde browser, carreras/interrupción abrupta, comparación
+de mecanismos y figura experimental sincronizada. Audio live/defaults intactos.

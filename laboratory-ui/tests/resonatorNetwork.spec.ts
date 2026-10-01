@@ -1,0 +1,42 @@
+import {test,expect} from '@playwright/test';
+test('R05 real network preserves selection across portable presets and repeats PCM',async({page})=>{
+ test.skip(!process.env.LAB_R05_NETWORK_URL,'explicit synthetic pose HTTP fixture required');
+ const origin=process.env.LAB_R05_NETWORK_URL!;
+ await page.goto(origin);
+ await page.getByRole('combobox',{name:/^Comparación R05/}).selectOption({index:1});
+ await page.getByRole('combobox',{name:/^Señal R05/}).selectOption('zone.1.speed');
+ await expect(page.getByText('Persona congelada:',{exact:false})).toContainText('one');
+ await page.getByLabel('resonators.sample_rate R05',{exact:true}).fill('8000');
+ await page.getByLabel('excitation.high R05',{exact:true}).fill('.1');
+ await page.getByLabel('excitation.low R05',{exact:true}).fill('.02');
+ await page.getByLabel('render.tail_s R05',{exact:true}).fill('.1');
+ await page.getByRole('button',{name:'Exportar configuración R05',exact:true}).click();
+ const json=page.getByLabel('Configuración R05 JSON',{exact:true});
+ await expect(json).toHaveValue(/sample_rate/);
+ const preset=JSON.parse(await json.inputValue());
+ expect(Object.keys(preset).sort()).toEqual(['excitation','render','resonators','schema_version']);
+ expect(preset.resonators.ratios).toHaveLength(6);
+ await page.getByLabel('Inicio R05 (s)',{exact:true}).fill('.3');
+ await page.getByLabel('excitation.gain R05',{exact:true}).fill('2');
+ await page.getByRole('button',{name:'Importar configuración R05',exact:true}).click();
+ await expect(page.getByLabel('excitation.gain R05',{exact:true})).toHaveValue('1');
+ await expect(page.getByLabel('Inicio R05 (s)',{exact:true})).toHaveValue(/^(0)?\.3$/);
+ await expect(page.getByRole('combobox',{name:/^Señal R05/})).toHaveValue('zone.1.speed');
+ expect((await (await page.request.get(`${origin}/api/research/r05`)).json())).toHaveLength(0);
+ const pcm:Buffer[]=[];
+ for(let i=0;i<2;i++){
+  const started=page.waitForResponse(r=>r.url()===`${origin}/api/research/r05` && r.request().method()==='POST');
+  await page.getByRole('button',{name:'Correr R05',exact:true}).click();
+  const response=await started;expect(response.status()).toBe(200);const ident=(await response.json()).id;
+  const link=page.locator(`a[href="/api/research/r05/${ident}/artifacts/sum.wav"]`);
+  await expect(link).toBeVisible({timeout:10000});
+  const manifest=await (await page.request.get(`${origin}/api/research/r05/${ident}/artifacts/manifest.json`)).json();
+  expect(manifest.status).toBe('complete');expect(manifest.levels.frames).toBe(14400);
+  expect(manifest.preparation.excitation.selection).toMatchObject({start_s:.3,end_s:2});
+  const wav=await page.request.get(`${origin}/api/research/r05/${ident}/artifacts/sum.wav`);
+  expect(wav.status()).toBe(200);pcm.push(await wav.body());
+  const downloading=page.waitForEvent('download');await link.click();const download=await downloading;
+  expect(download.suggestedFilename()).toBe('sum.wav');expect(await download.failure()).toBeNull();
+ }
+ expect(pcm[0].equals(pcm[1])).toBe(true);
+});
