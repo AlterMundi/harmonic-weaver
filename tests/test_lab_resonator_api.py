@@ -116,8 +116,12 @@ def test_portable_configuration_validates_without_job_or_source(tmp_path):
         assert 'start_sample' not in validated.json()['settings']
         with_playback={**projection,'playback':{'follow_audio':True,'refresh_hz':12,'preview_gain':.5,'loop_audio':True}}
         assert client.post('/api/research/r05/projection/configuration',json=with_playback).json()=={
-            **validated.json(),'playback':with_playback['playback']}
+            **validated.json(),'playback':{**with_playback['playback'],'video_offset_s':0}}
         assert client.post('/api/research/r05/projection/configuration',json={**projection,'playback':{'refresh_hz':31}}).status_code==422
+        for offset in [-10,-.25,0,.25,10]:
+            assert client.post('/api/research/r05/projection/configuration',json={**projection,'playback':{'video_offset_s':offset}}).json()['playback']['video_offset_s']==offset
+        for offset in [-10.01,10.01,'NaN','Infinity']:
+            assert client.post('/api/research/r05/projection/configuration',json={**projection,'playback':{'video_offset_s':offset}}).status_code==422
         for bad in ({**projection,'source_id':'private'},
                     {**projection,'settings':{'start_sample':30}},
                     {**projection,'settings':{'weights':[101]*6}},

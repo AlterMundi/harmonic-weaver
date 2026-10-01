@@ -265,3 +265,11 @@ seeks y loops del audio se propagan al video. «Ocultar video» detiene ese elem
 Se muestra la persona registrada en el experimento, sin afirmar identidad ni
 transferir calibración. Una fuente ausente/alterada o no decodificable deja un
 error visible. El video no contiene aún overlay de pose ni offset ajustable.
+
+R05 ahora ofrece «Desfase video/audio R05 (s)», entre −10 y +10 s; default cero.
+Positivo adelanta la fuente, negativo la retrasa. Se aplica sólo al video y se
+conserva al exportar/importar el preset de proyección. La posición se limita al
+crop; al empezar antes del crop o terminar después, la imagen queda retenida.
+Durante la cola se congela la posición desplazada del final del segmento, también
+con offsets negativos. No corrige ni modifica timestamps, features o PCM; es una
+hipótesis visual explícita, no una latencia medida. Importar detiene la escucha.

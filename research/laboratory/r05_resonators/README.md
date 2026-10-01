@@ -425,3 +425,10 @@ Prueba verifica avance de cuadros y posiciones con tolerancia de 0.05 s; no mide
 latencia física, percepción, identidad o aceptación auditiva. Instrucciones en
 VALIDATION.md. Pendientes overlay de pose, offset ajustable, demás modalidades
 sonoras, protocolos de nivel/latencia y prueba humana. Instrumento live intacto.
+
+R05 — offset audiovisual configurable (2026-10-01): video_offset_s ±10 s,
+default cero, en presets de proyección. Positivo adelanta imagen, negativo la
+retrasa; posición limitada al crop y congelada durante cola. No altera PCM,
+features ni timestamps científicos. Cuatro tests API + cuatro Playwright
+(reloj/Chrome single/mapped, export/import) y build pasan. Sustituye el pendiente
+de offset de entradas anteriores; overlay y latencia física siguen pendientes.

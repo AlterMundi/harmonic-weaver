@@ -33,6 +33,7 @@ class PlaybackSettings(Contract):
     refresh_hz:Number=Field(default=10,ge=1,le=30)
     preview_gain:Number=Field(default=1,ge=0,le=10)
     loop_audio:bool=False
+    video_offset_s:Number=Field(default=0,ge=-10,le=10)
 
 
 class Configuration(Contract):

@@ -1541,3 +1541,24 @@ LAB_R05_VIDEO_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwright
 
 Detener el servidor propio con Ctrl+C al terminar. Sin --synthetic-video, las
 fixtures anteriores conservan los bytes no decodificables de sus tests de API.
+
+## R05: desfase visual explícito — 2026-10-01
+
+PlaybackSettings agrega video_offset_s finito entre −10/+10 s, default cero,
+portable en el preset. UI aplica el valor al reloj de video sin cambiar fuente,
+PCM, features ni proyección de audio. El reloj se limita al crop y congela el
+punto desplazado del final al entrar en cola (un offset negativo no hace seeks
+avanzando durante la cola). Cambiar offset provoca una corrección explícita de
+posición, sin reiniciar audio ni renderizar.
+
+Cuatro tests de API pasan, con límites y rechazo de no finitos; dos tests del
+reloj cubren signos, límites y cola. La primera prueba Chrome del export falló
+porque el test parseaba el textarea antes de recibir la respuesta asíncrona;
+se corrigió esperando un valor no vacío. Resultado final y build registrados
+al finalizar la corrida. No se modifica ningún default sonoro ni se mide latencia
+física/aceptación humana.
+
+Corrida final: cuatro tests Playwright pasan (9.7 s): relojes y HTTP/Chrome
+single/mapped, offsets positivos/negativos, export/import con valor persistido
+sin autoplay y src de audio estable al ajustar offset. Build TypeScript/Vite
+pasa. MP4 generado, API y workers reales; servidor temporal apagado.
