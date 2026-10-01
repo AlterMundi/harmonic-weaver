@@ -1475,3 +1475,20 @@ alterados y media/trace cambiados rechazados. Fixture es bytes sintéticos, no
 video decodificable ni prueba humana. No cambia runtime/library actual ni audio.
 Pendiente UI video+clock/crop/tail/offset y Chrome con video sintético válido;
 sincronía física/escucha/modos adicionales e investigación formal siguen abiertas.
+
+## Seguimiento de video: epoch consumido al solicitar seek — 2026-10-01
+
+Incorporada la corrección publicada en PR #39, commit 370d16d: el seguidor
+consume el epoch al solicitar un seek asíncrono. La prueba nueva mantiene
+`seeking=true` hasta el evento `seeked`, avanza el reloj del servidor y verifica
+que no se repita el seek por el mismo epoch. Tres pruebas del seguidor y build
+TypeScript/Vite pasan en el workspace de desarrollo. No prueba sincronización
+física ni confirma todavía el recorrido de Nicolás con video/persona.
+
+Nota de ejecución: el primer intento de aplicar el patch completo se rechazó
+porque desarrollo contiene un test adicional del decoder; no cambió los archivos
+de código. Se aplicó después sólo el patch del seguidor y se agregó la regresión
+sin reemplazar los tests existentes. Una primera corrida sin canal de navegador
+falló por falta del Chromium de Playwright. La corrida declarada arriba usó
+`PLAYWRIGHT_CHANNEL=chrome` y seleccionó las tres pruebas del elemento simulado;
+no ejecutó la prueba del decoder real, que requiere Vite y un MP4 sintético.

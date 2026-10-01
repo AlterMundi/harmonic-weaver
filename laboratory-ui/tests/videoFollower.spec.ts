@@ -81,3 +81,24 @@ test('real decoder advances across body-selection updates with ordinary drift', 
   const after=await page.evaluate(() => {const f=(window as any).fixture; clearInterval(f.timer); f.follower.dispose(); f.v.pause(); return {seeks:f.seeks,frames:f.v.getVideoPlaybackQuality().totalVideoFrames,errors:f.errors};});
   expect(after.seeks).toBe(before.seeks); expect(after.frames).toBeGreaterThan(before.frames); expect(after.errors).toEqual([]);
 });
+
+test('asynchronous seek consumes its epoch before the server clock advances', () => {
+  const el = new EventTarget() as HTMLVideoElement;
+  let position = 0, seeks = 0;
+  Object.assign(el, { readyState: 4, seeking: false, paused: false,
+    pause() { this.paused = true; }, play() { return Promise.resolve(); } });
+  Object.defineProperty(el, 'currentTime', { get: () => position,
+    set: (v: number) => { position = v; seeks++; Object.assign(el, { seeking: true }); } });
+  const state = { position: 10, playing: true, epoch: 1 };
+  const follower = new VideoFollower(el, () => state, () => {});
+  follower.sync();
+  expect(seeks).toBe(1);
+  for (let i = 0; i < 5; i++) {
+    state.position += .2;
+    Object.assign(el, { seeking: false });
+    el.dispatchEvent(new Event('seeked'));
+    expect(seeks).toBe(1);
+  }
+  expect(el.playbackRate).toBeGreaterThan(1);
+  follower.dispose();
+});
