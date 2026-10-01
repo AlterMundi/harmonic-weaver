@@ -33,3 +33,16 @@ de parámetros sobre mismas entradas; política de niveles/latencias/tail explí
 WAV/manifests, worker/API/UI/presets; pruebas sobre soporte común, estados de voces
 vs PCM/figura separados, agencia/legibilidad y controles reservados. No llamar
 organización corporal a recurrencia producida por este núcleo.
+
+
+R05 excitación causal inicial: prepare acepta documento de selección
+single-signal congelada (compatible CandidateRequest/snapshot verificado),
+unidad explícita, settings y sr/nvoices. Modos threshold_crossings (impulso
+fijo) y positive_delta (diferencia positiva cruda, no aceleración), gain,
+reference_scale/unidad, max_impulse, umbral delta, thresholds/refractario/gap,
+6–32 pesos de voces independientes. Eventos sparse con hash input/provenance
+y sample_index ceil relativo a inicio: no anticipar observación. Reusa detector
+causal R03; primer high y recuperación no reactivan, held no repluck ni
+refractario retrasado. Tres tests propios + siete resonadores pasan.
+Sin PCM/dispositivo/UI ni niveles normalizados; política de cola, preparación
+real por API, comparación de mecanismos y evaluación humana pendientes.
