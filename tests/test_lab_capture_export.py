@@ -287,3 +287,17 @@ def test_recovered_export_api_roundtrip_restart_and_preview_integrity(tmp_path):
         (Path(job['directory'])/'preview.mp4').write_bytes(b'changed')
         assert client.get(f'/api/capture-exports/{ident}/artifacts/preview.mp4').status_code==422
         assert client.get('/api/captures').json()['jobs'][0]['status']=='interrupted'
+
+
+@pytest.mark.parametrize('name',['audio.wav','blocks.jsonl','timeline.jsonl','events.jsonl'])
+def test_input_changed_during_render_is_not_committed(tmp_path,name):
+    manifest,_,_=session(tmp_path)
+    root=Path(manifest['shaper']['directory'] if name in ('audio.wav','blocks.jsonl') else manifest['directory'])
+    path=root/name
+    def mutate(count):
+        if count==1:path.write_bytes(path.read_bytes()+b'changed')
+    output=tmp_path/'export'
+    with pytest.raises(ValueError,match='changed during export'):
+        render_capture(manifest,output,{'fps':10,'width':160,'height':120},progress=mutate)
+    assert not (output/'capture.mkv').exists()
+    assert json.loads((output/'manifest.json').read_text())['status']=='failed'

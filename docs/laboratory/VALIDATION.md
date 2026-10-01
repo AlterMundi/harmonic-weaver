@@ -647,3 +647,14 @@ create_app reconstruye inventario, sirve preview con HTTP Range 206 y rechaza
 contenido alterado con 422. Captura original sigue interrupted. Runtime sintético
 no abre dispositivos. Complementa Chrome del panel; no es un navegador unido a
 servidor por red ni verifica cámara física, sincronía o aceptación humana.
+
+
+## Entradas alteradas durante exportación — 2026-09-30
+
+Antes de confirmar capture.mkv, el exportador rehashea PCM, bloques, timeline,
+eventos e índice/JPEG de cámara. Un cambio detectado deja manifest failed y no
+confirma el MKV final. 19 tests export pasan; cuatro controles editan entradas
+después del primer fotograma y comprueban el rechazo. Aplica a capturas completas
+y prefijos, con la misma ruta de render. No es snapshot de filesystem ni defensa
+ante modificación/restauración entre lecturas; originales de video siguen con
+identidad declarada como documentado. No cambia síntesis ni defaults.

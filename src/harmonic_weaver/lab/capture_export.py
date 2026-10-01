@@ -154,6 +154,20 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
                 if progress:progress(count)
             process.stdin.close()
             if process.wait(timeout=30)!=0:raise ValueError('Encoder failed: '+(folder/'encoder.log').read_text()[-2000:])
+        # Reject concurrent edits rather than certifying mixed generations.
+        input_paths={'audio.wav':audio,'blocks.jsonl':blocks_path,
+                     'timeline.jsonl':session/'timeline.jsonl','events.jsonl':session/'events.jsonl'}
+        for name,path_to_check in input_paths.items():
+            if path_to_check.is_symlink() or sha256_file(path_to_check)!=inputs[name]:
+                raise ValueError(f'Capture input changed during export: {name}')
+        if camera_manifest:
+            if index.is_symlink() or sha256_file(index)!=camera_manifest['index_sha256']:
+                raise ValueError('Camera index changed during export')
+            for reference in camera_frames:
+                jpeg=camera_folder/reference['file']
+                if jpeg.is_symlink() or sha256_file(jpeg)!=reference['sha256']:
+                    raise ValueError('Recorded camera frame changed during export')
+        if cancelled and cancelled.is_set():raise ValueError('Export cancelled')
         temporary.replace(output)
         report.update(status='complete',frames=count,camera_index_sha256=camera_manifest['index_sha256'] if camera_manifest else None,output={'file':output.name,'sha256':sha256_file(output)},
                       frame_plan_sha256=sha256_file(folder/'frames.jsonl'))
