@@ -8,6 +8,7 @@ from ..contracts import AlgorithmSettings
 from ..cache import atomic_json,sha256_file
 from .relational_bank import Settings
 from .relational_input import EndpointRequest
+from .relational_summary import summarize
 
 
 def probe_endpoints(settings,document):
@@ -53,6 +54,7 @@ def probe_endpoints(settings,document):
         'unused_synthetic_settings':['samples','hz'],'selection':document['request'],'unit':'T/s',
         'provenance':document['provenance'],'preparation_code':document['code_hashes'],
         'kinematics_settings':document['kinematics_settings'],'scale':document['scale'],'traces':traces,
+        'summaries':{'pose':summarize(traces,max_gap_s=settings.max_gap_s)},
         'limits':document['limits']+['No resampling; samples/hz only apply to synthetic bank',
             'Missing endpoints reset every condition; relational state missing is not neutral',
             'Controls alter prepared endpoint velocities, not camera pose or physical body',
@@ -65,6 +67,8 @@ def run(settings,document,folder):
     report=probe_endpoints(settings,document);folder=Path(folder);folder.mkdir(mode=0o700,parents=True,exist_ok=False)
     atomic_json(folder/'result.json',report)
     atomic_json(folder/'manifest.json',{'output_sha256':sha256_file(folder/'result.json'),
-        'code_hashes':{'relational_body':sha256_file(Path(__file__)),
+        'code_hashes':{'relational_body':sha256_file(Path(__file__)),'relational_summary':sha256_file(Path(__file__).parent/'relational_summary.py'),
+                      'relational_bank':sha256_file(Path(__file__).parent/'relational_bank.py'),
+                      'contracts':sha256_file(Path(__file__).parent.parent/'contracts.py'),
                       'analysis_math':sha256_file(Path(__file__).parent.parent/'analysis_math.py')},
         'environment':{'python':platform.python_version(),'numpy':np.__version__},'limits':report['limits']})

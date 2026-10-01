@@ -1068,3 +1068,17 @@ ruido repetible, prefijo y faltantes todavía missing; dos tests entrada pasan.
 Dos Chrome panel/body y build pasan. Network conteos actualizados pero no
 reejecutados aquí. No ruido calibrado de cámara ni estimación de robustez
 corporal todavía, ni cambio de audio. Vite propio cerrado.
+
+
+R04 resúmenes pareados: summarize intersecta timestamps observados exactos
+de todas las condiciones y reporta disponibles/pareadas/excluidas, medias
+I/R/A y MAE vs original en esa misma muestra. No medios estimados en soportes
+distintos. Soporte en segundos sólo entre rows adyacentes en TODAS las
+condiciones y dentro de max_gap: no puente sobre fila missing ni extrapolación.
+Medias por muestra, no integral temporal. Empty produce None, no cero.
+Resultados sintéticos por escenario y de pose incluyen resúmenes/hash de
+módulo; panel muestra tabla. Once tests summary/banco/entrada pasan: cinco
+nuevos comunes/availability desigual/gaps/empty/invalid, reader real/worker
+existentes mantienen repetición. Chrome panel/tabla y build pasan. Tests
+network selectores actualizados sin rerun aquí. Estadística descriptiva, no
+significación/eficacia ni aceptación corporal humana. Vite propio cerrado.

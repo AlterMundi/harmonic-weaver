@@ -13,7 +13,7 @@ test('R04 edits freeze settings, portable configuration and missing trace stays 
  if(body){window.calls.push({path,body});return {id:'job'};}
  if(path==='evaluations')return [];
  if(path==='research/r04')return [{id:'job',status:'complete'}];
- return {traces:{'shared/original':[{time_s:0,parent_velocity:[1,0],child_velocity:[1,0],relative:{state:'missing',reason:'warming relationship'}}]},limits:['Synthetic only']};
+ return {summaries:{fixture:{common_observations:1,support_duration_s:0,conditions:{original:{available_observations:2,paired_observations:1,paired_mean:{I:1,R:0,A:2},paired_mae_from_original:{I:0}}}}},traces:{'shared/original':[{time_s:0,parent_velocity:[1,0],child_velocity:[1,0],relative:{state:'missing',reason:'warming relationship'}}]},limits:['Synthetic only']};
  };
  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(RelationalPanel,{api,run:fn=>fn().catch(()=>{})}));
  `});
@@ -37,5 +37,6 @@ test('R04 edits freeze settings, portable configuration and missing trace stays 
  expect(await page.evaluate(()=>(window as any).calls.length)).toBe(1);
  await page.getByRole('button',{name:'Ver resultado R04 job'}).click();
  await expect(page.getByText('indefinido',{exact:true})).toHaveCount(3);
+ await expect(page.getByRole('table',{name:'Resumen R04 fixture'})).toContainText('original');
  await expect(page.getByText('Synthetic only',{exact:true})).toBeVisible();
 });

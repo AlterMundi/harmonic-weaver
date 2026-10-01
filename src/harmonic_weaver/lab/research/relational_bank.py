@@ -7,6 +7,7 @@ import numpy as np
 from pydantic import Field
 from ..contracts import Contract,Number,AlgorithmSettings
 from ..analysis_math import RelativeMode
+from .relational_summary import summarize
 from ..cache import atomic_json,sha256_file
 
 
@@ -64,7 +65,7 @@ def probe(settings):
                              'relative':result})
             traces[f'{scenario}/{control}']=rows
     return {'schema_version':1,'settings':settings.model_dump(),'velocity_unit':'synthetic normalized units/s',
-            'traces':traces,'limits':['Synthetic endpoint velocities, no pose derivative or measurement noise model',
+            'traces':traces,'summaries':{scenario:summarize({key.split('/')[1]:rows for key,rows in traces.items() if key.startswith(scenario+'/')},max_gap_s=settings.max_gap_s) for scenario in SCENARIOS},'limits':['Synthetic endpoint velocities, no pose derivative or measurement noise model',
                 'Uses production RelativeMode; labels are scenario constructions, not human judgments',
                 'I/R/A describe relative mode change, not force, technique, intention or physical wave interference',
                 'Uniform rotation, inversion of both endpoints and shared velocity should preserve I/R/A',
@@ -83,7 +84,7 @@ def run(settings,folder):
         'input_sha256':sha256_file(folder/'request.json'),'output_sha256':sha256_file(folder/'result.json'),
         'code_hashes':{name:sha256_file(path) for name,path in {
             'relational_bank':Path(__file__),'analysis_math':Path(__file__).parent.parent/'analysis_math.py',
-            'contracts':Path(__file__).parent.parent/'contracts.py'}.items()},
+            'contracts':Path(__file__).parent.parent/'contracts.py','relational_summary':Path(__file__).parent/'relational_summary.py'}.items()},
         'environment':{'python':platform.python_version(),'numpy':np.__version__},
         'limits':report['limits']})
     return report
