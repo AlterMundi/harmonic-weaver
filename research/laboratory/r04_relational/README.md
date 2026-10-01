@@ -78,3 +78,16 @@ lo conserva running. SIGKILL+wait permite restaurar interrupted con hashes,
 idempotente, sin descargar resultado interno ni relanzar. Worker ahora valida
 manifest computed regular/no symlink antes de leerlo. No verifica todos los
 puntos de crash del filesystem ni hardware; replay corporal sigue pendiente.
+
+
+R04 entrada de extremos corporal, preparación inicial: EndpointRequest elige
+evaluación/run, COCO parent/child distintos y segmento ≤120 s. Lector carga
+generación de pose congelada/hash mediante load_source; no copia video ni
+recalcula tracking. Exige escala/procedencia de calibración congeladas para
+esa persona; Kinematics causal de producción con settings del preset, warmup
+desde inicio seleccionado sin preroll inventado. Velocidades T/s, faltantes
+explícitos, reloj estricto y límite 14400. Snapshot conserva código de
+Kinematics/analysis/contracts, escala/settings/source/cache/preset. Test con
+replay sintético real pasa repetición exacta, warmup/gaps/contexto y rechazo
+de extremos iguales/fuera de segmento/generación alterada. No medición
+corporal nueva ni observación humana; worker/API/UI corporal aún pendientes.
