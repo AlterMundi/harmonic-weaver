@@ -77,10 +77,16 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
         'sampled_monotonic_s':row['sampled_monotonic_s'],
         'state':{key:row['state'].get(key) for key in ('source','session','runtime')}})
     camera_frames=[]
-    camera_manifest=None if partial else manifest.get('camera')
+    camera_manifest=(manifest.get('recovery',{}).get('camera') if partial else manifest.get('camera'))
+    camera_folder=session/'camera'
+    if partial and camera_manifest and camera_manifest.get('status')!='recovered':camera_manifest=None
     if camera_manifest:
-        if camera_manifest['status']!='complete':raise ValueError('Camera capture is not complete')
-        camera_folder=session/'camera';index=camera_folder/'frames.jsonl'
+        if camera_manifest['status'] not in ('complete','recovered'):raise ValueError('Camera capture is not complete')
+        if partial:
+            camera_folder=Path(camera_manifest['frame_root'])
+            index=Path(camera_manifest['directory'])/'frames.jsonl'
+        else:index=camera_folder/'frames.jsonl'
+        if camera_folder.is_symlink() or index.parent.is_symlink() or index.is_symlink():raise ValueError('Camera prefix unavailable')
         if sha256_file(index)!=camera_manifest['index_sha256']:raise ValueError('Camera index changed')
         camera_frames=read_lines(index)
     # Audio count and per-block digital clock are the authoritative duration.
@@ -116,7 +122,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
                 if source and source.get('kind')=='camera':
                     filename=source['file']
                     if Path(filename).name!=filename:raise ValueError('Invalid recorded camera frame name')
-                    jpeg=session/'camera'/filename
+                    jpeg=camera_folder/filename
                     if jpeg.is_symlink() or sha256_file(jpeg)!=source['sha256']:raise ValueError('Recorded camera frame changed')
                     decoded=cv2.imread(str(jpeg))
                     if decoded is None:raise ValueError('Recorded camera frame is undecodable')

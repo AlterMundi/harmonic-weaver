@@ -14,7 +14,7 @@ confundir rama publicada con instalación, merge ni aceptación humana.
 |---|---|---|
 | LAB-00–08 y v2 | PRs #29/#30/#37/#39; controles, modelos, cache y cuerpo por defecto; experiencia baseline previamente aceptada | Calibración/modelos/realce nuevos y latencia requieren feedback humano; CUDA no se declara reparado |
 | Comparador #18 | #40 motor PCM compartido, #41 reproducción fuente/WAV/figura y #54 descarga verificada de features/targets/configuración; repetibilidad local documentada | Ampliar evaluación/paridad/métricas y validación humana; investigación formal no completa |
-| LAB-09 #17 | #42–47 colector, export, preview cámara y recovery PCM/journal; #57 prefijo de imágenes; preview MP4 opcional con reproducción web verificada | Overlays, cámara física/sincronía medida, recovery in-flight por job polling, reproducción/export de prefijos y journal completo |
+| LAB-09 #17 | #42–47 colector, export, preview cámara y recovery PCM/journal; #57 prefijo de imágenes y #67 export de prefijos PCM/journal/cámara; preview MP4 opcional con reproducción web verificada | Overlays, cámara física/sincronía medida, recovery in-flight por job polling, preview integrada de prefijos y journal completo |
 | R01–R13 | Agenda conservada; banco R01 con controles pareados, horizontes, cancelación y entrada de features congeladas; repetición sintética y corporal local; Sai–Oliva #36 revisado sin merge | Hipótesis HIT específicas y evaluación ampliada; bancos/experimentos R02–R13 y sus dependencias aún pendientes |
 
 Desarrollo permanece en `harmonic-weaver-dev` y `harmonic-shaper-dev`; no sustituye

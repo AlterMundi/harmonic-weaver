@@ -55,7 +55,7 @@ export function CapturePanel({api,run}:Data){
   {exportState.directory && <small>Salida local: {exportState.directory}</small>}
   <button disabled={!exporting} onClick={()=>run(async()=>{setExportState(await api('capture-exports/cancel',{}));})}>Cancelar exportación</button>
   {exportJobs.map((j:Data)=><div key={j.id}><p>Exportación {j.id.slice(0,8)} · {j.status} · {j.error || ''}</p>
-    {j.capture_completeness==='recovered_partial' && <p>Exportación de prefijo recuperado: captura parcial; la cámara no se incluye en esta versión.</p>}
+    {j.capture_completeness==='recovered_partial' && <p>Exportación de prefijo recuperado: captura parcial; sólo incluye imágenes recuperadas verificadas.</p>}
     {j.status==='complete' && <><a href={`/api/capture-exports/${j.id}/artifacts/capture.mkv`} download>Descargar video + PCM</a>{' · '}
     <a href={`/api/capture-exports/${j.id}/artifacts/frames.jsonl`} download>Timeline de fotogramas</a>{' · '}</>}
     {j.status==='complete' && j.preview?.status==='complete' && <>

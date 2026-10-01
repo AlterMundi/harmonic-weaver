@@ -155,7 +155,8 @@ def test_export_download_api_ranges_and_integrity(tmp_path):
         assert client.get('/api/capture-exports/export/artifacts/capture.mkv').status_code==422
 
 
-def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path):
+@pytest.mark.parametrize('partial',[False,True])
+def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path,partial):
     import base64
     import cv2
     from harmonic_weaver.lab.capture_camera import CameraCapture
@@ -171,7 +172,18 @@ def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path):
     manifest['camera']=capture.close()
     (folder/'timeline.jsonl').write_text('\n'.join(json.dumps(row) for row in rows)+'\n')
     manifest['hashes']['timeline.jsonl']=sha256_file(folder/'timeline.jsonl')
-    result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s'})
+    if partial:
+        from harmonic_weaver.lab.capture_camera_recovery import recover_camera
+        from harmonic_weaver.lab.capture_journal_recovery import recover_journal
+        camera_meta=json.loads((capture.folder/'manifest.json').read_text())
+        camera_meta['status']='interrupted'
+        (capture.folder/'manifest.json').write_text(json.dumps(camera_meta))
+        pcm=Path(manifest['shaper']['directory'])
+        manifest['status']='interrupted';manifest['shaper']['id']='confirmed'
+        manifest['recovery']={'result':{'status':'recovered','capture_id':'confirmed','directory':str(pcm),
+          'recovered_samples':len(samples),'hashes':{name:sha256_file(pcm/name) for name in ('audio.wav','blocks.jsonl')}},
+          'journal':recover_journal(folder),'camera':recover_camera(folder)}
+    result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s','recovered_prefix':partial})
     assert result['status']=='complete' and result['frames']==10 and not result['gaps']
     decoder=cv2.VideoCapture(str(tmp_path/'export'/'capture.mkv'));ok,image=decoder.read();decoder.release()
     assert ok and image[:,:,0].mean()>200 and image[:,:,2].mean()<20
@@ -180,7 +192,7 @@ def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path):
     np.testing.assert_array_equal(np.frombuffer(raw,dtype='<f4').reshape(-1,2),samples)
     (capture.folder/'00000000.jpg').write_bytes(b'changed')
     with pytest.raises(ValueError,match='frame changed'):
-        render_capture(manifest,tmp_path/'changed-export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s'})
+        render_capture(manifest,tmp_path/'changed-export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s','recovered_prefix':partial})
 
 
 def test_optional_browser_preview_keeps_exact_pcm_and_declares_lossy_audio(tmp_path):

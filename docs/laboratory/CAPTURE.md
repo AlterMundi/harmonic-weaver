@@ -387,3 +387,9 @@ existente permite preview web del derivado; PCM exacto se conserva en MKV.
 PCM sintético; Chrome CapturePanel y build pasan. Sin datos corporales publicados
 ni hardware. Pendientes: incorporar imágenes de cámara recuperadas, validar
 preview integrada de prefijos y sincronía física; job polling Shaper sigue aparte.
+
+
+La exportación de prefijos también admite recovery.camera.status=recovered:
+usa índice recuperado verificado y frame_root original, con hash JPEG comprobado
+en cada consumo. Sin prefijo de cámara disponible, conserva intervalos negros.
+Esta actualización sustituye la limitación anterior de cámara no incluida.

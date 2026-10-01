@@ -614,3 +614,14 @@ existente permite preview web del derivado; PCM exacto se conserva en MKV.
 PCM sintético; Chrome CapturePanel y build pasan. Sin datos corporales publicados
 ni hardware. Pendientes: incorporar imágenes de cámara recuperadas, validar
 preview integrada de prefijos y sincronía física; job polling Shaper sigue aparte.
+
+
+## Cámara en exportación de prefijos recuperados
+
+2026-09-30: el exportador consume el índice recuperado con hash verificado y
+reverifica cada JPEG en su frame_root original antes de decodificar. Rechaza
+symlinks del root/índice/imágenes y cambios de contenido; no copia imágenes.
+20 pruebas export/input pasan, incluida recuperación real de índice sintético,
+FFmpeg, fotograma azul y PCM exacto, y rechazo posterior de JPEG alterado. Build
+pasa. Captura sigue recovered_partial y gaps siguen negros. Cámara física,
+sincronía medida y preview integrada de prefijos permanecen pendientes.
