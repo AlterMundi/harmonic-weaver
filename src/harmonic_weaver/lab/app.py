@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form
@@ -21,6 +21,10 @@ from .capture_export import ExportSettings, CaptureExports
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.body import BodyRequest
+from .research.candidate_input import CandidateRequest, candidate_snapshot
+from .research.coincidence import content_hash
+from .research.coincidence_service import CoincidenceService
+from .research.mark_input import verified_marks, verify_source_binding
 
 
 class RevisionRequest(Contract):
@@ -62,6 +66,19 @@ class EvaluationRequest(Contract):
     pcm: PCMSettings = Field(default_factory=PCMSettings)
 
 
+class CoincidenceRequest(Contract):
+    candidate: CandidateRequest
+    source_id: str = Field(min_length=1)
+    person_id: str = Field(min_length=1)
+    session_id: str = Field(min_length=1)
+    observed_epoch: int = Field(ge=0)
+    category: Literal["note", "preparation", "deployment", "release", "experience"]
+    through_sequence: int = Field(ge=0)
+    mark_support: list[Annotated[list[Number], Field(min_length=2, max_length=2)]] = Field(min_length=1, max_length=500)
+    tolerance_s: Number = Field(default=.2, ge=0, le=10)
+    mark_offset_s: Number = Field(default=0, ge=-10, le=10)
+
+
 class CameraRequest(Contract):
     index: int = Field(default=0, ge=0, le=32)
     perception: PerceptionSettings
@@ -100,6 +117,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     capture = CaptureSession(data_dir, session, runtime, client_factory=capture_client_factory) if runtime is not None else None
     exports = CaptureExports(capture) if capture is not None else None
     research = ResearchService(data_dir)
+    coincidence = CoincidenceService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -112,6 +130,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            coincidence.close()
             research.close()
             if exports is not None:
                 exports.close()
@@ -225,6 +244,36 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def research_body(body: BodyRequest):
         if evaluation is None:raise ValueError('No comparison library available')
         return research.start_body(body.model_dump(),evaluation)
+
+    @app.get("/api/research/r03")
+    def coincidence_jobs():return coincidence.list()
+
+    @app.get("/api/research/r03/{ident}/artifacts/{name}")
+    def coincidence_artifact(ident: str, name: str):
+        return FileResponse(coincidence.artifact(ident,name),filename=name)
+
+    @app.post("/api/research/r03/{ident}/cancel")
+    def coincidence_cancel(ident: str):return coincidence.cancel(ident)
+
+    @app.post("/api/research/r03")
+    def coincidence_start(body: CoincidenceRequest):
+        if evaluation is None:raise ValueError('No comparison library available')
+        # Explicit coverage is never inferred from human button events.
+        from .research.temporal_match import compare_events
+        compare_events([], [], body.mark_support, [], tolerance_s=body.tolerance_s,
+                       mark_offset_s=body.mark_offset_s)
+        context={name:getattr(body,name) for name in
+                 ('source_id','person_id','session_id','observed_epoch','category')}
+        marks=session.marks_snapshot(**context,through_sequence=body.through_sequence)
+        verified_marks(marks,**context)
+        features=candidate_snapshot(evaluation,body.candidate)
+        verify_source_binding(marks,features)
+        if features['provenance']['source']['person_id']!=body.person_id:
+            raise ValueError('Replay person differs from annotation person')
+        request={'feature_sha256':content_hash(features),'context':context,
+                 'mark_support':body.mark_support,'tolerance_s':body.tolerance_s,
+                 'mark_offset_s':body.mark_offset_s}
+        return coincidence.start(request,marks,features)
 
     @app.get("/api/schemas")
     def schemas():

@@ -201,3 +201,18 @@ servicio. Cancel/close sólo procesos propios, completion concurrente preservado
 Prueba de subprocess real y restauración completa pasa, igual SHA a ejecución
 directa; descarga alterada/traversal rechazada. API/UI y validación específica
 de cancelación/inicios concurrentes pendientes. No comparte inventario R01.
+
+
+R03 API inicial: POST /api/research/r03 congela CandidateRequest desde el
+lector verificado de evaluación y marcas del store con persona/fuente/sesión/
+época/categoría y through_sequence explícitos. mark_support es lista de
+intervalos [inicio,fin), nunca inferida de botones. tolerance_s (0–10 s) y
+mark_offset_s (−10–10 s) son explícitos; offset no se estima. Valida binding de
+medio/cache/generación/persona antes de lanzar worker. GET inventario y
+artifacts, POST {id}/cancel reutilizan servicio R03; cierre sólo workers propios.
+7 tests API/worker pasan: child real, corte de marcas preservado tras append,
+restauración al recrear app, descarga idéntica, tampering/whitelist rechazados,
+intervalo invertido/persona incorrecta y ausencia de biblioteca rechazados.
+Reader replay mockeado en este test HTTP; lector real tiene cobertura separada
+y aún falta integración browser/API/replay completa. No audio ni datos privados.
+UI R03, controles temporales y experimento humano siguen pendientes.
