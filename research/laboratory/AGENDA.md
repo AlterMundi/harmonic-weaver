@@ -66,3 +66,13 @@ no producen una ventaja falsa. `tests/test_lab_propagation.py` conserva control 
 retardo sintético conocido y dirección inversa débil. Falta banco ampliado por
 web, comparación de modelos/cuerpos y anotaciones humanas de preparación/Jpsh;
 estos controles de software no demuestran intención ni causalidad.
+
+
+R03 — anotaciones humanas tipadas (2026-09-30): el control web de marcas ofrece
+nota libre (default), preparación/despliegue/liberación percibidos y experiencia.
+El evento mark conserva contexto existente (fuente/persona/calibración/preset,
+revisión y tiempo de fuente observado), annotation_category, origen human_button
+y reaction_latency_corrected=false. Es el momento del botón y del último estado
+observado, no un onset físico ni ground truth de intención. Sigue pendiente
+revisión temporal offline, intervalos/incertidumbre y comparación reproducible
+contra candidatos cinemáticos con soporte común y controles reservados.

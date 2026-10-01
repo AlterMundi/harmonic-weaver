@@ -37,3 +37,16 @@ def test_api_invalid_edits_leave_revision_untouched_and_foreign_origin_rejected(
         assert client.put("/api/configuration", json={"expected_revision": 0, "preset": p}).status_code == 422
         assert client.get("/api/state").json()["session"]["desired_revision"] == 0
         assert client.get("/api/events").json() == []
+
+
+def test_typed_human_marks_are_persistent_and_reject_unknown_categories(tmp_path):
+    with TestClient(create_app(tmp_path),base_url="http://127.0.0.1") as client:
+        assert client.post('/api/marks',json={'text':'Preparación percibida','category':'preparation'}).status_code==200
+        mark=client.get('/api/events').json()[0]
+        assert mark['payload']['annotation_category']=='preparation'
+        assert mark['payload']['reaction_latency_corrected'] is False
+        assert mark['payload']['timing_basis']=='latest_observed_source_time'
+        assert client.post('/api/marks',json={'text':'x','category':'proven_intention'}).status_code==422
+        assert client.get('/api/events').json()[0]==mark
+    with TestClient(create_app(tmp_path),base_url="http://127.0.0.1") as client:
+        assert client.get('/api/events').json()[0]==mark

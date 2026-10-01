@@ -250,11 +250,16 @@ class SessionStore:
             return [Calibration.model_validate_json(r[0]).model_dump()
                     for r in self._db.execute("SELECT payload FROM calibrations ORDER BY id")]
 
-    def mark(self, text):
+    def mark(self, text, *, category="note"):
+        if category not in ("note","preparation","deployment","release","experience"):
+            raise ValueError("Unknown mark category")
         if not isinstance(text, str) or not 1 <= len(text) <= 500:
             raise ValueError("mark must have 1..500 characters")
         with self._lock, self._db:
-            self._event("mark", {"text": text, "preset_id": self.preset.id})
+            self._event("mark", {"text": text, "preset_id": self.preset.id,
+                                 "annotation_category": category, "annotation_origin": "human_button",
+                                 "timing_basis": "latest_observed_source_time",
+                                 "reaction_latency_corrected": False})
 
     def events(self, limit=100):
         with self._lock:

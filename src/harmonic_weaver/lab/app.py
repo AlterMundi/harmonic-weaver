@@ -36,6 +36,7 @@ class MacroRequest(RevisionRequest):
 
 
 class MarkRequest(Contract):
+    category: Literal["note","preparation","deployment","release","experience"] = "note"
     text: str = Field(min_length=1, max_length=500)
 
 
@@ -279,7 +280,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post("/api/marks")
     def mark(body: MarkRequest):
-        session.mark(body.text)
+        session.mark(body.text, category=body.category)
         return {"ok": True}
 
     if runtime is not None:

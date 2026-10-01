@@ -384,6 +384,7 @@ function App() {
     [presets, setPresets] = useState<Data[]>([]);
   const [presetName, setPresetName] = useState(""),
     [mark, setMark] = useState(""),
+    [markCategory, setMarkCategory] = useState("note"),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
   const [sourcePreferences, setSourcePreferences] = useState<Data>({default_person:"best_coverage", autoplay_video:true});
   const [quality, setQuality] = useState<Data | null>(null);
@@ -1459,6 +1460,12 @@ function App() {
               );
             })}
           </div>
+          <label>Tipo de marca<select value={markCategory} onChange={e=>setMarkCategory(e.target.value)}>
+            <option value="note">Nota libre</option><option value="preparation">Preparación percibida</option>
+            <option value="deployment">Despliegue percibido</option><option value="release">Liberación percibida</option>
+            <option value="experience">Experiencia / sensación</option>
+          </select></label>
+          <small>Marca al presionar: no corrige tu tiempo de reacción ni confirma intención o causalidad.</small>
           <label>
             Marcar un momento
             <input
@@ -1471,7 +1478,7 @@ function App() {
             disabled={!mark}
             onClick={() =>
               run(async () => {
-                await api("marks", { text: mark });
+                await api("marks", { text: mark, category: markCategory });
                 setMark("");
               })
             }

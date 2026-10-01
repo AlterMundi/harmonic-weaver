@@ -665,3 +665,9 @@ de cámara y archivo comprueban recovery_provenance, identidad PCM, carpeta
 journal y frame_root/conteo de cámara; sin cámara el campo es null. Mantiene
 separación entre hashes de entradas verificados y source_hashes_declared. No
 cambia audio, presets ni defaults.
+
+
+2026-09-30 — marcas humanas tipadas: 3 tests API pasan y build pasa. Se verifica
+persistencia/reinicio, categoría preparation y rechazo de categoría desconocida
+sin nuevo evento. Nota libre queda default y clientes antiguos siguen aceptados.
+UI compilada, interacción/aceptación humana pendientes. No cambia audio.
