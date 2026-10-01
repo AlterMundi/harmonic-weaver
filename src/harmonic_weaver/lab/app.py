@@ -24,6 +24,8 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.membrane_service import MembraneService
+from .research.membrane_transfer_service import TransferService
+from .research.membrane_transfer import Request as TransferRequest
 from .research.membrane_pcm import Request as MembraneRequest
 from .research.activation_bank import Settings as ActivationSettings,schedules as activation_schedules
 from .research.resonator_service import ResonatorService
@@ -126,6 +128,11 @@ class MembranePlayback(Contract):
     color_scale:Number=Field(default=10000,ge=0,le=1e12)
 
 
+class TransferConfig(Contract):
+    schema_version:Literal[1]=1
+    settings:TransferRequest=Field(default_factory=TransferRequest)
+
+
 class MembraneConfig(Contract):
     schema_version:Literal[1]=1
     settings:MembraneRequest=Field(default_factory=lambda:MembraneRequest(stop_sample_exclusive=48000))
@@ -188,6 +195,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     resonators = ResonatorService(data_dir)
     activation = ActivationService(data_dir)
     membrane = MembraneService(data_dir)
+    transfer = TransferService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -376,6 +384,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r07')
     def membrane_jobs():return membrane.list()
+
+    @app.get('/api/research/r07-transfer')
+    def transfer_jobs():return transfer.list()
+
+    @app.post('/api/research/r07-transfer/configuration')
+    def transfer_configuration(body:TransferConfig):return body.model_dump()
+
+    @app.post('/api/research/r07-transfer')
+    def transfer_start(body:TransferRequest):return transfer.start(body)
+
+    @app.get('/api/research/r07-transfer/{ident}/artifacts/{name}')
+    def transfer_artifact(ident:str,name:str):
+        return FileResponse(transfer.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r07/configuration')
     def membrane_configuration(body:MembraneConfig):return body.model_dump()

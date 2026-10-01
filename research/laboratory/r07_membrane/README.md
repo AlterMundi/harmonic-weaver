@@ -226,6 +226,14 @@ de custodia. CLI con `--request REQUEST.json --output NUEVA_CARPETA`; no overwri
 Ocho pruebas del banco/artifacts pasan, incluyendo repetición y rechazo explícito
 de entorno/código diferentes. API/UI y controles transientes pendientes.
 
+Vigésimo quinto corte: servicio/API `/api/research/r07-transfer` separado de
+PCM, con configuración schema1, ejecución acotada síncrona, inventario restaurado
+y artifacts recalculados/verificados. Panel web permite editar todo el request
+JSON portable, validar sin ejecutar, calcular y comparar magnitud/diferencia/fase
+en tabla. Build y prueba API de dos corridas/reload/tamper pasan. No usa worker
+cancelable: banco de tamaño acotado, endpoint sync en threadpool. Chrome real
+de este panel y controles transientes pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
