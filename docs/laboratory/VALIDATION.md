@@ -762,3 +762,9 @@ de binding prueban otra generación e identidad ausente. Cache usa media_sha256
 (no media_id); adapter explicita correspondencia. Hash de biblioteca declarado
 no constituye verificación nueva del video ni identidad biométrica. No banco
 integrado ni prueba corporal de ese binding todavía.
+
+
+R03 contraste integrado preliminar: 17 tests coincidence/mark_input/candidates/
+matching pasan. Snapshot real + features sintéticas, match y soporte esperado,
+repetición exacta, alteración de features y persona incorrecta rechazadas. No
+job persistido, UI, controles temporales ni evidencia corporal todavía.

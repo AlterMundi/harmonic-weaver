@@ -172,3 +172,13 @@ a cache.media_sha256, cache_key/key, generation y cache_manifest_sha256 iguales
 al replay. Históricos sin identidad no se relabelan. Validación del snapshot SHA
 es paso previo separado. Pendiente job integrado que ejecute ambas verificaciones
 y contraste sobre soporte explícito; ninguna coincidencia de rutas basta.
+
+
+R03 coincidence.compare_frozen une hash de selección de features, snapshot de
+marcas verificado, binding medio/cache y persona. Recalcula candidatos desde
+filas y request; soporte conservador sólo entre observaciones válidas consecutivas
+separadas ≤max_gap, sin extrapolar final/aisladas. Mark_support debe declararse,
+no se infiere de anotaciones. Resultado conserva inputs/contexto/provenance,
+parámetros/soportes/matches y hash de contenido repetible. 17 controles de núcleos
+pasan, incluido caso integrado sintético. Pendientes worker/persistencia/API/UI,
+controles temporales/soporte pareado y experimento corporal; no ciencia resuelta.
