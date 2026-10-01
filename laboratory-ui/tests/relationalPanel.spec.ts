@@ -30,7 +30,7 @@ test('R04 edits freeze settings, portable configuration and missing trace stays 
  expect(await page.evaluate(()=>(window as any).calls[0])).toMatchObject({path:'research/r04',body:{samples:30,rotation_deg:90,proximal_multiplier:-2,relation_reference:'instantaneous'}});
  await page.getByRole('button',{name:'Exportar configuración R04'}).click();
  const config=JSON.parse(await page.getByLabel('Configuración R04 JSON').inputValue());
- expect(config.rotation_deg).toBe(90);expect(Object.keys(config)).toHaveLength(11);
+ expect(config.rotation_deg).toBe(90);expect(Object.keys(config)).toHaveLength(13);
  await page.getByLabel('Rotación uniforme R04 (grados)').fill('73');
  await page.getByRole('button',{name:'Importar configuración R04'}).click();
  await expect(page.getByLabel('Rotación uniforme R04 (grados)')).toHaveValue('90');

@@ -2,14 +2,15 @@ import {RelationalBodyPanel} from './RelationalBodyPanel';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 const fields:[string,string,number,number,number][]=[
+ ['perturbation_std','Ruido añadido R04 (desvío)',0,2,.001],['perturbation_seed','Semilla de ruido R04',0,2147483647,1],
  ['samples','Muestras R04',10,600,1],['hz','Frecuencia R04 (Hz)',10,120,1],
  ['history_s','Historia R04 (s)',.05,5,.05],['noise_velocity','Ruido de velocidad R04',.0001,2,.001],
  ['noise_delta','Ruido de contribución R04',.0001,2,.001],['max_gap_s','Gap R04 (s)',.05,2,.05],
  ['rotation_deg','Rotación uniforme R04 (grados)',-360,360,1],
  ['proximal_multiplier','Multiplicador proximal R04',-4,4,.1],
  ['common_velocity_x','Velocidad común X R04',-10,10,.1],['common_velocity_y','Velocidad común Y R04',-10,10,.1]];
-const defaults={samples:120,hz:30,history_s:.25,noise_velocity:.02,noise_delta:.015,max_gap_s:.25,relation_reference:'history',rotation_deg:73,common_velocity_x:2,common_velocity_y:-1,proximal_multiplier:-1};
-function valid(value:Data){return fields.every(([k,,min,max])=>typeof value[k]==='number' && Number.isFinite(value[k]) && value[k]>=min && value[k]<=max) && Number.isInteger(value.samples) && ['history','instantaneous'].includes(value.relation_reference);}
+const defaults={samples:120,hz:30,history_s:.25,noise_velocity:.02,noise_delta:.015,max_gap_s:.25,relation_reference:'history',rotation_deg:73,common_velocity_x:2,common_velocity_y:-1,proximal_multiplier:-1,perturbation_std:0,perturbation_seed:0};
+function valid(value:Data){return fields.every(([k,,min,max])=>typeof value[k]==='number' && Number.isFinite(value[k]) && value[k]>=min && value[k]<=max) && Number.isInteger(value.samples) && Number.isInteger(value.perturbation_seed) && ['history','instantaneous'].includes(value.relation_reference);}
 export function RelationalPanel({api,run}:Data){
  const [settings,setSettings]=useState<Data>(defaults),[jobs,setJobs]=useState<Data[]>([]),[text,setText]=useState(''),[error,setError]=useState('');
  const [result,setResult]=useState<Data|null>(null),[trace,setTrace]=useState(''),[sample,setSample]=useState(0),[busy,setBusy]=useState(false);
@@ -20,7 +21,7 @@ export function RelationalPanel({api,run}:Data){
   {error && <p role="alert">{error}</p>}
   {fields.map(([key,label,min,max,step])=><label key={key}>{label}<input type="number" min={min} max={max} step={step} value={settings[key]} onChange={e=>setSettings({...settings,[key]:+e.target.value})}/></label>)}
   <label>Referencia relacional R04<select value={settings.relation_reference} onChange={e=>setSettings({...settings,relation_reference:e.target.value})}><option value="history">Historia anterior</option><option value="instantaneous">Velocidad instantánea</option></select></label>
-  <p>Umbrales de ruido sintéticos, sin calibración corporal. Cinco escenarios × original, rotación uniforme, inversión de ambos extremos, velocidad común y multiplicación sólo proximal. −1 invierte el proximal; 0 lo detiene; 1 conserva el original. Son transformaciones de datos. Invertir ambos extremos no equivale a oposición local favorable.</p>
+  <p>Umbrales de ruido sintéticos, sin calibración corporal. Cinco escenarios × original, rotación uniforme, inversión de ambos extremos, velocidad común y multiplicación sólo proximal. −1 invierte el proximal; 0 lo detiene; 1 conserva el original. Ruido gaussiano independiente en velocidades es otro control; default cero, sin simular toda la incertidumbre de pose. Son transformaciones de datos. Invertir ambos extremos no equivale a oposición local favorable.</p>
   <button disabled={!valid(settings) || busy || jobs.some(j=>['queued','running'].includes(j.status))} onClick={()=>run(async()=>{setBusy(true);try{await api('research/r04',settings);setJobs(await api('research/r04'));}finally{setBusy(false);}})}>Correr banco R04</button>
   <button onClick={()=>setText(JSON.stringify(settings,null,2))}>Exportar configuración R04</button>
   <textarea aria-label="Configuración R04 JSON" value={text} onChange={e=>setText(e.target.value)}/>

@@ -24,7 +24,7 @@ test('real R04 HTTP workers repeat exactly and browser shows contextual traces',
   await expect(page.getByRole('table').locator('tbody td').first()).toHaveText('1');
   const result=await page.request.get(`${origin}/api/research/r04/${ident}/artifacts/result.json`);
   expect(result.status()).toBe(200);results.push(await result.body());
-  expect(Object.keys((await result.json()).traces)).toHaveLength(25);
+  expect(Object.keys((await result.json()).traces)).toHaveLength(30);
   const downloading=page.waitForEvent('download');
   await page.locator(`a[href="/api/research/r04/${ident}/artifacts/request.json"]`).click();
   const download=await downloading;expect(download.suggestedFilename()).toBe('request.json');expect(await download.failure()).toBeNull();

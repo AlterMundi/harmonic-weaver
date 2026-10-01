@@ -39,7 +39,7 @@ def test_r04_http_real_worker_download_and_restore(tmp_path):
             time.sleep(.02)
         assert report['status']=='complete' and report['line']=='R04'
         result=client.get(f'/api/research/r04/{ident}/artifacts/result.json')
-        assert result.status_code==200 and len(result.json()['traces'])==25
+        assert result.status_code==200 and len(result.json()['traces'])==30
         assert client.get('/api/research/r03').json()==[]
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert client.get('/api/research/r04').json()[0]['status']=='complete'

@@ -33,6 +33,12 @@ def test_real_frozen_pose_endpoints_repeat_gaps_and_changed_generation_rejected(
         import numpy as np
         expected=probe_endpoints({},snapshot)
         assert expected['unused_synthetic_settings']==['samples','hz']
+        noisy_settings={'perturbation_std':.03,'perturbation_seed':17}
+        noisy=probe_endpoints(noisy_settings,snapshot)
+        assert noisy==probe_endpoints(noisy_settings,snapshot)
+        prefix=probe_endpoints(noisy_settings,{**snapshot,'rows':snapshot['rows'][:20]})
+        assert all(rows==noisy['traces'][key][:20] for key,rows in prefix['traces'].items())
+        assert all(row['relative']['state']=='missing' for row in noisy['traces']['noisy_endpoints'] if not row['input_valid'])
         original=expected['traces']['original']
         for control,rows in expected['traces'].items():
             if control=='proximal_scaled':continue

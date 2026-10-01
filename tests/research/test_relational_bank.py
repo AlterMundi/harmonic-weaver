@@ -41,3 +41,16 @@ def test_local_proximal_inversion_differs_from_global_inversion_without_efficacy
     identity=probe({'samples':30,'proximal_multiplier':1})
     for scenario in ('shared_acceleration','relational_reduction','turn','wrist_brake_parent_still','wrist_brake_parent_moving'):
         assert identity['traces'][scenario+'/original']==identity['traces'][scenario+'/proximal_scaled']
+
+
+def test_noise_is_seeded_prefix_causal_and_zero_noise_is_exact_sham():
+    settings={'samples':30,'perturbation_std':.03,'perturbation_seed':17}
+    first=probe(settings)
+    assert first==probe(settings)
+    longer=probe({**settings,'samples':60})
+    assert all(rows==longer['traces'][key][:30] for key,rows in first['traces'].items())
+    changed=probe({**settings,'perturbation_seed':18})
+    assert first['traces']['turn/noisy_endpoints']!=changed['traces']['turn/noisy_endpoints']
+    assert first['traces']['turn/original']==changed['traces']['turn/original']
+    zero=probe({'samples':30,'perturbation_std':0})
+    assert zero['traces']['turn/noisy_endpoints']==zero['traces']['turn/original']

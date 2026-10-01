@@ -12,6 +12,8 @@ from ..cache import atomic_json,sha256_file
 
 class Settings(Contract):
     samples:int=Field(default=120,ge=10,le=600)
+    perturbation_std:Number=Field(default=0,ge=0,le=2)
+    perturbation_seed:int=Field(default=0,ge=0,le=2147483647)
     hz:Number=Field(default=30,ge=10,le=120)
     history_s:Number=Field(default=.25,ge=.05,le=5)
     noise_velocity:Number=Field(default=.02,ge=.0001,le=2)
@@ -45,15 +47,18 @@ def probe(settings):
     rotation=np.array([[math.cos(angle),-math.sin(angle)],[math.sin(angle),math.cos(angle)]])
     common=np.array([settings.common_velocity_x,settings.common_velocity_y])
     traces={}
-    for scenario in SCENARIOS:
-        for control in ('original','uniform_rotation','both_inverted','common_velocity','proximal_scaled'):
+    for scenario_index,scenario in enumerate(SCENARIOS):
+        for control in ('original','uniform_rotation','both_inverted','common_velocity','proximal_scaled','noisy_endpoints'):
             model=RelativeMode(algorithm);rows=[]
+            rng=np.random.default_rng(np.random.SeedSequence([settings.perturbation_seed,scenario_index]))
             for i in range(settings.samples):
                 t=i/settings.hz;parent,child=velocities(scenario,t)
                 if control=='uniform_rotation':parent,child=rotation@parent,rotation@child
                 elif control=='both_inverted':parent,child=-parent,-child
                 elif control=='common_velocity':parent,child=parent+common,child+common
                 elif control=='proximal_scaled':parent=parent*settings.proximal_multiplier
+                elif control=='noisy_endpoints':
+                    noise=rng.normal(0,settings.perturbation_std,size=(2,2));parent,child=parent+noise[0],child+noise[1]
                 result=model.push(t,child-parent)
                 rows.append({'time_s':t,'parent_velocity':parent.tolist(),'child_velocity':child.tolist(),
                              'relative':result})
@@ -65,6 +70,7 @@ def probe(settings):
                 'Uniform rotation, inversion of both endpoints and shared velocity should preserve I/R/A',
                 'Turn uses finite source steps and past history, so I is not assumed exactly zero',
                 'Scaling only proximal velocity is a data perturbation, not evidence of beneficial opposition',
+                'Independent Gaussian endpoint-velocity noise is a probe, not a calibrated tracking-noise model',
                 'No audio mapping, pitch change, p-value or claim supporting HIT']}
 
 

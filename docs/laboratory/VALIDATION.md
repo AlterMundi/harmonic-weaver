@@ -1054,3 +1054,17 @@ reader y POST /trace rechazan antes de worker; inventario R04 vacío y tabla
 de calibraciones idéntica. Dos tests integración pasan, incluido positivo
 con escala explícita. Esto no bloquea bancos independientes ni cierra R04.
 No publicar IDs/rutas/hashes/medios privados.
+
+
+R04 ruido reproducible: perturbation_std (0–2, default 0) y
+perturbation_seed (0–2147483647, default 0) en API/UI/JSON. Nueva condición
+noisy_endpoints añade ruido gaussiano independiente a velocidades preparadas,
+no a pose cruda. Sintético usa streams por escenario para conservar prefijos;
+pose consume ruido por observación y no vuelve válido ningún faltante.
+Ahora 30 trazas sintéticas/6 condiciones pose. Ocho tests banco/servicio/
+entrada pasan; añadido test sintético semilla distinta sólo cambia ruido,
+misma repite, cero exacto y prefijo causal. Test pose real sintética verifica
+ruido repetible, prefijo y faltantes todavía missing; dos tests entrada pasan.
+Dos Chrome panel/body y build pasan. Network conteos actualizados pero no
+reejecutados aquí. No ruido calibrado de cámara ni estimación de robustez
+corporal todavía, ni cambio de audio. Vite propio cerrado.
