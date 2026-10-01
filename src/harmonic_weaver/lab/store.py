@@ -252,7 +252,7 @@ class SessionStore:
             return [Calibration.model_validate_json(r[0]).model_dump()
                     for r in self._db.execute("SELECT payload FROM calibrations ORDER BY id")]
 
-    def mark(self, text, *, category="note"):
+    def mark(self, text, *, category="note", observed_epoch=None, transport_epoch=None, frame_time_s=None):
         if category not in ("note","preparation","deployment","release","experience"):
             raise ValueError("Unknown mark category")
         if not isinstance(text, str) or not 1 <= len(text) <= 500:
@@ -261,7 +261,9 @@ class SessionStore:
             self._event("mark", {"text": text, "preset_id": self.preset.id,
                                  "annotation_category": category, "annotation_origin": "human_button",
                                  "timing_basis": "latest_observed_source_time",
-                                 "reaction_latency_corrected": False})
+                                 "reaction_latency_corrected": False,
+                                 "observed_epoch": observed_epoch, "transport_epoch": transport_epoch,
+                                 "frame_time_s": frame_time_s})
 
     def marks_snapshot(self, *, source_id=None, person_id=None, start_s=None, end_s=None, category=None):
         for value in (start_s,end_s):

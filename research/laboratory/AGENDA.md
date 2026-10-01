@@ -103,3 +103,12 @@ Marcas con tiempo desconocido no entran en selección temporal. La selección
 completa se incluye en content_sha256. No deshace loops: marcas de diferentes
 vueltas pueden compartir source_time_s; sesión/revisión/secuencia permanecen
 por evento y el contraste deberá seleccionar épocas explícitamente.
+
+
+Marcas nuevas con runtime guardan observed_epoch (último tick), transport_epoch
+(actual al botón) y frame_time_s (frame observado). Se capturan bajo locks
+runtime→store; un seek pendiente puede mostrar épocas distintas y tiempo de
+frame anterior. No inferir alineación nueva de ese frame. Épocas se interpretan
+junto al session_id del evento, no son globales entre reinicios. Sin runtime o
+marca histórica, datos desconocidos quedan null/ausentes. Pendiente filtro web
+por sesión/época y comparación de candidatos sobre soporte temporal común.

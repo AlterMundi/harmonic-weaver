@@ -285,7 +285,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post("/api/marks")
     def mark(body: MarkRequest):
-        session.mark(body.text, category=body.category)
+        (runtime.mark if runtime is not None and hasattr(runtime,"mark") else session.mark)(body.text, category=body.category)
         return {"ok": True}
 
     if runtime is not None:

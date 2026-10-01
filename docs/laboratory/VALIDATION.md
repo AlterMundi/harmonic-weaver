@@ -697,3 +697,10 @@ Selección temporal/categoría: 7 tests API/store, Chrome MovementMarks y build
 pasan. Se verifica inicio incluido/fin excluido, rechazo de nan/negativos/inversión
 y categoría desconocida; web genera query correcta y oculta enlace inválido.
 No cambia guardado de marcas ni audio; no afirma alineación física de anotaciones.
+
+
+Épocas de marcas: 14 tests runtime/API pasan. Marca antes/después de seek y
+antes del siguiente tick conserva distinción observado/transporte y frame previo;
+tras tick, épocas coinciden y frame avanza. Primer fallo fue cleanup del fixture
+Audio sin close, corregido sin tocar audio de producción. Sin hardware ni prueba
+de latencia humana.

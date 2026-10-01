@@ -227,3 +227,23 @@ def test_default_first_autoplay_waits_for_cache_and_manual_pause_wins(tmp_path):
     store=SessionStore(tmp_path,prepare=PreparedRoutes)
     assert store.source_preferences()=={"default_person":"first", "autoplay_video":True}
     store.close()
+
+
+def test_marks_distinguish_observed_epoch_from_pending_transport_seek(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    runtime=LaboratoryRuntime(store,audio=Audio(),library=Library(),clock=lambda:0.)
+    try:
+        runtime.kind,runtime.job_id='video','test'
+        runtime.tick();runtime.mark('Before',category='preparation')
+        first=store.events()[0]
+        runtime.control(position_s=1.)
+        runtime.mark('Seek pending',category='deployment')
+        pending=store.events()[0]
+        assert pending['payload']['observed_epoch']==first['payload']['observed_epoch']
+        assert pending['payload']['transport_epoch']!=first['payload']['transport_epoch']
+        assert pending['payload']['frame_time_s']==first['payload']['frame_time_s']
+        runtime.tick();runtime.mark('After')
+        after=store.events()[0]
+        assert after['payload']['observed_epoch']==after['payload']['transport_epoch']
+        assert after['payload']['frame_time_s']>=1.
+    finally:store.close()
