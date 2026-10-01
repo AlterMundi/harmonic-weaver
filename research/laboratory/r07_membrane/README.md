@@ -234,6 +234,12 @@ en tabla. Build y prueba API de dos corridas/reload/tamper pasan. No usa worker
 cancelable: banco de tamaño acotado, endpoint sync en threadpool. Chrome real
 de este panel y controles transientes pendientes.
 
+Vigésimo sexto corte: Chrome HTTP real del panel de transferencia pasa (1 s):
+editar puntos/frecuencias/resoluciones, validar preset sin job, dos cálculos con
+artifacts idénticos, tabla de ocho filas y restauración tras reload. Fixture
+sintético aislado detenido. No hay participantes/audio físico en este banco;
+controles transientes y convergencia/atributos científicos siguen pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
