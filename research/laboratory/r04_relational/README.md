@@ -67,3 +67,14 @@ LAB_R04_NETWORK_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwrig
 
 Root debe ser nuevo: fixture nunca pisa inventario previo. Ctrl+C cierra
 servicio/workers propios. URL explícita requerida; no usa laboratorio del usuario.
+
+
+R04 fallos específicos del worker: 8 tests worker/servicio pasan. Requests
+mutados en contenido o reemplazados por symlink, resultado alterado y manifest
+interno symlink no pueden confirmar output; quedan failed sin result raíz.
+Lock ocupado no crea manifest; settings inválidos quedan failed. Child real
+produce computed/result, mantiene lock antes del commit externo; inventario
+lo conserva running. SIGKILL+wait permite restaurar interrupted con hashes,
+idempotente, sin descargar resultado interno ni relanzar. Worker ahora valida
+manifest computed regular/no symlink antes de leerlo. No verifica todos los
+puntos de crash del filesystem ni hardware; replay corporal sigue pendiente.

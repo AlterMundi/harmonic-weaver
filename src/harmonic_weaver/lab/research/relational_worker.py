@@ -21,7 +21,9 @@ def run_frozen(folder):
             run(json.loads(request.read_text()),folder/'computed')
             if request.is_symlink() or sha256_file(request)!=expected:raise ValueError('R04 request changed during computation')
             # A completed internal run does not imply the parent job has committed.
-            computed=json.loads((folder/'computed/manifest.json').read_text())
+            computed_manifest=folder/'computed/manifest.json'
+            if computed_manifest.is_symlink() or not computed_manifest.is_file():raise ValueError('R04 computed manifest unavailable')
+            computed=json.loads(computed_manifest.read_text())
             result=folder/'computed/result.json'
             if result.is_symlink() or sha256_file(result)!=computed['output_sha256']:raise ValueError('R04 result changed')
             result.replace(folder/'result.json')
