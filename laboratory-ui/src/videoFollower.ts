@@ -28,6 +28,9 @@ export class VideoFollower {
       (discontinuity || !target.playing || this.now() - this.lastCorrection > 1000)) {
       this.el.currentTime = target.position;
       this.lastCorrection = this.now();
+      // The decoder applies this seek asynchronously. Consume the epoch now,
+      // so seeked follows the advancing clock instead of seeking again.
+      this.epoch = target.epoch;
     }
     if (!this.el.seeking && !this.pending) this.epoch = target.epoch;
     if (target.playing && this.el.paused && !this.pending) {
