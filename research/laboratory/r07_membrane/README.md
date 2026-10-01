@@ -61,6 +61,17 @@ si compartieran input/reloj. Doce pruebas pasan: incluye ambos mecanismos sobre
 un soporte idéntico, rechazo por alteración del brazo no seleccionado y mutación
 de un input durante la proyección. Worker/API/UI y banco de controles pendientes.
 
+Sexto corte: `membrane_run` persiste request normalizado, resultado y manifest
+con hashes de fuente/configuración/código y entorno. No copia PCM ni datos
+corporales. CLI: `PYTHONPATH=src .venv/bin/python -m
+harmonic_weaver.lab.research.membrane_run --source RUN_R05 --request REQUEST.json
+--output NUEVA_CARPETA`. Destino existente se rechaza. `verify` comprueba hashes,
+contrato de request, reloj, grilla finita/no negativa y bordes nulos, con rehash
+final. No recalcula la simulación ni autentica autoría: un manifest reescrito
+no es evidencia científica independiente. Trece pruebas pasan, incluyendo
+resultados persistidos repetidos e integridad alterada. Este corte todavía no
+es un worker cancelable: lifecycle, interrupciones y exposición web pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
