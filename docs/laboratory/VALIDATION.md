@@ -1669,3 +1669,26 @@ Python/NumPy/SciPy; rechaza colisiones y exceso de trace. Durante desarrollo se
 eliminó numerador racional redundante al ordenar la grilla; condición racional
 usa muestra entera. No se atribuye resultado a privilegio phi/HIT. Integración
 worker/API/UI/presets/verificador y banco/protocolo ampliados pendientes.
+
+## R06: worker, service y verificador — 2026-10-01
+
+Se agregan ActivationService/activation_worker/activation_artifacts. Request
+validado antes de encolar, cálculo en proceso propio, flock y commit running→
+complete sólo tras verificación/promoción/rehash. Error conserva failed sin
+inventario output; restauración de proceso muerto queda interrupted sin relanzar.
+Destinos existentes no se sobrescriben. Descarga valida hashes/contracts y no
+sirve resultados incompletos. Verificador compara settings/reloj/dosis/calendario,
+soporte de trace, inventario/tipos y finitud, con rehash final; no recalcula todas
+las métricas ni prueba autenticidad frente a hashes reescritos.
+
+Primeras dos corridas fallaron sólo en repetición inmediata: manifest complete
+aparecía antes de salir el proceso. Test espera el handle real antes de lanzar
+su segundo worker, conservando el límite de un proceso activo. Los otros casos
+pasaron. Corrida final registra resultado abajo. Pruebas incluyen proceso real
+muerto tras promoción, writer duplicado, restauración sin descarga, request
+alterado y cancelación real de una corrida larga con request preservado.
+No se arrancan audio, cámaras ni servicios del usuario; fixtures sintéticas.
+API/UI/presets, bancos/observables HIT y protocolos físicos/humanos pendientes.
+
+Corrida final: 13 tests R06 pasan (3.64 s): banco, verificador, worker y service.
+Handles hijos propios terminados por wait/kill/cancel y servicios de test cerrados.

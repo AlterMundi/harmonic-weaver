@@ -41,3 +41,19 @@ contrastes temporales más equivalentes, hipótesis/observables HIT definidos y
 protocolo físico/humano cuando corresponda. El usuario no debe editar código
 para explorar cuando se complete la integración. No sustituye R01, Grassmannianos,
 activación corporal ni el instrumento live aceptado.
+
+R06 — worker/verificador/service (2026-10-01): ActivationService conserva el
+lifecycle propio compartido (un worker activo por instancia, no lock global).
+Valida settings/calendarios antes de congelar request; worker tiene flock,
+manifest running, cálculo interno y verificación antes de promover result.
+Rehash de input/result después de promoción, destino existente rechazado y
+manifest completo atómico. Failed/interrupted no se descargan; cancelación sólo
+alcanza procesos propios y restauración no relanza trabajos.
+
+activation_artifacts.verify lee archivos regulares, compara hashes antes/después,
+request/settings, clock, calendarios, dosis, inventario/tipos de métricas y
+soporte/tiempos del trace. NO rerenderiza métricas ni autentica su autoría: datos
+positivos falsificados con hashes reescritos no constituyen evidencia confiable.
+El verificador es un contrato de integridad local, no custodia firmada ni prueba
+HIT. Descargas verifican además del hash; manifest diagnóstico accesible aunque
+la corrida no termine. API/UI/presets y controles ampliados siguen pendientes.
