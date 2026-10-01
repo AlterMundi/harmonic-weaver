@@ -84,6 +84,12 @@ def test_snapshot_verified_replay_deduplicates_and_rejects_mixed_units(tmp_path)
         observed=[r for r in data['rows'] if r['values'] is not None]
         assert len({r['time_s'] for r in observed})==len(observed)
         assert data['provenance']['source']['person_id']=='one'
+        from harmonic_weaver.lab.research.candidate_input import candidate_snapshot
+        candidates=candidate_snapshot(evaluation,{'evaluation_id':ident,'run_index':0,
+            'signal_id':'zone.1.speed','start_s':.2,'end_s':2,'high':.1,'low':.02})
+        assert candidates['provenance']==data['provenance']
+        assert candidates['unit']=='T/s' and candidates['duplicate_control_holds_excluded']>0
+        assert candidates['signal_id']=='zone.1.speed'
         with pytest.raises(ValueError,match='same unit'):
             snapshot(evaluation,body.model_copy(update={'signal_ids':['zone.1.speed','zone.1.acceleration']}))
         with pytest.raises(ValueError,match='within'):

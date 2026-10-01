@@ -154,3 +154,12 @@ explícito fuente/persona/sesión/época/categoría/origen humano. Rechaza mezcl
 contextos y marcas durante discontinuidad pendiente. Conserva reloj botón/frame;
 no corrige reacción ni certifica autoría. Límite 500 anotaciones. Integra formato
 real del snapshot local; adapter de features y banco web/manifest siguen pendientes.
+
+
+R03 candidate_input.CandidateRequest/candidate_snapshot selecciona una señal
+de una comparación congelada, con umbrales/refractario/gap explícitos. Reutiliza
+body.snapshot: hashes, persona, unidades, zero lookahead, timestamps y dedup de
+holds; no lee ni copia video. Conserva filas inválidas/provenance y genera
+candidatos causales. Integración con replay sintético pasa. Pendientes: unir
+marcas/features con identidad de fuente verificable (IDs runtime y asset no son
+intercambiables), soporte común explícito, controles, worker/manifests y UI.

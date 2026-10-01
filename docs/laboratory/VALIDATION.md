@@ -749,3 +749,9 @@ activación sonora: extractor sólo en research y aún sin integración web.
 R03 entrada de marcas: 15 tests mark_input/candidates/matching pasan. Snapshot
 real SessionStore, repetibilidad, cambio de texto/hash, persona distinta y seek
 pendiente cubiertos. Sin datos corporales ni integración de banco/UI.
+
+
+R03 adapter features: 6 tests candidate_input/body pasan; adapter con fixture
+de missingness y reader real sobre comparación/replay sintético. Se verifica
+procedencia compartida, T/s, una señal y holds excluidos. No prueba todavía
+compatibilidad de identidad entre marca live y asset replay ni banco completo.
