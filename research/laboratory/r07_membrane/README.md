@@ -100,6 +100,15 @@ pruebas del servicio pasan. Esto cubre muerte en ese punto de publicación, no
 todos los puntos de fallo ni corte de energía del host. Sigue pendiente cancelar
 un cálculo ya running mediante servicio y la integración API/UI.
 
+DÉcimo corte: API `/api/research/r07` para inventario/inicio y `/{id}`,
+`/{id}/cancel`, `/{id}/artifacts/{name}`; configuración portable en
+`/configuration`. Inicio selecciona `source_run_id` del inventario R05, sin
+aceptar rutas arbitrarias desde HTTP. Presets contienen settings y schema1,
+sin fuente/persona/calibración. Ventanas inválidas se rechazan por contrato.
+Una prueba HTTP con worker real pasó: configuración, selección, publicación,
+descarga verificada y rechazos de source.json, ID y schema inválidos. UI y
+prueba HTTP de cancelación running/restauración quedan pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

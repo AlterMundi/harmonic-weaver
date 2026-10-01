@@ -23,6 +23,8 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.membrane_service import MembraneService
+from .research.membrane_pcm import Request as MembraneRequest
 from .research.activation_bank import Settings as ActivationSettings,schedules as activation_schedules
 from .research.resonator_service import ResonatorService
 from .research.resonators import Settings as ResonatorSettings
@@ -118,6 +120,16 @@ class ActivationConfig(Contract):
     settings:ActivationSettings=Field(default_factory=ActivationSettings)
 
 
+class MembraneConfig(Contract):
+    schema_version:Literal[1]=1
+    settings:MembraneRequest
+
+
+class MembraneStart(Contract):
+    source_run_id:str
+    settings:MembraneRequest
+
+
 class ResonatorConfig(Contract):
     schema_version: Literal[1] = 1
     resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
@@ -168,6 +180,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     relational = RelationalService(data_dir)
     resonators = ResonatorService(data_dir)
     activation = ActivationService(data_dir)
+    membrane = MembraneService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -181,6 +194,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             yield
         finally:
             activation.close()
+            membrane.close()
             resonators.close()
             relational.close()
             coincidence.close()
@@ -352,6 +366,27 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get("/api/research/r06")
     def activation_jobs():return activation.list()
+
+    @app.get('/api/research/r07')
+    def membrane_jobs():return membrane.list()
+
+    @app.post('/api/research/r07/configuration')
+    def membrane_configuration(body:MembraneConfig):return body.model_dump()
+
+    @app.post('/api/research/r07')
+    def membrane_start(body:MembraneStart):
+        source=resonators.folder(body.source_run_id)
+        return membrane.start(source,body.settings.model_dump())
+
+    @app.get('/api/research/r07/{ident}')
+    def membrane_report(ident:str):return membrane.report(ident)
+
+    @app.post('/api/research/r07/{ident}/cancel')
+    def membrane_cancel(ident:str):return membrane.cancel(ident)
+
+    @app.get('/api/research/r07/{ident}/artifacts/{name}')
+    def membrane_artifact(ident:str,name:str):
+        return FileResponse(membrane.artifact(ident,name),filename=name)
 
     @app.post("/api/research/r06/configuration")
     def activation_configuration(body:ActivationConfig):

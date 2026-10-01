@@ -1,7 +1,7 @@
 """R07 causal membrane RMS window from a verified single R05 PCM run."""
 from pathlib import Path
 from typing import Literal
-from pydantic import Field
+from pydantic import Field, model_validator
 import numpy as np
 import soundfile as sf
 from ..contracts import Contract
@@ -19,6 +19,12 @@ class Request(Contract):
     grid_x: int = Field(default=33, ge=2, le=129)
     grid_y: int = Field(default=33, ge=2, le=129)
     block_size: int = Field(default=1024, ge=16, le=8192)
+
+    @model_validator(mode='after')
+    def valid_window(self):
+        if self.start_sample >= self.stop_sample_exclusive or self.stop_sample_exclusive > self.membrane.sample_rate*120:
+            raise ValueError('Nonempty window and at most 120 seconds of causal history required')
+        return self
 
 
 def project(folder, request):
