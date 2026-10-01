@@ -35,7 +35,22 @@ def run_frozen(folder):
                    for name,digest in hashes.items()):
                 raise ValueError('R05 frozen input changed')
             for name in (('excited','mapped','result.json') if paired else tuple(computed['output_hashes'])):
-                (folder/'computed'/name).replace(folder/name)
+                target=folder/name
+                if target.exists() or target.is_symlink():raise ValueError('R05 promotion target already exists')
+                (folder/'computed'/name).replace(target)
+            # Moves are individually atomic, not a multi-file transaction. Recheck
+            # promoted bytes and frozen inputs before publishing complete status.
+            promoted={**hashes,**({'result.json':computed['output']['sha256']} if paired else computed['output_hashes'])}
+            for name,digest in promoted.items():
+                path=folder/name
+                if path.is_symlink() or not path.is_file() or sha256_file(path)!=digest:
+                    raise ValueError('R05 artifact changed during promotion')
+            if paired:
+                for name,digest in computed['arm_manifest_hashes'].items():
+                    arm=folder/name
+                    verify(arm)
+                    if sha256_file(arm/'manifest.json')!=digest:
+                        raise ValueError('R05 arm changed during promotion')
             manifest = {**computed, 'input_hashes':hashes}
             manifest['code_hashes'].update(resonator_worker=sha256_file(Path(__file__)),
                 resonator_artifacts=sha256_file(Path(__file__).with_name('resonator_artifacts.py')))

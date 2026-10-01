@@ -95,3 +95,106 @@ def test_held_lock_rejects_writer_before_manifest(tmp_path):
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         with pytest.raises(ValueError,match='active'):resonator_worker.run_frozen(tmp_path)
         assert not (tmp_path/'manifest.json').exists()
+
+
+@pytest.mark.parametrize('paired',[False,True])
+@pytest.mark.parametrize('cut',[1,2,3])
+def test_real_death_between_promotions_never_publishes_partial_downloads(tmp_path,paired,cut):
+    service=ResonatorService(tmp_path);ident=uuid4().hex;folder=service.root/ident;folder.mkdir()
+    inputs(folder,paired)
+    digests={name:sha256_file(folder/name) for name in ('input.json','request.json')}
+    program="""import sys,time
+from pathlib import Path
+from harmonic_weaver.lab.research import resonator_worker
+folder=Path(sys.argv[1]);cut=int(sys.argv[2]);original=Path.replace;count=0
+def replace(path,target):
+ global count
+ result=original(path,target)
+ if path.parent==folder/'computed' and Path(target).parent==folder:
+  count+=1
+  if count==cut:
+   (folder/'promotion-ready').write_text(path.name)
+   time.sleep(30)
+ return result
+Path.replace=replace
+resonator_worker.run_frozen(folder)
+"""
+    process=subprocess.Popen([sys.executable,'-c',program,str(folder),str(cut)])
+    try:
+        deadline=time.monotonic()+10
+        while not (folder/'promotion-ready').exists():
+            assert process.poll() is None and time.monotonic()<deadline
+            time.sleep(.01)
+        assert service.report(ident)['status']=='running'
+        with pytest.raises(ValueError,match='active'):resonator_worker.run_frozen(folder)
+        moved=(folder/'promotion-ready').read_text()
+        assert (folder/moved).exists()
+        names=['input.json','request.json','result.json','excited-sum.wav','mapped-sum.wav'] if paired else ['input.json','request.json','sum.wav','voices.wav','quadrature.wav']
+        for name in names:
+            with pytest.raises(ValueError):service.artifact(ident,name)
+        process.kill();process.wait(timeout=5)
+        restored=ResonatorService(tmp_path)
+        try:
+            report=restored.report(ident)
+            assert report['status']=='interrupted' and report['input_hashes']==digests
+            assert restored.processes=={} and restored.report(ident)==report
+            for name in names:
+                with pytest.raises(ValueError):restored.artifact(ident,name)
+            with pytest.raises(ValueError):restored.projection(ident,{'start_sample':0})
+            assert (folder/moved).exists() # diagnostic remnants are not deleted
+        finally:restored.close()
+    finally:
+        if process.poll() is None:process.kill();process.wait(timeout=5)
+        service.close()
+
+
+@pytest.mark.parametrize('paired',[False,True])
+@pytest.mark.parametrize('mutation',['input','promoted_payload'])
+def test_promotion_mutations_fail_before_complete_manifest(tmp_path,monkeypatch,paired,mutation):
+    from pathlib import Path
+    inputs(tmp_path,paired);original=Path.replace;changed=False
+    def replace(path,target):
+        nonlocal changed
+        result=original(path,target)
+        if path.parent==tmp_path/'computed' and Path(target).parent==tmp_path and not changed:
+            changed=True
+            if mutation=='input':atomic_json(tmp_path/'request.json',{})
+            else:
+                payload=Path(target)/'sum.wav' if paired else Path(target)
+                payload.write_bytes(b'changed')
+        return result
+    monkeypatch.setattr(Path,'replace',replace)
+    with pytest.raises(ValueError):resonator_worker.run_frozen(tmp_path)
+    manifest=json.loads((tmp_path/'manifest.json').read_text())
+    assert manifest['status']=='failed'
+    assert not set(manifest)&{'output','output_hashes','arm_manifest_hashes'}
+
+
+@pytest.mark.parametrize('paired',[False,True])
+def test_existing_promotion_destination_is_not_overwritten(tmp_path,paired):
+    inputs(tmp_path,paired)
+    if paired:
+        (tmp_path/'excited').mkdir();sentinel=tmp_path/'excited/sentinel'
+    else:sentinel=tmp_path/'sum.wav'
+    sentinel.write_bytes(b'preserve')
+    with pytest.raises(ValueError,match='already exists'):resonator_worker.run_frozen(tmp_path)
+    assert sentinel.read_bytes()==b'preserve'
+    assert json.loads((tmp_path/'manifest.json').read_text())['status']=='failed'
+
+
+@pytest.mark.parametrize('paired',[False,True])
+def test_promotion_io_error_leaves_failed_diagnostic_run(tmp_path,monkeypatch,paired):
+    from pathlib import Path
+    inputs(tmp_path,paired);original=Path.replace;count=0
+    def replace(path,target):
+        nonlocal count
+        if path.parent==tmp_path/'computed' and Path(target).parent==tmp_path:
+            count+=1
+            if count==2:raise OSError('Synthetic promotion IO failure')
+        return original(path,target)
+    monkeypatch.setattr(Path,'replace',replace)
+    with pytest.raises(OSError):resonator_worker.run_frozen(tmp_path)
+    manifest=json.loads((tmp_path/'manifest.json').read_text())
+    assert manifest['status']=='failed' and manifest['error_type']=='OSError'
+    assert not set(manifest)&{'output','output_hashes','arm_manifest_hashes'}
+    assert (tmp_path/('excited' if paired else 'sum.wav')).exists()

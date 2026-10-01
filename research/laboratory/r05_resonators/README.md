@@ -453,3 +453,12 @@ sonoro. Preset portable conserva ambos. Chrome single/mapped pasa con presencia,
 ausencia, edad reducida y ocultamiento; test causal/world y build pasan.
 Sustituye pendiente UI de pose de entradas previas; no valida precisión corporal
 ni escucha humana. Recorrido y evidencia en RUNNING/VALIDATION.
+
+R05 — cortes durante publicación (2026-10-01): worker rechaza destino existente,
+reverifica frozen inputs/PCM y brazos después de promoción antes de manifest
+completo. Se prueban seis muertes reales entre promociones (3 × single/paired),
+mutaciones durante promoción, destino existente y fallo IO inyectado. Restos
+parciales permanecen diagnósticos; inventario restaura interrupted, sin descargas,
+proyección ni relanzamiento automático. Sustituye pendiente de cortes de proceso
+entre promociones; durabilidad ante corte de energía/caída de host no probada.
+No implica snapshot transaccional frente a escritores externos adversariales.

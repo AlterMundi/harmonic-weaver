@@ -1602,3 +1602,31 @@ restantes y pruebas físicas/humanas siguen pendientes.
 
 Cuatro tests API pasan (9.14 s), incluyendo defaults normalizados, rechazo de
 edad cero/negativa/no finita/fuera de rango y conservación de checkbox/edad.
+
+## R05: interrupciones durante promoción — 2026-10-01
+
+Worker reverifica inputs y salidas después de mover los archivos/directorios a
+su destino y antes de publicar manifest completo. En paired verifica otra vez
+cada brazo y sus manifests; en single compara todos los PCM contra hashes ya
+verificados antes de moverlos. Rechaza destinos existentes en vez de sobrescribir.
+La publicación completa sigue siendo un único manifest atómico; mover varios
+archivos no es una transacción multiartefacto.
+
+Nuevas pruebas matan un proceso real después de cada una de las tres promociones,
+en single/paired (seis cortes): writer lock rechaza duplicado, estado sigue
+running mientras el worker vive, restauración da interrupted sin relanzar,
+proyección/descargas rechazadas y restos diagnósticos preservados. Cuatro pruebas
+mutan input o PCM durante promoción y exigen failed sin inventario completo.
+Dos comprueban destino existente preservado; dos inyectan OSError en segunda
+promoción y comprueban estado failed con primera salida preservada. Corrida
+inicial worker/service: 24 tests pasan (8.93 s); resultado final ampliado abajo.
+
+Esto cubre muerte de proceso y errores de promoción, no caída del host/pérdida de
+energía ni sistema de archivos adversarial. No se recupera/publica automáticamente
+una corrida incompleta ni se elimina su evidencia. Verificación de descarga
+continúa protegiendo contra cambios posteriores; no se promete una transacción
+contra escritores externos concurrentes.
+
+Corrida final ampliada: 32 tests worker/service/API pasan (17.78 s), incluyendo
+nuevos destinos existentes y errores IO, servicio real, cancelación y contratos
+API. No se iniciaron servicios de audio ni se usaron datos corporales.
