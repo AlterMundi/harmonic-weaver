@@ -279,8 +279,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return session.events()
 
     @app.get("/api/marks/snapshot")
-    def marks_snapshot(source_id: str | None = None, person_id: str | None = None):
-        return JSONResponse(session.marks_snapshot(source_id=source_id,person_id=person_id),headers={"Content-Disposition":'attachment; filename="movement-marks.json"'})
+    def marks_snapshot(source_id: str | None = None, person_id: str | None = None,
+                       start_s: float | None = None, end_s: float | None = None, category: str | None = None):
+        return JSONResponse(session.marks_snapshot(source_id=source_id,person_id=person_id,start_s=start_s,end_s=end_s,category=category),headers={"Content-Disposition":'attachment; filename="movement-marks.json"'})
 
     @app.post("/api/marks")
     def mark(body: MarkRequest):

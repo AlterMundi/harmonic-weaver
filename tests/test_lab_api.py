@@ -96,6 +96,24 @@ def test_mark_snapshot_filters_exact_source_and_person_without_relabeling(tmp_pa
         selected=client.get('/api/marks/snapshot',params={'source_id':'source-A','person_id':'right'}).json()
         assert selected['through_sequence']==full['through_sequence']
         assert selected['marks']==full['marks'][:1]
-        assert selected['selection']=={'source_id':'source-A','person_id':'right'}
+        assert selected['selection']['source_id']=='source-A'
+        assert selected['selection']['person_id']=='right'
         assert client.get('/api/marks/snapshot',params={'source_id':'absent'}).json()['marks']==[]
         assert client.get('/api/marks/snapshot').json()==full
+
+
+def test_mark_interval_and_category_selection_are_explicit_and_validated(tmp_path):
+    from harmonic_weaver.lab.store import SessionStore
+    store=SessionStore(tmp_path)
+    try:
+        for stamp,category in [(1.,'preparation'),(2.,'deployment'),(3.,'deployment')]:
+            store.state.position_s=stamp
+            store.mark(str(stamp),category=category)
+        selected=store.marks_snapshot(start_s=1.,end_s=3.,category='deployment')
+        assert [r['event']['source_time_s'] for r in selected['marks']]==[2.]
+        assert selected['selection']['interval']=='[start_s,end_s)'
+    finally:store.close()
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert client.get('/api/marks/snapshot',params={'start_s':1,'end_s':3,'category':'deployment'}).json()==selected
+        for params in ({'start_s':3,'end_s':1},{'start_s':'nan'},{'end_s':-1},{'category':'unknown'}):
+            assert client.get('/api/marks/snapshot',params=params).status_code==422

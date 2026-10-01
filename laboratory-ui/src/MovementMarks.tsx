@@ -2,6 +2,11 @@ import {useState} from "react";
 export function MovementMarks({api,run,sourceId,personId}:{sourceId?:string;personId?:string;api:(path:string,body:unknown)=>Promise<unknown>;run:(action:()=>Promise<void>)=>unknown}){
  const [mark,setMark]=useState("");
  const [markCategory,setMarkCategory]=useState("note");
+ const [start,setStart]=useState("");const [end,setEnd]=useState("");
+ const [filterCategory,setFilterCategory]=useState("");
+ const valid=(start==="" || Number.isFinite(+start) && +start>=0) && (end==="" || Number.isFinite(+end) && +end>=0) && (start==="" || end==="" || +start<+end);
+ const query=new URLSearchParams({source_id:sourceId || "",person_id:personId || ""});
+ if(start!=="")query.set("start_s",start);if(end!=="")query.set("end_s",end);if(filterCategory)query.set("category",filterCategory);
  return <>
           <label>Tipo de marca<select value={markCategory} onChange={e=>setMarkCategory(e.target.value)}>
             <option value="note">Nota libre</option><option value="preparation">Preparación percibida</option>
@@ -29,6 +34,10 @@ export function MovementMarks({api,run,sourceId,personId}:{sourceId?:string;pers
             Guardar marca
           </button>
  <a href="/api/marks/snapshot" download>Descargar marcas congeladas</a>
- {sourceId && personId && <a href={'/api/marks/snapshot?'+new URLSearchParams({source_id:sourceId,person_id:personId})} download>Descargar marcas de esta fuente y persona</a>}
+ <label>Inicio de selección de marcas (s)<input type="number" min="0" step=".01" value={start} onChange={e=>setStart(e.target.value)}/></label>
+ <label>Fin de selección de marcas (s, excluido)<input type="number" min="0" step=".01" value={end} onChange={e=>setEnd(e.target.value)}/></label>
+ <label>Categoría de descarga<select value={filterCategory} onChange={e=>setFilterCategory(e.target.value)}><option value="">Todas</option><option value="note">Nota libre</option><option value="preparation">Preparación</option><option value="deployment">Despliegue</option><option value="release">Liberación</option><option value="experience">Experiencia</option></select></label>
+ {!valid && <p role="alert">Usá tiempos no negativos y fin posterior al inicio.</p>}
+ {sourceId && personId && valid && <a href={'/api/marks/snapshot?'+query} download>Descargar marcas de esta fuente y persona</a>}
  </>;
 }

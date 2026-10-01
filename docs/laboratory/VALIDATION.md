@@ -691,3 +691,9 @@ Filtro de marcas: 6 tests API/store y build pasan. Dos personas y dos fuentes
 sintéticas: selección exacta devuelve sólo evento correspondiente, desconocida
 queda vacía, historial completo permanece idéntico y cursor no cambia. Enlace
 web compilado, interacción del enlace y aceptación humana pendientes.
+
+
+Selección temporal/categoría: 7 tests API/store, Chrome MovementMarks y build
+pasan. Se verifica inicio incluido/fin excluido, rechazo de nan/negativos/inversión
+y categoría desconocida; web genera query correcta y oculta enlace inválido.
+No cambia guardado de marcas ni audio; no afirma alineación física de anotaciones.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 from hashlib import sha256
 from pathlib import Path
 import sqlite3
@@ -262,16 +263,26 @@ class SessionStore:
                                  "timing_basis": "latest_observed_source_time",
                                  "reaction_latency_corrected": False})
 
-    def marks_snapshot(self, *, source_id=None, person_id=None):
+    def marks_snapshot(self, *, source_id=None, person_id=None, start_s=None, end_s=None, category=None):
+        for value in (start_s,end_s):
+            if value is not None and (type(value) not in (int,float) or not math.isfinite(value) or value<0):
+                raise ValueError("Mark interval requires finite nonnegative times")
+        if start_s is not None and end_s is not None and start_s>=end_s:
+            raise ValueError("Mark interval end must follow start")
+        if category is not None and category not in ("note","preparation","deployment","release","experience"):
+            raise ValueError("Unknown mark category")
         with self._lock:
             cursor=self._db.execute("SELECT COALESCE(MAX(sequence),0) FROM events").fetchone()[0]
             rows=self._db.execute("SELECT sequence,payload FROM events WHERE sequence<=? AND json_extract(payload,'$.kind')='mark' ORDER BY sequence",(cursor,)).fetchall()
             result={"schema_version":1,"through_sequence":cursor,
-                    "selection":{"source_id":source_id,"person_id":person_id},
+                    "selection":{"source_id":source_id,"person_id":person_id,"start_s":start_s,"end_s":end_s,"category":category,"interval":"[start_s,end_s)"},
                     "marks":[{"sequence":seq,"event":event} for seq,payload in rows
                              if (event:=json.loads(payload)) is not None
                              and (source_id is None or event['payload'].get('source_id')==source_id)
-                             and (person_id is None or event['payload'].get('person_id')==person_id)],
+                             and (person_id is None or event['payload'].get('person_id')==person_id)
+                             and (category is None or event['payload'].get('annotation_category')==category)
+                             and (start_s is None or event.get('source_time_s') is not None and event['source_time_s']>=start_s)
+                             and (end_s is None or event.get('source_time_s') is not None and event['source_time_s']<end_s)],
                     "limits":["Button timestamps are not reaction-corrected movement onsets",
                               "Includes historical and system marks; annotation_origin distinguishes typed human marks",
                               "Local export may contain private text and source/person context"]}

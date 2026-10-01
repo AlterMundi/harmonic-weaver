@@ -94,3 +94,12 @@ cuando ambas identidades existen, además del historial completo. No migra ni
 reetiqueta anotaciones entre cuerpos; IDs de tracking no demuestran identidad
 biométrica. Mantiene cursor de historial incluso con selección vacía. Selección
 por segmento/categoría y contraste cinemático siguen pendientes.
+
+
+Filtros web/API de marcas: start_s/end_s opcionales delimitan [inicio,fin);
+categoría opcional selecciona annotation_category exacta sin atribuir categorías
+a marcas antiguas. Tiempos no finitos/negativos o intervalo invertido rechazados.
+Marcas con tiempo desconocido no entran en selección temporal. La selección
+completa se incluye en content_sha256. No deshace loops: marcas de diferentes
+vueltas pueden compartir source_time_s; sesión/revisión/secuencia permanecen
+por evento y el contraste deberá seleccionar épocas explícitamente.
