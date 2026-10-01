@@ -12,7 +12,7 @@ def content_hash(value):
     return sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
 
 
-def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,tolerance_s=.2,mark_offset_s=0.):
+def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,tolerance_s=.2,mark_offset_s=0.,control_offsets_s=None):
     if content_hash(features)!=feature_sha256:raise ValueError('Frozen feature selection changed')
     request=CandidateRequest.model_validate(features['request'])
     marks=verified_marks(snapshot,**context)
@@ -38,6 +38,13 @@ def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,toler
                   'Last observations and isolated samples have no extrapolated support',
                   'Annotation support is declared; coverage is not inferred from button events',
                   'No temporal controls or significance claim in this preliminary comparison']}
+    if control_offsets_s:
+        from .temporal_controls import compare_shifts
+        document['temporal_controls']=compare_shifts(
+            [row['time_s'] for row in marks['annotations']],
+            [row['time_s'] for row in candidates['events']],mark_support,support,
+            offsets_s=control_offsets_s,tolerance_s=tolerance_s,mark_offset_s=mark_offset_s)
+        document['limits'][-1]='Declared shift controls are exploratory; no significance claim'
     return {**document,'content_sha256':content_hash(document)}
 
 
@@ -60,13 +67,13 @@ def run_frozen(folder):
         hashes={name:sha256_file(folder/name) for name in names}
         manifest={'schema_version':1,'status':'running','input_hashes':hashes,
                   'code_hashes':{name:sha256_file(Path(__file__).parent/name) for name in
-                    ('coincidence.py','mark_input.py','event_candidates.py','temporal_match.py','candidate_input.py')},
+                    ('coincidence.py','mark_input.py','event_candidates.py','temporal_match.py','candidate_input.py','temporal_controls.py')},
                   'python':platform.python_version(),
                   'limits':['Local frozen comparison; no controls/significance or scientific acceptance']}
         atomic_json(folder/'manifest.json',manifest)
         try:
             request=json.loads((folder/'request.json').read_text())
-            allowed={'feature_sha256','context','mark_support','tolerance_s','mark_offset_s'}
+            allowed={'feature_sha256','context','mark_support','tolerance_s','mark_offset_s','control_offsets_s'}
             if set(request)-allowed:raise ValueError('Unknown R03 request fields')
             result=compare_frozen(json.loads((folder/'marks.json').read_text()),
                                  json.loads((folder/'features.json').read_text()),**request)

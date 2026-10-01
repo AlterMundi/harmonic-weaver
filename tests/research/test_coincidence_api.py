@@ -27,7 +27,7 @@ def test_http_freeze_cursor_worker_restore_and_verified_download(tmp_path,monkey
                     'cache_manifest':{'media_sha256':'media','key':'key','generation':'gen'}}}}
         monkeypatch.setattr(app_module,'candidate_snapshot',features)
         body=dict(candidate=candidate,source_id='live',person_id='right',session_id=store.state.session_id,
-                  observed_epoch=2,category='deployment',through_sequence=cursor,mark_support=[[0,1]])
+                  observed_epoch=2,category='deployment',through_sequence=cursor,mark_support=[[0,1]],control_offsets_s=[.01])
         with TestClient(app_module.create_app(tmp_path,store=store,runtime=Runtime()),base_url='http://127.0.0.1') as client:
             bad=deepcopy(body);bad['mark_support']=[[1,0]]
             assert client.post('/api/research/r03',json=bad).status_code==422
@@ -48,6 +48,8 @@ def test_http_freeze_cursor_worker_restore_and_verified_download(tmp_path,monkey
             assert report['status']=='complete',report
             result=client.get(f'/api/research/r03/{ident}/artifacts/result.json')
             assert result.status_code==200
+            assert len(result.json()['temporal_controls']['conditions'])==2
+            assert all(c['paired']['common_support']==result.json()['temporal_controls']['common_support'] for c in result.json()['temporal_controls']['conditions'])
             assert len(result.json()['annotations'])==1
             assert len(result.json()['comparison']['matches'])==1
             frozen=client.get(f'/api/research/r03/{ident}/artifacts/marks.json').json()

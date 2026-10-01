@@ -75,6 +75,7 @@ class CoincidenceRequest(Contract):
     category: Literal["note", "preparation", "deployment", "release", "experience"]
     through_sequence: int = Field(ge=0)
     mark_support: list[Annotated[list[Number], Field(min_length=2, max_length=2)]] = Field(min_length=1, max_length=500)
+    control_offsets_s: list[Number] = Field(default_factory=list, max_length=16)
     tolerance_s: Number = Field(default=.2, ge=0, le=10)
     mark_offset_s: Number = Field(default=0, ge=-10, le=10)
 
@@ -262,6 +263,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         from .research.temporal_match import compare_events
         compare_events([], [], body.mark_support, [], tolerance_s=body.tolerance_s,
                        mark_offset_s=body.mark_offset_s)
+        if body.control_offsets_s:
+            from .research.temporal_controls import compare_shifts
+            compare_shifts([],[],body.mark_support,[],offsets_s=body.control_offsets_s,
+                           tolerance_s=body.tolerance_s,mark_offset_s=body.mark_offset_s)
         context={name:getattr(body,name) for name in
                  ('source_id','person_id','session_id','observed_epoch','category')}
         marks=session.marks_snapshot(**context,through_sequence=body.through_sequence)
@@ -272,7 +277,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('Replay person differs from annotation person')
         request={'feature_sha256':content_hash(features),'context':context,
                  'mark_support':body.mark_support,'tolerance_s':body.tolerance_s,
-                 'mark_offset_s':body.mark_offset_s}
+                 'mark_offset_s':body.mark_offset_s,'control_offsets_s':body.control_offsets_s}
         return coincidence.start(request,marks,features)
 
     @app.get("/api/schemas")

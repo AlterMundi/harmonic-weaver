@@ -851,3 +851,17 @@ un solo child; después de cancelar admite otro en carpeta nueva. close ahora
 marca closed bajo el mismo RLock y rechaza start posterior: evita un child
 que escape del cierre. No verifica admisión global entre instancias distintas
 ni carrera completion exactamente durante terminate. No hardware/audio.
+
+
+R03 controles temporales declarados: offsets opcionales (default [], sin
+cambio de audio), hasta 16 distintos no nulos ±10 s; suma con offset manual
+también limitada. Cada condición tiene métricas disponibles y paired sobre
+intersección idéntica del soporte de todas las condiciones, sin puentes por gaps
+ni circular wrap. Cuenta marcas/candidatos elegibles por condición: mismos
+segundos no implica mismos denominadores. No optimiza offsets ni calcula
+p-values. UI permite JSON de offsets, configuración portable y tabla comparativa.
+10 tests núcleo (incluye soporte fragmentado/empty/invalid), API con child real
+confirma controles congelados, Chrome panel pasa payload/invalid/export.
+17 tests núcleo/worker/API pasan antes de ampliar API a controles; luego 12
+núcleo/API y Chrome pasan con controles. Build TS/Vite pasa. No evidencia
+corporal/humana ni significación; controles elegidos post-hoc son exploratorios.
