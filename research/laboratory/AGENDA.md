@@ -147,3 +147,10 @@ suprimido se consume sin reataque diferido. Missing/gap reinicia historia; no
 imputa ni inventa soporte temporal. Límite 14400 muestras. Controles de prefix
 causal, sostenido, refractario y gaps pasan; falta adapter de features verificadas,
 API/UI configurable, controles y manifest reproducible del banco completo.
+
+
+R03 mark_input.verified_marks comprueba hash/schema/cursor/secuencias y contexto
+explícito fuente/persona/sesión/época/categoría/origen humano. Rechaza mezcla de
+contextos y marcas durante discontinuidad pendiente. Conserva reloj botón/frame;
+no corrige reacción ni certifica autoría. Límite 500 anotaciones. Integra formato
+real del snapshot local; adapter de features y banco web/manifest siguen pendientes.

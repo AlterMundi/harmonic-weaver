@@ -744,3 +744,8 @@ R03 candidatos: 14 tests candidatos/matching pasan. Prueban ausencia de evento
 inicial/held, consumo de cruce durante refractario, rearme bajo después de gaps,
 invariancia causal del prefijo y rechazo de clocks/settings inválidos. No modifica
 activación sonora: extractor sólo en research y aún sin integración web.
+
+
+R03 entrada de marcas: 15 tests mark_input/candidates/matching pasan. Snapshot
+real SessionStore, repetibilidad, cambio de texto/hash, persona distinta y seek
+pendiente cubiertos. Sin datos corporales ni integración de banco/UI.
