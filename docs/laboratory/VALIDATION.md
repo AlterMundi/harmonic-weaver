@@ -825,3 +825,17 @@ rango bloquean ejecución; payload conserva contexto/cursor; export excluye
 contexto, refresh exige reselección y resultado visible. Build TS/Vite pasa.
 API simulada en prueba UI; todavía falta recorrido browser/API/replay real,
 controles temporales y aceptación humana. No cambian defaults del instrumento.
+
+
+R03 integración evaluación→lector real→API→worker: fixture de pose sintética
+produce replay causal local en caché CPU explícita. candidate_snapshot real
+verifica artefactos, unidades/procedencia y excluye control holds. Marcas
+sintéticas ligadas al mismo manifest/cache/generación; no anotación humana real.
+Dos POST HTTP producen exactamente mismos bytes de resultado y coinciden con
+compare_frozen directo (entrada normalizada: límites float, corte explícito).
+Features descargadas iguales al lector. Alterar trace hace fallar otro POST antes
+de crear worker; inventario conserva dos corridas. Tres tests integración/API
+pasan. Se corrigió referencia de prueba: corte omitido y límite int vs float
+son entradas diferentes para hashes; no se relajó el chequeo de igualdad.
+Esta prueba usa TestClient, no browser contra servidor de red ni cuerpo humano.
+Pendientes browser/API real, cancelación concurrente y controles temporales.
