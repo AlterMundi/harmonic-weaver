@@ -218,6 +218,14 @@ rechazo de resoluciones repetidas/no anidadas y reloj/medio/puntos inválidos.
 No declara convergencia al continuo ni usa el último corte como verdad física.
 Pendientes: artifacts reproducibles, API/UI y señales transientes de control.
 
+Vigésimo cuarto corte: `membrane_transfer_run` persiste request/result/manifest
+y verifica inventario, hashes, código y versiones antes de recalcular el banco
+acotado. Rechaza valores reescritos aunque se actualice checksum. Exige mismo
+código/entorno declarado; no promete igualdad entre builds numéricos ni firma
+de custodia. CLI con `--request REQUEST.json --output NUEVA_CARPETA`; no overwrite.
+Ocho pruebas del banco/artifacts pasan, incluyendo repetición y rechazo explícito
+de entorno/código diferentes. API/UI y controles transientes pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
