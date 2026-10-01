@@ -117,3 +117,22 @@ build TS/Vite pasa. Test UI con API simulada; backend lector real/child probado
 separado, recorrido corporal browser→API real todavía pendiente. Endpoints
 no se incorporan aún al JSON portable; fuente/calibración no se transfieren.
 No defaults de audio modificados. Vite propio cerrado.
+
+
+R04 recorrido de entrada corporal browser→HTTP→lector pose→worker pasa con
+fixture de pose sintética real en cache. Chrome elige COCO 7/9, segmento .2–2,
+efectúa dos corridas con bytes idénticos; cuatro contrastes, faltantes y
+relaciones observadas. Snapshot input.json descargado realmente; UI muestra
+persona one/escala/unidad del resultado congelado, no de fuente actual.
+API/lector no mockeados, sin dispositivos ni datos corporales privados.
+Servidor propio cerrado. No evidencia humana ni main/WebSocket completo.
+
+```bash
+npx --prefix laboratory-ui vite build laboratory-ui/tests/r04_harness --outDir /tmp/weaver-r04-body-network-ui --emptyOutDir
+PYTHONPATH=src:tests:../harmonic-shaper-dev/src .venv/bin/python tests/r03_http_fixture.py --root /tmp/weaver-r04-body-fresh-unique --ui /tmp/weaver-r04-body-network-ui --port 8879
+# Otro terminal, desde laboratory-ui:
+LAB_R04_BODY_NETWORK_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/relationalBodyNetwork.spec.ts --reporter=line
+```
+
+Reusa fixture R03 de evaluación/pose, no inputs privados. Root nuevo requerido.
+Extremos portables y controles ampliados de oposición/ruido siguen pendientes.
