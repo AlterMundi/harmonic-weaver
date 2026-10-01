@@ -21,6 +21,17 @@ def test_joined_frozen_comparison_repeats_and_rejects_mixed_inputs(tmp_path):
         assert result==compare_frozen(marks,features,**kwargs)
         assert len(result['comparison']['matches'])==1
         assert result['comparison']['support_duration_s']==.06
+        from harmonic_weaver.lab.cache import atomic_json,sha256_file
+        from harmonic_weaver.lab.research.coincidence import run_frozen
+        for name in ('first','repeat'):
+            folder=tmp_path/name;folder.mkdir()
+            atomic_json(folder/'marks.json',marks);atomic_json(folder/'features.json',features)
+            atomic_json(folder/'request.json',kwargs)
+            manifest=run_frozen(folder)
+            assert manifest['status']=='complete'
+            assert manifest['output']['sha256']==sha256_file(folder/'result.json')
+            with pytest.raises(ValueError,match='already'):run_frozen(folder)
+        assert sha256_file(tmp_path/'first/result.json')==sha256_file(tmp_path/'repeat/result.json')
         changed=deepcopy(features);changed['rows'][0]['value']=2.
         with pytest.raises(ValueError,match='changed'):compare_frozen(marks,changed,**kwargs)
         changed=deepcopy(features);changed['provenance']['source']['person_id']='left'

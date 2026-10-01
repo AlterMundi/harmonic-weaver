@@ -39,3 +39,48 @@ def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,toler
                   'Annotation support is declared; coverage is not inferred from button events',
                   'No temporal controls or significance claim in this preliminary comparison']}
     return {**document,'content_sha256':content_hash(document)}
+
+
+def run_frozen(folder):
+    """Run explicitly prepared local request/marks/features files once."""
+    import fcntl
+    import platform
+    from pathlib import Path
+    from ..cache import atomic_json,sha256_file
+    folder=Path(folder)
+    if folder.is_symlink() or not folder.is_dir():raise ValueError('Local run directory unavailable')
+    with (folder/'worker.lock').open('a+b') as lock:
+        try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError as exc:raise ValueError('R03 worker is active') from exc
+        if (folder/'manifest.json').exists():raise ValueError('Run already contains a manifest; use a fresh directory')
+        names=('request.json','marks.json','features.json')
+        for name in names:
+            if (folder/name).is_symlink() or not (folder/name).is_file():raise ValueError('Frozen input unavailable')
+        hashes={name:sha256_file(folder/name) for name in names}
+        manifest={'schema_version':1,'status':'running','input_hashes':hashes,
+                  'code_hashes':{name:sha256_file(Path(__file__).parent/name) for name in
+                    ('coincidence.py','mark_input.py','event_candidates.py','temporal_match.py','candidate_input.py')},
+                  'python':platform.python_version(),
+                  'limits':['Local frozen comparison; no controls/significance or scientific acceptance']}
+        atomic_json(folder/'manifest.json',manifest)
+        try:
+            request=json.loads((folder/'request.json').read_text())
+            allowed={'feature_sha256','context','mark_support','tolerance_s','mark_offset_s'}
+            if set(request)-allowed:raise ValueError('Unknown R03 request fields')
+            result=compare_frozen(json.loads((folder/'marks.json').read_text()),
+                                 json.loads((folder/'features.json').read_text()),**request)
+            if any(sha256_file(folder/name)!=value for name,value in hashes.items()):
+                raise ValueError('Frozen inputs changed during comparison')
+            atomic_json(folder/'result.json',result)
+            manifest.update(status='complete',output={'file':'result.json','sha256':sha256_file(folder/'result.json')})
+            atomic_json(folder/'manifest.json',manifest)
+            return manifest
+        except Exception as exc:
+            manifest.update(status='failed',error=str(exc));atomic_json(folder/'manifest.json',manifest)
+            raise
+
+
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--folder',required=True)
+    run_frozen(parser.parse_args().folder)

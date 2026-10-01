@@ -768,3 +768,9 @@ R03 contraste integrado preliminar: 17 tests coincidence/mark_input/candidates/
 matching pasan. Snapshot real + features sintéticas, match y soporte esperado,
 repetición exacta, alteración de features y persona incorrecta rechazadas. No
 job persistido, UI, controles temporales ni evidencia corporal todavía.
+
+
+R03 run_frozen: prueba integrada pasa con dos corridas independientes, SHA
+result.json idéntico, output verificado y rechazo de sobrescritura. Inputs
+SQLite/sintéticos preparados localmente. Lock/errores de proceso y API/UI
+requieren cobertura adicional; sin hardware ni datos corporales publicados.

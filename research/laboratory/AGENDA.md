@@ -182,3 +182,13 @@ no se infiere de anotaciones. Resultado conserva inputs/contexto/provenance,
 parámetros/soportes/matches y hash de contenido repetible. 17 controles de núcleos
 pasan, incluido caso integrado sintético. Pendientes worker/persistencia/API/UI,
 controles temporales/soporte pareado y experimento corporal; no ciencia resuelta.
+
+
+R03 corrida local congelada: preparar carpeta nueva con request.json (argumentos
+de compare_frozen), marks.json y features.json. Ejecutar
+`PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.coincidence --folder /ruta/local`.
+Worker lock exclusivo, hashes de entradas antes/después, manifest running/failed/
+complete y result.json con hash. No sobrescribe manifest existente. Registra
+hashes de módulos R03/Python, no fingerprint completo de dependencias. Dos
+directorios sintéticos dan mismo hash resultado. Aún no CLI de preparación,
+worker administrado/API/UI/controles ni interpretación científica.
