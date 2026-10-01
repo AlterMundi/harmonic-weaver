@@ -111,3 +111,52 @@ class Membrane:
         self.sample_index += len(pcm)
         return {'modal_displacement': displacement, 'modal_energy_proxy': energy,
                 'sample_index': self.sample_index}
+
+
+class FieldWindow:
+    """Streaming covariance over one contiguous, explicit sample window.
+
+    Stores modes² values, not frames × spatial points. Start/stop are sample
+    indices on the membrane clock; missing/repeated frames are errors. A new
+    window object is required after resets or discontinuities.
+    """
+    def __init__(self, membrane, start_sample=0):
+        if type(start_sample) is not int or start_sample < 0:
+            raise ValueError('Nonnegative integer start sample required')
+        self.membrane = membrane
+        self.start_sample = start_sample
+        self.stop_sample = start_sample
+        n = len(membrane.indices)
+        self.cross_sum = np.zeros((n, n))
+
+    def append(self, modal_displacement, start_sample):
+        q = np.asarray(modal_displacement, dtype=float)
+        if type(start_sample) is not int or start_sample != self.stop_sample:
+            raise ValueError('Window requires contiguous, nonrepeated sample support')
+        if q.ndim != 2 or q.shape[1] != len(self.membrane.indices) or not np.isfinite(q).all():
+            raise ValueError('Finite frames × retained modes required')
+        if q.size > 8_000_000:
+            raise ValueError('Window block exceeds bounded element budget')
+        cross = q.T @ q
+        if not np.isfinite(cross).all() or not np.isfinite(self.cross_sum + cross).all():
+            raise ValueError('Window covariance exceeds finite numeric range')
+        self.cross_sum += cross
+        self.stop_sample += len(q)
+
+    def report(self, x, y):
+        count = self.stop_sample - self.start_sample
+        if not count:
+            raise ValueError('RMS requires nonempty temporal support')
+        shapes = self.membrane.shapes(x, y)
+        if shapes.size > 8_000_000:
+            raise ValueError('Spatial projection exceeds bounded element budget')
+        squared = np.einsum('pi,ij,pj->p', shapes, self.cross_sum/count, shapes)
+        # Covariance is positive semidefinite; canceling modes may introduce
+        # tiny negative roundoff. Never normalize spatial magnitude.
+        rms = np.sqrt(np.maximum(squared, 0.))
+        sr = self.membrane.settings.sample_rate
+        return {'start_sample': self.start_sample, 'stop_sample_exclusive': self.stop_sample,
+                'sample_count': count, 'sample_rate': sr,
+                'first_output_time_s': (self.start_sample+1)/sr,
+                'last_output_time_s': self.stop_sample/sr,
+                'rms': rms}

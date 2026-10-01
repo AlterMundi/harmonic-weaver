@@ -35,6 +35,14 @@ cancelación entre modos, bordes exactamente nulos y rechazo del render antes de
 alterar estado. Falta el acumulador de ventanas con procedencia y selección causal
 desde archivos verificados: estos métodos no infieren reloj ni gaps por sí solos.
 
+Tercer corte: `FieldWindow` acumula covarianza modal en memoria acotada por
+modos² y proyecta RMS sin almacenar cada superficie. Registra inicio/fin de
+muestras y tiempos de salida, rechaza gaps/duplicados y entradas no finitas
+sin alterar el acumulador. Ocho pruebas pasan; equivalencia con RMS directo
+usa tolerancia numérica, no promete igualdad binaria entre particiones de la
+suma matricial. Los índices son declarados por el llamador: no certifican por
+sí mismos procedencia del PCM, ausencia de un reset externo ni reloj físico.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

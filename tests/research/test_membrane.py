@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from harmonic_weaver.lab.research.membrane import Membrane, Settings
+from harmonic_weaver.lab.research.membrane import Membrane, Settings, FieldWindow
 
 
 def test_mode_frequency_boundaries_and_nodes():
@@ -66,3 +66,32 @@ def test_field_contract_and_render_budget_precede_state_changes():
     with pytest.raises(ValueError): model.field([[0]], [.5], [.5])
     with pytest.raises(ValueError): model.field_rms(np.zeros((0, 256)), [.5], [.5])
     with pytest.raises(ValueError): model.shapes([-.1], [.5])
+
+
+def test_streaming_window_matches_direct_field_and_declares_clock():
+    model = Membrane(Settings(sample_rate=8000))
+    q = model.render(np.sin(np.arange(1000)*.07))['modal_displacement']
+    window = FieldWindow(model, start_sample=200)
+    window.append(q[:317], 200)
+    window.append(q[317:], 517)
+    x, y = [.1, .4, .8, 0], [.2, .6, .9, 1]
+    result = window.report(x, y)
+    np.testing.assert_allclose(result['rms'], model.field_rms(q, x, y), rtol=1e-12, atol=1e-18)
+    assert result['sample_count'] == 1000
+    assert result['stop_sample_exclusive'] == 1200
+    assert result['first_output_time_s'] == 201/8000
+    assert result['last_output_time_s'] == 1200/8000
+
+
+def test_window_rejects_gaps_duplicates_nonfinite_without_mutation():
+    model = Membrane(Settings(modes_x=1, modes_y=1))
+    window = FieldWindow(model)
+    with pytest.raises(ValueError): window.report([.5], [.5])
+    window.append([[1.]], 0)
+    before = window.cross_sum.copy()
+    for q, start in (([[1.]], 0), ([[1.]], 2), ([[np.nan]], 1), ([[1e308]], 1)):
+        with np.errstate(over='ignore', invalid='ignore'):
+            with pytest.raises(ValueError): window.append(q, start)
+        np.testing.assert_array_equal(window.cross_sum, before)
+        assert window.stop_sample == 1
+    with pytest.raises(ValueError): FieldWindow(model, True)
