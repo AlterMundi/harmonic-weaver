@@ -1,5 +1,5 @@
 import {useState} from "react";
-export function MovementMarks({api,run,sourceId,personId}:{sourceId?:string;personId?:string;api:(path:string,body:unknown)=>Promise<unknown>;run:(action:()=>Promise<void>)=>unknown}){
+export function MovementMarks({api,run,sourceId,personId,currentSessionId,observedEpoch}:{currentSessionId?:string;observedEpoch?:number|null;sourceId?:string;personId?:string;api:(path:string,body:unknown)=>Promise<unknown>;run:(action:()=>Promise<void>)=>unknown}){
  const [mark,setMark]=useState("");
  const [markCategory,setMarkCategory]=useState("note");
  const [start,setStart]=useState("");const [end,setEnd]=useState("");
@@ -37,6 +37,7 @@ export function MovementMarks({api,run,sourceId,personId}:{sourceId?:string;pers
             Guardar marca
           </button>
  <a href="/api/marks/snapshot" download>Descargar marcas congeladas</a>
+ <button disabled={!currentSessionId || observedEpoch==null || observedEpoch<0} onClick={()=>{setSessionFilter(currentSessionId!);setEpochFilter(String(observedEpoch));}}>Usar sesión y época observadas actuales</button>
  <label>Sesión de las marcas (opcional)<input value={sessionFilter} onChange={e=>setSessionFilter(e.target.value)}/></label>
  <label>Época observada (requiere sesión)<input type="number" min="0" step="1" value={epochFilter} onChange={e=>setEpochFilter(e.target.value)}/></label>
  <label>Inicio de selección de marcas (s)<input type="number" min="0" step=".01" value={start} onChange={e=>setStart(e.target.value)}/></label>

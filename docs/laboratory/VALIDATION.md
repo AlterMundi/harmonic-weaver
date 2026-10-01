@@ -711,3 +711,10 @@ session_id explícito, entero no negativo; selección distinta vacía, marcas
 sin época no se reinterpretan. Web ofrece campos opcionales; interacción de
 estos campos pendiente. Valores pueden consultarse en el JSON descargado, no
 son identidad biométrica ni onset físico.
+
+
+Selector de época actual: runtime snapshot expone observed_epoch del último
+tick, distinto del epoch de transporte. Botón explícito copia sesión/época al
+filtro, no las sigue automáticamente ni guarda/inicia análisis. Chrome verifica
+valores/query y ausencia de llamadas. 7 tests runtime, Chrome y build pasan.
+No observado => botón deshabilitado; interacción humana completa pendiente.

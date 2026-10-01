@@ -375,7 +375,7 @@ class LaboratoryRuntime:
                     "features":self.features.model_dump() if self.features else None,
                     "calibration":self.calibration.model_dump() if self.calibration else None,
                     "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
-                               "epoch":self.transport.epoch, "diagnostic":self.diagnostic,
+                               "epoch":self.transport.epoch, "observed_epoch":self.epoch if self.epoch>=0 else None, "diagnostic":self.diagnostic,
                                "selection_status":self.selection_status}, **self.audio.snapshot()}
 
     def close(self):

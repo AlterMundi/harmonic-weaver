@@ -1459,7 +1459,7 @@ function App() {
               );
             })}
           </div>
-          <MovementMarks api={api} run={run} sourceId={session.source_id} personId={session.person_id}/>
+          <MovementMarks api={api} run={run} sourceId={session.source_id} personId={session.person_id} currentSessionId={session.session_id} observedEpoch={state.runtime?.observed_epoch}/>
           <details>
             <summary>Diagnóstico del modelo</summary>
             <pre>{JSON.stringify(state.features?.diagnostics, null, 2)}</pre>

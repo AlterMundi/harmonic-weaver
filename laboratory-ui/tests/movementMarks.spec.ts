@@ -10,7 +10,7 @@ test('marks require explicit save and preserve text after failure',async({page})
  import {MovementMarks} from '/src/MovementMarks.tsx';
  window.calls=[];window.fail=false;
  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(MovementMarks,{
- sourceId:'source A',personId:'right',api:async(path,body)=>{window.calls.push({path,body});if(window.fail)throw Error('synthetic');},run:fn=>fn().catch(()=>{})}));
+ sourceId:'source A',personId:'right',currentSessionId:'current-session',observedEpoch:4,api:async(path,body)=>{window.calls.push({path,body});if(window.fail)throw Error('synthetic');},run:fn=>fn().catch(()=>{})}));
  `});
  const download=page.getByRole('link',{name:'Descargar marcas de esta fuente y persona'});
  await page.getByLabel('Inicio de selección de marcas (s)').fill('1');
@@ -20,6 +20,11 @@ test('marks require explicit save and preserve text after failure',async({page})
  await page.getByLabel('Fin de selección de marcas (s, excluido)').fill('0');
  await expect(download).toHaveCount(0);await expect(page.getByRole('alert')).toBeVisible();
  await page.getByLabel('Fin de selección de marcas (s, excluido)').fill('3');
+ await page.getByRole('button',{name:'Usar sesión y época observadas actuales'}).click();
+ await expect(page.getByLabel('Sesión de las marcas (opcional)')).toHaveValue('current-session');
+ await expect(page.getByLabel('Época observada (requiere sesión)')).toHaveValue('4');
+ await expect(download).toHaveAttribute('href',/session_id=current-session&observed_epoch=4/);
+ expect(await page.evaluate(()=>(window as any).calls)).toEqual([]);
  const save=page.getByRole('button',{name:'Guardar marca'});
  await expect(save).toBeDisabled();
  await expect(page.getByLabel('Tipo de marca')).toHaveValue('note');
