@@ -625,3 +625,14 @@ symlinks del root/índice/imágenes y cambios de contenido; no copia imágenes.
 FFmpeg, fotograma azul y PCM exacto, y rechazo posterior de JPEG alterado. Build
 pasa. Captura sigue recovered_partial y gaps siguen negros. Cámara física,
 sincronía medida y preview integrada de prefijos permanecen pendientes.
+
+
+## Preview de cámara recuperada — 2026-09-30
+
+14 pruebas export pasan. El caso de cámara parcial genera también MP4 H.264/AAC
+y conserva PCM exacto en MKV. Chrome CapturePanel consume ese mismo MP4 sintético
+(vía fixture local), verifica readyState, avance currentTime, cierre y aviso de
+captura parcial. El primer intento descubrió un selector de prueba ambiguo entre
+el aviso de exportación y prefijo PCM; se corrigió con coincidencia de inicio.
+No prueba el recorrido completo API/server ni cámara real/sincronía física.
+Artefactos sintéticos en /tmp/weaver-prefix-preview-validation, fuera del repo.

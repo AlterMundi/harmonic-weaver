@@ -183,7 +183,12 @@ def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path,partial):
         manifest['recovery']={'result':{'status':'recovered','capture_id':'confirmed','directory':str(pcm),
           'recovered_samples':len(samples),'hashes':{name:sha256_file(pcm/name) for name in ('audio.wav','blocks.jsonl')}},
           'journal':recover_journal(folder),'camera':recover_camera(folder)}
-    result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s','recovered_prefix':partial})
+    result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s','recovered_prefix':partial,'browser_preview':partial})
+    if partial:
+        assert result['capture_completeness']=='recovered_partial'
+        assert result['preview']['status']=='complete'
+        streams=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-of','json',str(tmp_path/'export/preview.mp4')]))['streams']
+        assert {stream['codec_name'] for stream in streams}=={'h264','aac'}
     assert result['status']=='complete' and result['frames']==10 and not result['gaps']
     decoder=cv2.VideoCapture(str(tmp_path/'export'/'capture.mkv'));ok,image=decoder.read();decoder.release()
     assert ok and image[:,:,0].mean()>200 and image[:,:,2].mean()<20

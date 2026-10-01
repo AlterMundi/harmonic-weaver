@@ -16,7 +16,7 @@ test('explicit capture controls preserve settings, show failures and do not star
       window.captureCalls.push({path,body});
       if(path==='capture-recovery')return recovery;
       if(path==='capture-exports')return {status:'idle'};
-      if(path==='capture-exports/jobs')return [{id:'export',status:'complete',preview:{status:'complete'}}];
+      if(path==='capture-exports/jobs')return [{id:'export',status:'complete',capture_completeness:'recovered_partial',preview:{status:'complete'}}];
       if(path==='captures/interrupted/recover'){recovery={status:'recovered',result:{directory:'/synthetic/recovery',recovered_samples:256},journal:{directory:'/synthetic/journal',files:{'events.jsonl':{rows:2},'timeline.jsonl':{rows:3}}}};return recovery;}
       if(path==='captures/test/export')return {status:'rendering',frames:0};
       if(path==='captures/start')state={current:{status:'recording'},jobs:[]};
@@ -35,6 +35,7 @@ test('explicit capture controls preserve settings, show failures and do not star
   await page.waitForTimeout(600);
   expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports','capture-exports/jobs','capture-recovery'].includes(x.path)))).toBe(true);
   await expect(page.getByLabel('Grabar preview de cámara durante esta captura')).not.toBeChecked();
+  await expect(page.getByText('Exportación de prefijo recuperado:',{exact:false})).toContainText('captura parcial');
   await expect(page.locator('video')).toHaveCount(0);
   if(process.env.LAB_CAPTURE_PREVIEW){
     await page.route('**/api/capture-exports/export/artifacts/preview.mp4',r=>r.fulfill({contentType:'video/mp4',body:readFileSync(process.env.LAB_CAPTURE_PREVIEW!)}));
@@ -65,7 +66,7 @@ test('explicit capture controls preserve settings, show failures and do not star
   expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/test/export').body)).toEqual({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'captured_monotonic_s',browser_preview:true,preview_audio_kbps:128});
   await page.getByRole('button',{name:'Recuperar audio interrup'}).click();
   expect(await page.evaluate(()=>(window as any).captureCalls.some((x:any)=>x.path==='captures/interrupted/recover'))).toBe(true);
-  await expect(page.getByText('Prefijo recuperado:',{exact:false})).toContainText('256 muestras');
+  await expect(page.getByText(/^Prefijo recuperado:/)).toContainText('256 muestras');
   await expect(page.getByText('Bitácora parcial:',{exact:false})).toContainText('2 eventos · 3 observaciones');
   await page.evaluate(()=>(window as any).prefixHistory());
   await page.getByRole('button',{name:'Exportar prefijo recuperado interrup'}).click();
