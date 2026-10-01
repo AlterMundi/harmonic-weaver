@@ -53,3 +53,22 @@ al medio vigente. Resolución de source queda a cargo de biblioteca/API posterio
 no se guarda ruta privada en artifacts. Prueba con MP4 sintético real pasa:
 dos revisiones/lineage/restauración/rebind, IDs/rutas inválidos, report alterado
 y medio modificado rechazados. UI/API y anotaciones humanas aún pendientes.
+
+### Corte 5: biblioteca y API
+
+`GET /api/research/r08` recupera revisiones verificadas. Con runtime,
+`POST /api/research/r08/probe` recibe `{media_id}` de la biblioteca y devuelve
+hash, dimensiones y reloj decodificado. `POST /api/research/r08` recibe
+`{media_id, annotation, parent_id?}`; `POST /api/research/r08/{id}/rebind`
+recibe `{media_id}` y comprueba el archivo actual. Los cuatro artefactos se
+obtienen mediante `/api/research/r08/{id}/artifacts/{name}`. No se aceptan
+rutas HTTP arbitrarias ni se copia el video. Un runtime ausente permite
+consultar revisiones, pero no crear vínculos nuevos. No se infiere persona,
+calibración ni profundidad.
+
+Verificación: seis tests de contratos, medios, persistencia, servicio y API
+pasaron con MP4 sintético; incluye restauración entre instancias, linaje,
+rechazo de rutas/campos extra, whitelist y cambio del archivo fuente.
+Pendiente: editor web, asistencia de extracción y anotaciones humanas.
+El probe síncrono tiene timeout de 60 s; la lectura masiva de frames deberá
+migrar a trabajo observable antes de ofrecer análisis de videos largos.

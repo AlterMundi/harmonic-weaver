@@ -23,6 +23,8 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.rope_service import RopeService
+from .research.rope_annotations import Annotation as RopeAnnotation
 from .research.membrane_service import MembraneService
 from .research.membrane_transfer_service import TransferService
 from .research.membrane_controls_service import ControlService
@@ -146,6 +148,16 @@ class MembraneConfig(Contract):
     playback:MembranePlayback=Field(default_factory=MembranePlayback)
 
 
+class RopeSave(Contract):
+    media_id: str
+    annotation: RopeAnnotation
+    parent_id: str | None = None
+
+
+class RopeBinding(Contract):
+    media_id: str
+
+
 class MembraneStart(Contract):
     source_run_id:str
     settings:MembraneRequest
@@ -204,6 +216,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
+    rope = RopeService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -268,6 +281,31 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         if runtime is not None:
             state.update(runtime.snapshot())
         return state
+
+    def rope_media_path(ident):
+        if runtime is None:
+            raise ValueError('Video library requires the laboratory runtime')
+        return runtime.library.path(ident)
+
+    @app.get('/api/research/r08')
+    def rope_revisions():return rope.list()
+
+    @app.post('/api/research/r08/probe')
+    def rope_probe(body:RopeBinding):
+        from .research.rope_media import probe
+        return probe(rope_media_path(body.media_id))
+
+    @app.post('/api/research/r08')
+    def rope_save(body:RopeSave):
+        return rope.save(body.annotation,rope_media_path(body.media_id),parent_id=body.parent_id)
+
+    @app.post('/api/research/r08/{ident}/rebind')
+    def rope_rebind(ident:str,body:RopeBinding):
+        return rope.rebind(ident,rope_media_path(body.media_id))
+
+    @app.get('/api/research/r08/{ident}/artifacts/{name}')
+    def rope_artifact(ident:str,name:str):
+        return FileResponse(rope.artifact(ident,name),filename=name)
 
     @app.get("/api/state")
     def state():
