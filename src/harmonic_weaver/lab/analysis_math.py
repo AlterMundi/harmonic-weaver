@@ -60,12 +60,19 @@ class RelativeMode:
         self.previous = None
 
     def push(self, t, velocity):
-        if velocity is None:
+        invalid_time = type(t) not in (int, float) or not math.isfinite(t) or t < 0
+        invalid_velocity = velocity is None
+        if not invalid_velocity:
+            try:
+                velocity = np.asarray(velocity, dtype=float)
+                invalid_velocity = velocity.shape != (2,) or not np.isfinite(velocity).all()
+            except (TypeError, ValueError):
+                invalid_velocity = True
+        if invalid_time or invalid_velocity:
             self.history.clear()
             self.previous = None
             self.slope.clear()
-            return {"state": "missing", "reason": "missing relationship"}
-        velocity = np.asarray(velocity)
+            return {"state": "missing", "reason": "invalid relationship time" if invalid_time else "missing or invalid relationship"}
         if self.history and (t <= self.history[-1][0] or t-self.history[-1][0] > self.settings.max_gap_s):
             self.history.clear()
             self.previous = None

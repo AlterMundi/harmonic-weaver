@@ -886,3 +886,13 @@ LAB_R03_NETWORK_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwrig
 Root de fixture debe ser nuevo (no sobreescribe); Ctrl+C cierra servicio y
 workers propios. Prueba exige endpoint de fixture explícito, no usa lab del
 usuario por defecto. Aún pendiente experimento humano y agenda científica R03.
+
+
+R04 prerrequisito (2026-09-30): RelativeMode de producción valida reloj finito
+no negativo y vector 2D finito antes de actualizar historia. Faltante/vector
+no válido/tiempo inválido limpian historia, anterior y derivador; no propagan
+NaN a observaciones posteriores. Nueve casos inválidos se recuperan tras
+warmup fresco; 11 tests existentes modelos/matemática pasan. Sin cambios de
+defaults ni síntesis; no prueba interferencia física, técnica ni HIT. Próximo:
+banco R04 usando este mismo estimador y controles de rotación/inversión/
+oposición, con configuraciones y evidencia reproducibles.
