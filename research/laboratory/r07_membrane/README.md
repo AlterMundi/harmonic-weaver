@@ -257,6 +257,14 @@ núcleo/artifacts pasan, incluyendo dos corridas idénticas y request inválido
 sin crear carpeta. Worker cancelable y API/UI pendientes; verificación exacta
 es del entorno registrado, no una promesa de paridad numérica entre builds.
 
+Vigésimo noveno corte: worker flock y ControlService propietario separado
+R07-CONTROLS. Publica copia JSON del resultado interno verificado con hash y
+request congelados; conserva artifacts internos para recálculo al descargar.
+Comparación de requests normalizada por contrato permite defaults int/float
+equivalentes sin relajar bools. Dos pruebas de subprocess real pasan: repetición,
+restauración/tamper y cancelación de cálculo ya running. API/UI y kill durante
+promoción de este banco pendientes; no toca audio/percepción live.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
