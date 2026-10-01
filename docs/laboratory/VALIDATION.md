@@ -730,3 +730,11 @@ R03 matching temporal: 7 tests sintéticos pasan (one-to-one, mínimo lag, sopor
 común/gaps/extremo excluido, offset declarado, repetición y vacíos/invalidación).
 Sin datos corporales ni cambio del instrumento. Integración API/UI y estudio
 con anotaciones/candidatos reales pendientes.
+
+
+R03 emparejamiento — 9 tests pasan. Control de soporte contiguo detectó borde
+artificial: intervalos adyacentes ahora se unen sin inventar gap; gaps reales
+siguen bloqueados. Un oracle exhaustivo independiente enumera asignaciones
+para 64 pares de conjuntos de hasta 3 eventos y confirma cardinalidad máxima
+y costo absoluto mínimo, sin suponer orden monótono en el oracle. Esto verifica
+el núcleo, no candidatos corporales, UI, protocolo científico ni intención.

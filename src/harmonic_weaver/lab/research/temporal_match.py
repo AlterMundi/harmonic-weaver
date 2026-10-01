@@ -12,7 +12,8 @@ def intervals(values):
         if not finite(start) or not finite(end) or start<0 or end<=start:
             raise ValueError('Invalid support interval')
         if result and start<result[-1][1]:raise ValueError('Support must be ordered and nonoverlapping')
-        result.append((start,end))
+        if result and start==result[-1][1]:result[-1]=(result[-1][0],end)
+        else:result.append((start,end))
     return result
 
 
