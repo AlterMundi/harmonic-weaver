@@ -74,10 +74,34 @@ class Membrane:
         self.state.fill(0)
         self.sample_index = 0
 
+    def field(self, modal_displacement, x, y):
+        """Frames × paired points; no scaling, clipping or normalization."""
+        q = np.asarray(modal_displacement, dtype=float)
+        if q.ndim != 2 or q.shape[1] != len(self.indices) or not np.isfinite(q).all():
+            raise ValueError('Finite frames × retained modes required')
+        shapes = self.shapes(x, y)
+        if q.size + shapes.size + len(q)*len(shapes) > 8_000_000:
+            raise ValueError('Field projection exceeds bounded element budget')
+        return q @ shapes.T
+
+    def field_rms(self, modal_displacement, x, y):
+        """RMS over exactly these contiguous, equally spaced sample frames.
+
+        Includes cross-mode covariance; summing per-mode RMS loses
+        interference. Empty support is invalid, never a silent zero field.
+        Caller must retain sample-clock/window provenance.
+        """
+        field = self.field(modal_displacement, x, y)
+        if not len(field):
+            raise ValueError('RMS requires nonempty temporal support')
+        return np.sqrt(np.mean(field**2, axis=0))
+
     def render(self, pcm):
         pcm = np.asarray(pcm, dtype=float)
         if pcm.ndim != 1 or not np.isfinite(pcm).all() or len(pcm) > self.settings.sample_rate*120:
             raise ValueError('Finite mono PCM, at most 120 seconds per call')
+        if len(pcm)*(len(self.indices)+1) > 8_000_000:
+            raise ValueError('Render exceeds bounded element budget; use smaller blocks')
         displacement = np.empty((len(pcm), len(self.indices)))
         energy = np.empty(len(pcm))
         for i, force in enumerate(pcm):

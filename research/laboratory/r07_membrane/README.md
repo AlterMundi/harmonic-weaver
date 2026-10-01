@@ -25,6 +25,16 @@ sin amortiguación a fuerza constante, decaimiento pasivo, igualdad exacta al
 particionar bloques, reset y rechazo sin alterar estado. Cuatro pruebas:
 `PYTHONPATH=src .venv/bin/python -m pytest tests/research/test_membrane.py -q`.
 
+Segundo corte: `field` suma todos los modos en puntos normalizados declarados;
+`field_rms` mide RMS sobre las muestras contiguas entregadas, incluyendo términos
+cruzados de interferencia. No normaliza ni recorta la figura. Soporte vacío se
+rechaza. No es un promedio de amplitudes modales ni una figura de arena.
+Render/proyección tienen presupuesto de ocho millones de elementos por llamada;
+usar bloques menores para recorridos largos. Seis pruebas pasan, incluyendo
+cancelación entre modos, bordes exactamente nulos y rechazo del render antes de
+alterar estado. Falta el acumulador de ventanas con procedencia y selección causal
+desde archivos verificados: estos métodos no infieren reloj ni gaps por sí solos.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

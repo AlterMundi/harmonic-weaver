@@ -41,3 +41,28 @@ def test_invalid_input_does_not_advance_state():
     assert model.sample_index == 0 and not model.state.any()
     with pytest.raises(ValueError): Settings(width_m=.0001)
     with pytest.raises(ValueError): Settings(modes_x=True)
+
+
+def test_field_rms_preserves_interference_and_exact_boundary():
+    model = Membrane(Settings(modes_x=2, modes_y=1))
+    x, y = [.25, 0, 1], [.5, .5, .5]
+    shapes = model.shapes(x, y)
+    # Opposite modal contributions cancel at this interior point.
+    q = np.tile([1., -shapes[0, 0]/shapes[0, 1]], (20, 1))
+    field = model.field(q, x, y)
+    np.testing.assert_allclose(field, 0., atol=1e-15)
+    np.testing.assert_allclose(model.field_rms(q, x, y), 0., atol=1e-15)
+    q[:, 1] *= -1
+    assert model.field_rms(q, x, y)[0] == pytest.approx(2*shapes[0, 0])
+    assert not model.field(q, x, y)[:, 1:].any()
+
+
+def test_field_contract_and_render_budget_precede_state_changes():
+    model = Membrane(Settings(modes_x=16, modes_y=16))
+    with pytest.raises(ValueError, match='budget'):
+        model.render(np.zeros(32000))
+    assert model.sample_index == 0 and not model.state.any()
+    with pytest.raises(ValueError): model.field([[np.nan]*256], [.5], [.5])
+    with pytest.raises(ValueError): model.field([[0]], [.5], [.5])
+    with pytest.raises(ValueError): model.field_rms(np.zeros((0, 256)), [.5], [.5])
+    with pytest.raises(ValueError): model.shapes([-.1], [.5])
