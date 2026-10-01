@@ -1,3 +1,4 @@
+import {RelationalBodyPanel} from './RelationalBodyPanel';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 const fields:[string,string,number,number,number][]=[
@@ -23,6 +24,7 @@ export function RelationalPanel({api,run}:Data){
   <button onClick={()=>setText(JSON.stringify(settings,null,2))}>Exportar configuración R04</button>
   <textarea aria-label="Configuración R04 JSON" value={text} onChange={e=>setText(e.target.value)}/>
   <button onClick={()=>run(async()=>{const value=JSON.parse(text);if(!value || Array.isArray(value) || Object.keys(value).some(k=>!(k in defaults)))throw Error('Configuración R04 inválida');const next={...defaults,...value};if(!valid(next))throw Error('Parámetros R04 fuera de rango');setSettings(next);})}>Importar configuración R04</button>
+  <RelationalBodyPanel api={api} run={run} settings={settings} settingsValid={valid(settings)} active={busy || jobs.some(j=>['queued','running'].includes(j.status))} onStarted={async()=>setJobs(await api('research/r04'))}/>
   {jobs.map(j=><div key={j.id}><p>{j.id} · {j.status} · {j.error || ''}</p>{['queued','running'].includes(j.status) && <button onClick={()=>run(async()=>{await api(`research/r04/${j.id}/cancel`,{});setJobs(await api('research/r04'));})}>Cancelar R04 {j.id}</button>}{j.status==='complete' && <><button onClick={()=>run(async()=>{const value=await api(`research/r04/${j.id}/artifacts/result.json`);setResult(value);setTrace(Object.keys(value.traces)[0]);setSample(0);})}>Ver resultado R04 {j.id}</button>{['request.json','result.json','manifest.json'].map(name=><a key={name} href={`/api/research/r04/${j.id}/artifacts/${name}`}>{name} </a>)}</>}</div>)}
   {result && <><label>Traza R04<select value={trace} onChange={e=>{setTrace(e.target.value);setSample(0);}}>{Object.keys(result.traces).map(k=><option key={k} value={k}>{k}</option>)}</select></label>
    <label>Muestra de traza R04<input type="range" min={0} max={Math.max(0,rows.length-1)} value={sample} onChange={e=>setSample(+e.target.value)}/></label>

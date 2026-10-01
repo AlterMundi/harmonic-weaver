@@ -987,3 +987,15 @@ worker/servicio pasan: replay sintético real, dos children con SHA idéntico
 y mismo resultado directo, invariancia numérica, HTTP con lector real.
 Panel corporal R04 y recorrido browser siguen pendientes. No ejecución corporal
 humana nueva ni calibración transferida/audio cambiado.
+
+
+R04 selección corporal web: comparación/run, COCO proximal/distal, segmento
+configurables con persona/escala/procedencia congeladas visibles. Usa settings
+relacionales de panel principal, samples/hz no aplican a pose. Bloquea ausencia
+de calibración explícita, extremos idénticos y límites fuera de segmento.
+No transfiere calibración ni ejecuta al editar. Chrome dos tests panel/panel
+corporal pasan payload seleccionado, bloqueos e import/export existentes;
+build TS/Vite pasa. Test UI con API simulada; backend lector real/child probado
+separado, recorrido corporal browser→API real todavía pendiente. Endpoints
+no se incorporan aún al JSON portable; fuente/calibración no se transfieren.
+No defaults de audio modificados. Vite propio cerrado.

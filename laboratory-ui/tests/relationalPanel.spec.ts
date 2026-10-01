@@ -11,6 +11,7 @@ test('R04 edits freeze settings, portable configuration and missing trace stays 
  window.calls=[];
  const api=async(path,body)=>{
  if(body){window.calls.push({path,body});return {id:'job'};}
+ if(path==='evaluations')return [];
  if(path==='research/r04')return [{id:'job',status:'complete'}];
  return {traces:{'shared/original':[{time_s:0,parent_velocity:[1,0],child_velocity:[1,0],relative:{state:'missing',reason:'warming relationship'}}]},limits:['Synthetic only']};
  };
