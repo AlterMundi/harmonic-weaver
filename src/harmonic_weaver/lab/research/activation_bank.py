@@ -13,6 +13,7 @@ from .resonators import Settings as Medium,Resonators
 class Settings(Contract):
     medium:Medium=Field(default_factory=Medium)
     medium_controls:list[Medium]|None=Field(default=None,min_length=1,max_length=4)
+    interval_shuffle:bool=False
     event_count:int=Field(default=8,ge=4,le=32)
     excitation_span_s:Number=Field(default=1,ge=.05,le=5)
     tail_s:Number=Field(default=.5,ge=0,le=10)
@@ -25,6 +26,7 @@ class Settings(Contract):
     def portable(self,handler):
         value=handler(self)
         if self.medium_controls is None:value.pop('medium_controls',None)
+        if not self.interval_shuffle:value.pop('interval_shuffle',None)
         return value
 
     @model_validator(mode='after')
@@ -50,6 +52,11 @@ def schedules(settings):
         indices=sorted(math.floor(float(t)*span) for t in values)
         if len(set(indices))!=n:raise ValueError('Quantized schedule collisions; change span/count/seed')
         result[name]=indices
+    if settings.interval_shuffle:
+        for index,(name,indices) in enumerate(list(result.items())):
+            rng=np.random.default_rng(np.random.SeedSequence([settings.seed,606,index]))
+            gaps=rng.permutation(np.diff(indices))
+            result[name+'_interval_shuffle']=[0]+np.cumsum(gaps).tolist()
     return result
 
 
@@ -99,6 +106,10 @@ def probe(settings):
     base=settings.model_copy(update={'medium_controls':None})
     report=_probe_one(base)
     report['settings']=settings.model_dump()
+    if settings.interval_shuffle:
+        report['limits']+=['Optional interval shuffles preserve event count, dose, first/last event and exact digital inter-event interval multiset',
+                           'Shuffles alter interval order, not interval histogram; do not preserve spectrum or higher-order temporal structure',
+                           'Seeded permutations can be identical to the original, especially the uniform rational grid; no conditioning to force a difference']
     if settings.medium_controls is not None:
         controls=[]
         for index,medium in enumerate(settings.medium_controls):

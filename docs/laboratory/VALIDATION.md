@@ -1742,3 +1742,21 @@ label implícito del textarea de controles; se agregaron aria-labels explícitos
 a JSON fields y se repitió sobre el mismo servidor, luego apagado.
 Sin cuerpos, audio/hardware o escucha humana. Variaciones de medio son controles
 de modelo, no evidencia de privilegio phi/HIT ni eficiencia fisiológica.
+
+## R06: surrogates de intervalos — 2026-10-01
+
+interval_shuffle bool opcional, default false/omitido, agrega permutación de
+inter-event gaps por calendario mediante stream SeedSequence(seed,606,index).
+Preserva multiset digital de gaps, count/dose, primero/último y reloj, sin cambiar
+random original ni condicionar permutaciones a diferencia. Uniforme puede quedar
+idéntico. Se aplica también a medios de control con los mismos calendarios.
+No preserva espectro o estructura temporal superior; una semilla no da p-value.
+
+Corrida inicial: 22 tests R06 pasan (6.91 s). Chrome HTTP real pasa (6.0 s):
+checkbox/export/import, ocho filas de calendario/contraste de medio, dos workers
+con results byte-idénticos, trace de phi_interval_shuffle y reload. Build pasa.
+Servidor propio apagado; sin escucha/cuerpos/hardware. Corrida final ampliada con
+verificador de surrogates y bool estricto registrada abajo.
+
+Corrida final: 24 tests R06 pasan (7.16 s), incluidos rechazos de eventos/inventario
+surrogate alterados aun con hashes reescritos y interval_shuffle no booleano.

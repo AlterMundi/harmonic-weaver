@@ -61,3 +61,18 @@ def test_medium_controls_preserve_schedule_dose_and_report_declared_differences(
     for controls in [[],[{'sample_rate':16000}],[{'sample_rate':8000,'fundamental_hz':50}]]:
         with pytest.raises(ValueError):Settings.model_validate(config(medium_controls=controls))
     assert 'medium_controls' not in Settings.model_validate(config()).model_dump()
+
+
+def test_interval_surrogates_preserve_exact_gaps_support_and_dose_without_forcing_change():
+    settings=config(interval_shuffle=True);events=schedules(settings)
+    assert len(events)==8 and events==schedules(settings)
+    for name in ['rational','phi','sqrt2','random']:
+        base=events[name];surrogate=events[name+'_interval_shuffle']
+        assert len(base)==len(surrogate) and base[0]==surrogate[0] and base[-1]==surrogate[-1]
+        assert sorted(np.diff(base))==sorted(np.diff(surrogate))
+        assert all(a<b for a,b in zip(surrogate,surrogate[1:]))
+    assert events['rational']==events['rational_interval_shuffle']
+    report=probe(settings)
+    assert report['conditions']['rational']==report['conditions']['rational_interval_shuffle']
+    assert all(c['input_squared_norm']==pytest.approx(8) for c in report['conditions'].values())
+    assert 'interval_shuffle' not in Settings.model_validate(config()).model_dump()

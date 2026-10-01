@@ -75,3 +75,13 @@ defecto y campo omitido preservan formato previo. 21 tests + Chrome real y build
 pasan. Control idéntico replica base; diferencias no indican efficacy/HIT.
 Referencia anterior verificable. Pendientes controles temporales más comparables,
 múltiples semillas como banco, hipótesis/observables y protocolos físicos/humanos.
+
+R06 — permutación temporal con gaps preservados (2026-10-01): interval_shuffle
+opcional genera cuatro surrogates seeded, sin alterar el stream random original.
+Preserva multiset exacto de gaps, dosis, count, primer/último evento y clock;
+no conserva espectro/autocorrelación de orden superior. No condiciona RNG para
+forzar diferencias; grilla uniforme puede ser idéntica. UI/preset/tabla/selector
+incluyen ocho condiciones y funcionan con medium_controls. Verificador reconstruye
+calendarios y soporte. Campo false omitido conserva formato anterior.
+Pendientes bancos de múltiples semillas, controles de fase/espectro cuando se
+definan observables, hipótesis HIT explícitas y protocolos físicos/humanos.

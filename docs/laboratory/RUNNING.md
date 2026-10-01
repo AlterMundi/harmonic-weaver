@@ -335,3 +335,13 @@ medios R06»: valores raw y diferencias control menos base para cada calendario.
 «Medio de traza R06» permite inspeccionar base o cada control, con el mismo reloj,
 eventos y dosis. Los resultados siguen congelados aunque se editen controles.
 No son un ranking de eficacia; cambiar el medio modifica su respuesta esperable.
+
+R06: «Permutar intervalos R06» agrega un surrogate por cada calendario: reordena
+los intervalos entre impulsos mediante una permutación seeded. Conserva exactamente
+su multiset digital, cantidad/dosis y primer/último evento. Hay ocho condiciones
+cuando se activa; medio y clock se mantienen. La grilla uniforme puede quedar
+idéntica y no se fuerza otra permutación. No conserva espectro ni correlaciones
+de orden superior. El checkbox se exporta/importa y aplica también a medios de
+control; selector de calendario permite inspeccionar *_interval_shuffle.
+Default apagado y campo omitido conservan presets anteriores. Una sola semilla
+no constituye una distribución nula ni un contraste estadístico de significancia.

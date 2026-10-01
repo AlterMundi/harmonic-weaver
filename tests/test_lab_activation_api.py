@@ -47,7 +47,7 @@ def test_api_portable_configuration_real_worker_repeat_restore_and_integrity(tmp
 
 def test_invalid_settings_never_enqueue_and_schema_is_strict(tmp_path):
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
-        for bad in [{'event_count':3},{'tail_s':-1},{'trace_stride':1},{'seed':True},{'unexpected':1}]:
+        for bad in [{'event_count':3},{'tail_s':-1},{'trace_stride':1},{'seed':True},{'interval_shuffle':1},{'unexpected':1}]:
             assert client.post('/api/research/r06',json=bad).status_code==422
             assert client.post('/api/research/r06/configuration',json={'settings':bad}).status_code==422
         assert client.post('/api/research/r06/configuration',json={'schema_version':2}).status_code==422

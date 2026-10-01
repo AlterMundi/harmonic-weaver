@@ -132,3 +132,14 @@ def test_medium_control_contracts_reject_rewritten_report_hash(tmp_path,mutation
     atomic_json(folder/'result.json',report)
     manifest=json.loads((folder/'manifest.json').read_text());manifest['output_sha256']=sha256_file(folder/'result.json');atomic_json(folder/'manifest.json',manifest)
     with pytest.raises(ValueError):verify(folder)
+
+
+@pytest.mark.parametrize('mutation',['events','condition_inventory'])
+def test_interval_surrogate_contract_is_verified_not_just_hashed(tmp_path,mutation):
+    run({**config(),'interval_shuffle':True},tmp_path/'run');folder=tmp_path/'run';verify(folder)
+    report=json.loads((folder/'result.json').read_text())
+    if mutation=='events':report['conditions']['phi_interval_shuffle']['event_samples'][0]=1
+    else:report['conditions'].pop('sqrt2_interval_shuffle')
+    atomic_json(folder/'result.json',report)
+    manifest=json.loads((folder/'manifest.json').read_text());manifest['output_sha256']=sha256_file(folder/'result.json');atomic_json(folder/'manifest.json',manifest)
+    with pytest.raises(ValueError):verify(folder)
