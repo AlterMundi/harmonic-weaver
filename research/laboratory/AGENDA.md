@@ -243,3 +243,15 @@ pasan. Se corrigió referencia de prueba: corte omitido y límite int vs float
 son entradas diferentes para hashes; no se relajó el chequeo de igualdad.
 Esta prueba usa TestClient, no browser contra servidor de red ni cuerpo humano.
 Pendientes browser/API real, cancelación concurrente y controles temporales.
+
+
+R03 ciclo de vida: 12 tests servicio/worker/API pasan, cinco casos nuevos
+con children reales. Cancel queued y running deja cancelled, close deja
+interrupted y confirma proceso terminal; hashes de entrada se preservan,
+resultado inexistente no se descarga. Cancel de completed preserva output;
+cancel repetido es idempotente. Instancia restaurada no cancela procesos ajenos
+ni altera estado. Dos threads con barrera contra un mismo servicio admiten
+un solo child; después de cancelar admite otro en carpeta nueva. close ahora
+marca closed bajo el mismo RLock y rechaza start posterior: evita un child
+que escape del cierre. No verifica admisión global entre instancias distintas
+ni carrera completion exactamente durante terminate. No hardware/audio.

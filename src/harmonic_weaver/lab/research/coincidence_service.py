@@ -15,7 +15,7 @@ from .coincidence import inspect_run
 class CoincidenceService:
     def __init__(self,data_dir):
         self.root=Path(data_dir)/'research'/'r03';self.root.mkdir(mode=0o700,parents=True,exist_ok=True)
-        self.lock=threading.RLock();self.processes={}
+        self.lock=threading.RLock();self.processes={};self.closed=False
 
     def folder(self,ident):
         if not isinstance(ident,str) or not re.fullmatch(r'[a-f0-9]{32}',ident):raise ValueError('Invalid R03 job id')
@@ -25,6 +25,7 @@ class CoincidenceService:
 
     def start(self,request,marks,features):
         with self.lock:
+            if self.closed:raise ValueError('R03 service is closed')
             if any(p.poll() is None for p in self.processes.values()):raise ValueError('An R03 worker is already active')
             ident=uuid4().hex;folder=self.root/ident;folder.mkdir(mode=0o700)
             for name,value in (('request.json',request),('marks.json',marks),('features.json',features)):
@@ -90,5 +91,7 @@ class CoincidenceService:
             return self.report(ident)
 
     def close(self):
-        for ident in list(self.processes):
-            if self.processes[ident].poll() is None:self.cancel(ident,shutdown=True)
+        with self.lock:
+            self.closed=True
+            for ident in list(self.processes):
+                if self.processes[ident].poll() is None:self.cancel(ident,shutdown=True)
