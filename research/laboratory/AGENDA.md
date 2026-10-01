@@ -300,3 +300,12 @@ warmup fresco; 11 tests existentes modelos/matemática pasan. Sin cambios de
 defaults ni síntesis; no prueba interferencia física, técnica ni HIT. Próximo:
 banco R04 usando este mismo estimador y controles de rotación/inversión/
 oposición, con configuraciones y evidencia reproducibles.
+
+
+R04 banco sintético inicial: [protocolo y CLI](r04_relational/README.md) usa
+RelativeMode de producción en cinco escenarios de Anni con rotación uniforme,
+inversión de ambos extremos y velocidad común. Dos tests pasan: invariancia
+numérica, frenado contextual, prefijo causal, repetición SHA y no overwrite.
+CLI real 30 muestras produce valores declarados en README; son construcciones
+sintéticas, no evidencia corporal. Pendientes backend/UI, replay verificado,
+oposición local favorable y controles de emparejamiento/ruido/ángulos/humanos.
