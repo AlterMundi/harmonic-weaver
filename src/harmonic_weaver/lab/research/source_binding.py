@@ -30,3 +30,43 @@ def source_binding(evaluation,document):
         'limits':['Original local file verified against frozen evaluation, not copied',
             'Person is frozen tracking selection, not biometric identity',
             'No calibration transfer or physical audio/video synchronization claim']}
+
+
+def source_pose(evaluation,document):
+    """Bounded selected-person pose rows from the verified frozen generation."""
+    import tempfile
+    from pathlib import Path
+    from ..cache import TrackingCache,sha256_file
+    from ..evaluation.runner import Source,load_source
+    _,info=source_binding(evaluation,document)
+    manifest=evaluation.report(info['evaluation_id'])['manifest']
+    index=info['source_index'];record=manifest['source_records'][index]
+    source=Source.model_validate(manifest['request']['sources'][index]).model_copy(
+        update={'cache_manifest_sha256':record['cache_manifest_sha256']})
+    with tempfile.TemporaryDirectory(prefix='weaver-r05-pose-index-') as directory:
+        track=load_source(source,TrackingCache(Path(directory)))
+    if track.manifest!=record['cache_manifest']:raise ValueError('Frozen pose generation changed')
+    rows=[];last=None
+    for frame in track.frames:
+        t=frame.source_time_s
+        if not info['source_start_s']<=t<info['source_end_s']:continue
+        if last is not None and t<=last:raise ValueError('Pose timestamps must strictly increase')
+        last=t
+        person=next((p for p in frame.persons if p.person_id==info['person_id']),None)
+        rows.append({'time_s':t,'width':frame.width,'height':frame.height,
+                     'coordinate_frame':frame.coordinate_frame,'unit':frame.unit,'dimensions':frame.dimensions,
+                     'person_present':person is not None,
+                     'joints':[j.model_dump() for j in person.joints] if person else []})
+        if len(rows)>14400:raise ValueError('Select at most 14400 pose observations')
+    if not rows:raise ValueError('No pose observations in selected crop')
+    if sha256_file(source.cache_manifest)!=record['cache_manifest_sha256']:
+        raise ValueError('Pose manifest changed during selection')
+    frames_path=Path(source.cache_manifest).parent/record['cache_manifest']['frames_file']
+    if sha256_file(frames_path)!=record['cache_manifest']['frames_sha256']:
+        raise ValueError('Pose payload changed during selection')
+    source_binding(evaluation,document)
+    return {'schema_version':1,'source':info,'rows':rows,
+            'tracking_sha256':record['cache_manifest']['frames_sha256'],
+            'limits':['Selected tracking person only; no substitution or identity assertion',
+                      'Observed, held and missing states preserved; no interpolation',
+                      'Coordinates use original tracking convention; not physical 3D reconstruction']}

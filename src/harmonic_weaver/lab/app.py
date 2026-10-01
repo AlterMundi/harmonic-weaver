@@ -396,6 +396,14 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         document=json.loads(resonators.artifact(ident,'input.json').read_text())
         return source_binding(evaluation,document)
 
+    @app.get("/api/research/r05/{ident}/source-pose")
+    def resonator_source_pose(ident: str):
+        if evaluation is None:raise ValueError('No comparison library available')
+        import json
+        from .research.source_binding import source_pose
+        document=json.loads(resonators.artifact(ident,'input.json').read_text())
+        return source_pose(evaluation,document)
+
     @app.get("/api/research/r05/{ident}/source-info")
     def resonator_source_info(ident: str):return resolve_resonator_source(ident)[1]
 

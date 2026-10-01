@@ -51,3 +51,30 @@ def test_changed_media_or_trace_invalidates_binding(bound):
     path.write_bytes(b'a');source_binding(evaluation,document)
     (folder/'result/source-00-preset-00.jsonl').write_text('changed')
     with pytest.raises(ValueError):source_binding(evaluation,document)
+
+
+def test_pose_rows_keep_selected_person_crop_and_explicit_joint_states(bound):
+    from harmonic_weaver.lab.research.source_binding import source_pose
+    evaluation,document,source,_=bound
+    result=source_pose(evaluation,document)
+    assert result['source']['person_id']==source.person_id
+    assert all(.3<=row['time_s']<1.5 for row in result['rows'])
+    assert len(result['rows'])==36
+    assert all(a['time_s']<b['time_s'] for a,b in zip(result['rows'],result['rows'][1:]))
+    states={j['state'] for row in result['rows'] for j in row['joints']}
+    assert states=={'observed'}
+    assert sum(not row['person_present'] for row in result['rows'])==3
+    assert all(not row['joints'] for row in result['rows'] if not row['person_present'])
+    assert all(row['coordinate_frame']=='camera_isotropic' and row['unit']=='frame_height' for row in result['rows'])
+    assert 'media_path' not in str(result) and 'stream_id' not in str(result)
+
+
+def test_pose_rejects_changed_tracking_payload(bound):
+    import json
+    from harmonic_weaver.lab.research.source_binding import source_pose
+    evaluation,document,source,_=bound
+    manifest_path=Path(source.cache_manifest)
+    manifest=json.loads(manifest_path.read_text())
+    frames=manifest_path.parent/manifest['frames_file']
+    frames.write_text(frames.read_text()+'\n')
+    with pytest.raises(ValueError,match='Cache'):source_pose(evaluation,document)

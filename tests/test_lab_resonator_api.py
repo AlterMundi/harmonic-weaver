@@ -66,6 +66,9 @@ def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path,paired)
                 assert info.status_code==200 and info.json()['person_id']=='one'
                 assert info.json()['source_start_s']==.2 and info.json()['source_end_s']==2
                 assert 'media_path' not in info.json()
+                pose=client.get(f'/api/research/r05/{job}/source-pose')
+                assert pose.status_code==200 and pose.json()['source']['person_id']=='one'
+                assert len(pose.json()['rows'])==54
                 original_video=client.get(f'/api/research/r05/{job}/source')
                 assert original_video.status_code==200 and original_video.content==b'a'
             assert outputs[0]==outputs[1]

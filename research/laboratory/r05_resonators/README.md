@@ -432,3 +432,15 @@ retrasa; posición limitada al crop y congelada durante cola. No altera PCM,
 features ni timestamps científicos. Cuatro tests API + cuatro Playwright
 (reloj/Chrome single/mapped, export/import) y build pasan. Sustituye el pendiente
 de offset de entradas anteriores; overlay y latencia física siguen pendientes.
+
+R05 — pose congelada para overlay (2026-10-01): endpoint source-pose resuelve
+el cuerpo elegido del tracking original de la evaluación, con crop acotado a
+14400 observaciones y reloj estrictamente creciente. Conserva presencia/ausencia,
+estados/confianza de joints y convención de coordenadas/unidades/dimensiones.
+No sustituye personas ni interpola. Verifica procedencia, manifest, medio y trace,
+carga la generación declarada y vuelve a verificar payload/manifest al finalizar.
+No guarda una copia del tracking ni ejecuta inferencia; sólo índice temporal.
+Este incremento prepara el overlay: todavía no lo dibuja en la interfaz ni
+asegura que coordenadas world sean proyectables sobre video. Próximo paso:
+selección causal acotada por edad/soporte y dibujo exclusivo de joints observados
+en coordenadas de cámara; descarte visible de estados incompatibles.

@@ -1562,3 +1562,22 @@ Corrida final: cuatro tests Playwright pasan (9.7 s): relojes y HTTP/Chrome
 single/mapped, offsets positivos/negativos, export/import con valor persistido
 sin autoplay y src de audio estable al ajustar offset. Build TypeScript/Vite
 pasa. MP4 generado, API y workers reales; servidor temporal apagado.
+
+## R05: snapshot de pose para overlay — 2026-10-01
+
+API source-pose entrega sólo el tracking de la persona congelada y crop R05,
+con ausencia explícita, estados/confianza y coordenadas/unidades/dimensiones.
+Carga generación verificada, rechaza manifest/payload alterados y vuelve a
+verificar hashes al terminar. No contiene rutas locales ni IDs de streams.
+Índice temporal efímero; no copia video/tracking ni ejecuta inferencia.
+
+Primera corrida: 10 tests pasan y uno falla por expectativa incorrecta de la
+fixture (cuadros sin ninguna persona, no joints individuales missing). Corregido
+para verificar tres filas con person_present=false y joints vacíos. La UI de
+overlay y su selección por soporte/edad siguen pendientes, así como prueba visual
+corporal. No se interpreta coordenada world como imagen ni pose como verdad 3D.
+
+Corrida final: 15 tests source_binding/API pasan (24.14 s), incluyendo source-pose
+para single/paired, crop exacto, filas de ausencia, clock ordenado, metadatos de
+coordenadas y rechazo de payload alterado. Son datos sintéticos; no prueban UI
+del overlay ni precisión de pose.
