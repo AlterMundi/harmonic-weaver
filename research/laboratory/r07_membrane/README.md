@@ -265,6 +265,13 @@ equivalentes sin relajar bools. Dos pruebas de subprocess real pasan: repetició
 restauración/tamper y cancelación de cálculo ya running. API/UI y kill durante
 promoción de este banco pendientes; no toca audio/percepción live.
 
+Trigésimo corte: API `/api/research/r07-controls` configura schema1, inicia,
+lista, reporta/cancela y descarga verificada. Panel web permite editar todos
+los parámetros via JSON portable, validar sin ejecutar y comparar dosis/peak,
+RMS por punto y energía proxy final. Build y prueba API con worker real pasan.
+Defaults del instrumento no cambian. Pendiente Chrome real de este panel,
+interrupción durante publicación y protocolo de recuperación de atributos.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

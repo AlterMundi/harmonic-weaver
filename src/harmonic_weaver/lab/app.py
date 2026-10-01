@@ -25,6 +25,8 @@ from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.membrane_service import MembraneService
 from .research.membrane_transfer_service import TransferService
+from .research.membrane_controls_service import ControlService
+from .research.membrane_controls import Request as ControlRequest
 from .research.membrane_transfer import Request as TransferRequest
 from .research.membrane_pcm import Request as MembraneRequest
 from .research.activation_bank import Settings as ActivationSettings,schedules as activation_schedules
@@ -133,6 +135,11 @@ class TransferConfig(Contract):
     settings:TransferRequest=Field(default_factory=TransferRequest)
 
 
+class ControlConfig(Contract):
+    schema_version:Literal[1]=1
+    settings:ControlRequest=Field(default_factory=ControlRequest)
+
+
 class MembraneConfig(Contract):
     schema_version:Literal[1]=1
     settings:MembraneRequest=Field(default_factory=lambda:MembraneRequest(stop_sample_exclusive=48000))
@@ -196,6 +203,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     activation = ActivationService(data_dir)
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
+    controls = ControlService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -210,6 +218,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         finally:
             activation.close()
             membrane.close()
+            controls.close()
             resonators.close()
             relational.close()
             coincidence.close()
@@ -387,6 +396,25 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r07-transfer')
     def transfer_jobs():return transfer.list()
+
+    @app.get('/api/research/r07-controls')
+    def control_jobs():return controls.list()
+
+    @app.post('/api/research/r07-controls/configuration')
+    def control_configuration(body:ControlConfig):return body.model_dump()
+
+    @app.post('/api/research/r07-controls')
+    def control_start(body:ControlRequest):return controls.start(body)
+
+    @app.get('/api/research/r07-controls/{ident}')
+    def control_report(ident:str):return controls.report(ident)
+
+    @app.post('/api/research/r07-controls/{ident}/cancel')
+    def control_cancel(ident:str):return controls.cancel(ident)
+
+    @app.get('/api/research/r07-controls/{ident}/artifacts/{name}')
+    def control_artifact(ident:str,name:str):
+        return FileResponse(controls.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r07-transfer/configuration')
     def transfer_configuration(body:TransferConfig):return body.model_dump()
