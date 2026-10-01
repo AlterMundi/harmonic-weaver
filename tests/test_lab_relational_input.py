@@ -27,6 +27,49 @@ def test_real_frozen_pose_endpoints_repeat_gaps_and_changed_generation_rejected(
         assert snapshot['provenance']['source']['person_id']=='one'
         with pytest.raises(ValueError,match='distinct'):endpoint_snapshot(evaluation,{**selection,'parent_joint':9})
         with pytest.raises(ValueError,match='outside'):endpoint_snapshot(evaluation,{**selection,'start_s':0})
+        from harmonic_weaver.lab.research.relational_body import probe_endpoints
+        from harmonic_weaver.lab.research.relational_service import RelationalService
+        from harmonic_weaver.lab.cache import sha256_file
+        import numpy as np
+        expected=probe_endpoints({},snapshot)
+        assert expected['unused_synthetic_settings']==['samples','hz']
+        original=expected['traces']['original']
+        for control,rows in expected['traces'].items():
+            for a,b in zip(rows,original):
+                assert a['relative']['state']==b['relative']['state']
+                if a['relative']['state']=='observed':
+                    np.testing.assert_allclose([a['relative'][k] for k in ('I','R','A')],
+                                              [b['relative'][k] for k in ('I','R','A')],atol=1e-12)
+        service=RelationalService(root)
+        try:
+            hashes=[]
+            for _ in range(2):
+                job=service.start_body({},selection,evaluation)
+                assert service.processes[job['id']].wait(timeout=10)==0
+                result=service.artifact(job['id'],'result.json')
+                assert json.loads(result.read_text())==expected
+                hashes.append(sha256_file(result))
+                assert json.loads(service.artifact(job['id'],'input.json').read_text())==snapshot
+            assert hashes[0]==hashes[1]
+        finally:service.close()
+        from fastapi.testclient import TestClient
+        from harmonic_weaver.lab.app import create_app
+        import time
+        class Runtime:
+            library=None
+            def start(self):pass
+            def close(self):pass
+        with TestClient(create_app(root,store=store,runtime=Runtime()),base_url='http://127.0.0.1') as client:
+            response=client.post('/api/research/r04/trace',json={'selection':selection})
+            assert response.status_code==200,response.text
+            job=response.json()['id'];deadline=time.monotonic()+10
+            while True:
+                report=next(j for j in client.get('/api/research/r04').json() if j['id']==job)
+                if report['status'] not in ('queued','running'):break
+                assert time.monotonic()<deadline
+                time.sleep(.02)
+            assert report['status']=='complete'
+            assert client.get(f'/api/research/r04/{job}/artifacts/result.json').json()==expected
         path=source.cache_manifest
         manifest=json.loads(open(path).read());manifest['generation']='changed'
         atomic_json(path,manifest)

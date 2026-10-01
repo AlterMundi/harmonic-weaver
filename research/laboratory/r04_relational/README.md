@@ -91,3 +91,17 @@ Kinematics/analysis/contracts, escala/settings/source/cache/preset. Test con
 replay sintético real pasa repetición exacta, warmup/gaps/contexto y rechazo
 de extremos iguales/fuera de segmento/generación alterada. No medición
 corporal nueva ni observación humana; worker/API/UI corporal aún pendientes.
+
+
+R04 extremos congelados→contrastes→worker/API: start_body congela request e
+input.json del lector verificado. Worker incluye ambos hashes y verifica
+cambios antes de commit. probe_endpoints usa RelativeMode real en original,
+rotación uniforme, inversión de ambos y velocidad común, con relojes/validez/
+vectores/unidad/segmento validados. Faltantes reinician historia sin relleno.
+Samples/hz sintéticos se declaran unused; no resampling. Resultado conserva
+scale/settings/provenance/code y límites. POST /api/research/r04/trace recibe
+{settings,selection}; descarga input verificada. Nueve tests integración/
+worker/servicio pasan: replay sintético real, dos children con SHA idéntico
+y mismo resultado directo, invariancia numérica, HTTP con lector real.
+Panel corporal R04 y recorrido browser siguen pendientes. No ejecución corporal
+humana nueva ni calibración transferida/audio cambiado.

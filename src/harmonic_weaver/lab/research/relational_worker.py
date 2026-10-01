@@ -14,12 +14,18 @@ def run_frozen(folder):
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError as exc:raise ValueError('R04 worker active') from exc
         if (folder/'manifest.json').exists():raise ValueError('R04 run already has manifest')
-        expected=sha256_file(request)
-        manifest={'schema_version':1,'line':'R04','status':'running','input_hashes':{'request.json':expected}}
+        names=['request.json']
+        if (folder/'input.json').exists() or (folder/'input.json').is_symlink():names.append('input.json')
+        if any((folder/name).is_symlink() or not (folder/name).is_file() for name in names):raise ValueError('R04 input unavailable')
+        hashes={name:sha256_file(folder/name) for name in names}
+        manifest={'schema_version':1,'line':'R04','status':'running','input_hashes':hashes}
         atomic_json(folder/'manifest.json',manifest)
         try:
-            run(json.loads(request.read_text()),folder/'computed')
-            if request.is_symlink() or sha256_file(request)!=expected:raise ValueError('R04 request changed during computation')
+            if 'input.json' in names:
+                from .relational_body import run as run_body
+                run_body(json.loads(request.read_text()),json.loads((folder/'input.json').read_text()),folder/'computed')
+            else:run(json.loads(request.read_text()),folder/'computed')
+            if any((folder/name).is_symlink() or sha256_file(folder/name)!=expected for name,expected in hashes.items()):raise ValueError('R04 request or input changed during computation')
             # A completed internal run does not imply the parent job has committed.
             computed_manifest=folder/'computed/manifest.json'
             if computed_manifest.is_symlink() or not computed_manifest.is_file():raise ValueError('R04 computed manifest unavailable')

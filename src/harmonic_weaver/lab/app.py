@@ -22,6 +22,7 @@ from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
+from .research.relational_input import EndpointRequest
 from .research.body import BodyRequest
 from .research.candidate_input import CandidateRequest, candidate_snapshot
 from .research.coincidence import content_hash
@@ -80,6 +81,11 @@ class CoincidenceRequest(Contract):
     control_offsets_s: list[Number] = Field(default_factory=list, max_length=16)
     tolerance_s: Number = Field(default=.2, ge=0, le=10)
     mark_offset_s: Number = Field(default=0, ge=-10, le=10)
+
+
+class RelationalBodyRequest(Contract):
+    settings: RelationalSettings = Field(default_factory=RelationalSettings)
+    selection: EndpointRequest
 
 
 class CameraRequest(Contract):
@@ -289,6 +295,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post("/api/research/r04")
     def relational_start(body: RelationalSettings):return relational.start(body.model_dump())
+
+    @app.post("/api/research/r04/trace")
+    def relational_trace(body: RelationalBodyRequest):
+        if evaluation is None:raise ValueError('No comparison library available')
+        return relational.start_body(body.settings,body.selection,evaluation)
 
     @app.post("/api/research/r04/{ident}/cancel")
     def relational_cancel(ident: str):return relational.cancel(ident)
