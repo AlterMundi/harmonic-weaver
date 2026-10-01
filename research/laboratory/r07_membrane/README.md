@@ -109,6 +109,17 @@ Una prueba HTTP con worker real pasó: configuración, selección, publicación,
 descarga verificada y rechazos de source.json, ID y schema inválidos. UI y
 prueba HTTP de cancelación running/restauración quedan pendientes.
 
+Undécimo corte: panel R07 en Investigación, con selección explícita de corrida
+R05/brazo, todos los parámetros numéricos, import/export de preset portable,
+inventario/cancelación y descarga. Figura RMS congelada con escala de color
+manual (sin normalización automática), valores por celda y límites visibles.
+Default de ventana: primeras 48000 muestras a sample rate 48000; elegir una
+fuente con otro reloj requiere ajustar sample_rate explícitamente. Los cambios
+del borrador no alteran una figura calculada. TypeScript/Vite build pasó y el
+recorrido API real sigue pasando. Todavía falta prueba de navegador contra
+servidor real y seguimiento de ventanas con audio; este panel inicial calcula
+una ventana bajo demanda, no ofrece aún animación continua ni escucha validada.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

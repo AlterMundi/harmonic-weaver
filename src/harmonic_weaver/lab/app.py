@@ -122,7 +122,7 @@ class ActivationConfig(Contract):
 
 class MembraneConfig(Contract):
     schema_version:Literal[1]=1
-    settings:MembraneRequest
+    settings:MembraneRequest=Field(default_factory=lambda:MembraneRequest(stop_sample_exclusive=48000))
 
 
 class MembraneStart(Contract):
