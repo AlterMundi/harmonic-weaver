@@ -256,3 +256,17 @@ Servidor propio terminado (PID 411110), ningún servicio del usuario tocado.
 No main/WebSocket/audio físico ni escucha humana. Pendientes carreras/kill,
 campos extremos browser, modalidades adicionales/figura experimental y protocolo
 perceptual con niveles/latencias medidos; roadmap no completado.
+
+
+R05 — auditoría de interrupción/commit (2026-09-30): once tests específicos
+worker pasan para resonador y comparación pareada. Mutaciones request/input
+symlink/PCM/manifest symlink tras cálculo interno rechazan commit público,
+failed sin output/hash de brazos. Dos procesos reales bajo lock calculan
+resultados internos completos y se matan antes de promover; restore conserva
+inputs y hash PCM interno, marca padre interrupted, no descarga/no autorelaunch.
+Writer duplicado con lock tomado rechazado; lifecycle tests cierran hijos.
+Suite R05 conjunta (kernel/excitación/render/PCM/verificador/service/mapping/
+comparación/persistencia/worker/API): 51 tests pasan. Alcance sólo fallos probados,
+no garantía general de crash-safety/transacciones FS; interrupción a mitad de
+promoción aún pendiente. Sin procesos de prueba vivos ni cambios al audio live.
+Escucha/percepción, figura experimental y modalidades adicionales pendientes.
