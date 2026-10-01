@@ -1120,3 +1120,18 @@ causal R03; primer high y recuperación no reactivan, held no repluck ni
 refractario retrasado. Tres tests propios + siete resonadores pasan.
 Sin PCM/dispositivo/UI ni niveles normalizados; política de cola, preparación
 real por API, comparación de mecanismos y evaluación humana pendientes.
+
+
+R05 render por bloques: Render prepara excitación sparse y genera voces,
+suma cruda y norma interna en memoria limitada al bloque (16–8192). Reloj
+segment_frames=ceil(duración·sr), tail_frames=ceil(tail_s·sr), eventos siempre
+ceil, fuera del crop no pasan a cola. Policies ring(default) vs reset
+configurables: reset en timestamps de invalid/gap detectado, no onset físico
+inferido; puede ser discontinuo y no declara ausencia de clicks. Manifest
+de preparación conserva clocks/settings/events/resets/procedencia/límites.
+Indices sparse por bisección evitan revisar todos los eventos por bloque.
+Trece tests render/excitación/kernel pasan; tres de render repetidos tras
+optimizar índice mantienen igualdad exacta al partir bloques y reejecutar.
+Cola sin nuevas observaciones, ring/reset y silencio/crop exacto verificados.
+Sin WAV/PCM persistido, worker/API/UI/comparador/niveles ni aceptación humana.
+No se integra al Shaper aceptado ni abre dispositivos.
