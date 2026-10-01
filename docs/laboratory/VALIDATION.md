@@ -1459,3 +1459,19 @@ repiten y pasan, muestran muestra288 para0.1s sin reaparecer ventana anterior.
 TypeScript/Vite pasa; servidor propio cerrado. No escucha humana ni timing físico
 medido; muted reproducción software no es aceptación. Próximos protocolo/niveles/
 latencias, video de origen en este recorrido y modalidades restantes. Live intacto.
+
+
+R05 — vínculo verificado al video original (2026-10-01): source_binding
+resuelve sólo vía evaluación/run congelados, comparando request/preset/trace/code,
+source/persona y source_record completos; valida crop seleccionado, artefacto
+trace y hash del medio original. API GET /r05/{id}/source-info y /source sólo
+para R05 completo y biblioteca disponible, reusa lectores verificados existentes.
+Devuelve info sin ruta local, mantiene escala/procedencia y crop R05 (puede ser
+subsegmento de evaluación). FileResponse abre archivo original, no copia ni
+retracking/identidad inferida/calibración trasladada.
+Cuatro tests API pasan para single/paired con entrega de bytes originales de
+fixture; nueve source-binding prueban ruta exacta/crop, siete campos de procedencia
+alterados y media/trace cambiados rechazados. Fixture es bytes sintéticos, no
+video decodificable ni prueba humana. No cambia runtime/library actual ni audio.
+Pendiente UI video+clock/crop/tail/offset y Chrome con video sintético válido;
+sincronía física/escucha/modos adicionales e investigación formal siguen abiertas.

@@ -62,6 +62,12 @@ def test_real_http_freeze_pcm_repeat_restore_and_changed_replay(tmp_path,paired)
                 assert projection.json()['voices']==6 and len(projection.json()['points'])==32
                 listen=client.get(f'/api/research/r05/{job}/listen/'+('mapped' if paired else 'single'),headers={'Range':'bytes=0-43'})
                 assert listen.status_code==206 and listen.content[:4]==b'RIFF'
+                info=client.get(f'/api/research/r05/{job}/source-info')
+                assert info.status_code==200 and info.json()['person_id']=='one'
+                assert info.json()['source_start_s']==.2 and info.json()['source_end_s']==2
+                assert 'media_path' not in info.json()
+                original_video=client.get(f'/api/research/r05/{job}/source')
+                assert original_video.status_code==200 and original_video.content==b'a'
             assert outputs[0]==outputs[1]
             bad={**body,'render':{'tail_s':11}}
             assert client.post('/api/research/r05',json=bad).status_code==422

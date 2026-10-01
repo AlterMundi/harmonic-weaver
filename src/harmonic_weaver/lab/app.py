@@ -389,6 +389,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         path=resonators.artifact(ident,name)
         return preview_response(path,gain=gain,range_header=request.headers.get('range'))
 
+    def resolve_resonator_source(ident):
+        if evaluation is None:raise ValueError('No comparison library available')
+        import json
+        from .research.source_binding import source_binding
+        document=json.loads(resonators.artifact(ident,'input.json').read_text())
+        return source_binding(evaluation,document)
+
+    @app.get("/api/research/r05/{ident}/source-info")
+    def resonator_source_info(ident: str):return resolve_resonator_source(ident)[1]
+
+    @app.get("/api/research/r05/{ident}/source")
+    def resonator_source_file(ident: str):return FileResponse(resolve_resonator_source(ident)[0])
+
     @app.get("/api/schemas")
     def schemas():
         return {c.__name__: c.model_json_schema() for c in PERSISTED_CONTRACTS}
