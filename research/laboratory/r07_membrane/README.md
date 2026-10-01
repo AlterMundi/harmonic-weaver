@@ -153,6 +153,17 @@ al observar para evitar deriva acumulada por resta de ventanas. Diez pruebas
 del núcleo pasan, incluidas paridad con soporte pasado directo y particiones.
 Es infraestructura de animación, todavía no conectada a worker/artifacts/UI.
 
+Decimosexto corte: request opcional `trajectory={window_samples,hop_samples}`
+produce una secuencia en una sola pasada por PCM. Cortes exactos de muestra,
+último frame en stop aunque no complete hop, historial desde cero y RMS de las
+últimas W muestras (puede comenzar antes del inicio de observación). Presupuestos
+de un millón de valores de grilla y ocho millones de elementos de historial.
+Verifier comprueba inventario, reloj causal, warmup y grillas de cada frame.
+Ausencia de trajectory conserva formato anterior. Cinco pruebas del adaptador
+incluyen comparación directa de cada ventana pasada y paridad entre bloques;
+con nueve pruebas de artifacts: catorce pasan. Exposición de esta opción y
+selección sincronizada del frame en UI siguen pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

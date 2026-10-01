@@ -68,6 +68,26 @@ def verify(folder):
     rms = np.asarray(window['rms'], dtype=float)
     if rms.shape != (request.grid_y, request.grid_x) or not np.isfinite(rms).all() or (rms < 0).any() or np.any(rms[[0, -1], :]) or np.any(rms[:, [0, -1]]):
         raise ValueError('R07 finite nonnegative fixed-boundary field required')
+    if request.trajectory is None:
+        if 'trajectory' in result: raise ValueError('Unexpected R07 trajectory')
+    else:
+        ends = list(range(request.start_sample+request.trajectory.hop_samples,
+                          request.stop_sample_exclusive, request.trajectory.hop_samples)) + [request.stop_sample_exclusive]
+        frames = result.get('trajectory')
+        if not isinstance(frames, list) or len(frames) != len(ends):
+            raise ValueError('Exact R07 trajectory frame inventory required')
+        for frame, stop in zip(frames, ends):
+            start = max(0, stop-request.trajectory.window_samples)
+            expected_frame = {'start_sample': start, 'stop_sample_exclusive': stop,
+                'sample_count': stop-start, 'sample_rate': sr,
+                'first_output_time_s': (start+1)/sr, 'last_output_time_s': stop/sr,
+                'requested_window_samples': request.trajectory.window_samples,
+                'warmup': stop < request.trajectory.window_samples}
+            if set(frame) != set(expected_frame)|{'rms'} or any(frame.get(k) != v for k,v in expected_frame.items()):
+                raise ValueError('R07 trajectory causal clock mismatch')
+            values = np.asarray(frame['rms'], dtype=float)
+            if values.shape != rms.shape or not np.isfinite(values).all() or (values < 0).any() or np.any(values[[0,-1],:]) or np.any(values[:,[0,-1]]):
+                raise ValueError('Invalid R07 trajectory field')
     if manifest['source'] != {k: result[k] for k in manifest['source']} or set(manifest['source']) != {'source_manifest_sha256', 'source_component_sha256', 'source_pair_manifest_sha256'}:
         raise ValueError('R07 source binding mismatch')
     for key, digest in manifest['source'].items():

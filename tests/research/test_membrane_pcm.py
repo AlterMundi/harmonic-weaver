@@ -64,3 +64,22 @@ def test_source_mutation_during_projection_is_rejected(tmp_path, monkeypatch):
     monkeypatch.setattr(membrane_pcm.FieldWindow, 'report', changed)
     with pytest.raises(ValueError):
         project(folder, {'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 100})
+
+
+def test_trajectory_single_pass_matches_individual_causal_windows(tmp_path):
+    source = tmp_path/'source'
+    fixture(source)
+    settings = {'membrane': {'sample_rate': 8000}, 'start_sample': 200,
+                'stop_sample_exclusive': 1000, 'grid_x': 5, 'grid_y': 4,
+                'trajectory': {'window_samples': 300, 'hop_samples': 250}}
+    result = project(source, settings)
+    assert [f['stop_sample_exclusive'] for f in result['trajectory']] == [450, 700, 950, 1000]
+    pcm, _ = sf.read(source/'sum.wav')
+    model = Membrane(Settings(sample_rate=8000))
+    q = model.render(pcm[:1000])['modal_displacement']
+    x, y = np.meshgrid(np.linspace(0, 1, 5), np.linspace(0, 1, 4))
+    for frame in result['trajectory']:
+        stop = frame['stop_sample_exclusive']
+        np.testing.assert_allclose(np.array(frame['rms']).ravel(), model.field_rms(q[max(0,stop-300):stop], x.ravel(), y.ravel()), atol=1e-18)
+    alternate = project(source, {**settings, 'block_size': 317})
+    assert result['trajectory'] == alternate['trajectory']
