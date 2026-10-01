@@ -26,6 +26,10 @@ def test_real_r07_api_worker_portable_config_and_artifacts(tmp_path):
         artifact = client.get(f'/api/research/r07/{ident}/artifacts/result.json')
         assert artifact.status_code == 200
         assert artifact.json()['window']['sample_count'] == 800
+        audio = client.get(f'/api/research/r07/{ident}/listen',headers={'Range':'bytes=0-99'})
+        assert audio.status_code == 206 and len(audio.content) == 100
         assert client.get(f'/api/research/r07/{ident}/artifacts/source.json').status_code == 422
         assert client.post('/api/research/r07', json={'source_run_id': '../bad', 'settings': settings}).status_code == 422
         assert client.post('/api/research/r07/configuration', json={'schema_version': 2, 'settings': settings}).status_code == 422
+        with (source/'sum.wav').open('ab') as handle: handle.write(b'changed')
+        assert client.get(f'/api/research/r07/{ident}/listen').status_code == 422

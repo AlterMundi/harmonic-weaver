@@ -1,5 +1,7 @@
 """Owned R07 processes; source media stays in its original local run."""
 from pathlib import Path
+import json
+from ..cache import sha256_file
 from .coincidence_service import CoincidenceService
 from .membrane_pcm import Request
 from .membrane_run import verify
@@ -40,3 +42,25 @@ class MembraneService(CoincidenceService):
         if name != 'manifest.json':
             verify(self.folder(ident))
         return path
+
+    def audio_source(self, ident):
+        """Resolve the exact final mix bound to this completed figure."""
+        self.artifact(ident, 'result.json')
+        folder = self.folder(ident)
+        manifest = verify(folder)
+        reference = json.loads((folder/'source.json').read_text())
+        source = Path(reference['directory'])
+        request = Request.model_validate_json((folder/'request.json').read_text())
+        parent_hash = None
+        if request.arm != 'single':
+            verify_pair(source)
+            parent_hash = sha256_file(source/'manifest.json')
+            source = source/request.arm
+        arm = verify_arm(source)
+        expected = manifest['source']
+        if expected != {'source_manifest_sha256': sha256_file(source/'manifest.json'),
+                        'source_component_sha256': arm['output_hashes']['sum.wav'],
+                        'source_pair_manifest_sha256': parent_hash}:
+            raise ValueError('R07 playback source differs from frozen figure')
+        verify(folder)
+        return source/'sum.wav'

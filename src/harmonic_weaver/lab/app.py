@@ -388,6 +388,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def membrane_artifact(ident:str,name:str):
         return FileResponse(membrane.artifact(ident,name),filename=name)
 
+    @app.get('/api/research/r07/{ident}/listen')
+    def membrane_listen(ident:str,request:Request,gain:float=Query(default=1,ge=0,le=10)):
+        from .research.audio_preview import preview_response
+        return preview_response(membrane.audio_source(ident),gain=gain,range_header=request.headers.get('range'))
+
     @app.post("/api/research/r06/configuration")
     def activation_configuration(body:ActivationConfig):
         activation_schedules(body.settings)

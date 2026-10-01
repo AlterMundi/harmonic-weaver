@@ -171,6 +171,15 @@ incluyendo preset de secuencia, cuatro frames con reloj exacto, selección de
 primero/último y reload. Build TypeScript/Vite pasó. Falta seguimiento automático
 del audio; esta selección temporal es manual y no valida sincronización física.
 
+Decimoctavo corte: endpoint listen R07 resuelve únicamente el mix vinculado
+al resultado completo, revalida fuente/par y hashes; reutiliza preview float32
+seekable R05 sin tocar DOUBLE. Prueba API pasó con Range206 y rechazo tras
+alterar PCM. UI ofrece audio y seguimiento opt-in: último frame cuyo tiempo ya
+ocurrió, sin frame antes del primero; RAF observa currentTime, incluidos seeks,
+pausas y loops. Build pasó. Falta probar esta nueva reproducción/seguimiento
+en Chrome real y hacer portable el estado de reproducción/escala visual;
+no se afirma escucha ni sincronización física.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
