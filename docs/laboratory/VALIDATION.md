@@ -1096,3 +1096,14 @@ propios cerrados. Fixture pose sintética, no evidencia humana ni hardware.
 Actuales 30 traces sintéticas y 6 condiciones pose, con proximal/noise.
 Reproducir con fixture r03_http_fixture + harness R04 y variables
 LAB_R04_NETWORK_URL / LAB_R04_BODY_NETWORK_URL al mismo endpoint8879.
+
+
+R05 núcleo inicial aislado: resonadores complejos pasivos con pasos exactos
+expm, seis voces default (ampliables32), ratios/carriers/amortiguamiento/grafo
+configurables por contrato Python. Siete tests impulso analítico, cola libre,
+partición de bloques/fase/reset/silencio, norma libre no creciente y invalid
+pasan. No audio/live ni parámetros aceptados cambiados. Norma interna no
+es energía física; coupling puede cambiar modos efectivos, opción separada
+de investigación. [Protocolo](../../research/laboratory/r05_resonators/README.md). Worker/API/UI,
+excitación desde features, PCM/figura y niveles/latencias comparables pendientes.
+No experimento humano ni claim HIT.
