@@ -26,3 +26,14 @@ Próximos entregables necesarios:
 
 Referencia de alcance: issue #23 y research/laboratory/AGENDA.md. Rama apilada
 sobre R07 PR #74; no merge automático. Las preguntas científicas siguen abiertas.
+
+Segundo corte: `rope_media.probe/bind` usa ffprobe sobre video local regular,
+hash antes/después, dimensiones y PTS de cada frame decodificado (no reloj
+inventado desde FPS). Tiempo cero es el primer PTS, conservando su origen.
+Binding exige mismo hash/dimensiones e índice/timestamp (tolerancia 1 µs).
+Fuentes rotadas, píxel no cuadrado y dimensiones variables requieren adaptador
+explícito y se rechazan por ahora. Clips de 1–14400 frames; timeout60s y límite
+de JSON16MB tras probe (no garantiza límite de memoria del subprocess).
+Tres pruebas conjuntas pasan con MP4 sintético real generado por FFmpeg,
+incluyendo identidad/dimensiones/reloj/índice/symlink inválidos. No se procesó
+video privado ni se anotó cuerda humana. Persistencia y UI continúan pendientes.
