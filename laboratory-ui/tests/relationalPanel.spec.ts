@@ -23,13 +23,14 @@ test('R04 edits freeze settings, portable configuration and missing trace stays 
  await page.getByLabel('Muestras R04').fill('30');
  await page.getByLabel('Referencia relacional R04').selectOption('instantaneous');
  await page.getByLabel('Rotación uniforme R04 (grados)').fill('90');
+ await page.getByLabel('Multiplicador proximal R04').fill('-2');
  expect(await page.evaluate(()=>(window as any).calls)).toEqual([]);
  await start.click();
  await expect.poll(()=>page.evaluate(()=>(window as any).calls.length)).toBe(1);
- expect(await page.evaluate(()=>(window as any).calls[0])).toMatchObject({path:'research/r04',body:{samples:30,rotation_deg:90,relation_reference:'instantaneous'}});
+ expect(await page.evaluate(()=>(window as any).calls[0])).toMatchObject({path:'research/r04',body:{samples:30,rotation_deg:90,proximal_multiplier:-2,relation_reference:'instantaneous'}});
  await page.getByRole('button',{name:'Exportar configuración R04'}).click();
  const config=JSON.parse(await page.getByLabel('Configuración R04 JSON').inputValue());
- expect(config.rotation_deg).toBe(90);expect(Object.keys(config)).toHaveLength(10);
+ expect(config.rotation_deg).toBe(90);expect(Object.keys(config)).toHaveLength(11);
  await page.getByLabel('Rotación uniforme R04 (grados)').fill('73');
  await page.getByRole('button',{name:'Importar configuración R04'}).click();
  await expect(page.getByLabel('Rotación uniforme R04 (grados)')).toHaveValue('90');

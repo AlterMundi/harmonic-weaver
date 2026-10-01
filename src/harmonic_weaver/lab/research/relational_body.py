@@ -31,7 +31,7 @@ def probe_endpoints(settings,document):
         noise_delta=settings.noise_delta,max_gap_s=settings.max_gap_s,relation_reference=settings.relation_reference)
     angle=math.radians(settings.rotation_deg);rotation=np.array([[math.cos(angle),-math.sin(angle)],[math.sin(angle),math.cos(angle)]])
     common=np.array([settings.common_velocity_x,settings.common_velocity_y]);traces={}
-    for control in ('original','uniform_rotation','both_inverted','common_velocity'):
+    for control in ('original','uniform_rotation','both_inverted','common_velocity','proximal_scaled'):
         model=RelativeMode(algorithm);trace=[]
         for row in rows:
             t=row['time_s'];parent=child=None
@@ -40,6 +40,7 @@ def probe_endpoints(settings,document):
                 if control=='uniform_rotation':parent,child=rotation@parent,rotation@child
                 elif control=='both_inverted':parent,child=-parent,-child
                 elif control=='common_velocity':parent,child=parent+common,child+common
+                elif control=='proximal_scaled':parent=parent*settings.proximal_multiplier
             result=model.push(t,child-parent if parent is not None else None)
             trace.append({'time_s':t,'parent_velocity':parent.tolist() if parent is not None else None,
                           'child_velocity':child.tolist() if child is not None else None,'relative':result,
@@ -52,6 +53,7 @@ def probe_endpoints(settings,document):
         'limits':document['limits']+['No resampling; samples/hz only apply to synthetic bank',
             'Missing endpoints reset every condition; relational state missing is not neutral',
             'Controls alter prepared endpoint velocities, not camera pose or physical body',
+            'Scaling only proximal velocity does not establish physically possible or beneficial coordination',
             'No efficacy, force, intention or HIT inference']}
 
 

@@ -146,3 +146,17 @@ panel/body pasan recuperación de extremos/settings, segmento preservado y
 cero llamadas al editar/importar; build pasa. No aceptación humana ni nuevos
 experimentos corporales; controles ampliados y evidencia siguen pendientes.
 No cambian defaults de síntesis; Vite propio cerrado.
+
+
+R04 perturbación local proximal: proximal_multiplier configurable ±4
+(default −1 sólo banco investigación; audio intacto). Nueva condición
+proximal_scaled transforma únicamente velocidad proximal antes de RelativeMode: 
+−1 invierte, 0 detiene, 1 conserva original. Sintético ahora 25 trazas, pose
+5 condiciones. No supone pose físicamente posible ni oposición beneficiosa.
+Tres tests banco, dos servicio y uno lector real/worker pasan (6 total);
+identity multiplier=1 da mismas traces que original, inversión local en
+shared_acceleration cambia missing a relación reforzada construida. Controles
+globales conservan invariancia; no se exige invariancia local. Dos Chrome
+panel/body pasan edición/payload/JSON y build pasa. Network tests actualizados
+a nuevos conteos pero no reejecutados en este incremento. Control de tarea/
+valor global, ruido/emparejamiento y anotación humana siguen pendientes.

@@ -20,6 +20,7 @@ class Settings(Contract):
     relation_reference:Literal['history','instantaneous']='history'
     rotation_deg:Number=Field(default=73,ge=-360,le=360)
     common_velocity_x:Number=Field(default=2,ge=-10,le=10)
+    proximal_multiplier:Number=Field(default=-1,ge=-4,le=4)
     common_velocity_y:Number=Field(default=-1,ge=-10,le=10)
 
 
@@ -45,13 +46,14 @@ def probe(settings):
     common=np.array([settings.common_velocity_x,settings.common_velocity_y])
     traces={}
     for scenario in SCENARIOS:
-        for control in ('original','uniform_rotation','both_inverted','common_velocity'):
+        for control in ('original','uniform_rotation','both_inverted','common_velocity','proximal_scaled'):
             model=RelativeMode(algorithm);rows=[]
             for i in range(settings.samples):
                 t=i/settings.hz;parent,child=velocities(scenario,t)
                 if control=='uniform_rotation':parent,child=rotation@parent,rotation@child
                 elif control=='both_inverted':parent,child=-parent,-child
                 elif control=='common_velocity':parent,child=parent+common,child+common
+                elif control=='proximal_scaled':parent=parent*settings.proximal_multiplier
                 result=model.push(t,child-parent)
                 rows.append({'time_s':t,'parent_velocity':parent.tolist(),'child_velocity':child.tolist(),
                              'relative':result})
@@ -62,6 +64,7 @@ def probe(settings):
                 'I/R/A describe relative mode change, not force, technique, intention or physical wave interference',
                 'Uniform rotation, inversion of both endpoints and shared velocity should preserve I/R/A',
                 'Turn uses finite source steps and past history, so I is not assumed exactly zero',
+                'Scaling only proximal velocity is a data perturbation, not evidence of beneficial opposition',
                 'No audio mapping, pitch change, p-value or claim supporting HIT']}
 
 

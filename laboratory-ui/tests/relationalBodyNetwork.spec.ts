@@ -19,7 +19,7 @@ test('R04 body real network freezes endpoints and repeats exact worker results',
   expect(result.status()).toBe(200);results.push(await result.body());
   const value=await result.json();expect(value.input_kind).toBe('frozen_pose_endpoints');
   expect(value.selection).toMatchObject({parent_joint:7,child_joint:9,start_s:.2,end_s:2});
-  expect(Object.keys(value.traces)).toHaveLength(4);
+  expect(Object.keys(value.traces)).toHaveLength(5);
   expect(value.traces.original.some((r:any)=>!r.input_valid)).toBe(true);
   expect(value.traces.original.some((r:any)=>r.relative.state==='observed')).toBe(true);
   const downloading=page.waitForEvent('download');
