@@ -812,3 +812,16 @@ intervalo invertido/persona incorrecta y ausencia de biblioteca rechazados.
 Reader replay mockeado en este test HTTP; lector real tiene cobertura separada
 y aún falta integración browser/API/replay completa. No audio ni datos privados.
 UI R03, controles temporales y experimento humano siguen pendientes.
+
+
+R03 UI inicial en pestaña Investigación: comparación/corrida/señal, grupos
+explícitos de marcas por fuente/persona/sesión/época/categoría, corte congelado
+y cobertura JSON [inicio,fin) manual. Configura high/low/refractario/gap/
+tolerancia/offset; no deriva cobertura de botones. Actualizar el corte deselecciona
+el grupo. Configuración portable sólo settings y signal_id, no contexto humano.
+Inventario, cancelar, descargar artefactos y ver precisión/recall/soporte común.
+Prueba Chrome aislada pasa: cobertura inválida/ausente y tolerancia fuera de
+rango bloquean ejecución; payload conserva contexto/cursor; export excluye
+contexto, refresh exige reselección y resultado visible. Build TS/Vite pasa.
+API simulada en prueba UI; todavía falta recorrido browser/API/replay real,
+controles temporales y aceptación humana. No cambian defaults del instrumento.
