@@ -285,7 +285,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def rope_media_path(ident):
         if runtime is None:
             raise ValueError('Video library requires the laboratory runtime')
-        return runtime.library.path(ident)
+        return runtime.library.asset_path(ident)
 
     @app.get('/api/research/r08')
     def rope_revisions():return rope.list()

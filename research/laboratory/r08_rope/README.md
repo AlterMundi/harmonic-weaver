@@ -72,3 +72,14 @@ rechazo de rutas/campos extra, whitelist y cambio del archivo fuente.
 Pendiente: editor web, asistencia de extracción y anotaciones humanas.
 El probe síncrono tiene timeout de 60 s; la lectura masiva de frames deberá
 migrar a trabajo observable antes de ofrecer análisis de videos largos.
+
+### Corte 6: panel web inicial y resolución persistente
+
+El panel R08 selecciona assets de biblioteca, prepara una anotación vacía,
+permite editar JSON, guardar una revisión derivada, recuperar revisiones,
+verificar el video actual y descargar artefactos. No inicia tracking ni audio.
+La resolución usa el índice persistente de assets, no IDs efímeros de jobs.
+Test de API con VideoLibrary real restaurada sin jobs: pasó; TypeScript y
+Vite build pasaron. Interacción del panel aún no verificada en navegador.
+Pendientes: editor gráfico sobre video, visor del reloj decodificado y
+extracción asistida; el textarea no sustituye esos entregables.

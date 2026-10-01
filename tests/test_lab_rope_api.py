@@ -2,16 +2,18 @@ import subprocess
 from types import SimpleNamespace
 from fastapi.testclient import TestClient
 from harmonic_weaver.lab.app import create_app
+from harmonic_weaver.lab.media import VideoLibrary
 
 
 def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
     video=tmp_path/'test.mp4'
     subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','testsrc2=size=160x120:rate=10:duration=0.5','-c:v','libx264',str(video)],check=True)
-    def path(ident):
-        if ident!='local-video':raise KeyError(ident)
-        return video
-    runtime=SimpleNamespace(library=SimpleNamespace(path=path),start=lambda:None,close=lambda:None)
     root=tmp_path/'data'
+    library=VideoLibrary(root/'library')
+    library.index.write_text(__import__('json').dumps({'local-video':{'id':'local-video','name':video.name,'path':str(video)}}))
+    library=VideoLibrary(root/'library')
+    assert library.jobs=={}
+    runtime=SimpleNamespace(library=library,start=lambda:None,close=lambda:None)
     with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
         media=client.post('/api/research/r08/probe',json={'media_id':'local-video'})
         assert media.status_code==200

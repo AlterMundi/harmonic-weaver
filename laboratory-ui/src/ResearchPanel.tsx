@@ -1,3 +1,4 @@
+import {RopePanel} from './RopePanel';
 import {useEffect,useState} from 'react';
 import {RelationalPanel} from './RelationalPanel';
 import {ActivationPanel} from './ActivationPanel';
@@ -43,6 +44,7 @@ export function ResearchPanel({api,run}:Data){
   <MembranePanel api={api}/>
   <MembraneTransferPanel api={api}/>
   <MembraneControlsPanel api={api}/>
+  <RopePanel api={api}/>
   <CoincidencePanel api={api} run={run}/>
   <BodyResearchPanel api={api} run={run} onStarted={async()=>setJobs(await api('research/r01'))}/>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>

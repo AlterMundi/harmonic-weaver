@@ -169,6 +169,15 @@ class VideoLibrary:
         with self._lock:
             return list(self.assets.values())
 
+    def asset_path(self, media_id):
+        """Resolve a persisted library asset, independently of tracking jobs."""
+        with self._lock:
+            asset = self.assets[media_id]
+            path = Path(asset['path'])
+        if not path.is_file() or path.is_symlink():
+            raise ValueError('Library video unavailable')
+        return path
+
     def snapshot(self, job_id):
         with self._lock:
             return self.jobs[job_id].public()
