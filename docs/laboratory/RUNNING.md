@@ -360,3 +360,9 @@ racional/phi/sqrt2 pueden ser idénticos entre semillas; random y permutations
 cambian según su stream. No asumir ensayos humanos independientes, distribución
 nula, significancia, un ganador ni eficacia HIT. Opción apagada por defecto;
 campo omitido mantiene formato previo.
+
+Si una semilla del banco produce eventos en la misma muestra, R06 rechaza toda
+la configuración antes de crear el job y muestra calendario/semilla/muestras.
+No fusiona eventos ni reemplaza la semilla. Revisar span/count/seed explícitamente
+conservando el criterio del experimento; no interpretar el rechazo como resultado
+favorable/desfavorable de la hipótesis.

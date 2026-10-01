@@ -59,7 +59,9 @@ def schedules(settings):
     result={'rational':[(i*span)//n for i in range(n)]}
     for name,values in positions.items():
         indices=sorted(math.floor(float(t)*span) for t in values)
-        if len(set(indices))!=n:raise ValueError('Quantized schedule collisions; change span/count/seed')
+        if len(set(indices))!=n:
+            duplicates=sorted({i for i in indices if indices.count(i)>1})
+            raise ValueError(f'Quantized {name} schedule collisions for seed {settings.seed} at samples {duplicates}; change span/count/seed')
         result[name]=indices
     if settings.interval_shuffle:
         for index,(name,indices) in enumerate(list(result.items())):

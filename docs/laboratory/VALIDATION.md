@@ -1782,3 +1782,16 @@ población de participantes ni distribución nula. No calcula p-values.
 
 Referencia CLI R06 anterior sigue verificándose complete: compatibilidad de
 lectura/formato sin afirmar reproducción numérica universal entre versiones.
+
+## R06: diagnóstico de colisión en semilla adicional — 2026-10-01
+
+Se verificó un caso real de cuantización (sr8000/span .1/count8): semilla25
+colisiona en random, mientras principal17 es válida. Error ahora identifica
+calendario, semilla y muestras repetidas; no fusiona impulsos ni cambia dosis.
+Pruebas de API config/start exigen422 sin ningún job/carpeta y prueba de core
+exige que no se instancie el kernel ni se cree output. No hay retries automáticos
+que seleccionen otra semilla. Resultado de suite completa registrado abajo.
+No se cambia comportamiento de calendarios válidos ni formatos/presets/sonido.
+
+31 tests R06 pasan (8.81 s), incluidos nuevos rechazos antes de render/encolado.
+No se necesitó nueva corrida Chrome para este cambio de diagnóstico de backend.

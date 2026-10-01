@@ -66,3 +66,14 @@ def test_cancel_owned_api_job_keeps_partial_artifacts_unavailable(tmp_path):
         assert client.post(f'/api/research/r06/{ident}/cancel',json={}).json()['status']=='cancelled'
         assert client.get(f'/api/research/r06/{ident}/artifacts/result.json').status_code==422
         assert client.get(f'/api/research/r06/{ident}/artifacts/manifest.json').status_code==200
+
+
+def test_invalid_additional_seed_reports_which_calendar_and_never_creates_job(tmp_path):
+    request={**settings(),'seed':17,'replicate_seeds':[25]}
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        config=client.post('/api/research/r06/configuration',json={'settings':request})
+        assert config.status_code==422 and 'random' in config.text and 'seed 25' in config.text and 'samples' in config.text
+        response=client.post('/api/research/r06',json=request)
+        assert response.status_code==422 and 'seed 25' in response.text
+        assert client.get('/api/research/r06').json()==[]
+        assert list((tmp_path/'research/r06').iterdir())==[]

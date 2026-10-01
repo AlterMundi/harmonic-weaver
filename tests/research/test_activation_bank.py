@@ -98,3 +98,13 @@ def test_seed_bank_limits_total_trace_before_computation():
     with pytest.raises(ValueError,match='aggregate bank'):
         Settings.model_validate(config(replicate_seeds=list(range(1,9)),interval_shuffle=True,trace_stride=2,
             excitation_span_s=1,tail_s=1,medium_controls=[{'sample_rate':8000}]*4))
+
+
+def test_invalid_additional_seed_is_rejected_before_render_and_output_creation(tmp_path):
+    from unittest.mock import patch
+    request=config(replicate_seeds=[25])
+    with patch('harmonic_weaver.lab.research.activation_bank.Resonators') as kernel:
+        with pytest.raises(ValueError,match='random.*seed 25.*samples'):
+            run(request,tmp_path/'invalid')
+        kernel.assert_not_called()
+    assert not (tmp_path/'invalid').exists()
