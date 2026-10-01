@@ -72,6 +72,17 @@ no es evidencia científica independiente. Trece pruebas pasan, incluyendo
 resultados persistidos repetidos e integridad alterada. Este corte todavía no
 es un worker cancelable: lifecycle, interrupciones y exposición web pendientes.
 
+Séptimo corte: worker one-shot con flock no bloqueante, request/source.json
+congelados y manifest running/failed/complete. Referencia local al run R05,
+sin copiar sus datos. Computa en carpeta interna, verifica artifacts y repite
+la proyección antes y después de promover el resultado para revalidar fuente;
+rehash de inputs/result previo al complete. Es conservador y actualmente
+triplica el cálculo; optimizar sólo preservando esos contratos. Quince pruebas
+del conjunto pasan (dos del worker), incluyendo publicación verificable,
+rechazo de rerun y fuente ausente sin resultado publicado. Todavía faltan
+pruebas de muerte real durante promoción, servicio propietario/cancelación,
+API/UI. No se afirma durabilidad frente a corte de energía.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

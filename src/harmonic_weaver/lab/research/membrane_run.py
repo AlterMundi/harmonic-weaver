@@ -36,6 +36,8 @@ def verify(folder):
     if folder.is_symlink() or not folder.is_dir():
         raise ValueError('Regular R07 directory required')
     names = ('request.json', 'result.json', 'manifest.json')
+    if (folder/'source.json').exists() or (folder/'source.json').is_symlink():
+        names += ('source.json',)
     for name in names:
         if (folder/name).is_symlink() or not (folder/name).is_file():
             raise ValueError('Regular R07 artifacts required')
@@ -43,7 +45,8 @@ def verify(folder):
     manifest = json.loads((folder/'manifest.json').read_text())
     if (manifest.get('schema_version'), manifest.get('line'), manifest.get('status')) != (1, 'R07', 'complete'):
         raise ValueError('Complete R07 manifest required')
-    if manifest.get('input_hashes') != {'request.json': snapshot['request.json']} or manifest.get('output') != {'file': 'result.json', 'sha256': snapshot['result.json']}:
+    expected_inputs = {name: snapshot[name] for name in names if name in ('request.json', 'source.json')}
+    if manifest.get('input_hashes') != expected_inputs or manifest.get('output') != {'file': 'result.json', 'sha256': snapshot['result.json']}:
         raise ValueError('R07 artifact inventory/hash mismatch')
     request = Request.model_validate_json((folder/'request.json').read_text())
     result = json.loads((folder/'result.json').read_text())
