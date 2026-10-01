@@ -12,9 +12,9 @@ from harmonic_weaver.lab.routing import PreparedRoutes
 from test_lab_models import observation
 
 
-def source_fixture(tmp_path, name="a"):
+def source_fixture(tmp_path, name="a", *, media_bytes=None):
     video, model = tmp_path/f"{name}.mp4", tmp_path/"model.pt"
-    video.write_bytes(name.encode())
+    video.write_bytes(name.encode() if media_bytes is None else media_bytes)
     model.write_bytes(b"model")
     from harmonic_weaver.lab.cache import sha256_file
     settings = PerceptionSettings(checkpoint=str(model), device="cpu")

@@ -415,3 +415,13 @@ alterados y media/trace cambiados rechazados. Fixture es bytes sintéticos, no
 video decodificable ni prueba humana. No cambia runtime/library actual ni audio.
 Pendiente UI video+clock/crop/tail/offset y Chrome con video sintético válido;
 sincronía física/escucha/modos adicionales e investigación formal siguen abiertas.
+
+R05 — fuente audiovisual en UI y Chrome (2026-10-01): ModelProjectionPanel
+muestra explícitamente el video original resuelto desde la evaluación verificada.
+Sigue el reloj de audio/crop, pausa en la cola y propaga pausas/seeks/loops.
+Dos recorridos HTTP/Chrome con MP4 testsrc2 decodificable y evaluación sintética
+pasan: single y mapped. Fuente/calibración congeladas; no se vuelve a trackear.
+Prueba verifica avance de cuadros y posiciones con tolerancia de 0.05 s; no mide
+latencia física, percepción, identidad o aceptación auditiva. Instrucciones en
+VALIDATION.md. Pendientes overlay de pose, offset ajustable, demás modalidades
+sonoras, protocolos de nivel/latencia y prueba humana. Instrumento live intacto.

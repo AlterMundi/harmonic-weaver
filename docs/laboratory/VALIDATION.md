@@ -1511,3 +1511,33 @@ Además, 13 tests de source_binding/API R05 pasan (20.87 s), incluyendo selecci�
 congelada y rechazo de cambios de procedencia/medio/tracking. Esas fixtures
 contienen bytes de video sintéticos no decodificables; no amplían la evidencia
 de reproducción audiovisual.
+
+## R05: recorrido audiovisual HTTP/Chrome — 2026-10-01
+
+Dos pruebas nuevas `resonatorSourceVideo.spec.ts` pasan (8.8 s), para resonadores
+simples y el brazo mapped de una comparación. El harness genera una evaluación
+real de pose sintética con MP4 FFmpeg testsrc2 de tres segundos; el hash del MP4
+se calcula antes de escribir el cache. API y workers reales, sin respuestas
+simuladas. Chrome recibe fuente original verificada, carga audio float32 muted,
+verifica crop inicial, seek pausado, avance de cuadros con audio, pausa,
+seek a cola con video detenido, loop con video reanudado y ocultamiento.
+Build TypeScript/Vite pasa. El servidor temporal se detuvo al terminar.
+
+No hubo reproducción en R24, medios corporales, percepción nueva ni escucha
+humana. La tolerancia del test de posición es 0.05 s; no mide sincronización
+física ni prueba cada estado posible de decoder/red. Overlay y offset ajustable
+siguen pendientes. La primera corrida cubrió sólo single; la corrida final
+incluyó single y mapped sin repetir cambios de código.
+
+Reproducción en una raíz temporal NUEVA (no usar el state del usuario):
+
+```bash
+ffmpeg -f lavfi -i testsrc2=size=320x240:rate=30 -t 3 -c:v libx264 -pix_fmt yuv420p /tmp/r05-generated.mp4
+npx --prefix laboratory-ui vite build laboratory-ui/tests/r05_harness --outDir /tmp/r05-video-ui
+PYTHONPATH=src:tests:../harmonic-shaper-dev/src .venv/bin/python tests/r03_http_fixture.py --root /tmp/r05-new-session --ui /tmp/r05-video-ui --synthetic-video /tmp/r05-generated.mp4 --port 8879
+# En otra terminal, desde laboratory-ui:
+LAB_R05_VIDEO_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/resonatorSourceVideo.spec.ts
+```
+
+Detener el servidor propio con Ctrl+C al terminar. Sin --synthetic-video, las
+fixtures anteriores conservan los bytes no decodificables de sus tests de API.

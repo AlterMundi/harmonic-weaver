@@ -27,9 +27,10 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--ui',type=Path,required=True)
     parser.add_argument('--port',type=int,default=8879)
+    parser.add_argument('--synthetic-video',type=Path,help='Optional generated MP4; not participant media')
     args=parser.parse_args()
     args.root.mkdir(parents=True,exist_ok=False)
-    source,_,_=source_fixture(args.root)
+    source,_,_=source_fixture(args.root,media_bytes=args.synthetic_video.read_bytes() if args.synthetic_video else None)
     root=args.root/'session';ident=uuid4().hex;folder=root/'evaluations'/ident
     folder.mkdir(parents=True)
     preset=next(p for p in initial_presets() if p.algorithm.id=='local')
