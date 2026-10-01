@@ -366,3 +366,23 @@ la configuración antes de crear el job y muestra calendario/semilla/muestras.
 No fusiona eventos ni reemplaza la semilla. Revisar span/count/seed explícitamente
 conservando el criterio del experimento; no interpretar el rechazo como resultado
 favorable/desfavorable de la hipótesis.
+# Recorrido R07 experimental · PR #74
+
+En el workspace de desarrollo, iniciar con el comando habitual documentado
+en este archivo. Abrir **Investigación → R07 · Membrana virtual**. Primero
+necesitás una corrida R05 completa; seleccionarla y elegir `single` o, para
+comparación de mecanismos, `excited`/`mapped`. Ajustar `sample_rate` al reloj
+de ese PCM (no hay remuestreo silencioso) y stop al soporte disponible.
+
+Para empezar: activar **Secuencia causal R07**, ventana/paso de 0.1 segundos
+en muestras, calcular y abrir **Ver figura R07**. Reproducir su audio y activar
+**Seguir audio R07**: sólo se muestra el último frame ya ocurrido. Antes del
+primero se indica ausencia; pause/seek/loop usan el reloj del audio. Desactivar
+seguimiento permite elegir frames manualmente o RMS global. Cambiar escala
+visual no modifica datos RMS. Exportar/importar configuración conserva geometría,
+ventanas, seguimiento, loop y escala, sin copiar fuente ni iniciar reproducción.
+
+Esta membrana es un modelo sound-only, sin presión/material calibrados ni
+dinámica de arena/agua. No altera el instrumento live. Software/backend y
+recorrido Chrome con señales sintéticas verificados; escucha humana, latencia
+física, convergencia modal y recuperación científica de atributos pendientes.

@@ -194,6 +194,12 @@ los tres controles. Defaults previos de escala y seguimiento se preservan.
 Build y prueba API pasan, incluyendo roundtrip sin job y bool numérico rechazado.
 Falta probar loop automático y este nuevo preset visual en Chrome real.
 
+Vigésimo primer corte: Chrome HTTP real pasó en 4.1 s, incluyendo roundtrip
+de escala=1234/follow=true/loop=true, importación manteniendo audio pausado,
+wrap nativo observado por timeupdate y selección de primer frame tras volver al
+comienzo. Servidor sintético detenido. El test usa decoder real, no eventos
+falsos; no mide R24 ni latencia física y no constituye escucha humana.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

@@ -47,6 +47,25 @@ test('R07 real HTTP preset worker figure download and restoration',async({page})
  const paused=await audio.evaluate((a:HTMLAudioElement)=>a.currentTime);
  await page.waitForTimeout(150);
  expect(await audio.evaluate((a:HTMLAudioElement)=>a.currentTime)).toBe(paused);
+ await page.getByLabel('Escala visual R07').fill('1234');
+ await page.getByRole('checkbox',{name:'Loop audio R07',exact:true}).check();
+ await page.getByRole('button',{name:'Exportar configuración R07',exact:true}).click();
+ await expect.poll(async()=>JSON.parse(await preset.inputValue()).playback).toEqual({follow_audio:true,loop_audio:true,color_scale:1234});
+ await page.getByRole('checkbox',{name:'Loop audio R07',exact:true}).uncheck();
+ await page.getByLabel('Escala visual R07').fill('99');
+ await page.getByRole('button',{name:'Importar configuración R07',exact:true}).click();
+ await expect(page.getByRole('checkbox',{name:'Loop audio R07',exact:true})).toBeChecked();
+ await expect(page.getByLabel('Escala visual R07')).toHaveValue('1234');
+ expect(await audio.evaluate((a:HTMLAudioElement)=>a.paused)).toBe(true);
+ // Observe a native decoder loop via its timeupdate clock; no fake event.
+ await audio.evaluate(async(a:HTMLAudioElement)=>{
+   const node=a as HTMLAudioElement&{wraps:number};node.wraps=0;let previous=a.duration-.02;
+   a.addEventListener('timeupdate',()=>{if(a.currentTime<previous-.1)node.wraps++;previous=a.currentTime;});
+   a.currentTime=a.duration-.02;await a.play();
+ });
+ await expect.poll(()=>audio.evaluate((a:HTMLAudioElement)=>(a as HTMLAudioElement&{wraps:number}).wraps)).toBeGreaterThan(0);
+ await audio.evaluate((a:HTMLAudioElement)=>{a.pause();a.currentTime=.04;});
+ await expect(page.getByLabel('Frame R07')).toHaveValue('0');
  await page.reload();
  await expect(page.getByRole('button',{name:'Ver figura R07',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Ver figura R07',exact:true}).click();
