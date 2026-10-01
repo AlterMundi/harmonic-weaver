@@ -36,7 +36,7 @@ class ResonatorService(CoincidenceService):
             from .parameter_render import Render as ParameterRender
             carriers={**frozen['resonators'],'coupling_per_s':0.,'topology':'isolated','adjacency':None}
             mapped=ParameterRender(document,carriers,request['mapping'],frozen['render'])
-            frozen['mapping']=mapped.mapping.model_dump()
+            frozen['mapping']=mapped.mapping.model_dump(exclude_none=True)
         return self._start({'request.json':frozen, 'input.json':document})
 
     def artifact(self, ident, name):

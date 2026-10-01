@@ -352,6 +352,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('One mapping weight per carrier required')
         result=body.model_dump()
         if body.mapping is None:result.pop('mapping')
+        else:
+            from .research.parameter_render import validate_frequency
+            validate_frequency(body.resonators,body.mapping)
+            result['mapping']=body.mapping.model_dump(exclude_none=True)
         return result
 
     @app.post("/api/research/r05/projection/configuration")
@@ -367,7 +371,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             **{name:getattr(body.excitation,name) for name in ('high','low','refractory_s','max_gap_s')}})
         features = candidate_snapshot(evaluation,candidate)
         parameters={name:getattr(body,name).model_dump() for name in ('resonators','excitation','render')}
-        if body.mapping is not None:parameters['mapping']=body.mapping.model_dump()
+        if body.mapping is not None:parameters['mapping']=body.mapping.model_dump(exclude_none=True)
         return resonators.start(parameters,features)
 
     @app.post("/api/research/r05/{ident}/cancel")

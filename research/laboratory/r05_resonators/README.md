@@ -462,3 +462,13 @@ parciales permanecen diagnósticos; inventario restaura interrupted, sin descarg
 proyección ni relanzamiento automático. Sustituye pendiente de cortes de proceso
 entre promociones; durabilidad ante corte de energía/caída de host no probada.
 No implica snapshot transaccional frente a escritores externos adversariales.
+
+R05 — portadoras moduladas opcionales y f1/2 (2026-10-01): mapping admite
+frequency_modulation depth/smoothing_s explícita, desactivada por defecto.
+Factor común conserva ratios instantáneos y fase integrada continua; input
+normalizado/recortado, missing/expiry retorna hacia base y límite Nyquist previo.
+UI y presets permiten explorar la opción y serie f1/2 sin reducir voces.
+11 tests render/mecanismos + 29 API/worker + Chrome configuración/PCM/proyección
+pasan. No cambia instrumento live ni asegura calidad perceptual. Audificación,
+transposición de ritmos corporales estimados y protocolo comparativo siguen
+pendientes; no confundir modulación declarada con fase corporal observada.

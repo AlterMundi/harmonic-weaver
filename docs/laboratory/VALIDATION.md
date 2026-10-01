@@ -1630,3 +1630,27 @@ contra escritores externos concurrentes.
 Corrida final ampliada: 32 tests worker/service/API pasan (17.78 s), incluyendo
 nuevos destinos existentes y errores IO, servicio real, cancelación y contratos
 API. No se iniciaron servicios de audio ni se usaron datos corporales.
+
+## R05: modulación de portadoras como opción separada — 2026-10-01
+
+parameter_render admite frequency_modulation opcional (depth/smoothing_s).
+Mantiene el camino fijo por defecto y omite None del manifest/config: las
+preparaciones previas sin la opción conservan su forma. El camino opcional usa
+factor común normalizado/recortado y suavizado con una one-pole causal, fase
+acumulada muestra a muestra sin reiniciar y la misma envolvente de amplitud.
+Ratios instantáneos conservados, alias máximo validado contra Nyquist. Expiry y
+missing restablecen target de frecuencia cero; su transición es instrumento.
+UI checkbox + controles y botones serie f1/2/armónica; no cambia cantidad de voces.
+Preset y manifests explicitan la opción; cuadratura persiste fases efectivas.
+
+11 tests render/mecanismos pasan (1.38 s): analítico inicial, fase al reactivarse,
+partición/repetición exactas, prefijo causal, contratos/alias y persistencia.
+29 tests API/worker pasan (16.42 s). Chrome HTTP real agrega un recorrido que
+configura depth .4/smoothing .02 + seis ratios f1/2, exporta/importa, ejecuta
+worker, descarga PCM verificado y proyecta sus seis voces (4.7 s total).
+Build TypeScript/Vite pasa. Servidor temporal propio apagado; medios sintéticos,
+sin audio físico/escucha humana. No se mide latencia ni aceptación de esta opción.
+
+Pendientes: audificación acelerada, transposición de relaciones temporales
+corporales con estimador explícito, banco de modalidades y comparación perceptual
+con niveles/latencias medidos. Esta opción no los da por implementados.

@@ -38,3 +38,32 @@ def test_negative_input_silent_and_explicit_contracts():
     assert not samples(Render(document([(0,-2)]),{'sample_rate':8000},{})).any()
     for carriers,mapping in [({'coupling_per_s':1},{}),({'topology':'ring'},{}),({}, {'voice_weights':[1]*7})]:
         with pytest.raises(ValueError):Render(document([(0,2)]),carriers,mapping)
+
+
+def test_optional_common_frequency_modulation_is_continuous_causal_and_partition_independent():
+    mapping={'attack_s':0,'release_s':0,'frequency_modulation':{'depth':.25,'smoothing_s':0}}
+    doc=document([(0,1),(.03,0),(.06,1),(.09,None)])
+    a=Render(doc,{'sample_rate':8000},mapping,{'block_size':256,'tail_s':.1})
+    b=Render(doc,{'sample_rate':8000},mapping,{'block_size':317,'tail_s':.1})
+    np.testing.assert_array_equal(samples(a,'voices'),samples(b,'voices'))
+    np.testing.assert_array_equal(samples(a,'quadrature'),samples(a,'quadrature'))
+    # First sustained input shifts all six carriers by the same factor.
+    expected=np.sin(2*np.pi*(np.arange(240)+1)[:,None]/8000*40.4*1.25*np.arange(1,7))/6
+    np.testing.assert_allclose(samples(a,'voices')[:240],expected,atol=1e-13)
+    prefix=Render(document([(0,1),(.03,0)]),{'sample_rate':8000},mapping,{'tail_s':.1})
+    np.testing.assert_array_equal(samples(a)[:480],samples(prefix)[:480])
+    resumed_cycles=40.4/8000*(240*1.25+240+1.25)
+    np.testing.assert_allclose(samples(a,'voices')[480],np.sin(2*np.pi*resumed_cycles*np.arange(1,7))/6,atol=1e-13)
+    assert 'frequency_target_updates' in a.manifest
+    fixed=Render(doc,{'sample_rate':8000},{})
+    assert 'frequency_modulation' not in fixed.manifest['mapping']
+    assert 'frequency_target_updates' not in fixed.manifest
+
+
+def test_frequency_modulation_rejects_aliasing_and_invalid_controls():
+    doc=document([(0,1)])
+    for option in [{'depth':1},{'depth':-.1},{'smoothing_s':-1}]:
+        with pytest.raises(ValueError):Render(doc,{'sample_rate':8000},{'frequency_modulation':option})
+    with pytest.raises(ValueError,match='Nyquist'):
+        Render(doc,{'sample_rate':8000,'fundamental_hz':400,'ratios':[1,2,3,4,5,9]},
+               {'frequency_modulation':{'depth':.25}})

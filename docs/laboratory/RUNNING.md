@@ -284,3 +284,23 @@ respecto del video; no se interpola. Gap, cuerpo ausente, seek en curso o
 coordenadas no proyectables dejan la figura vacía y un diagnóstico visible.
 El offset audiovisual también desplaza la pose: sigue el tiempo real del video,
 no la muestra de audio. No convierte coordenadas world/3D a imagen.
+
+### R05: modulación experimental de frecuencia y serie f1/2
+
+Activar «Comparar con mapeo de amplitud R05» y, opcionalmente, «Modular frecuencia
+del mapeo R05». Depth (default de la opción .25, rango 0..<1) controla la excursión;
+smoothing_s (.1 s, rango 0..10 s) suaviza el control. La señal dividida por
+mapping.reference_scale se recorta a [-1,1]; un factor común
+`1 + depth × señal suavizada` multiplica todas las portadoras, conservando ratios
+instantáneos. Missing o vencimiento max_hold_s lleva el control hacia cero.
+La fase se integra por muestra y continúa durante silencios: no reataques.
+Configuraciones que podrían alcanzar Nyquist se rechazan antes de correr.
+La amplitud sigue su mapeo existente; los valores negativos no la activan.
+
+La modulación está desactivada por defecto; no cambia Shaper ni presets live.
+«Serie f1/2 R05» establece ratios 0.5,1,1.5… sin reducir la cantidad de voces;
+«Serie armónica R05» restaura ratios 1,2,3… Ambos sobrescriben explícitamente la
+lista de ratios del experimento, no la afinación del instrumento cotidiano.
+Exportar/importar conserva opciones y valores. Renderizar, escuchar mapped y
+observar su figura usa cuadratura real del modelo modulado. No es audificación,
+fase corporal medida ni evidencia de coordinación fisiológica.
