@@ -180,6 +180,13 @@ pausas y loops. Build pasó. Falta probar esta nueva reproducción/seguimiento
 en Chrome real y hacer portable el estado de reproducción/escala visual;
 no se afirma escucha ni sincronización física.
 
+Decimonoveno corte: Chrome real decodifica preview y pasa seguimiento opt-in:
+antes del primer frame no muestra futuro, seek pausado selecciona último frame
+pasado, seek hacia atrás limpia selección, play avanza reloj/figura y pause
+congela tiempo. Test HTTP completo pasó en 3.7 s con worker/PCM sintéticos;
+servidor detenido. Sigue pendiente loop automático y configuración visual/playback
+portable; esto no prueba latencia acústica, dispositivo físico ni escucha humana.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
