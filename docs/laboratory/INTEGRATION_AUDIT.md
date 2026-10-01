@@ -57,3 +57,26 @@ Protocolo audio_environment verifica igualdad exacta de 38400 muestras estéreo
 sobre seis voces sintéticas entre los intérpretes auditados, con código coincidente.
 El pendiente universal de paridad live/renderer no se cierra con un fixture;
 protocolo/identidades permiten ampliar las condiciones sin asumir resultados.
+
+
+## Captura y recuperación — auditoría posterior a #67
+
+Fecha 2026-09-30. Weaver 339812b, Shaper 00893ad; workspaces dev limpios al
+inicio. GitHub #67 OPEN con head 339812b4fd6b62d2e60a1696c46e038042e890b6.
+Sin merges ni arranque de dispositivos.
+
+- Weaver: 64 tests de test_lab_capture, camera, journal_recovery, export,
+  recovered_input y timeline; 7.12 s.
+- Shaper: 15 tests capture/capture_recovery; 1.25 s.
+- Advertencias: deprecaciones TestClient/AnyIO; ninguna falla.
+
+La suite integrada incluye writer/cierre, prefijos de journal e imágenes,
+reintentos por contrato, persistencia de recuperación y fallos de disco, export
+FFmpeg y PCM exacto, camera prefix, API/reinicio/Range y mutación durante render.
+No agrega prueba física de R24/cámara, latencia, aceptación ni navegador unido
+a servidor por red. El audio aceptado y los defaults no cambian.
+
+Pendientes LAB-09: job polling en Shaper para confirmar operaciones largas sin
+rePOST; overlays configurables; recorrido navegador-servidor completo; medición
+de sincronía física y límites/cobertura de journal. El export de prefijos ya
+existe y no debe reimplementarse. Investigación R02–R13 permanece abierta.

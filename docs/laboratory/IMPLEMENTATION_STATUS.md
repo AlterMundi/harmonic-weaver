@@ -21,6 +21,10 @@ Desarrollo permanece en `harmonic-weaver-dev` y `harmonic-shaper-dev`; no sustit
 el workspace `harmonic-weaver-lab` de pruebas ni workspaces originales. PRs listadas
 siguen abiertas en GitHub; no se ejecutaron merges. Los datos privados no se publican.
 
+Auditoría posterior a #67: 64 tests Weaver de captura/recuperación/export y 15
+Shaper pasan; [alcance y límites](INTEGRATION_AUDIT.md). No equivale a validación
+de hardware ni aceptación humana.
+
 ## Publicación
 
 - Segunda iteración: [PR #37](https://github.com/AlterMundi/harmonic-weaver/pull/37),
