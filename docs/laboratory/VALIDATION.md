@@ -929,3 +929,23 @@ congelada/rango inválido/export-import sin ejecutar/resultado faltante. Build
 TS/Vite pasa. API simulada en este test UI; backend con child real probado
 separado. Pendientes browser→API real R04, entrada corporal y controles ampliados.
 No cambian defaults del instrumento ni audio. Vite propio detenido al finalizar.
+
+
+R04 browser→API→worker verificado por Chrome contra Uvicorn real, sin mocks.
+Panel aislado usa fetch same-origin, servidor sin runtime/audio/cámara. Dos
+corridas de 30 muestras producen bytes de resultado idénticos; 20 trazas,
+request.json descargado con nombre correcto. UI mantiene I/R/A indefinidos
+para aceleración compartida; muestra 10 del mismo frenado distal da I=−1
+con proximal quieto y +1 con proximal móvil. No errores API visibles. Servidor
+propio detenido con shutdown confirmado. No verifica main/WebSocket ni datos
+corporales reales; entrada corporal y controles ampliados siguen pendientes.
+
+```bash
+npx --prefix laboratory-ui vite build laboratory-ui/tests/r04_harness --outDir /tmp/weaver-r04-network-ui --emptyOutDir
+PYTHONPATH=src .venv/bin/python tests/r04_http_fixture.py --root /tmp/weaver-r04-fresh-unique --ui /tmp/weaver-r04-network-ui --port 8879
+# Otro terminal, desde laboratory-ui:
+LAB_R04_NETWORK_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/relationalNetwork.spec.ts --reporter=line
+```
+
+Root debe ser nuevo: fixture nunca pisa inventario previo. Ctrl+C cierra
+servicio/workers propios. URL explícita requerida; no usa laboratorio del usuario.
