@@ -5,9 +5,12 @@ export function MovementMarks({api,run,sourceId,personId,currentSessionId,observ
  const [start,setStart]=useState("");const [end,setEnd]=useState("");
  const [filterCategory,setFilterCategory]=useState("");
  const [sessionFilter,setSessionFilter]=useState("");const [epochFilter,setEpochFilter]=useState("");
+ const [cursorFilter,setCursorFilter]=useState("");
+ const validCursor=cursorFilter==="" || Number.isInteger(+cursorFilter) && +cursorFilter>=0;
  const validEpoch=epochFilter==="" || !!sessionFilter && Number.isInteger(+epochFilter) && +epochFilter>=0;
- const valid=validEpoch && (start==="" || Number.isFinite(+start) && +start>=0) && (end==="" || Number.isFinite(+end) && +end>=0) && (start==="" || end==="" || +start<+end);
+ const valid=validCursor && validEpoch && (start==="" || Number.isFinite(+start) && +start>=0) && (end==="" || Number.isFinite(+end) && +end>=0) && (start==="" || end==="" || +start<+end);
  const query=new URLSearchParams({source_id:sourceId || "",person_id:personId || ""});
+ if(cursorFilter!=="")query.set("through_sequence",cursorFilter);
  if(sessionFilter)query.set("session_id",sessionFilter);if(epochFilter!=="")query.set("observed_epoch",epochFilter);
  if(start!=="")query.set("start_s",start);if(end!=="")query.set("end_s",end);if(filterCategory)query.set("category",filterCategory);
  return <>
@@ -38,6 +41,7 @@ export function MovementMarks({api,run,sourceId,personId,currentSessionId,observ
           </button>
  <a href="/api/marks/snapshot" download>Descargar marcas congeladas</a>
  <button disabled={!currentSessionId || observedEpoch==null || observedEpoch<0} onClick={()=>{setSessionFilter(currentSessionId!);setEpochFilter(String(observedEpoch));}}>Usar sesión y época observadas actuales</button>
+ <label>Cursor de marcas (vacío = actual)<input type="number" min="0" step="1" value={cursorFilter} onChange={e=>setCursorFilter(e.target.value)}/></label>
  <label>Sesión de las marcas (opcional)<input value={sessionFilter} onChange={e=>setSessionFilter(e.target.value)}/></label>
  <label>Época observada (requiere sesión)<input type="number" min="0" step="1" value={epochFilter} onChange={e=>setEpochFilter(e.target.value)}/></label>
  <label>Inicio de selección de marcas (s)<input type="number" min="0" step=".01" value={start} onChange={e=>setStart(e.target.value)}/></label>

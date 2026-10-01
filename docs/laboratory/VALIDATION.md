@@ -718,3 +718,9 @@ tick, distinto del epoch de transporte. Botón explícito copia sesión/época a
 filtro, no las sigue automáticamente ni guarda/inicia análisis. Chrome verifica
 valores/query y ausencia de llamadas. 7 tests runtime, Chrome y build pasan.
 No observado => botón deshabilitado; interacción humana completa pendiente.
+
+
+Cursor repetible de marcas: 9 tests API/store y build pasan. Descargar, agregar
+marca y repetir through_sequence conserva JSON/hash exactos; cursor cero vacío
+y valores negativos/futuros rechazados. Campo web compilado; interacción de
+este campo pendiente. No cambia defaults del instrumento.

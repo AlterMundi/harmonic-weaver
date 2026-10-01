@@ -281,8 +281,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/marks/snapshot")
     def marks_snapshot(source_id: str | None = None, person_id: str | None = None,
                        start_s: float | None = None, end_s: float | None = None, category: str | None = None,
-                       session_id: str | None = None, observed_epoch: int | None = None):
-        return JSONResponse(session.marks_snapshot(source_id=source_id,person_id=person_id,start_s=start_s,end_s=end_s,category=category,session_id=session_id,observed_epoch=observed_epoch),headers={"Content-Disposition":'attachment; filename="movement-marks.json"'})
+                       session_id: str | None = None, observed_epoch: int | None = None, through_sequence: int | None = None):
+        return JSONResponse(session.marks_snapshot(source_id=source_id,person_id=person_id,start_s=start_s,end_s=end_s,category=category,session_id=session_id,observed_epoch=observed_epoch,through_sequence=through_sequence),headers={"Content-Disposition":'attachment; filename="movement-marks.json"'})
 
     @app.post("/api/marks")
     def mark(body: MarkRequest):

@@ -118,3 +118,11 @@ Filtro session_id/observed_epoch disponible por API y web, con sesión obligator
 si se limita época. Selection integra ambos en hash; marcas sin época quedan
 fuera del filtro. Siguiente entrega: contraste reproducible de candidatos sobre
 features congeladas y anotaciones seleccionadas, con controles y soporte común.
+
+
+through_sequence opcional en API y campo web permiten repetir la misma selección
+tras nuevas anotaciones; omitirlo toma cursor actual. Rechaza cursor negativo o
+posterior al journal, cero produce conjunto vacío. Conservar JSON y hash sigue
+siendo necesario: cursor identifica un corte de esta base local, no cualquier
+otra instalación. Selección fuente/persona/sesión/época/intervalo/categoría se
+reaplica explícitamente. No certifica ausencia de cambios externos a SQLite.

@@ -133,3 +133,15 @@ def test_epoch_filter_requires_session_and_does_not_infer_historical_epochs(tmp_
         assert len(selected['marks'])==1
         assert selected['marks'][0]['event']['payload']['text']=='Known'
         assert client.get('/api/marks/snapshot',params={'session_id':'other','observed_epoch':2}).json()['marks']==[]
+
+
+def test_frozen_mark_cursor_repeats_after_new_marks(tmp_path):
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        client.post('/api/marks',json={'text':'Frozen'})
+        frozen=client.get('/api/marks/snapshot').json()
+        client.post('/api/marks',json={'text':'Later'})
+        repeated=client.get('/api/marks/snapshot',params={'through_sequence':frozen['through_sequence']}).json()
+        assert repeated==frozen
+        assert client.get('/api/marks/snapshot',params={'through_sequence':0}).json()['marks']==[]
+        for cursor in (-1,999999):
+            assert client.get('/api/marks/snapshot',params={'through_sequence':cursor}).status_code==422

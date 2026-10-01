@@ -265,7 +265,9 @@ class SessionStore:
                                  "observed_epoch": observed_epoch, "transport_epoch": transport_epoch,
                                  "frame_time_s": frame_time_s})
 
-    def marks_snapshot(self, *, source_id=None, person_id=None, start_s=None, end_s=None, category=None, session_id=None, observed_epoch=None):
+    def marks_snapshot(self, *, source_id=None, person_id=None, start_s=None, end_s=None, category=None, session_id=None, observed_epoch=None, through_sequence=None):
+        if through_sequence is not None and (type(through_sequence) is not int or through_sequence<0):
+            raise ValueError("Mark cursor requires a nonnegative integer")
         if observed_epoch is not None and (type(observed_epoch) is not int or observed_epoch<0 or not session_id):
             raise ValueError("Observed epoch requires an explicit session and nonnegative integer")
         for value in (start_s,end_s):
@@ -277,6 +279,9 @@ class SessionStore:
             raise ValueError("Unknown mark category")
         with self._lock:
             cursor=self._db.execute("SELECT COALESCE(MAX(sequence),0) FROM events").fetchone()[0]
+            if through_sequence is not None:
+                if through_sequence>cursor:raise ValueError("Mark cursor is beyond the recorded journal")
+                cursor=through_sequence
             rows=self._db.execute("SELECT sequence,payload FROM events WHERE sequence<=? AND json_extract(payload,'$.kind')='mark' ORDER BY sequence",(cursor,)).fetchall()
             result={"schema_version":1,"through_sequence":cursor,
                     "selection":{"source_id":source_id,"person_id":person_id,"start_s":start_s,"end_s":end_s,"category":category,"interval":"[start_s,end_s)","session_id":session_id,"observed_epoch":observed_epoch},
