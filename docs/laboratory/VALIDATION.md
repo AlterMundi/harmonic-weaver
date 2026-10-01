@@ -1200,3 +1200,20 @@ ese timestamp a cero antes de hashes, conservando peaks/posiciones y PCM. No usa
 APIs privadas ni altera reloj de fuente; RIFF WAV limitado al contrato actual.
 Pendientes UI/presets, prueba navegador/red real R05, comparación de mecanismos,
 carreras/interrupción abrupta y escucha humana. Audio live/defaults intactos.
+
+
+R05 — controles web y configuración portable inicial (2026-09-30):
+ResonatorPanel en ResearchPanel: elegir comparación terminada/corrida/señal/
+segmento con persona/calibración congeladas visibles; todos los campos de
+resonators/excitation/render configurables, listas/matriz como JSON, scalar
+numérico y modos/topologías por select. Inicio explícito con validación server,
+inventario/poll/cancel/descargas y niveles. No reproducción automática de PCM.
+POST /api/research/r05/configuration valida preset schema1 sin selección,
+fuente/persona/calibración/segmento ni jobs; defaults seis voces. Export/import
+JSON preserva selección de origen y no ejecuta. Arrays malformed no encolan.
+Build TypeScript/Vite pasa; tres tests API pasan incluyendo integración con
+reader real y preset roundtrip/rechazo de source/version/pesos/grafo inválidos.
+Interacción navegador R05 todavía no probada: próximo paso harness aislado y
+red real; no afirmar aceptación/escucha humana. Comparación de mecanismos,
+figura sincronizada para esta variante experimental y experiencias pendientes.
+Defaults live/sonido aceptado intactos; controles R05 son offline separados.

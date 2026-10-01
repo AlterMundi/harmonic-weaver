@@ -66,3 +66,19 @@ def test_no_library_does_not_enqueue(tmp_path):
         body={'selection':dict(evaluation_id='a'*32,run_index=0,signal_id='speed',end_s=1)}
         assert client.post('/api/research/r05',json=body).status_code==422
         assert client.get('/api/research/r05').json()==[]
+
+
+def test_portable_configuration_validates_without_job_or_source(tmp_path):
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        response=client.post('/api/research/r05/configuration',json={})
+        assert response.status_code==200
+        config=response.json()
+        assert len(config['resonators']['ratios'])==6
+        assert set(config)=={'schema_version','resonators','excitation','render'}
+        config['excitation']['mode']='positive_delta';config['render']['tail_s']=10
+        assert client.post('/api/research/r05/configuration',json=config).json()==config
+        for bad in ({**config,'selection':{}},{**config,'schema_version':2},
+                    {**config,'excitation':{**config['excitation'],'voice_weights':[1]*7}},
+                    {**config,'resonators':{**config['resonators'],'topology':'custom','adjacency':[[0]]}}):
+            assert client.post('/api/research/r05/configuration',json=bad).status_code==422
+        assert client.get('/api/research/r05').json()==[]

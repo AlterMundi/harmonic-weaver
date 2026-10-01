@@ -107,6 +107,13 @@ class ResonatorRequest(Contract):
     render: ResonatorRenderSettings = Field(default_factory=ResonatorRenderSettings)
 
 
+class ResonatorConfig(Contract):
+    schema_version: Literal[1] = 1
+    resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
+    excitation: ExcitationSettings = Field(default_factory=ExcitationSettings)
+    render: ResonatorRenderSettings = Field(default_factory=ResonatorRenderSettings)
+
+
 class CameraRequest(Contract):
     index: int = Field(default=0, ge=0, le=32)
     perception: PerceptionSettings
@@ -331,6 +338,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get("/api/research/r05")
     def resonator_jobs(): return resonators.list()
+
+    @app.post("/api/research/r05/configuration")
+    def resonator_configuration(body: ResonatorConfig):
+        if len(body.excitation.voice_weights) != len(body.resonators.ratios):
+            raise ValueError('One explicit excitation weight per resonator required')
+        return body.model_dump()
 
     @app.post("/api/research/r05")
     def resonator_start(body: ResonatorRequest):
