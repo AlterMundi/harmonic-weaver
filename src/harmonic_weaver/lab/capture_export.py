@@ -104,6 +104,13 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     report={'schema_version':1,'capture_id':manifest['id'],'settings':settings.model_dump(),
             'capture_completeness':'recovered_partial' if partial else 'complete',
             'partial_limits':partial['limits'] if partial else [],
+            'recovery_provenance':({**partial['provenance'],
+                'camera':({'directory':camera_manifest['directory'],'frame_root':str(camera_folder),
+                           'index_sha256':camera_manifest['index_sha256'],
+                           'verified_frames':camera_manifest.get('verified_frames'),
+                           'stop_reason':camera_manifest.get('stop_reason'),
+                           'source_hashes_declared':camera_manifest.get('source_hashes',{})}
+                          if camera_manifest else None)} if partial else None),
             'alignment':'sampled source hold against generated digital audio callback clock',
             'limits':['Not a measurement of audiovisual or acoustic latency',
                       'Unrecorded/missing/stale camera intervals rendered black; processed preview only',

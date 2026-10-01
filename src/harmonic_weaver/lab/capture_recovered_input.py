@@ -51,6 +51,11 @@ def recovered_input(capture):
     return {'status':'verified_partial','capture_id':capture['id'],
             'audio':str(audio),'blocks':str(blocks),'journal':{k:str(v) for k,v in paths.items()},
             'sample_rate':info.samplerate,'samples':info.frames,
+            'provenance':{
+                'pcm':{'capture_id':driver_id,'directory':str(audio.parent),
+                       'source_hashes_declared':pcm.get('source_hashes',{})},
+                'journal':{'directory':str(Path(journal['directory'])),
+                           'cuts':{name:{key:files[name].get(key) for key in ('rows','stop_reason','source_sha256')} for name in paths}}},
             'input_hashes':{'audio.wav':hashes['audio.wav'],'blocks.jsonl':hashes['blocks.jsonl'],
                             **{name:files[name]['output_sha256'] for name in paths}},
             'limits':['Verified recovered prefixes only; capture remains incomplete',

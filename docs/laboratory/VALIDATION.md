@@ -658,3 +658,10 @@ después del primer fotograma y comprueban el rechazo. Aplica a capturas complet
 y prefijos, con la misma ruta de render. No es snapshot de filesystem ni defensa
 ante modificación/restauración entre lecturas; originales de video siguen con
 identidad declarada como documentado. No cambia síntesis ni defaults.
+
+
+2026-09-30 — procedencia de recuperación: 25 tests export/input pasan. Los casos
+de cámara y archivo comprueban recovery_provenance, identidad PCM, carpeta
+journal y frame_root/conteo de cámara; sin cámara el campo es null. Mantiene
+separación entre hashes de entradas verificados y source_hashes_declared. No
+cambia audio, presets ni defaults.

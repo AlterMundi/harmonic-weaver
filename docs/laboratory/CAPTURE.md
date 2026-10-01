@@ -393,3 +393,13 @@ La exportación de prefijos también admite recovery.camera.status=recovered:
 usa índice recuperado verificado y frame_root original, con hash JPEG comprobado
 en cada consumo. Sin prefijo de cámara disponible, conserva intervalos negros.
 Esta actualización sustituye la limitación anterior de cámara no incluida.
+
+
+### Procedencia del export recuperado
+
+recovery_provenance registra identidad/carpeta PCM, carpeta y cortes del journal,
+y carpeta/frame_root/índice/corte del prefijo de cámara consumido. input_hashes e
+índice de cámara corresponden a los artefactos comprobados para exportar. Los
+source_hashes_declared se conservan como declaraciones de recuperación; no se
+afirma revalidación del raw original. Todo permanece local, no portable ni apto
+para publicación automática sin revisar rutas/datos privados.

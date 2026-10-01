@@ -186,6 +186,8 @@ def test_recorded_camera_preview_exports_with_exact_pcm(tmp_path,partial):
     result=render_capture(manifest,tmp_path/'export',{'fps':10,'width':160,'height':120,'camera_clock':'captured_monotonic_s','recovered_prefix':partial,'browser_preview':partial})
     if partial:
         assert result['capture_completeness']=='recovered_partial'
+        assert result['recovery_provenance']['camera']['frame_root']==str(capture.folder)
+        assert result['recovery_provenance']['camera']['verified_frames']==10
         assert result['preview']['status']=='complete'
         streams=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-of','json',str(tmp_path/'export/preview.mp4')]))['streams']
         assert {stream['codec_name'] for stream in streams}=={'h264','aac'}
@@ -239,6 +241,9 @@ def test_recovered_prefix_exports_exact_pcm_without_promoting_capture(tmp_path):
     result=render_capture(manifest,tmp_path/'prefix-export',{'fps':10,'width':160,'height':120,'recovered_prefix':True})
     assert manifest==original and manifest['status']=='interrupted'
     assert result['status']=='complete' and result['capture_completeness']=='recovered_partial'
+    assert result['recovery_provenance']['pcm']['capture_id']=='confirmed'
+    assert result['recovery_provenance']['journal']['directory']==str(journal)
+    assert result['recovery_provenance']['camera'] is None
     raw=subprocess.check_output(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-i',str(tmp_path/'prefix-export/capture.mkv'),'-map','0:a:0','-f','f32le','-'])
     np.testing.assert_array_equal(np.frombuffer(raw,dtype='<f4').reshape(-1,2),samples)
 
