@@ -54,10 +54,11 @@ def persist(document, request, folder, render, carriers, modules):
             'libsndfile': sf.__libsndfile_version__, 'platform': platform.platform()},
         'preparation': render.manifest,
         'pcm': {'format': 'WAV', 'subtype': 'DOUBLE', 'sample_rate': carriers.sample_rate,
-            'sum_channels': 1, 'voice_channels': len(carriers.ratios)},
+            'sum_channels': 1, 'voice_channels': len(carriers.ratios), 'quadrature_channels':len(carriers.ratios)},
         'limits': render.manifest['limits'] + [
             'Raw float64 PCM may exceed full scale; check levels before playback',
             'Per-voice file contains model outputs, not body features',
+            'Quadrature is real model state/carrier cosine, not inferred body phase or physical cymatics',
             'Software artifact integrity is not scientific validation or human acceptance']}
     manifest['code_hashes']['contracts.py'] = sha256_file(Path(__file__).parent.parent / 'contracts.py')
     manifest['code_hashes']['cache.py'] = sha256_file(Path(__file__).parent.parent / 'cache.py')
@@ -67,27 +68,30 @@ def persist(document, request, folder, render, carriers, modules):
         with sf.SoundFile(folder / 'sum.partial.wav', 'w', samplerate=carriers.sample_rate,
                           channels=1, format='WAV', subtype='DOUBLE') as summed, \
              sf.SoundFile(folder / 'voices.partial.wav', 'w', samplerate=carriers.sample_rate,
-                          channels=len(carriers.ratios), format='WAV', subtype='DOUBLE') as voices:
+                          channels=len(carriers.ratios), format='WAV', subtype='DOUBLE') as voices, \
+             sf.SoundFile(folder / 'quadrature.partial.wav', 'w', samplerate=carriers.sample_rate,
+                          channels=len(carriers.ratios), format='WAV', subtype='DOUBLE') as quadrature:
             for block in render.blocks():
                 values = block['sum']
-                if not np.isfinite(values).all() or not np.isfinite(block['voices']).all():
+                if not np.isfinite(values).all() or not np.isfinite(block['voices']).all() or not np.isfinite(block['quadrature']).all():
                     raise ValueError('Nonfinite model PCM')
                 summed.write(values); voices.write(block['voices'])
+                quadrature.write(block['quadrature'])
                 frames += len(values)
                 peak = max(peak, float(np.max(np.abs(values))))
                 squares += float(np.dot(values, values))
                 over += int(np.count_nonzero(np.abs(values) > 1))
         if frames != render.total_frames:
             raise ValueError('Incomplete R05 sample clock')
-        for name in ('sum', 'voices'):
+        for name in ('sum', 'voices','quadrature'):
             deterministic_peak_timestamp(folder / f'{name}.partial.wav')
         for name, digest in manifest['input_hashes'].items():
             if (folder / name).is_symlink() or sha256_file(folder / name) != digest:
                 raise ValueError('Frozen input changed during render')
-        for name in ('sum', 'voices'):
+        for name in ('sum', 'voices','quadrature'):
             os.replace(folder / f'{name}.partial.wav', folder / f'{name}.wav')
         manifest.update(status='complete', output_hashes={
-            f'{name}.wav': sha256_file(folder / f'{name}.wav') for name in ('sum', 'voices')},
+            f'{name}.wav': sha256_file(folder / f'{name}.wav') for name in ('sum', 'voices','quadrature')},
             levels={'frames': frames, 'peak_abs': peak, 'rms': (squares / frames) ** .5,
                     'samples_over_full_scale': over})
         atomic_json(folder / 'manifest.json', manifest)

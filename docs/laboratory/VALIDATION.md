@@ -1330,3 +1330,20 @@ comparación/persistencia/worker/API): 51 tests pasan. Alcance sólo fallos prob
 no garantía general de crash-safety/transacciones FS; interrupción a mitad de
 promoción aún pendiente. Sin procesos de prueba vivos ni cambios al audio live.
 Escucha/percepción, figura experimental y modalidades adicionales pendientes.
+
+
+R05 — estado complejo para proyección fiel (2026-09-30): kernel y render
+exponen quadrature por voz (real(z)) junto a salida audible imag(z), mismo
+sample clock; mapeo expone cosine × envelope × weight junto al sine audible.
+Writer compartido persiste quadrature.wav DOUBLE multicanal, hashes/header/
+finiteza verificados y worker lo promueve. API whitelist admite quadrature y
+aliases por brazo; no sirve archivos ausentes del inventario firmado por hashes.
+Verificador conserva compatibilidad con inventario anterior de dos WAV; no
+crea cuadratura retrospectiva ni la infiere del audio. No nueva ruta al Shaper.
+35 tests regresión kernel/mapping/persistencia/worker pasan y dos nuevos prueban
+coseno/decaimiento analítico, partición exacta, persistencia/clock/legacy/tamper.
+Seis API+quadrature pasan tras endurecer inventario de descargas. Componente real
+es estado del modelo, no fase corporal ni medio cimático físico. No modifica PCM
+sum/voices ni ratios; próxima entrega proyección/recorrido web sincronizado usando
+estas componentes, sin extrapolar carriers acoplados como frecuencias aisladas.
+Escucha/aceptación humana y modalidades adicionales siguen pendientes.

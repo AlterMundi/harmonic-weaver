@@ -62,10 +62,12 @@ class Resonators:
         if impulses.ndim!=2 or impulses.shape[1]!=n or not np.isfinite(impulses).all():raise ValueError('Finite frames × voice impulses required')
         if len(impulses)>self.settings.sample_rate*120:raise ValueError('Render at most 120 seconds per call')
         output=np.empty((len(impulses),n),dtype=float)
+        quadrature=np.empty((len(impulses),n),dtype=float)
         norms=np.empty(len(impulses),dtype=float)
         for i,excitation in enumerate(impulses):
             self.state=self.step@(self.state+excitation)
             output[i]=self.state.imag
+            quadrature[i]=self.state.real
             norms[i]=float(np.vdot(self.state,self.state).real)
             self.sample_index+=1
-        return {'voices':output,'sum':output.sum(axis=1),'state_norm_squared':norms,'sample_index':self.sample_index}
+        return {'voices':output,'quadrature':quadrature,'sum':output.sum(axis=1),'state_norm_squared':norms,'sample_index':self.sample_index}

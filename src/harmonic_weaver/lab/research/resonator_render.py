@@ -62,5 +62,6 @@ class Render:
                     impulses[index-a]+=self.impulses[index]
                 chunks.append(model.render(impulses))
             yield {'start_sample':start,'voices':np.concatenate([c['voices'] for c in chunks]),
+                   'quadrature':np.concatenate([c['quadrature'] for c in chunks]),
                    'sum':np.concatenate([c['sum'] for c in chunks]),
                    'state_norm_squared':np.concatenate([c['state_norm_squared'] for c in chunks])}

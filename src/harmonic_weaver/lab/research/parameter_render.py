@@ -86,4 +86,5 @@ class Render:
                 envelope[i-start]=amplitude
             time=(np.arange(start,end,dtype=float)+1)/sr
             voices=np.sin(2*np.pi*time[:,None]*frequencies)*envelope[:,None]*weights
-            yield {'start_sample':start,'voices':voices,'sum':voices.sum(axis=1),'amplitude':envelope}
+            quadrature=np.cos(2*np.pi*time[:,None]*frequencies)*envelope[:,None]*weights
+            yield {'start_sample':start,'voices':voices,'quadrature':quadrature,'sum':voices.sum(axis=1),'amplitude':envelope}

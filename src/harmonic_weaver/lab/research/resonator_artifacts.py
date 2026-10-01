@@ -19,10 +19,13 @@ def verify(folder):
             raise ValueError('Missing or nonregular R05 artifact')
     manifest_hash = sha256_file(folder / 'manifest.json')
     manifest = json.loads((folder / 'manifest.json').read_text())
+    has_quadrature='quadrature.wav' in manifest.get('output_hashes',{})
+    if has_quadrature and ((folder/'quadrature.wav').is_symlink() or not (folder/'quadrature.wav').is_file()):
+        raise ValueError('Regular quadrature artifact required')
     if manifest.get('schema_version') != 1 or manifest.get('line') != 'R05' or manifest.get('status') != 'complete':
         raise ValueError('Completed R05 manifest required')
     if set(manifest.get('input_hashes', {})) != {'input.json', 'request.json'} or \
-       set(manifest.get('output_hashes', {})) != {'sum.wav', 'voices.wav'}:
+       set(manifest.get('output_hashes', {})) != ({'sum.wav','voices.wav','quadrature.wav'} if has_quadrature else {'sum.wav','voices.wav'}):
         raise ValueError('Exact R05 artifact inventory required')
     hashes = {**manifest['input_hashes'], **manifest['output_hashes']}
     for name, digest in hashes.items():
@@ -45,9 +48,10 @@ def verify(folder):
     sr = carriers.sample_rate; n = len(carriers.ratios)
     expected = {'format': 'WAV', 'subtype': 'DOUBLE', 'sample_rate': sr,
                 'sum_channels': 1, 'voice_channels': n}
+    if has_quadrature:expected['quadrature_channels']=n
     if manifest['pcm'] != expected:
         raise ValueError('R05 PCM contract mismatch')
-    for name, channels in (('sum.wav', 1), ('voices.wav', n)):
+    for name, channels in [('sum.wav',1),('voices.wav',n)]+([('quadrature.wav',n)] if has_quadrature else []):
         info = sf.info(folder / name)
         if (info.format, info.subtype, info.samplerate, info.channels, info.frames) != \
            ('WAV', 'DOUBLE', sr, channels, prepared.total_frames):
@@ -64,6 +68,9 @@ def verify(folder):
             frames += len(values); peak = max(peak, float(np.abs(values).max()))
             squares += float(np.dot(values, values)); over += int(np.count_nonzero(np.abs(values) > 1))
     levels = manifest['levels']
+    if has_quadrature:
+        for block in sf.blocks(folder/'quadrature.wav',blocksize=4096,dtype='float64',always_2d=True):
+            if not np.isfinite(block).all():raise ValueError('Nonfinite model quadrature')
     if levels['frames'] != frames or levels['peak_abs'] != peak or levels['samples_over_full_scale'] != over or \
        not np.isclose(levels['rms'], (squares / frames)**.5, rtol=1e-12, atol=1e-15):
         raise ValueError('R05 level report mismatch')

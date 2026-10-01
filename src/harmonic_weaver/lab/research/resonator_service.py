@@ -7,8 +7,9 @@ from .resonator_artifacts import verify
 class ResonatorService(CoincidenceService):
     line = 'R05'
     module = 'harmonic_weaver.lab.research.resonator_worker'
-    artifacts = ('request.json','input.json','sum.wav','voices.wav','manifest.json',
-                 'result.json','excited-sum.wav','excited-voices.wav','mapped-sum.wav','mapped-voices.wav')
+    artifacts = ('request.json','input.json','sum.wav','voices.wav','quadrature.wav','manifest.json',
+                 'result.json','excited-sum.wav','excited-voices.wav','excited-quadrature.wav',
+                 'mapped-sum.wav','mapped-voices.wav','mapped-quadrature.wav')
 
     def start(self, request, document):
         if set(request) - {'resonators','excitation','render','mapping'}:
@@ -40,5 +41,12 @@ class ResonatorService(CoincidenceService):
         if paired:
             from .mechanism_run import verify as verify_pair
             verify_pair(folder)
-        else:verify(folder)
+            if name.startswith(('excited-','mapped-')):
+                verified_arm=verify(folder/arm)
+                if file not in verified_arm['output_hashes']:
+                    raise ValueError('R05 arm artifact is not in verified inventory')
+        else:
+            verified=verify(folder)
+            if name not in {*verified['input_hashes'],*verified['output_hashes']}:
+                raise ValueError('R05 artifact is not in verified inventory')
         return path

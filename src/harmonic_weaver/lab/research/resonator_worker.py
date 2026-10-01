@@ -34,7 +34,7 @@ def run_frozen(folder):
             if any((folder/name).is_symlink() or sha256_file(folder/name) != digest
                    for name,digest in hashes.items()):
                 raise ValueError('R05 frozen input changed')
-            for name in (('excited','mapped','result.json') if paired else ('sum.wav','voices.wav')):
+            for name in (('excited','mapped','result.json') if paired else tuple(computed['output_hashes'])):
                 (folder/'computed'/name).replace(folder/name)
             manifest = {**computed, 'input_hashes':hashes}
             manifest['code_hashes'].update(resonator_worker=sha256_file(Path(__file__)),
