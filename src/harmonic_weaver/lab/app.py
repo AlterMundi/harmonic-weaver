@@ -120,9 +120,16 @@ class ActivationConfig(Contract):
     settings:ActivationSettings=Field(default_factory=ActivationSettings)
 
 
+class MembranePlayback(Contract):
+    follow_audio:bool=False
+    loop_audio:bool=False
+    color_scale:Number=Field(default=10000,ge=0,le=1e12)
+
+
 class MembraneConfig(Contract):
     schema_version:Literal[1]=1
     settings:MembraneRequest=Field(default_factory=lambda:MembraneRequest(stop_sample_exclusive=48000))
+    playback:MembranePlayback=Field(default_factory=MembranePlayback)
 
 
 class MembraneStart(Contract):

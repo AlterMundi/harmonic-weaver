@@ -187,6 +187,13 @@ congela tiempo. Test HTTP completo pasó en 3.7 s con worker/PCM sintéticos;
 servidor detenido. Sigue pendiente loop automático y configuración visual/playback
 portable; esto no prueba latencia acústica, dispositivo físico ni escucha humana.
 
+Vigésimo corte: configuración portable incluye playback estricto con
+follow_audio=false, loop_audio=false y color_scale=10000 por default; importar
+no inicia reproducción ni job. UI permite loop nativo explícito y exporta/importa
+los tres controles. Defaults previos de escala y seguimiento se preservan.
+Build y prueba API pasan, incluyendo roundtrip sin job y bool numérico rechazado.
+Falta probar loop automático y este nuevo preset visual en Chrome real.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
