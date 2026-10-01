@@ -20,6 +20,8 @@ from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
+from .research.relational_bank import Settings as RelationalSettings
+from .research.relational_service import RelationalService
 from .research.body import BodyRequest
 from .research.candidate_input import CandidateRequest, candidate_snapshot
 from .research.coincidence import content_hash
@@ -119,6 +121,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     exports = CaptureExports(capture) if capture is not None else None
     research = ResearchService(data_dir)
     coincidence = CoincidenceService(data_dir)
+    relational = RelationalService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -131,6 +134,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            relational.close()
             coincidence.close()
             research.close()
             if exports is not None:
@@ -279,6 +283,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
                  'mark_support':body.mark_support,'tolerance_s':body.tolerance_s,
                  'mark_offset_s':body.mark_offset_s,'control_offsets_s':body.control_offsets_s}
         return coincidence.start(request,marks,features)
+
+    @app.get("/api/research/r04")
+    def relational_jobs():return relational.list()
+
+    @app.post("/api/research/r04")
+    def relational_start(body: RelationalSettings):return relational.start(body.model_dump())
+
+    @app.post("/api/research/r04/{ident}/cancel")
+    def relational_cancel(ident: str):return relational.cancel(ident)
+
+    @app.get("/api/research/r04/{ident}/artifacts/{name}")
+    def relational_artifact(ident: str, name: str):
+        return FileResponse(relational.artifact(ident,name),filename=name)
 
     @app.get("/api/schemas")
     def schemas():

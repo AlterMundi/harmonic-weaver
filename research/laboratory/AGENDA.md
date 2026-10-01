@@ -309,3 +309,16 @@ numérica, frenado contextual, prefijo causal, repetición SHA y no overwrite.
 CLI real 30 muestras produce valores declarados en README; son construcciones
 sintéticas, no evidencia corporal. Pendientes backend/UI, replay verificado,
 oposición local favorable y controles de emparejamiento/ruido/ángulos/humanos.
+
+
+R04 servicio/API inicial: RelationalService comparte ciclo de vida owned con
+R03, pero root research/r04, inputs request.json y whitelist propios. Worker
+flock congela hash request, compara tras cómputo, publica result/manifest sólo
+con hash confirmado; error deja failed. Inventario restaura por mismo protocolo
+de writer lock; close sellado y cancel sólo child propio. POST/GET
+/api/research/r04, {id}/cancel y {id}/artifacts/{name}. Dos tests propios
+con child real cubren restauración/hash/tampering/whitelist/inventario separado
+y HTTP real TestClient; 11 servicio/worker/lifecycle R03 antes de conectar API,
+9 R04/R03 API+lifecycle después pasan. No dispositivos/audio. Pendientes panel
+R04, browser/red R04, interrupción específica a mitad de cómputo y replay
+corporal/control de oposición favorable. No ciencia resuelta.

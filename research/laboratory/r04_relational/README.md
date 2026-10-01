@@ -36,3 +36,9 @@ Pendientes: backend/UI configurable, entrada de tracking/replay verificada,
 controles de oposición local y emparejamientos incorrectos, ruido/ángulos,
 anotaciones independientes y condiciones reservadas. No demuestra HIT ni
 consonancia percibida. No cambia pitch/fases/ratios del instrumento aceptado.
+
+Servicio R04 disponible por /api/research/r04: POST settings, GET inventario,
+POST {id}/cancel, GET {id}/artifacts/{request.json,result.json,manifest.json}.
+El worker usa writer lock y manifest independiente; al restaurar no relanza.
+API es parte de create_app, sin requerir runtime/audio para banco sintético.
+Panel web y evidencia específica de interrupción R04 siguen pendientes.
