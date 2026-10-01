@@ -287,3 +287,22 @@ es estado del modelo, no fase corporal ni medio cimático físico. No modifica P
 sum/voices ni ratios; próxima entrega proyección/recorrido web sincronizado usando
 estas componentes, sin extrapolar carriers acoplados como frecuencias aisladas.
 Escucha/aceptación humana y modalidades adicionales siguen pendientes.
+
+
+R05 — proyección exacta de todas las voces/API inicial (2026-09-30):
+model_projection.project y POST /api/research/r05/{id}/projection requieren
+corrida completa verificada, brazo single/excited/mapped, start_sample, points
+2–4096 y stride1–32; lectura acotada <=131041 frames. X suma quadrature y Y
+suma voices; pesos/default1 y phase offsets/default0 por todas las voces,
+scale_x/y explícitos sin normalización. No extrapola portadoras acopladas ni
+estima Hilbert; usa componentes guardadas de estado efectivo. Respuesta conserva
+indices, reloj right-edge (sample+1)/sr, time fuente, región tail y hashes.
+Stride es decimación visual sin antialias, no conversión de audio. Fase modelo
+no corporal ni cymatic físico. Verificación integral por llamada puede ser
+costosa: NO recorrido low-latency/realtime todavía, requiere optimización/UI.
+12 tests API/proyección pasan: sumas exactas con acoplamiento, rotación/pesos/
+escalas/crop/tail, clocks, bounds/NaN/brazo incompatible rechazados y endpoints
+ambos workflows; ocho proyección repetidos tras límites 6–32 arrays. Primer
+intento corrigió nombre reservado pytest, sin relajar contratos. Audio intacto.
+Pendiente lector eficiente/preview sincronizado/UI/presets de proyección y
+aceptación humana, además de modalidades restantes del protocolo.
