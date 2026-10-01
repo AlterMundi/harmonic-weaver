@@ -3,6 +3,8 @@ test('R04 body real network freezes endpoints and repeats exact worker results',
  test.skip(!process.env.LAB_R04_BODY_NETWORK_URL,'explicit pose HTTP fixture required');
  const origin=process.env.LAB_R04_BODY_NETWORK_URL!;
  await page.goto(origin);
+ await page.getByLabel('Ruido añadido R04 (desvío)').fill('.02');
+ await page.getByLabel('Semilla de ruido R04').fill('17');
  await page.getByRole('combobox',{name:/^Comparación corporal R04/}).selectOption({index:1});
  await page.getByRole('combobox',{name:/^Extremo proximal R04/}).selectOption('7');
  await page.getByRole('combobox',{name:/^Extremo distal R04/}).selectOption('9');
@@ -18,6 +20,9 @@ test('R04 body real network freezes endpoints and repeats exact worker results',
   const result=await page.request.get(`${origin}/api/research/r04/${ident}/artifacts/result.json`);
   expect(result.status()).toBe(200);results.push(await result.body());
   const value=await result.json();expect(value.input_kind).toBe('frozen_pose_endpoints');
+  expect(value.settings).toMatchObject({perturbation_std:.02,perturbation_seed:17});
+  await expect(page.getByRole('table',{name:'Resumen R04 pose'})).toContainText('noisy_endpoints');
+  expect(Object.values(value.summaries.pose.conditions).every((c:any)=>c.paired_observations===value.summaries.pose.common_observations)).toBe(true);
   expect(value.selection).toMatchObject({parent_joint:7,child_joint:9,start_s:.2,end_s:2});
   expect(Object.keys(value.traces)).toHaveLength(6);
   expect(value.traces.original.some((r:any)=>!r.input_valid)).toBe(true);

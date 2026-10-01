@@ -1082,3 +1082,17 @@ nuevos comunes/availability desigual/gaps/empty/invalid, reader real/worker
 existentes mantienen repetición. Chrome panel/tabla y build pasan. Tests
 network selectores actualizados sin rerun aquí. Estadística descriptiva, no
 significación/eficacia ni aceptación corporal humana. Vite propio cerrado.
+
+
+R04 revalidación network tras controles/resúmenes: Chrome corporal y
+sintético contra mismo Uvicorn aislado con std=.02/seed17 pasan; cada
+recorrido repite dos workers con resultados idénticos byte a byte. Tablas
+noisy_endpoints visibles, settings congelados correctos y denominadores
+pareados iguales en resultado de pose. Downloads reales conservados.
+Primer intento sintético falló por selector global de indefinidos: nuevas
+tablas muestran None legítimos, por lo que se limitó assertion a Muestra R04.
+No cálculo cambiado; rerun del test afectado pasa. Servidor y children
+propios cerrados. Fixture pose sintética, no evidencia humana ni hardware.
+Actuales 30 traces sintéticas y 6 condiciones pose, con proximal/noise.
+Reproducir con fixture r03_http_fixture + harness R04 y variables
+LAB_R04_NETWORK_URL / LAB_R04_BODY_NETWORK_URL al mismo endpoint8879.
