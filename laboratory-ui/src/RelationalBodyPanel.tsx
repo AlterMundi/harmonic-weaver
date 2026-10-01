@@ -1,9 +1,9 @@
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 const joints=['Nariz','Ojo izquierdo','Ojo derecho','Oreja izquierda','Oreja derecha','Hombro izquierdo','Hombro derecho','Codo izquierdo','Codo derecho','Muñeca izquierda','Muñeca derecha','Cadera izquierda','Cadera derecha','Rodilla izquierda','Rodilla derecha','Tobillo izquierdo','Tobillo derecho'];
-export function RelationalBodyPanel({api,run,settings,settingsValid,active,onStarted}:Data){
+export function RelationalBodyPanel({api,run,settings,settingsValid,active,onStarted,onApplySettings}:Data){
  const [jobs,setJobs]=useState<Data[]>([]),[evaluation,setEvaluation]=useState(''),[report,setReport]=useState<Data|null>(null),[index,setIndex]=useState(0);
- const [parent,setParent]=useState(7),[child,setChild]=useState(9),[start,setStart]=useState(0),[end,setEnd]=useState(1),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [parent,setParent]=useState(7),[child,setChild]=useState(9),[start,setStart]=useState(0),[end,setEnd]=useState(1),[error,setError]=useState(''),[busy,setBusy]=useState(false),[config,setConfig]=useState('');
  useEffect(()=>{let live=true;void api('evaluations').then((value:Data[])=>{if(live)setJobs(value.filter(j=>j.status==='complete'));}).catch((e:any)=>{if(live)setError(String(e));});return()=>{live=false;};},[api]);
  useEffect(()=>{let live=true;setReport(null);if(evaluation)void api(`evaluations/${evaluation}/report`).then((value:Data)=>{if(live){setReport(value);setIndex(0);}}).catch((e:any)=>{if(live)setError(String(e));});return()=>{live=false;};},[evaluation,api]);
  const selected=report?.manifest.runs[index],source=selected && report?.manifest.request.sources[selected.source_index];
@@ -21,6 +21,13 @@ export function RelationalBodyPanel({api,run,settings,settingsValid,active,onSta
   <label>Extremo distal R04<select value={child} onChange={e=>setChild(+e.target.value)}>{joints.map((name,i)=><option key={i} value={i}>{i} · {name}</option>)}</select></label>
   <label>Inicio corporal R04 (s)<input type="number" step=".1" value={start} onChange={e=>setStart(+e.target.value)}/></label>
   <label>Fin corporal R04 (s)<input type="number" step=".1" value={end} onChange={e=>setEnd(+e.target.value)}/></label>
+  <button onClick={()=>setConfig(JSON.stringify({schema_version:1,settings,endpoints:{parent_joint:parent,child_joint:child}},null,2))}>Exportar configuración corporal R04</button>
+  <textarea aria-label="Configuración corporal R04 JSON" value={config} onChange={e=>setConfig(e.target.value)}/>
+  <button onClick={()=>run(async()=>{const value=JSON.parse(config),endpoints=value?.endpoints;
+   if(!value || value.schema_version!==1 || Object.keys(value).some(k=>!['schema_version','settings','endpoints'].includes(k)) || !endpoints || Object.keys(endpoints).length!==2 || ![endpoints.parent_joint,endpoints.child_joint].every(v=>Number.isInteger(v) && v>=0 && v<=16) || endpoints.parent_joint===endpoints.child_joint)throw Error('Configuración corporal R04 inválida');
+   onApplySettings(value.settings);setParent(endpoints.parent_joint);setChild(endpoints.child_joint);
+  })}>Importar configuración corporal R04</button>
+  <p>La configuración corporal conserva algoritmo y extremos. No incluye fuente, persona, escala, calibración ni segmento; importar no ejecuta una corrida.</p>
   <p>Elegir dos extremos no afirma adyacencia anatómica ni identidad correcta del tracking. Faltantes reinician la relación; no se interpolan.</p>
   <button disabled={!valid || active || busy} onClick={()=>run(async()=>{setBusy(true);try{await api('research/r04/trace',{settings,selection:{evaluation_id:evaluation,run_index:index,parent_joint:parent,child_joint:child,start_s:start,end_s:end}});await onStarted();}finally{setBusy(false);}})}>Correr R04 con pose congelada</button>
  </section>;

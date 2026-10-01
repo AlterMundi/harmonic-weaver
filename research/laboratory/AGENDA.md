@@ -422,3 +422,13 @@ LAB_R04_BODY_NETWORK_URL=http://127.0.0.1:8879 PLAYWRIGHT_CHANNEL=chrome npx pla
 
 Reusa fixture R03 de evaluación/pose, no inputs privados. Root nuevo requerido.
 Extremos portables y controles ampliados de oposición/ruido siguen pendientes.
+
+
+R04 configuración corporal portable v1: export/import JSON con schema_version,
+settings y endpoints COCO. Valida versión/keys/índices/distinción y parámetros
+antes de aplicar; no incluye fuente/persona/escala/calibración/segmento.
+Importar no corre worker ni cambia selección fuente/segmento. Dos tests Chrome
+panel/body pasan recuperación de extremos/settings, segmento preservado y
+cero llamadas al editar/importar; build pasa. No aceptación humana ni nuevos
+experimentos corporales; controles ampliados y evidencia siguen pendientes.
+No cambian defaults de síntesis; Vite propio cerrado.
