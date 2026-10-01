@@ -57,6 +57,40 @@ for(const paired of [false,true])test(`R05 real network ${paired?'paired mechani
   expect(wav.status()).toBe(200);pcm.push(await wav.body());
   const downloading=page.waitForEvent('download');await link.click();const download=await downloading;
   expect(download.suggestedFilename()).toBe(file);expect(await download.failure()).toBeNull();
+  if(i===0){
+   await page.getByRole('button',{name:`Explorar figura R05 ${ident}`,exact:true}).click();
+   const sample=page.getByLabel('Muestra inicial de proyección R05',{exact:true});
+   await sample.fill('250');
+   await page.getByLabel('scale_x proyección R05',{exact:true}).fill('2');
+   await page.getByRole('button',{name:'Exportar proyección R05',exact:true}).click();
+   const preset=page.getByLabel('Preset de proyección R05 JSON',{exact:true});
+   await expect(preset).toHaveValue(/scale_x/);
+   const settings=JSON.parse(await preset.inputValue());
+   expect(Object.keys(settings).sort()).toEqual(['schema_version','settings']);
+   expect(settings.settings.start_sample).toBeUndefined();
+   await sample.fill('400');await page.getByLabel('scale_x proyección R05',{exact:true}).fill('4');
+   await page.getByRole('button',{name:'Importar proyección R05',exact:true}).click();
+   await expect(page.getByLabel('scale_x proyección R05',{exact:true})).toHaveValue('2');
+   await expect(sample).toHaveValue('400');
+   if(paired)await page.getByRole('combobox',{name:/^Brazo de proyección R05/}).selectOption('mapped');
+   const reading=page.waitForResponse(r=>r.url()===`${origin}/api/research/r05/${ident}/projection`);
+   await page.getByRole('button',{name:'Leer ventana de proyección R05',exact:true}).click();
+   const response=await reading;expect(response.status()).toBe(200);
+   const projection=await response.json();expect(projection.voices).toBe(6);
+   expect(projection.settings).toMatchObject({start_sample:400,scale_x:2,arm:paired?'mapped':'single'});
+   expect(projection.sample_indices).toHaveLength(512);
+   expect(projection.sample_indices[0]).toBe(400);
+   expect(projection.verification_mode).toBe('cached_hashes_with_file_metadata_checks');
+   await expect(page.getByText('Ventana congelada:',{exact:false})).toContainText('6 voces');
+   const canvas=page.getByLabel('Figura de todas las voces R05',{exact:true});
+   await expect(canvas).toBeVisible();
+   if(projection.points.some(([x,y]:number[])=>Math.hypot(x,y)>1e-8)){
+    await expect.poll(()=>canvas.evaluate((el:HTMLCanvasElement)=>{
+     const pixels=el.getContext('2d')!.getImageData(0,0,el.width,el.height).data;
+     let ink=0;for(let j=0;j<pixels.length;j+=4)if(pixels[j+1]>60 && pixels[j+2]>60)ink++;return ink;
+    })).toBeGreaterThan(0);
+   }
+  }
  }
  expect(pcm[0].equals(pcm[1])).toBe(true);
  if(paired)expect(mapped[0].equals(mapped[1])).toBe(true);

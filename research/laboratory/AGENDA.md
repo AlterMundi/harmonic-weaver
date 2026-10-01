@@ -802,3 +802,16 @@ TypeScript/Vite build y 12 proyección/API pasan, test portable API repetido con
 rechazo source/start_sample/weights/version inválidos y sin encolar. Navegador
 para este nuevo panel pendiente; no afirmar aceptación humana ni sincronía física.
 Defaults/audio live intactos. Próximos: Chrome canvas/presets y player/clock.
+
+
+R05 — Chrome proyección manual real (2026-09-30): dos recorridos existentes
+resonador/pareado ahora incluyen ModelProjectionPanel contra API/reader reales:
+preset de escala export/import conserva muestra400 y source/job, listas/defaults
+sin sample en preset; selección mapped explícita en par, lectura512 puntos de
+seis voces con índices400..911/verificación cacheada, canvas visible y tinta
+comprobada cuando datos no silenciosos. Ambos tests pasan; repetición WAV previa
+sigue byte-idéntica. Fixture pose sintética, no video/escucha humana.
+Servidor propio cerrado (PID de sesión 52997); no servicios/hardware usuario.
+No afirmar seguimiento de audio ni sincronía física: próximo player/reloj de
+reproducción y control de respuestas obsoletas durante seeks. Modalidades
+restantes, niveles/latencias/percepción y investigación formal pendientes.
