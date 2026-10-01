@@ -262,12 +262,16 @@ class SessionStore:
                                  "timing_basis": "latest_observed_source_time",
                                  "reaction_latency_corrected": False})
 
-    def marks_snapshot(self):
+    def marks_snapshot(self, *, source_id=None, person_id=None):
         with self._lock:
             cursor=self._db.execute("SELECT COALESCE(MAX(sequence),0) FROM events").fetchone()[0]
             rows=self._db.execute("SELECT sequence,payload FROM events WHERE sequence<=? AND json_extract(payload,'$.kind')='mark' ORDER BY sequence",(cursor,)).fetchall()
             result={"schema_version":1,"through_sequence":cursor,
-                    "marks":[{"sequence":seq,"event":json.loads(payload)} for seq,payload in rows],
+                    "selection":{"source_id":source_id,"person_id":person_id},
+                    "marks":[{"sequence":seq,"event":event} for seq,payload in rows
+                             if (event:=json.loads(payload)) is not None
+                             and (source_id is None or event['payload'].get('source_id')==source_id)
+                             and (person_id is None or event['payload'].get('person_id')==person_id)],
                     "limits":["Button timestamps are not reaction-corrected movement onsets",
                               "Includes historical and system marks; annotation_origin distinguishes typed human marks",
                               "Local export may contain private text and source/person context"]}

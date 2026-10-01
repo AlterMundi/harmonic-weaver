@@ -81,3 +81,21 @@ def test_marks_snapshot_is_not_limited_to_visible_event_history(tmp_path):
         assert snapshot['marks'][0]['event']['payload']['text']=='0'
         assert snapshot['marks'][-1]['event']['payload']['text']=='1004'
     finally:store.close()
+
+
+def test_mark_snapshot_filters_exact_source_and_person_without_relabeling(tmp_path):
+    from harmonic_weaver.lab.store import SessionStore
+    store=SessionStore(tmp_path)
+    try:
+        store.record_event('mark',{'text':'A','source_id':'source-A','person_id':'right'})
+        store.record_event('mark',{'text':'B','source_id':'source-A','person_id':'left'})
+        store.record_event('mark',{'text':'C','source_id':'source-B','person_id':'right'})
+        full=store.marks_snapshot()
+    finally:store.close()
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        selected=client.get('/api/marks/snapshot',params={'source_id':'source-A','person_id':'right'}).json()
+        assert selected['through_sequence']==full['through_sequence']
+        assert selected['marks']==full['marks'][:1]
+        assert selected['selection']=={'source_id':'source-A','person_id':'right'}
+        assert client.get('/api/marks/snapshot',params={'source_id':'absent'}).json()['marks']==[]
+        assert client.get('/api/marks/snapshot').json()==full

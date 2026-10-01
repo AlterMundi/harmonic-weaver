@@ -86,3 +86,11 @@ sesión permanecen por evento; no se atribuye historial a la sesión recién abi
 Incluye marcas históricas/sistema: filtrar annotation_origin para anotaciones
 humanas tipadas. Texto/contexto privados, descarga sólo local. Pendiente selección
 por fuente/persona/segmento y banco de contraste con candidatos.
+
+
+La descarga de marcas admite source_id/person_id exactos y registra selection
+en el contenido hasheado. La UI ofrece export de fuente/persona seleccionadas
+cuando ambas identidades existen, además del historial completo. No migra ni
+reetiqueta anotaciones entre cuerpos; IDs de tracking no demuestran identidad
+biométrica. Mantiene cursor de historial incluso con selección vacía. Selección
+por segmento/categoría y contraste cinemático siguen pendientes.

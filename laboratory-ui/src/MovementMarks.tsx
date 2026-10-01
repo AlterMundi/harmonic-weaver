@@ -1,5 +1,5 @@
 import {useState} from "react";
-export function MovementMarks({api,run}:{api:(path:string,body:unknown)=>Promise<unknown>;run:(action:()=>Promise<void>)=>unknown}){
+export function MovementMarks({api,run,sourceId,personId}:{sourceId?:string;personId?:string;api:(path:string,body:unknown)=>Promise<unknown>;run:(action:()=>Promise<void>)=>unknown}){
  const [mark,setMark]=useState("");
  const [markCategory,setMarkCategory]=useState("note");
  return <>
@@ -29,5 +29,6 @@ export function MovementMarks({api,run}:{api:(path:string,body:unknown)=>Promise
             Guardar marca
           </button>
  <a href="/api/marks/snapshot" download>Descargar marcas congeladas</a>
+ {sourceId && personId && <a href={'/api/marks/snapshot?'+new URLSearchParams({source_id:sourceId,person_id:personId})} download>Descargar marcas de esta fuente y persona</a>}
  </>;
 }

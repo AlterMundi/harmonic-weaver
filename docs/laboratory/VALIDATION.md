@@ -685,3 +685,9 @@ Snapshot de marcas: 5 tests API/store pasan, incluyendo 1005 marcas sin truncado
 hash repetible/reinicio, cursor creciente y prefijo conservado. Primer intento
 incluía session_id actual y falló al reiniciar; corregido conservando IDs por
 evento. Build pasa. Descargar no implica publicar ni interpretar onset físico.
+
+
+Filtro de marcas: 6 tests API/store y build pasan. Dos personas y dos fuentes
+sintéticas: selección exacta devuelve sólo evento correspondiente, desconocida
+queda vacía, historial completo permanece idéntico y cursor no cambia. Enlace
+web compilado, interacción del enlace y aceptación humana pendientes.
