@@ -1249,3 +1249,22 @@ prefijo causal, cola/negativos/contratos. Settings mapping declarados: escala,
 gain, max_amplitude, attack/release, max_hold y pesos. Pendientes comparación
 persistida de ambos brazos sobre input común, niveles/latencias, UI de este
 brazo y evaluación humana. No da por resuelta organización vs instrumento.
+
+
+R05 — comparación pareada de mecanismos inicial (2026-09-30):
+mechanism_compare.compare prepara resonadores excitados y mapeo de amplitud
+sobre el mismo documento/clock/sr/f1/ratios/tail; mapeo declara carriers
+isolated/coupling0 aunque resonador pueda acoplar. Procesa bloques compartidos,
+sin acumular PCM completo. Métricas frames/peak/RMS/full-scale por brazo y
+segmento/common_observed/unsupported_segment/tail; diferencia PCM sólo común.
+Soporte común: intervalos entre filas válidas adyacentes con gap <= mínimo de
+excitation.max_gap_s/mapping.max_hold_s, cuantización ceil, sin cubrir faltantes,
+gaps, última observación aislada ni extrapolar. Soporte vacío => None, no cero.
+Ganancia sugerida para igual RMS común es diagnóstico, no aplicada; no equivale
+a loudness perceptual. Detector/envelope tienen latencias distintas registradas,
+no declaración automática de equivalencia. Fases acústicas ≠ fase corporal.
+Seis tests comparator/mapping pasan: soporte fragmentado, colas separadas,
+actividad sin soporte no convierte undefined en coincidencia, repetición exacta
+a misma partición y métricas equivalentes en 256/317 con tolerancia flotante.
+No inferencia eficacia/HIT/agencia ni aceptación humana. Pendiente persistencia
+pareada/worker/API/UI/niveles/latencias para recorrido humano. Sonido live intacto.
