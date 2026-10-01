@@ -20,6 +20,7 @@ class ExportSettings(Contract):
     offset_s: Number = Field(default=0,ge=-5,le=5)
     max_gap_s: Number = Field(default=.25,gt=0,le=5)
     camera_clock: Literal['collector_monotonic_s','available_monotonic_s','captured_monotonic_s'] = 'collector_monotonic_s'
+    recovered_prefix: bool = False
     browser_preview: bool = False
     preview_audio_kbps: int = Field(default=192,ge=64,le=320)
 
@@ -59,10 +60,16 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     settings=ExportSettings.model_validate(settings)
     folder=Path(folder);folder.mkdir(mode=0o700,parents=True,exist_ok=False)
     session=Path(manifest['directory']);driver=manifest['shaper'];audio=Path(driver['directory'])/'audio.wav'
-    if manifest['status']!='complete' or driver['status']!='complete':
+    partial=None
+    if settings.recovered_prefix:
+        from .capture_recovered_input import recovered_input
+        partial=recovered_input(manifest)
+        session=Path(partial['journal']['timeline.jsonl']).parent
+        audio=Path(partial['audio']);driver={'directory':str(audio.parent)}
+    if not partial and (manifest['status']!='complete' or driver['status']!='complete'):
         raise ValueError('Only confirmed complete captures can be exported')
     for name in ('timeline.jsonl','events.jsonl'):
-        if sha256_file(session/name)!=manifest['hashes'][name]:raise ValueError(f'Capture artifact changed: {name}')
+        if sha256_file(session/name)!=(partial['input_hashes'] if partial else manifest['hashes'])[name]:raise ValueError(f'Capture artifact changed: {name}')
     blocks_path=Path(driver['directory'])/'blocks.jsonl'
     blocks=read_lines(blocks_path,lambda row:{key:row[key] for key in
         ('sample_rate','capture_file_sample_start','capture_frames','generated_monotonic_s')})
@@ -70,7 +77,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
         'sampled_monotonic_s':row['sampled_monotonic_s'],
         'state':{key:row['state'].get(key) for key in ('source','session','runtime')}})
     camera_frames=[]
-    camera_manifest=manifest.get('camera')
+    camera_manifest=None if partial else manifest.get('camera')
     if camera_manifest:
         if camera_manifest['status']!='complete':raise ValueError('Camera capture is not complete')
         camera_folder=session/'camera';index=camera_folder/'frames.jsonl'
@@ -81,7 +88,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     info=sf.info(audio)
     if not blocks or info.frames!=sum(b['capture_frames'] for b in blocks) or info.samplerate!=blocks[0]['sample_rate']:
         raise ValueError('PCM and block manifest disagree')
-    inputs={'audio.wav':sha256_file(audio),'blocks.jsonl':sha256_file(blocks_path),**manifest['hashes']}
+    inputs={'audio.wav':sha256_file(audio),'blocks.jsonl':sha256_file(blocks_path),**(partial['input_hashes'] if partial else manifest['hashes'])}
     output=folder/'capture.mkv';temporary=folder/'capture.partial.mkv'
     command=['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y','-f','rawvideo',
              '-pix_fmt','bgr24','-s',f'{settings.width}x{settings.height}','-r',str(settings.fps),
@@ -89,6 +96,8 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
              '-preset','veryfast','-threads','2','-pix_fmt','yuv420p','-c:a','pcm_f32le',str(temporary)]
     decoder=None;path=None;last_position=None;image=None;count=0;gaps={};sources={}
     report={'schema_version':1,'capture_id':manifest['id'],'settings':settings.model_dump(),
+            'capture_completeness':'recovered_partial' if partial else 'complete',
+            'partial_limits':partial['limits'] if partial else [],
             'alignment':'sampled source hold against generated digital audio callback clock',
             'limits':['Not a measurement of audiovisual or acoustic latency',
                       'Unrecorded/missing/stale camera intervals rendered black; processed preview only',
@@ -205,7 +214,11 @@ class CaptureExports:
         with self.lock:
             if self.thread and self.thread.is_alive():raise ValueError('Ya hay una exportación activa')
             jobs={j['id']:j for j in self.captures.list()}
-            if ident not in jobs or jobs[ident]['status']!='complete':raise ValueError('Elegí una captura completa')
+            if ident not in jobs:raise ValueError('Elegí una captura conocida')
+            if settings.recovered_prefix:
+                from .capture_recovered_input import recovered_input
+                recovered_input(jobs[ident])
+            elif jobs[ident]['status']!='complete':raise ValueError('Elegí una captura completa')
             manifest=jobs[ident];export_id=uuid4().hex;folder=Path(manifest['directory'])/'exports'/export_id
             self.job={'id':export_id,'status':'rendering','capture_id':ident,'directory':str(folder),'frames':0}
             self.jobs[export_id]=self.job

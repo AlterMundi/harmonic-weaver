@@ -208,3 +208,19 @@ def test_preview_failure_preserves_exact_primary_export(tmp_path,monkeypatch):
     assert result['status']=='complete' and result['preview']['status']=='failed'
     assert 'synthetic preview failure' in result['preview']['error']
     assert sha256_file(tmp_path/'export'/'capture.mkv')==result['output']['sha256']
+
+
+def test_recovered_prefix_exports_exact_pcm_without_promoting_capture(tmp_path):
+    manifest,samples,_=session(tmp_path)
+    from copy import deepcopy
+    journal=Path(manifest['directory']);pcm=Path(manifest['shaper']['directory'])
+    manifest['status']='interrupted';manifest['shaper']['id']='confirmed'
+    manifest['recovery']={'result':{'status':'recovered','capture_id':'confirmed','directory':str(pcm),
+        'recovered_samples':len(samples),'hashes':{name:sha256_file(pcm/name) for name in ('audio.wav','blocks.jsonl')}},
+        'journal':{'status':'partial','directory':str(journal),'files':{name:{'output_sha256':sha256_file(journal/name)} for name in ('timeline.jsonl','events.jsonl')}}}
+    original=deepcopy(manifest)
+    result=render_capture(manifest,tmp_path/'prefix-export',{'fps':10,'width':160,'height':120,'recovered_prefix':True})
+    assert manifest==original and manifest['status']=='interrupted'
+    assert result['status']=='complete' and result['capture_completeness']=='recovered_partial'
+    raw=subprocess.check_output(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-i',str(tmp_path/'prefix-export/capture.mkv'),'-map','0:a:0','-f','f32le','-'])
+    np.testing.assert_array_equal(np.frombuffer(raw,dtype='<f4').reshape(-1,2),samples)

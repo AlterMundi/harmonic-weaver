@@ -55,6 +55,7 @@ export function CapturePanel({api,run}:Data){
   {exportState.directory && <small>Salida local: {exportState.directory}</small>}
   <button disabled={!exporting} onClick={()=>run(async()=>{setExportState(await api('capture-exports/cancel',{}));})}>Cancelar exportación</button>
   {exportJobs.map((j:Data)=><div key={j.id}><p>Exportación {j.id.slice(0,8)} · {j.status} · {j.error || ''}</p>
+    {j.capture_completeness==='recovered_partial' && <p>Exportación de prefijo recuperado: captura parcial; la cámara no se incluye en esta versión.</p>}
     {j.status==='complete' && <><a href={`/api/capture-exports/${j.id}/artifacts/capture.mkv`} download>Descargar video + PCM</a>{' · '}
     <a href={`/api/capture-exports/${j.id}/artifacts/frames.jsonl`} download>Timeline de fotogramas</a>{' · '}</>}
     {j.status==='complete' && j.preview?.status==='complete' && <>
@@ -76,6 +77,10 @@ export function CapturePanel({api,run}:Data){
     <button disabled={j.status!=='complete' || exporting} onClick={()=>run(async()=>{
       setExportState(await api(`captures/${j.id}/export`,exportSettings));
     })}>Exportar captura {j.id.slice(0,8)}</button>
+    {['failed','interrupted'].includes(j.status) && j.recovery?.result && j.recovery?.journal?.status==='partial' &&
+      <button disabled={exporting || j.recovery.status==='recovering'} onClick={()=>run(async()=>{
+        setExportState(await api(`captures/${j.id}/export`,{...exportSettings,recovered_prefix:true}));
+      })}>Exportar prefijo recuperado {j.id.slice(0,8)}</button>}
     {['failed','interrupted'].includes(j.status) && <button disabled={recovery.status==='recovering' || j.recovery?.status==='recovering' || !j.shaper?.id}
       onClick={()=>run(async()=>setRecovery(await api(`captures/${j.id}/recover`,{})))}>Recuperar audio {j.id.slice(0,8)}</button>}
     {j.camera && <p>Cámara: {j.camera.status} · {j.camera.written_frames}/{j.camera.accepted_frames} previews · {j.camera.observed_sequence_gaps} saltos de secuencia · {j.camera.error || ''}</p>}

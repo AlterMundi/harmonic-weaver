@@ -372,3 +372,18 @@ muestra explícitamente que el estado no pudo guardarse; no queda sólo una
 recuperación histórica en curso. El archivo anterior puede seguir en recovering
 y será interrupted al reiniciar, sin afirmar persistencia del resultado perdido.
 17 pruebas de captura, panel Chrome y build pasan. No se abrió audio físico.
+
+
+## 2026-09-30 — exportación explícita de prefijo recuperado
+
+El botón Exportar prefijo recuperado solicita recovered_prefix=true (default
+false). Verifica hashes de WAV/bloques/journal recuperados, identidad Shaper,
+conteo PCM y continuidad del sample-clock. Renderiza el video de archivo desde
+observaciones recuperadas; observaciones ausentes y cámara aparecen negras.
+Conserva capture_completeness=recovered_partial en el manifest: export completo
+no significa captura completa. No modifica ni copia originales. La opción MP4
+existente permite preview web del derivado; PCM exacto se conserva en MKV.
+19 pruebas de export/input pasan, incluido FFmpeg real y comparación exacta de
+PCM sintético; Chrome CapturePanel y build pasan. Sin datos corporales publicados
+ni hardware. Pendientes: incorporar imágenes de cámara recuperadas, validar
+preview integrada de prefijos y sincronía física; job polling Shaper sigue aparte.

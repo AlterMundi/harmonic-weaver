@@ -23,6 +23,7 @@ test('explicit capture controls preserve settings, show failures and do not star
       if(path==='captures/stop')state={current:{status:'complete'},jobs:[{id:'test',status:'complete',events:1205,timeline_rows:7,directory:'/synthetic/session',shaper:{directory:'/synthetic/audio'}},{id:'interrupted',status:'interrupted',shaper:{id:'known'}}]};
       return state;
     };
+    window.prefixHistory=()=>{state.jobs[1].recovery={status:'recovered',result:{recovered_samples:256},journal:{status:'partial'}};};
     window.recoveryHistory=()=>{state.jobs[1].recovery={status:'unconfirmed',error:'Lost synthetic ack',persistence_error:'Synthetic disk full'};recovery={status:'idle'};};
     window.failCapture=()=>state={current:{status:'failed',error:'Synthetic disk failure'},jobs:[]};
     ReactDOM.createRoot(document.getElementById('test-root')).render(React.createElement(CapturePanel,{api,run:fn=>fn()}));
@@ -66,6 +67,9 @@ test('explicit capture controls preserve settings, show failures and do not star
   expect(await page.evaluate(()=>(window as any).captureCalls.some((x:any)=>x.path==='captures/interrupted/recover'))).toBe(true);
   await expect(page.getByText('Prefijo recuperado:',{exact:false})).toContainText('256 muestras');
   await expect(page.getByText('Bitácora parcial:',{exact:false})).toContainText('2 eventos · 3 observaciones');
+  await page.evaluate(()=>(window as any).prefixHistory());
+  await page.getByRole('button',{name:'Exportar prefijo recuperado interrup'}).click();
+  expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/interrupted/export').body.recovered_prefix)).toBe(true);
   await page.evaluate(()=>(window as any).recoveryHistory());
   await expect(page.getByText('Recuperación de esta captura:',{exact:false})).toContainText('unconfirmed');
   await expect(page.getByText('Recuperación de esta captura:',{exact:false})).toContainText('Lost synthetic ack');
