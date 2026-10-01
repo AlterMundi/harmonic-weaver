@@ -1180,3 +1180,23 @@ no encola. 27 tests R05 pasan. Sin procesos de prueba vivos al terminar.
 Pendientes: endpoints/API/UI/presets, pruebas de interrupción abrupta y carreras
 específicas R05, comparación de mecanismos, soporte común y aceptación humana.
 No rutas web habilitadas aún, no dispositivos ni cambios al Shaper/live/defaults.
+
+
+R05 — API y selección replay verificada (2026-09-30): GET/POST /api/research/r05,
+POST {id}/cancel y GET {id}/artifacts/{name}. POST selección explícita
+{evaluation_id,run_index,signal_id,start_s,end_s}, objetos resonators/excitation/render;
+los umbrales/refractario/gap derivan exclusivamente de excitation. Reusa
+candidate_snapshot sobre comparador congelado: hashes, persona, unidad, lookahead
+cero, timestamps y holds duplicados verificados; sin recalcular tracking ni
+trasladar calibración. Lifespan cierra únicamente workers propios.
+Integración TestClient con evaluación/pose sintética real (sin mock del reader)
+y dos workers: PCM descargado idéntico, 15200 muestras (1.8s+0.1s a 8k), persona
+congelada, deduplicación, restore y descargas verificadas. Replay alterado no encola;
+PCM alterado invalida toda descarga de resultado; contratos inválidos/ausencia
+biblioteca y artefactos no permitidos rechazados. No evidencia corporal humana.
+17 tests integración/persistencia/verificador/regresión R03/R04 pasan.
+La corrida HTTP detectó timestamp wall-clock en chunk PEAK libsndfile: se fija
+ese timestamp a cero antes de hashes, conservando peaks/posiciones y PCM. No usa
+APIs privadas ni altera reloj de fuente; RIFF WAV limitado al contrato actual.
+Pendientes UI/presets, prueba navegador/red real R05, comparación de mecanismos,
+carreras/interrupción abrupta y escucha humana. Audio live/defaults intactos.

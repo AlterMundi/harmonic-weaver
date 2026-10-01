@@ -22,6 +22,10 @@ from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
+from .research.resonator_service import ResonatorService
+from .research.resonators import Settings as ResonatorSettings
+from .research.excitation import Settings as ExcitationSettings
+from .research.resonator_render import Settings as ResonatorRenderSettings
 from .research.relational_input import EndpointRequest
 from .research.body import BodyRequest
 from .research.candidate_input import CandidateRequest, candidate_snapshot
@@ -88,6 +92,21 @@ class RelationalBodyRequest(Contract):
     selection: EndpointRequest
 
 
+class ResonatorSelection(Contract):
+    evaluation_id: str = Field(pattern=r'^[a-f0-9]{32}$')
+    run_index: int = Field(ge=0)
+    signal_id: str = Field(min_length=1,max_length=200)
+    start_s: Number = Field(default=0,ge=0)
+    end_s: Number = Field(gt=0)
+
+
+class ResonatorRequest(Contract):
+    selection: ResonatorSelection
+    resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
+    excitation: ExcitationSettings = Field(default_factory=ExcitationSettings)
+    render: ResonatorRenderSettings = Field(default_factory=ResonatorRenderSettings)
+
+
 class CameraRequest(Contract):
     index: int = Field(default=0, ge=0, le=32)
     perception: PerceptionSettings
@@ -128,6 +147,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     research = ResearchService(data_dir)
     coincidence = CoincidenceService(data_dir)
     relational = RelationalService(data_dir)
+    resonators = ResonatorService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -140,6 +160,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            resonators.close()
             relational.close()
             coincidence.close()
             research.close()
@@ -307,6 +328,25 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/research/r04/{ident}/artifacts/{name}")
     def relational_artifact(ident: str, name: str):
         return FileResponse(relational.artifact(ident,name),filename=name)
+
+    @app.get("/api/research/r05")
+    def resonator_jobs(): return resonators.list()
+
+    @app.post("/api/research/r05")
+    def resonator_start(body: ResonatorRequest):
+        if evaluation is None: raise ValueError('No comparison library available')
+        candidate = CandidateRequest.model_validate({**body.selection.model_dump(),
+            **{name:getattr(body.excitation,name) for name in ('high','low','refractory_s','max_gap_s')}})
+        features = candidate_snapshot(evaluation,candidate)
+        return resonators.start({name:getattr(body,name).model_dump()
+                                for name in ('resonators','excitation','render')},features)
+
+    @app.post("/api/research/r05/{ident}/cancel")
+    def resonator_cancel(ident: str): return resonators.cancel(ident)
+
+    @app.get("/api/research/r05/{ident}/artifacts/{name}")
+    def resonator_artifact(ident: str,name: str):
+        return FileResponse(resonators.artifact(ident,name),filename=name)
 
     @app.get("/api/schemas")
     def schemas():

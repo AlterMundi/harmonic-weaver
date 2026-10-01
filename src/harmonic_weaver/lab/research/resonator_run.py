@@ -11,6 +11,25 @@ from ..cache import atomic_json, sha256_file
 from .resonator_render import Render
 
 
+def deterministic_peak_timestamp(path):
+    # libsndfile WAV floating-point PEAK includes wall time, unrelated to source clock.
+    # Keep peak values/positions; zero only that ancillary timestamp before hashing.
+    with Path(path).open('r+b') as handle:
+        header = handle.read(12)
+        if header[:4] != b'RIFF' or header[8:] != b'WAVE':
+            raise ValueError('Expected RIFF WAV')
+        end = int.from_bytes(header[4:8], 'little') + 8
+        while handle.tell() < end:
+            chunk = handle.read(8)
+            if len(chunk) != 8: raise ValueError('Truncated WAV chunk')
+            size = int.from_bytes(chunk[4:], 'little'); start = handle.tell()
+            if start + size > end: raise ValueError('Invalid WAV chunk size')
+            if chunk[:4] == b'PEAK':
+                if size < 8: raise ValueError('Invalid WAV PEAK chunk')
+                handle.seek(start + 4); handle.write(bytes(4))
+            handle.seek(start + size + size % 2)
+
+
 def run(document, request, folder):
     if set(request) - {'resonators', 'excitation', 'render'}:
         raise ValueError('Unknown R05 request field')
@@ -55,6 +74,8 @@ def run(document, request, folder):
                 over += int(np.count_nonzero(np.abs(values) > 1))
         if frames != render.total_frames:
             raise ValueError('Incomplete R05 sample clock')
+        for name in ('sum', 'voices'):
+            deterministic_peak_timestamp(folder / f'{name}.partial.wav')
         for name, digest in manifest['input_hashes'].items():
             if (folder / name).is_symlink() or sha256_file(folder / name) != digest:
                 raise ValueError('Frozen input changed during render')
