@@ -1,0 +1,8 @@
+{
+  "medium": {"sample_rate": 8000},
+  "event_count": 8,
+  "excitation_span_s": 0.1,
+  "tail_s": 0.1,
+  "seed": 17,
+  "trace_stride": 64
+}

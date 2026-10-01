@@ -1654,3 +1654,18 @@ sin audio físico/escucha humana. No se mide latencia ni aceptación de esta opc
 Pendientes: audificación acelerada, transposición de relaciones temporales
 corporales con estimador explícito, banco de modalidades y comparación perceptual
 con niveles/latencias medidos. Esta opción no los da por implementados.
+
+## R05 auditoría conjunta y núcleo R06 — 2026-10-01
+
+94 tests del conjunto R05 pasan (35.17 s): núcleo/excitación/render/PCM,
+verificación/worker/service/mecanismos/cuadratura/proyección/reader/preview y
+API/source_binding. No es una nueva escucha ni prueba de hardware.
+
+Se inicia rama feat/r06-activation-bank apilada sobre R05 en el mismo workspace
+de desarrollo. Banco R06 sintético con cuatro calendarios sobre medio fijo,
+dosis y cantidad iguales, cero inicial y métricas sobre todas las muestras.
+Tres tests pasan y se ejecuta CLI con reference.json. Incluye seed, hashes y
+Python/NumPy/SciPy; rechaza colisiones y exceso de trace. Durante desarrollo se
+eliminó numerador racional redundante al ordenar la grilla; condición racional
+usa muestra entera. No se atribuye resultado a privilegio phi/HIT. Integración
+worker/API/UI/presets/verificador y banco/protocolo ampliados pendientes.

@@ -879,3 +879,11 @@ alterados y media/trace cambiados rechazados. Fixture es bytes sintéticos, no
 video decodificable ni prueba humana. No cambia runtime/library actual ni audio.
 Pendiente UI video+clock/crop/tail/offset y Chrome con video sintético válido;
 sincronía física/escucha/modos adicionales e investigación formal siguen abiertas.
+
+R06 — núcleo de banco de activación (2026-10-01): calendarios uniforme racional,
+phi, sqrt2 y aleatorio seeded, igual vector/dosis/número de impulsos y medio R05
+con cero inicial. Métricas raw sobre todas las muestras, traces acotados,
+manifest/env/hash y CLI de referencia. Tres tests pasan. Calendarios digitales
+son racionales tras cuantización; diferencias temporales/medio no se atribuyen
+al nombre phi ni prueban HIT. Plan y pendientes web/worker/verificador/bancos/
+protocolos en research/laboratory/r06_activation/README.md. Instrumento live intacto.
