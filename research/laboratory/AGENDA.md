@@ -705,3 +705,18 @@ navegador de variante pareada todavía pendiente; anterior sólo resonador verif
 No PCM automático en navegador, sin loudness matching perceptual ni escucha
 humana. Pendientes red real pareada, interrupción abrupta/carreras, sincronización
 figura y modalidades transposición/audificación/más controles. Sonido live intacto.
+
+
+R05 — Chrome HTTP pareado y corrección selección (2026-09-30): dos tests
+resonatorNetwork.spec.ts pasan contra servidor/reader/4 workers reales con
+biblioteca de pose sintética. Preset portable conserva fuente/señal/segmento,
+variante mapping explícita, tabla de ambos mecanismos sobre soporte común,
+dos pares de WAV byte-idénticos y descarga browser efectiva sin error. Build
+TypeScript/Vite pasa. El intento inicial reveló carrera de efecto pasivo: reset
+posterior a cargar report podía borrar señal recién elegida. resetSelection
+ahora ocurre junto con report/cambio de corrida, antes de exponer catálogo;
+ambos recorridos repetidos pasan. No se relajó la exigencia de conservar señal.
+Servidor propio terminado (PID 411110), ningún servicio del usuario tocado.
+No main/WebSocket/audio físico ni escucha humana. Pendientes carreras/kill,
+campos extremos browser, modalidades adicionales/figura experimental y protocolo
+perceptual con niveles/latencias medidos; roadmap no completado.

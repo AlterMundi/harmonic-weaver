@@ -7,9 +7,9 @@ export function ResonatorPanel({api,run}:Data){
  const [settings,setSettings]=useState<Data>(defaults),[text,setText]=useState(''),[arrays,setArrays]=useState<Data>({}),[jobs,setJobs]=useState<Data[]>([]),[evaluations,setEvaluations]=useState<Data[]>([]),[evaluation,setEvaluation]=useState(''),[report,setReport]=useState<Data|null>(null),[index,setIndex]=useState(0),[signal,setSignal]=useState(''),[start,setStart]=useState(0),[end,setEnd]=useState(1),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const refresh=async()=>setEvaluations((await api('evaluations')).filter((j:Data)=>j.status==='complete'));
  useEffect(()=>{let live=true;const poll=async()=>{try{const j=await api('research/r05');if(live)setJobs(j);}catch(e){if(live)setError(String(e));}};void poll();const timer=setInterval(poll,1000);void refresh().catch(e=>setError(String(e)));return()=>{live=false;clearInterval(timer);};},[api]);
- useEffect(()=>{let live=true;setReport(null);if(evaluation)void api(`evaluations/${evaluation}/report`).then((r:Data)=>{if(live){setReport(r);setIndex(0);}}).catch((e:any)=>{if(live)setError(String(e));});return()=>{live=false;};},[evaluation,api]);
+ const resetSelection=(r:Data,i:number)=>{setSignal('');const selected=r.manifest.runs[i],source=r.manifest.request.sources[selected.source_index];setStart(source.start_s);setEnd(Math.min(source.end_s,source.start_s+120));};
+ useEffect(()=>{let live=true;setReport(null);if(evaluation)void api(`evaluations/${evaluation}/report`).then((r:Data)=>{if(live){resetSelection(r,0);setIndex(0);setReport(r);}}).catch((e:any)=>{if(live)setError(String(e));});return()=>{live=false;};},[evaluation,api]);
  const selected=report?.manifest.runs[index],source=selected && report?.manifest.request.sources[selected.source_index],catalog=selected?.signals || {};
- useEffect(()=>{setSignal('');if(source){setStart(source.start_s);setEnd(Math.min(source.end_s,source.start_s+120));}},[report,index]);
  const config=()=>{const value=structuredClone(settings);for(const [key,text] of Object.entries(arrays)){const [group,name]=key.split('.');value[group][name]=JSON.parse(text as string);}return value;};
  const edit=(group:string,key:string,value:any)=>setSettings({...settings,[group]:{...settings[group],[key]:value}});
  const available=source && catalog[signal] && Number.isFinite(start) && Number.isFinite(end) && start>=source.start_s && end<=source.end_s && end>start && end-start<=120;
@@ -18,7 +18,7 @@ export function ResonatorPanel({api,run}:Data){
   {error && <p role="alert">{error}</p>}
   <button onClick={()=>run(refresh)}>Actualizar comparaciones R05</button>
   <label>Comparación R05<select value={evaluation} onChange={e=>setEvaluation(e.target.value)}><option value="">Elegir comparación terminada</option>{evaluations.map(j=><option key={j.id} value={j.id}>{j.id}</option>)}</select></label>
-  {report && <label>Corrida de origen R05<select value={index} onChange={e=>setIndex(+e.target.value)}>{report.manifest.runs.map((r:Data,i:number)=><option key={i} value={i}>Fuente {r.source_index+1} · {r.preset_id}</option>)}</select></label>}
+  {report && <label>Corrida de origen R05<select value={index} onChange={e=>{const i=+e.target.value;resetSelection(report,i);setIndex(i);}}>{report.manifest.runs.map((r:Data,i:number)=><option key={i} value={i}>Fuente {r.source_index+1} · {r.preset_id}</option>)}</select></label>}
   {source && <p>Persona congelada: {source.person_id} · escala {source.torso_scale ?? 'no disponible'} · procedencia {source.calibration_provenance || 'no disponible'}</p>}
   <label>Señal R05<select value={signal} onChange={e=>setSignal(e.target.value)}><option value="">Elegir señal</option>{Object.entries(catalog).map(([id,s]:[string,any])=><option key={id} value={id}>{id} · {s.unit} · {s.observed_count} observaciones</option>)}</select></label>
   <label>Inicio R05 (s)<input type="number" step="any" value={start} onChange={e=>setStart(+e.target.value)}/></label>
