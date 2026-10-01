@@ -279,6 +279,14 @@ aislado detenido; señales sintéticas sin hardware/participantes. Permanece
 pendiente kill durante publicación de este banco, recuperación de atributos
 en soporte reservado y protocolos/calibración físicos.
 
+Trigésimo segundo corte: SIGKILL real del worker de controles después de rename
+de result y antes de complete. Flock mantiene running mientras vive; al morir
+restaura interrupted, conserva bytes incompletos, rechaza descarga y conserva
+manifest diagnóstico. Tres pruebas del servicio pasan; conjunto completo R07
+backend/API: 52 passed en 10.76 s. IMPLEMENTATION_STATUS actualizado. No prueba
+corte de energía ni todos los puntos de fallo; recuperación de atributos y
+validación humana/física continúan pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

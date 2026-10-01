@@ -1,4 +1,6 @@
 import time
+import subprocess
+import sys
 import pytest
 from harmonic_weaver.lab.research.membrane_controls_service import ControlService
 
@@ -39,3 +41,42 @@ def test_cancel_running_control_worker(tmp_path):
         with pytest.raises(ValueError):service.artifact(ident,'result.json')
         assert service.artifact(ident,'manifest.json').is_file()
     finally:service.close()
+
+
+def test_real_death_after_control_result_promotion_preserves_incomplete(tmp_path):
+    from harmonic_weaver.lab.cache import atomic_json,sha256_file
+    service=ControlService(tmp_path);ident='a'*32;folder=service.root/ident;folder.mkdir()
+    atomic_json(folder/'request.json',{'duration_samples':800,'forcing_samples':400})
+    script='''
+import sys,time
+from pathlib import Path
+from harmonic_weaver.lab.research.membrane_controls_worker import run_frozen
+root=Path(sys.argv[1]);original=Path.replace
+def held(self,target):
+ value=original(self,target)
+ if Path(target)==root/'result.json':
+  (root/'promoted.marker').write_text('ready');time.sleep(30)
+ return value
+Path.replace=held
+run_frozen(root)
+'''
+    process=subprocess.Popen([sys.executable,'-c',script,str(folder)],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+    try:
+        deadline=time.monotonic()+15
+        while not (folder/'promoted.marker').exists():
+            assert process.poll() is None
+            assert time.monotonic()<deadline;time.sleep(.02)
+        assert service.report(ident)['status']=='running'
+        with pytest.raises(ValueError):service.artifact(ident,'result.json')
+        digest=sha256_file(folder/'result.json')
+        process.kill();process.wait(timeout=5)
+        restored=ControlService(tmp_path)
+        try:
+            assert restored.report(ident)['status']=='interrupted'
+            assert sha256_file(folder/'result.json')==digest
+            with pytest.raises(ValueError):restored.artifact(ident,'result.json')
+            assert restored.artifact(ident,'manifest.json').is_file()
+        finally:restored.close()
+    finally:
+        if process.poll() is None:process.kill();process.wait(timeout=5)
+        process.stderr.close();service.close()
