@@ -672,3 +672,20 @@ actividad sin soporte no convierte undefined en coincidencia, repetición exacta
 a misma partición y métricas equivalentes en 256/317 con tolerancia flotante.
 No inferencia eficacia/HIT/agencia ni aceptación humana. Pendiente persistencia
 pareada/worker/API/UI/niveles/latencias para recorrido humano. Sonido live intacto.
+
+
+R05 — persistencia comparación pareada (2026-09-30): mechanism_run.run
+congela input/request, renderiza informe y guarda excited/ y mapped/ con WAV
+DOUBLE suma/voces vía escritor común. Manifest padre complete sólo tras ambos
+brazos verificados y rehash; clocks/canales/sr exactos compartidos. Fallo de
+segundo brazo deja padre failed, no resultado completo. Verificador padre
+requiere hashes de informe/manifests/entradas, reconstruye preparación desde
+request, verifica ambos PCM y misma entrada congelada. No prueba de custodia
+firmada; informe y persistencia usan traversals deterministas separados.
+17 tests persistencia/verificador/service pasan tras refactor de writer; tres
+pareados repetidos tras endurecer verificación parent request. Report bytes y
+PCM hashes de ambos brazos idénticos entre repeticiones, mapping roundtrip
+exacto, fallo segundo brazo/tamper/no carpeta en contrato inválido probados.
+Métricas/niveles crudos; sin ajuste loudness ni aceptación humana. Pendientes
+worker/API/UI de comparación pareada (API R05 actual sigue corrida resonador),
+latencias/escucha/figura experimental. Audio live/defaults intactos.

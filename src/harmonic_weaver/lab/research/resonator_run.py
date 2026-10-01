@@ -35,12 +35,17 @@ def run(document, request, folder):
         raise ValueError('Unknown R05 request field')
     render = Render(document, request.get('resonators', {}),
                     request.get('excitation', {}), request.get('render', {}))
+    modules = ['resonator_run.py', 'resonator_render.py', 'resonators.py',
+               'excitation.py', 'event_candidates.py', 'candidate_input.py', 'coincidence.py']
+    return persist(document, request, folder, render, render.resonators, modules)
+
+
+def persist(document, request, folder, render, carriers, modules):
+    """Shared block writer; callers must validate/prepare before creating folder."""
     folder = Path(folder)
     folder.mkdir(mode=0o700, parents=True, exist_ok=False)
     atomic_json(folder / 'input.json', document)
     atomic_json(folder / 'request.json', request)
-    modules = ['resonator_run.py', 'resonator_render.py', 'resonators.py',
-               'excitation.py', 'event_candidates.py', 'candidate_input.py', 'coincidence.py']
     manifest = {'schema_version': 1, 'line': 'R05', 'status': 'running',
         'input_hashes': {name: sha256_file(folder / name) for name in ('input.json', 'request.json')},
         'code_hashes': {name: sha256_file(Path(__file__).with_name(name)) for name in modules},
@@ -48,8 +53,8 @@ def run(document, request, folder):
             'scipy': scipy.__version__, 'soundfile': sf.__version__,
             'libsndfile': sf.__libsndfile_version__, 'platform': platform.platform()},
         'preparation': render.manifest,
-        'pcm': {'format': 'WAV', 'subtype': 'DOUBLE', 'sample_rate': render.resonators.sample_rate,
-            'sum_channels': 1, 'voice_channels': len(render.resonators.ratios)},
+        'pcm': {'format': 'WAV', 'subtype': 'DOUBLE', 'sample_rate': carriers.sample_rate,
+            'sum_channels': 1, 'voice_channels': len(carriers.ratios)},
         'limits': render.manifest['limits'] + [
             'Raw float64 PCM may exceed full scale; check levels before playback',
             'Per-voice file contains model outputs, not body features',
@@ -59,10 +64,10 @@ def run(document, request, folder):
     atomic_json(folder / 'manifest.json', manifest)
     peak = 0.; squares = 0.; frames = 0; over = 0
     try:
-        with sf.SoundFile(folder / 'sum.partial.wav', 'w', samplerate=render.resonators.sample_rate,
+        with sf.SoundFile(folder / 'sum.partial.wav', 'w', samplerate=carriers.sample_rate,
                           channels=1, format='WAV', subtype='DOUBLE') as summed, \
-             sf.SoundFile(folder / 'voices.partial.wav', 'w', samplerate=render.resonators.sample_rate,
-                          channels=len(render.resonators.ratios), format='WAV', subtype='DOUBLE') as voices:
+             sf.SoundFile(folder / 'voices.partial.wav', 'w', samplerate=carriers.sample_rate,
+                          channels=len(carriers.ratios), format='WAV', subtype='DOUBLE') as voices:
             for block in render.blocks():
                 values = block['sum']
                 if not np.isfinite(values).all() or not np.isfinite(block['voices']).all():

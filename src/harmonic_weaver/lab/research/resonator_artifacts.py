@@ -30,12 +30,19 @@ def verify(folder):
             raise ValueError('R05 artifact hash mismatch')
     document = json.loads((folder / 'input.json').read_text())
     request = json.loads((folder / 'request.json').read_text())
-    if set(request) - {'resonators', 'excitation', 'render'}:
-        raise ValueError('Unknown R05 request field')
-    prepared = Render(document, request.get('resonators', {}), request.get('excitation', {}), request.get('render', {}))
+    if manifest['preparation'].get('mechanism')=='positive_amplitude_mapping':
+        from .parameter_render import Render as ParameterRender
+        if set(request)-{'carriers','mapping','render'}:raise ValueError('Unknown mapping request field')
+        prepared=ParameterRender(document,request.get('carriers',{}),request.get('mapping',{}),request.get('render',{}))
+        carriers=prepared.carriers
+    else:
+        if set(request) - {'resonators', 'excitation', 'render'}:
+            raise ValueError('Unknown R05 request field')
+        prepared = Render(document, request.get('resonators', {}), request.get('excitation', {}), request.get('render', {}))
+        carriers=prepared.resonators
     if manifest['preparation'] != prepared.manifest:
         raise ValueError('R05 preparation differs from frozen inputs')
-    sr = prepared.resonators.sample_rate; n = len(prepared.resonators.ratios)
+    sr = carriers.sample_rate; n = len(carriers.ratios)
     expected = {'format': 'WAV', 'subtype': 'DOUBLE', 'sample_rate': sr,
                 'sum_channels': 1, 'voice_channels': n}
     if manifest['pcm'] != expected:
