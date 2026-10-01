@@ -127,6 +127,16 @@ termina, conserva hashes de inputs, bloquea result y permite manifest diagnósti
 Cinco pruebas del servicio y una API pasan (seis). UI de navegador, seguimiento
 continuo y banco de controles siguen pendientes; no cambia defaults de live.
 
+Decimotercer corte: Chrome headless contra servidor HTTP aislado, panel real y
+worker real, con PCM sintético. Pasó import/export sin ejecutar, selección R05,
+cálculo, figura 33×33, descarga verificada y recuperación del inventario al
+recargar (3 s). Fixture `tests/r07_http_fixture.py`, harness
+`laboratory-ui/tests/r07_harness`, test `membraneNetwork.spec.ts` con
+`PLAYWRIGHT_CHANNEL=chrome LAB_R07_NETWORK_URL=http://127.0.0.1:8879`.
+No dispositivos de audio, cámara ni datos corporales; servidor de prueba detenido.
+Esto verifica el recorrido estático HTTP, no escucha humana ni sincronización
+física ni animación de ventanas durante reproducción.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
