@@ -66,7 +66,7 @@ for(const paired of [false,true])test(`R05 real network ${paired?'paired mechani
    const preset=page.getByLabel('Preset de proyección R05 JSON',{exact:true});
    await expect(preset).toHaveValue(/scale_x/);
    const settings=JSON.parse(await preset.inputValue());
-   expect(Object.keys(settings).sort()).toEqual(['schema_version','settings']);
+   expect(Object.keys(settings).sort()).toEqual(['playback','schema_version','settings']);
    expect(settings.settings.start_sample).toBeUndefined();
    await sample.fill('400');await page.getByLabel('scale_x proyección R05',{exact:true}).fill('4');
    await page.getByRole('button',{name:'Importar proyección R05',exact:true}).click();

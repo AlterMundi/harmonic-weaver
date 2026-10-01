@@ -355,7 +355,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return result
 
     @app.post("/api/research/r05/projection/configuration")
-    def projection_configuration(body: ModelProjectionConfiguration):return body.model_dump()
+    def projection_configuration(body: ModelProjectionConfiguration):
+        result=body.model_dump()
+        if body.playback is None:result.pop('playback')
+        return result
 
     @app.post("/api/research/r05")
     def resonator_start(body: ResonatorRequest):

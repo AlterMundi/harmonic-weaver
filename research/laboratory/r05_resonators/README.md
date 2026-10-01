@@ -367,3 +367,20 @@ seek0.5s y paused true pasa sin ejecutar play, con fixture pose sintética.
 Servidor propio cerrado. Esto es decodificación/seek, NO escucha/aceptación ni
 sincronía física. Próximo integrar audio controls y reloj al panel de figura;
 audio live/defaults/R24 intactos. No considerar vista float32 PCM científico exacto.
+
+
+R05 — player/clock UI inicial (2026-09-30): ModelProjectionPanel carga vista
+float32 sólo por botón, audio controls sin autoplay; brazo/ganancia/import detienen
+vista y descartan carga/ventanas obsoletas. Config playback portable opcional
+follow_audio(defaulttrue), refresh_hz10 (1–30), preview_gain1 (0–10), loopfalse;
+import viejo sin playback conserva compatibilidad por defaults. Figura sigue
+ventana trailing de PCM ya reproducido: floor(currentTime×sr), no puntos futuros,
+crop exacto/end/stride. Máximo una petición automática en vuelo; generación
+invalida seeks/loops/settings/unmount, tick coalescea al reloj vigente. Metadata
+incluye total_frames; errores de lectura pausan escucha/limpian figura. Inspección
+manual se conserva. Posición/muestra/fuente no forman parte del preset.
+Build TypeScript/Vite pasa (repetido tras guard de carga obsoleta), dos tests reloj
+validan inicio/fin/stride/seeks/no futuro y 12 API/proyección pasan incluyendo
+preset playback/validación. NO reproducción continua Chrome verificada todavía:
+siguiente prueba muted contra servidor/reader reales para seeks/loops/pause.
+Sin escucha humana, latencia física ni paridad con Shaper; audio live intacto.

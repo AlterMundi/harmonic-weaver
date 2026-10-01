@@ -28,9 +28,17 @@ class Settings(Contract):
         return self
 
 
+class PlaybackSettings(Contract):
+    follow_audio:bool=True
+    refresh_hz:Number=Field(default=10,ge=1,le=30)
+    preview_gain:Number=Field(default=1,ge=0,le=10)
+    loop_audio:bool=False
+
+
 class Configuration(Contract):
     schema_version:Literal[1]=1
     settings:Settings=Field(default_factory=Settings)
+    playback:PlaybackSettings|None=None
 
 
 class Request(Settings):
@@ -72,7 +80,7 @@ def project(folder,request,*,reader=None):
         for name in ('voices.wav','quadrature.wav'):
             if (arm/name).is_symlink() or sha256_file(arm/name)!=manifest['output_hashes'][name]:
                 raise ValueError('Projection components changed during read')
-    return {'schema_version':1,'settings':request.model_dump(),'sample_rate':sr,'voices':n,
+    return {'schema_version':1,'settings':request.model_dump(),'sample_rate':sr,'total_frames':frames,'voices':n,
         'sample_indices':indices.tolist(),'elapsed_s':((indices+1)/sr).tolist(),
         'source_time_s':(selection['start_s']+(indices+1)/sr).tolist(),
         'tail':(indices>=preparation['segment_frames']).tolist(),'points':points.tolist(),
