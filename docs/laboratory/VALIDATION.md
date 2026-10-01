@@ -738,3 +738,9 @@ siguen bloqueados. Un oracle exhaustivo independiente enumera asignaciones
 para 64 pares de conjuntos de hasta 3 eventos y confirma cardinalidad máxima
 y costo absoluto mínimo, sin suponer orden monótono en el oracle. Esto verifica
 el núcleo, no candidatos corporales, UI, protocolo científico ni intención.
+
+
+R03 candidatos: 14 tests candidatos/matching pasan. Prueban ausencia de evento
+inicial/held, consumo de cruce durante refractario, rearme bajo después de gaps,
+invariancia causal del prefijo y rechazo de clocks/settings inválidos. No modifica
+activación sonora: extractor sólo en research y aún sin integración web.

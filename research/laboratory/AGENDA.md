@@ -138,3 +138,12 @@ Es núcleo preliminar, NO banco completo ni resultado corporal: pendiente carga
 verificada de snapshots/targets, identidad/sesión/época, extracción causal de
 candidatos configurable, controles temporales, manifests y UI. No inferir
 intención/Jpsh ni causalidad de coincidencia temporal.
+
+
+R03 extracción preliminar: event_candidates.extract_candidates recibe timestamps,
+valor/validez, high/low en unidades originales, refractory_s y max_gap_s. Sólo
+cruce desde estado armado bajo emite candidato; inicial alto/gap no emite; cruce
+suprimido se consume sin reataque diferido. Missing/gap reinicia historia; no
+imputa ni inventa soporte temporal. Límite 14400 muestras. Controles de prefix
+causal, sostenido, refractario y gaps pasan; falta adapter de features verificadas,
+API/UI configurable, controles y manifest reproducible del banco completo.
