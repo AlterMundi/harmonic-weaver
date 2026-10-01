@@ -44,3 +44,20 @@ def test_contract_and_collision_rejection_and_persisted_repeat(tmp_path):
     assert (tmp_path/'a/result.json').read_bytes()==(tmp_path/'b/result.json').read_bytes()
     assert json.loads((tmp_path/'a/manifest.json').read_text())['status']=='complete'
     with pytest.raises(FileExistsError):run(config(),tmp_path/'a')
+
+
+def test_medium_controls_preserve_schedule_dose_and_report_declared_differences():
+    settings=config(medium_controls=[{'sample_rate':8000},
+                  {'sample_rate':8000,'damping_per_s':[8]*6,'topology':'ring','coupling_per_s':2}])
+    report=probe(settings);assert report==probe(settings)
+    assert report['medium_controls'][0]['conditions']==report['conditions']
+    for variant in report['medium_controls']:
+        for name,condition in variant['conditions'].items():
+            assert condition['event_samples']==report['conditions'][name]['event_samples']
+            assert condition['input_squared_norm']==report['conditions'][name]['input_squared_norm']
+            for key,value in condition['metrics'].items():
+                assert variant['metric_difference_vs_base'][name][key]==value-report['conditions'][name]['metrics'][key]
+    assert any(report['medium_controls'][1]['metric_difference_vs_base']['phi'].values())
+    for controls in [[],[{'sample_rate':16000}],[{'sample_rate':8000,'fundamental_hz':50}]]:
+        with pytest.raises(ValueError):Settings.model_validate(config(medium_controls=controls))
+    assert 'medium_controls' not in Settings.model_validate(config()).model_dump()

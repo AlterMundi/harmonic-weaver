@@ -25,6 +25,13 @@ def verify(folder):
         if sha256_file(folder/name)!=digest:raise ValueError('R06 artifact hash mismatch')
     settings=Settings.model_validate_json((folder/'request.json').read_text())
     report=json.loads((folder/'result.json').read_text())
+    validate_report(report,settings)
+    for name,digest in hashes.items():
+        if (folder/name).is_symlink() or sha256_file(folder/name)!=digest:raise ValueError('R06 artifact changed during verification')
+    return manifest
+
+
+def validate_report(report,settings):
     if report.get('schema_version')!=1 or report.get('line')!='R06' or report['settings']!=settings.model_dump():
         raise ValueError('R06 report differs from frozen configuration')
     sr=settings.medium.sample_rate;span=math.ceil(settings.excitation_span_s*sr);total=span+math.ceil(settings.tail_s*sr)
@@ -53,6 +60,18 @@ def verify(folder):
                 raise ValueError('R06 trace clock mismatch')
             if not all(type(row[k]) in (int,float) and math.isfinite(row[k]) for k in ('sum','state_norm_squared')) or row['state_norm_squared']<0:
                 raise ValueError('Invalid R06 trace values')
-    for name,digest in hashes.items():
-        if (folder/name).is_symlink() or sha256_file(folder/name)!=digest:raise ValueError('R06 artifact changed during verification')
-    return manifest
+    controls=settings.medium_controls
+    if controls is None:
+        if 'medium_controls' in report:raise ValueError('Unexpected medium controls')
+    else:
+        outputs=report.get('medium_controls',[])
+        if len(outputs)!=len(controls):raise ValueError('Medium control inventory mismatch')
+        for index,(medium,output) in enumerate(zip(controls,outputs)):
+            if type(output['index']) is not int or output['index']!=index or output['medium']!=medium.model_dump():
+                raise ValueError('Medium control differs from frozen configuration')
+            child=settings.model_copy(update={'medium':medium,'medium_controls':None})
+            validate_report({'schema_version':1,'line':'R06','settings':child.model_dump(),
+                'clock':report['clock'],'impulse_vector':report['impulse_vector'],'conditions':output['conditions']},child)
+            expected={name:{key:(value-report['conditions'][name]['metrics'][key] if value is not None else None)
+                for key,value in condition['metrics'].items()} for name,condition in output['conditions'].items()}
+            if output['metric_difference_vs_base']!=expected:raise ValueError('Medium control metric differences mismatch')

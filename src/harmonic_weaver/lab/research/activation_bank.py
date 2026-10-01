@@ -4,7 +4,7 @@ import platform
 from pathlib import Path
 import numpy as np
 import scipy
-from pydantic import Field,model_validator
+from pydantic import Field,model_validator,model_serializer
 from ..contracts import Contract,Number
 from ..cache import atomic_json,sha256_file
 from .resonators import Settings as Medium,Resonators
@@ -12,6 +12,7 @@ from .resonators import Settings as Medium,Resonators
 
 class Settings(Contract):
     medium:Medium=Field(default_factory=Medium)
+    medium_controls:list[Medium]|None=Field(default=None,min_length=1,max_length=4)
     event_count:int=Field(default=8,ge=4,le=32)
     excitation_span_s:Number=Field(default=1,ge=.05,le=5)
     tail_s:Number=Field(default=.5,ge=0,le=10)
@@ -20,8 +21,17 @@ class Settings(Contract):
     block_size:int=Field(default=256,ge=16,le=8192)
     trace_stride:int=Field(default=256,ge=1,le=8192)
 
+    @model_serializer(mode='wrap')
+    def portable(self,handler):
+        value=handler(self)
+        if self.medium_controls is None:value.pop('medium_controls',None)
+        return value
+
     @model_validator(mode='after')
     def capacity(self):
+        for control in self.medium_controls or []:
+            if any(getattr(control,key)!=getattr(self.medium,key) for key in ('fundamental_hz','ratios','sample_rate')):
+                raise ValueError('Medium controls must preserve carriers, ratios and sample rate')
         total=math.ceil(self.excitation_span_s*self.medium.sample_rate)+math.ceil(self.tail_s*self.medium.sample_rate)
         if math.ceil(total/self.trace_stride)+self.event_count+1>14400:
             raise ValueError('Select trace_stride for at most 14400 trace observations per condition')
@@ -43,7 +53,7 @@ def schedules(settings):
     return result
 
 
-def probe(settings):
+def _probe_one(settings):
     settings=Settings.model_validate(settings);events=schedules(settings)
     sr=settings.medium.sample_rate;span=math.ceil(settings.excitation_span_s*sr)
     total=span+math.ceil(settings.tail_s*sr);voices=len(settings.medium.ratios)
@@ -82,6 +92,27 @@ def probe(settings):
             'State norm is internal model quantity, not measured physical energy or physiological efficacy',
             'Traces are visual decimation; metrics use all samples; no automatic output normalization',
             'No body data, sound acceptance, p-values, intention inference or physical cymatics']}
+
+
+def probe(settings):
+    settings=Settings.model_validate(settings)
+    base=settings.model_copy(update={'medium_controls':None})
+    report=_probe_one(base)
+    report['settings']=settings.model_dump()
+    if settings.medium_controls is not None:
+        controls=[]
+        for index,medium in enumerate(settings.medium_controls):
+            condition_report=_probe_one(base.model_copy(update={'medium':medium}))
+            differences={}
+            for name,condition in condition_report['conditions'].items():
+                reference=report['conditions'][name]['metrics']
+                differences[name]={key:(value-reference[key] if value is not None else None) for key,value in condition['metrics'].items()}
+            controls.append({'index':index,'medium':medium.model_dump(),
+                             'conditions':condition_report['conditions'],'metric_difference_vs_base':differences})
+        report['medium_controls']=controls
+        report['limits']+=['Optional medium controls preserve carrier frequencies/clock and identical event samples/dose',
+                           'Medium differences change damping/coupling/graph only; metric deltas are control minus base, not efficacy scores']
+    return report
 
 
 def run(settings,folder):

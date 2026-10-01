@@ -118,3 +118,17 @@ def test_owned_cancel_stops_only_its_worker_and_keeps_frozen_request(tmp_path):
         assert sha256_file(service.folder(ident)/'request.json')==checksum
         with pytest.raises(ValueError):service.artifact(ident,'result.json')
     finally:service.close()
+
+
+@pytest.mark.parametrize('mutation',['medium','calendar','difference','inventory'])
+def test_medium_control_contracts_reject_rewritten_report_hash(tmp_path,mutation):
+    request={**config(),'medium_controls':[{'sample_rate':8000,'damping_per_s':[8]*6}]}
+    run(request,tmp_path/'run');folder=tmp_path/'run';verify(folder)
+    report=json.loads((folder/'result.json').read_text());control=report['medium_controls'][0]
+    if mutation=='medium':control['medium']['damping_per_s'][0]=9
+    elif mutation=='calendar':control['conditions']['phi']['event_samples'][0]=1
+    elif mutation=='difference':control['metric_difference_vs_base']['phi']['rms']+=1
+    else:report['medium_controls']=[]
+    atomic_json(folder/'result.json',report)
+    manifest=json.loads((folder/'manifest.json').read_text());manifest['output_sha256']=sha256_file(folder/'result.json');atomic_json(folder/'manifest.json',manifest)
+    with pytest.raises(ValueError):verify(folder)

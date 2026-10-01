@@ -322,3 +322,16 @@ controles no cambia un resultado ya calculado; su configuración está congelada
 RMS/loudness, clustering/espectro y eficacia no son equivalentes. No hay ganador
 ni prueba de privilegio phi. Esperar finalización del proceso antes de otra
 corrida: UI también observa worker_active al terminar el manifest.
+
+R06: «Comparar medios R06» crea una copia explícita del medio base. Editar la
+lista JSON medium_controls (hasta cuatro medios) para variar amortiguamiento,
+acoplamiento y topología/matriz. f1, ratios y sample_rate deben ser idénticos al
+base; cambios incompatibles se rechazan antes de correr. La copia conserva su
+configuración al cambiar después el medio base; no sigue silenciosamente esos
+cambios. Una copia idéntica devuelve diferencias cero y sirve como control.
+
+Preset export/import conserva la lista. El resultado muestra «Contraste de
+medios R06»: valores raw y diferencias control menos base para cada calendario.
+«Medio de traza R06» permite inspeccionar base o cada control, con el mismo reloj,
+eventos y dosis. Los resultados siguen congelados aunque se editen controles.
+No son un ranking de eficacia; cambiar el medio modifica su respuesta esperable.

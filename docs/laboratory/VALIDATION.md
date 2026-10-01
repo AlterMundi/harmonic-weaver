@@ -1717,3 +1717,28 @@ hardware ni prueba completa de todas las combinaciones de controles.
 
 Regresión del app compartido: cuatro tests API R05 pasan (9.38 s) después de
 integrar R06. No se amplía con ello evidencia de escucha o hardware.
+
+## R06: contraste de medios con entrada idéntica — 2026-10-01
+
+medium_controls opcional (1–4 medios) permite modificar damping/coupling/grafo,
+preservando f1/ratios/sample_rate; misma ventana/eventos/dosis/cero inicial.
+Default omitido por serializer para conservar formato anterior. Cada control
+incluye condiciones raw y diferencias de métricas control menos base. Verificador
+valida inventario/config de controles, reloj/calendarios/dosis/trace y deltas;
+no rerenderiza las métricas. UI checkbox, JSON editable de medios, preset,
+tabla de contraste y selector de medio para trace; no modifica sonido live.
+
+21 tests R06 pasan (6.93 s): identidad reproduce base exacta, mismo calendario/
+dosis, controles no idénticos y diferencias declaradas, incompatibles rechazados,
+verificador rechaza config/calendario/delta/inventario alterados aun con hash
+reescrito. API/worker/cancelación/restauración existentes pasan. Referencia CLI
+anterior verificada como complete: compatibilidad de formato, no reproducción
+científica entre versiones/entornos.
+
+Chrome HTTP real final pasa (4.9 s): damping8/coupling4 sobre medio base ring2,
+export/import, dos resultados byte-idénticos, cuatro filas de contraste y
+selección de trace del control. Build pasa. Primera corrida Chrome no resolvía
+label implícito del textarea de controles; se agregaron aria-labels explícitos
+a JSON fields y se repitió sobre el mismo servidor, luego apagado.
+Sin cuerpos, audio/hardware o escucha humana. Variaciones de medio son controles
+de modelo, no evidencia de privilegio phi/HIT ni eficiencia fisiológica.

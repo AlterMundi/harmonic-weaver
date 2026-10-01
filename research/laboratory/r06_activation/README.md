@@ -66,3 +66,12 @@ intervalo entre manifest completo y salida del proceso para no iniciar otro.
 16 tests + Chrome configuración/repetición/restauración/tabla/trace y build pasan.
 Sustituye pendientes API/UI/preset de entradas anteriores. Quedan ampliación de
 bancos/controles, observables HIT definidos y protocolos físicos/humanos.
+
+R06 — medios como control (2026-10-01): medium_controls opcional (hasta4),
+damping/coupling/grafo variables con portadoras/clock preservados. Mismos eventos,
+dosis y cero inicial; condiciones y diferencias control−base explícitas.
+UI/presets/tabla/trace y verificador compatibles; controles desactivados por
+defecto y campo omitido preservan formato previo. 21 tests + Chrome real y build
+pasan. Control idéntico replica base; diferencias no indican efficacy/HIT.
+Referencia anterior verificable. Pendientes controles temporales más comparables,
+múltiples semillas como banco, hipótesis/observables y protocolos físicos/humanos.
