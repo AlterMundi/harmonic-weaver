@@ -164,6 +164,13 @@ incluyen comparación directa de cada ventana pasada y paridad entre bloques;
 con nueve pruebas de artifacts: catorce pasan. Exposición de esta opción y
 selección sincronizada del frame en UI siguen pendientes.
 
+Decimoséptimo corte: UI ofrece secuencia opcional (default off), ventana/paso
+en muestras y selector de frames que distingue RMS global de ventanas móviles.
+Al abrir otro resultado se reinicia selección. Chrome HTTP real pasó (1.9 s),
+incluyendo preset de secuencia, cuatro frames con reloj exacto, selección de
+primero/último y reload. Build TypeScript/Vite pasó. Falta seguimiento automático
+del audio; esta selección temporal es manual y no valida sincronización física.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

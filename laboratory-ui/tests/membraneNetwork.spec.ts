@@ -6,6 +6,9 @@ test('R07 real HTTP preset worker figure download and restoration',async({page})
  await page.getByLabel('R07 sample_rate',{exact:true}).fill('8000');
  await page.getByLabel('R07 stop_sample_exclusive',{exact:true}).fill('800');
  await page.getByLabel('R07 excitation_x',{exact:true}).fill('.25');
+ await page.getByRole('checkbox',{name:'Secuencia causal R07',exact:true}).check();
+ await page.getByLabel('R07 window_samples',{exact:true}).fill('300');
+ await page.getByLabel('R07 hop_samples',{exact:true}).fill('250');
  await page.getByRole('button',{name:'Exportar configuración R07',exact:true}).click();
  const preset=page.getByLabel('Preset portable R07');
  await expect(preset).not.toHaveValue('');
@@ -23,6 +26,11 @@ test('R07 real HTTP preset worker figure download and restoration',async({page})
  const result=await (await page.request.get(origin+url)).json();
  expect(result.window.sample_count).toBe(800);
  expect(result.request.membrane.excitation_x).toBe(.25);
+ expect(result.trajectory.map((f:any)=>f.stop_sample_exclusive)).toEqual([250,500,750,800]);
+ await page.getByLabel('Frame R07').selectOption('0');
+ await expect(page.getByText(/muestras 0–250/)).toBeVisible();
+ await page.getByLabel('Frame R07').selectOption('3');
+ await expect(page.getByText(/muestras 500–800/)).toBeVisible();
  await page.reload();
  await expect(page.getByRole('button',{name:'Ver figura R07',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Ver figura R07',exact:true}).click();
