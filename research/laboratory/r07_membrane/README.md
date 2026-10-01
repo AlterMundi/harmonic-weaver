@@ -120,6 +120,13 @@ recorrido API real sigue pasando. Todavía falta prueba de navegador contra
 servidor real y seguimiento de ventanas con audio; este panel inicial calcula
 una ventana bajo demanda, no ofrece aún animación continua ni escucha validada.
 
+Duodécimo corte: servicio verifica fuente individual/par, reloj y soporte antes
+de crear job. Fuentes inválidas no dejan carpetas/jobs. Cancelación probada sobre
+subprocess real ya running, con 256 modos y 10 segundos de cola sintética:
+termina, conserva hashes de inputs, bloquea result y permite manifest diagnóstico.
+Cinco pruebas del servicio y una API pasan (seis). UI de navegador, seguimiento
+continuo y banco de controles siguen pendientes; no cambia defaults de live.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

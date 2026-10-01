@@ -99,3 +99,41 @@ run_frozen(root)
         if process.poll() is None: process.kill(); process.wait(timeout=5)
         process.stderr.close()
         service.close()
+
+
+def test_invalid_source_and_clock_never_enqueue(tmp_path):
+    source = tmp_path/'source'
+    fixture(source)
+    service = MembraneService(tmp_path/'data')
+    try:
+        for request in ({'stop_sample_exclusive': 100},
+                        {'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 99999},
+                        {'arm': 'mapped', 'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 100}):
+            with pytest.raises(ValueError): service.start(source, request)
+        assert service.list() == [] and not list(service.root.iterdir())
+    finally: service.close()
+
+
+def test_cancel_actual_running_calculation_preserves_inputs(tmp_path):
+    from harmonic_weaver.lab.cache import sha256_file
+    from harmonic_weaver.lab.research.resonator_run import run
+    from test_mechanism_run import document
+    source = tmp_path/'source'
+    run(document(), {'resonators': {'sample_rate': 8000}, 'render': {'tail_s': 10}}, source)
+    service = MembraneService(tmp_path/'data')
+    try:
+        job = service.start(source, {'membrane': {'sample_rate': 8000, 'modes_x': 16, 'modes_y': 16},
+                                     'stop_sample_exclusive': 80000})
+        ident = job['id']
+        deadline = time.monotonic()+15
+        while service.report(ident)['status'] == 'queued':
+            assert time.monotonic() < deadline
+            time.sleep(.01)
+        assert service.report(ident)['status'] == 'running'
+        before = {name: sha256_file(service.folder(ident)/name) for name in ('request.json','source.json')}
+        report = service.cancel(ident)
+        assert report['status'] == 'cancelled' and not report['worker_active']
+        for name, digest in before.items(): assert sha256_file(service.folder(ident)/name) == digest
+        with pytest.raises(ValueError): service.artifact(ident, 'result.json')
+        assert service.artifact(ident, 'manifest.json').is_file()
+    finally: service.close()
