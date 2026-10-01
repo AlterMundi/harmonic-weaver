@@ -83,6 +83,15 @@ rechazo de rerun y fuente ausente sin resultado publicado. Todavía faltan
 pruebas de muerte real durante promoción, servicio propietario/cancelación,
 API/UI. No se afirma durabilidad frente a corte de energía.
 
+Octavo corte: `MembraneService` reutiliza inventario/lifecycle propietario de
+R03/R06. Un proceso activo por instancia, cancelación sólo de procesos propios,
+cierre explícito, restauración de inventario y descargas verificadas. La referencia
+local `source.json` no se ofrece como artifact descargable; el worker no copia
+PCM. Diecisiete pruebas pasan, incluidas ejecución real, restauración, rechazo
+de cancelación ajena, hash alterado y cancelación inmediata de subprocess propio.
+La cancelación inmediata prueba la transición queued: falta kill real dentro de
+la promoción y prueba de cancelación durante cálculo ya running. API/UI pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
