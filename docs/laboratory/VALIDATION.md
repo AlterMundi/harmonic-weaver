@@ -1444,3 +1444,18 @@ validan inicio/fin/stride/seeks/no futuro y 12 API/proyección pasan incluyendo
 preset playback/validación. NO reproducción continua Chrome verificada todavía:
 siguiente prueba muted contra servidor/reader reales para seeks/loops/pause.
 Sin escucha humana, latencia física ni paridad con Shaper; audio live intacto.
+
+
+R05 — reproducción Chrome y seek demorado (2026-09-30): cuatro recorridos
+normales pasan contra API/reader/workers reales (resonador/pareado presets,
+descargas y playback muted). Dos playback prueban metadata sin autoplay,
+seek en pausa0.5s=>muestra3488, seguimiento de6 voces sin muestras posteriores
+al clock pausado, cese de requests tras pausa, seek hacia atrás y loop1.85s→inicio.
+Prueba adicional retiene respuesta REAL de servidor (sin datos sintéticos
+inyectados) y hace segundo seek pausado: inicialmente falló en ambos brazos;
+respuesta vieja era descartada pero nueva ventana no se solicitaba por inFlight.
+pendingFollow ahora coalescea el pedido al liberar slot; dos playback demorado
+repiten y pasan, muestran muestra288 para0.1s sin reaparecer ventana anterior.
+TypeScript/Vite pasa; servidor propio cerrado. No escucha humana ni timing físico
+medido; muted reproducción software no es aceptación. Próximos protocolo/niveles/
+latencias, video de origen en este recorrido y modalidades restantes. Live intacto.

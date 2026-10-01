@@ -6,23 +6,25 @@ const playbackDefaults={follow_audio:true,refresh_hz:10,preview_gain:1,loop_audi
 export function ModelProjectionPanel({job,api,run}:Data){
  const [settings,setSettings]=useState<Data>({...defaults,arm:job.kind==='mechanism_comparison'?'excited':'single'}),[sample,setSample]=useState(0),[arrays,setArrays]=useState<Data>({}),[text,setText]=useState(''),[result,setResult]=useState<Data|null>(null),[busy,setBusy]=useState(false);
  const canvas=useRef<HTMLCanvasElement>(null),generation=useRef(0);
- const audio=useRef<HTMLAudioElement>(null),inFlight=useRef(false),lastWindow=useRef(-1);
+ const audio=useRef<HTMLAudioElement>(null),inFlight=useRef(false),pendingFollow=useRef(false),lastWindow=useRef(-1);
  const [playback,setPlayback]=useState<Data>(playbackDefaults),[audioSrc,setAudioSrc]=useState(''),[metadata,setMetadata]=useState<Data|null>(null),[playing,setPlaying]=useState(false),[playerError,setPlayerError]=useState('');
  const settingsValue=()=>{const value={...settings};for(const [key,text] of Object.entries(arrays))value[key]=JSON.parse(text as string);return value;};
  const paired=job.kind==='mechanism_comparison';
  const invalidate=()=>{generation.current++;lastWindow.current=-1;setBusy(false);setResult(null);};
- const stopAudio=()=>{audio.current?.pause();setAudioSrc('');setMetadata(null);setPlaying(false);invalidate();};
+ const stopAudio=()=>{pendingFollow.current=false;audio.current?.pause();setAudioSrc('');setMetadata(null);setPlaying(false);invalidate();};
  const latest=useRef<Data>({});latest.current={settings,arrays,playback,metadata};
  const followWindow=async()=>{
   const el=audio.current,{settings,arrays,playback,metadata}=latest.current;
-  if(!el || el.seeking || !metadata || !playback.follow_audio || inFlight.current)return;
+  if(!el || el.seeking || !metadata || !playback.follow_audio)return;
+  if(inFlight.current){pendingFollow.current=true;return;}
+  pendingFollow.current=false;
   let window:any,parameters:Data;
   try{parameters={...settings};for(const [key,text] of Object.entries(arrays))parameters[key]=JSON.parse(text as string);window=pastWindow(el.currentTime,metadata.sample_rate,metadata.total_frames,parameters.points,parameters.stride);}catch(e){setPlayerError(String(e));audio.current?.pause();return;}
   if(!window || window.start_sample===lastWindow.current)return;
   const version=generation.current;inFlight.current=true;lastWindow.current=window.start_sample;
   try{const value=await api(`research/r05/${job.id}/projection`,{...parameters,...window});if(version===generation.current){setResult(value);setSample(window.start_sample);setPlayerError('');}}
   catch(e){if(version===generation.current){setPlayerError(String(e));setResult(null);audio.current?.pause();}}
-  finally{inFlight.current=false;}
+  finally{inFlight.current=false;if(pendingFollow.current)void followWindow();}
  };
  useEffect(()=>{invalidate();},[settings,arrays,playback.follow_audio]);
  useEffect(()=>{let frame=0,last=-Infinity;const tick=(now:number)=>{if(audio.current && !audio.current.paused && now-last>=1000/latest.current.playback.refresh_hz){last=now;void followWindow();}frame=requestAnimationFrame(tick);};if(audioSrc)frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);},[audioSrc]);

@@ -230,3 +230,25 @@ sobre la R24 simultáneamente. Para cambiar puertos o datos, pasar `--port`,
 `WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON` y `LAB_DEV_DATA_DIR` permiten
 seleccionar otras instalaciones deliberadamente; el wrapper no usa un venv
 original como alternativa silenciosa para Weaver o Shaper.
+
+
+### Recorrido R05 experimental (rama de desarrollo, PR #72)
+
+En Investigación, elegir comparación terminada, corrida y señal; confirmar
+persona/unidad congeladas. Ajustar resonadores/excitación y, opcionalmente,
+activar «Comparar con mapeo de amplitud R05». Correr y revisar métricas: soporte
+común y cola están separados; undefined significa ausencia de soporte, no cero.
+
+«Explorar figura R05» abre el estado de todas las voces. Elegir brazo y usar
+«Leer ventana» para inspección manual, o «Cargar audio R05» y los controles del
+reproductor para escucha explícita. El seguimiento (default10Hz, loop apagado)
+usa ventanas ya reproducidas; se pueden ajustar points/stride/pesos/fases/escala.
+Ganancia de escucha es una vista float32 del WAV DOUBLE crudo, sin normalización
+ni limitador. Revisión de niveles previa a escuchar; sin equivalencia perceptual
+ni fase corporal/medio cimático físico inferidos. Video de origen aún no aparece
+en este recorrido experimental; no cambia el reproductor de exploración live.
+
+Preset R05 y preset de proyección se exportan/importan como JSON separados;
+no transportan persona/calibración/fuente/segmento/muestra. Importar proyección
+detiene audio y no lo reinicia. Se descarga PCM DOUBLE/verificador para evidencia;
+la vista float32 sirve para escuchar en Chrome. Escucha/aceptación humanas pendientes.
