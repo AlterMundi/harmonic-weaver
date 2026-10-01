@@ -37,3 +37,12 @@ de JSON16MB tras probe (no garantiza límite de memoria del subprocess).
 Tres pruebas conjuntas pasan con MP4 sintético real generado por FFmpeg,
 incluyendo identidad/dimensiones/reloj/índice/symlink inválidos. No se procesó
 video privado ni se anotó cuerda humana. Persistencia y UI continúan pendientes.
+
+Tercer corte: `rope_run.run/verify` guarda revisiones en carpetas nuevas,
+annotation/media-clock/result/manifest con hashes y lineage opcional al manifest
+padre. Revalida medio antes de complete; no copia video ni guarda rutas/persona.
+Verifica report recalculado y frames contra reloj congelado, rehash final.
+Parent debe ser revisión verificable del mismo medio al crear hija; conservar
+su hash no equivale a resolver toda la cadena después. Cuatro pruebas pasan,
+incluyendo padre intacto, no overwrite y report alterado con checksum reescrito.
+Estado actual del video requiere rebind explícito; UI/API y asistencia pendientes.
