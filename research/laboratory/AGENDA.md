@@ -322,3 +322,14 @@ y HTTP real TestClient; 11 servicio/worker/lifecycle R03 antes de conectar API,
 9 R04/R03 API+lifecycle después pasan. No dispositivos/audio. Pendientes panel
 R04, browser/red R04, interrupción específica a mitad de cómputo y replay
 corporal/control de oposición favorable. No ciencia resuelta.
+
+
+R04 panel web inicial en Investigación: todos los 10 parámetros del banco
+editables, validación de rangos y samples entero, JSON portable importar/exportar.
+Inventario/cancel/artifacts/result; traza y muestra seleccionables con valores
+I/R/A y velocidades de extremos. Faltantes se muestran indefinidos, nunca cero
+ni neutralidad. Prueba Chrome aislada pasa edición sin llamadas/ejecución
+congelada/rango inválido/export-import sin ejecutar/resultado faltante. Build
+TS/Vite pasa. API simulada en este test UI; backend con child real probado
+separado. Pendientes browser→API real R04, entrada corporal y controles ampliados.
+No cambian defaults del instrumento ni audio. Vite propio detenido al finalizar.

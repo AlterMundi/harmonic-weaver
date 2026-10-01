@@ -42,3 +42,8 @@ POST {id}/cancel, GET {id}/artifacts/{request.json,result.json,manifest.json}.
 El worker usa writer lock y manifest independiente; al restaurar no relanza.
 API es parte de create_app, sin requerir runtime/audio para banco sintético.
 Panel web y evidencia específica de interrupción R04 siguen pendientes.
+
+Panel R04 disponible en pestaña Investigación: controles de todos los parámetros,
+configuración JSON portable, inventario/cancelación/descargas y navegador de
+trazas/muestras. Chrome aislado y build pasan; recorrido API real R04 por browser
+y replay corporal todavía pendientes.
