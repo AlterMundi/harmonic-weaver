@@ -43,6 +43,17 @@ usa tolerancia numérica, no promete igualdad binaria entre particiones de la
 suma matricial. Los índices son declarados por el llamador: no certifican por
 sí mismos procedencia del PCM, ausencia de un reset externo ni reloj físico.
 
+Cuarto corte: `membrane_pcm.project` recibe un run R05 individual completo,
+verifica todos sus artifacts antes/después y excita exclusivamente desde
+`sum.wav`. Exige coincidencia de sample rate; no remuestrea. Reproduce desde
+estado cero y muestra cero hasta el fin solicitado; acumula sólo la ventana
+seleccionada, sin eliminar su historia previa ni leer excitación futura.
+Devuelve grilla RMS, reloj, request y hashes de PCM/manifest. Límite actual:
+120 segundos de historia causal por llamada, sin cache ni worker todavía.
+Diez pruebas conjuntas pasan, incluyendo repetición, particiones, comparación
+directa con campo, rechazo de reloj/ventana e integridad alterada. Integración
+con pares R05, worker/API/UI y controles de campo siguen pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
