@@ -3,22 +3,38 @@ from pathlib import Path
 from typing import Literal
 import numpy as np
 import soundfile as sf
-from pydantic import Field
+from pydantic import Field,model_validator
 from ..contracts import Contract,Number
 from ..cache import sha256_file
 from .resonator_artifacts import verify as verify_arm
 from .mechanism_run import verify as verify_pair
 
 
-class Request(Contract):
+class Settings(Contract):
     arm:Literal['single','excited','mapped']='single'
-    start_sample:int=Field(default=0,ge=0)
     points:int=Field(default=512,ge=2,le=4096)
     stride:int=Field(default=1,ge=1,le=32)
     weights:list[Number]|None=Field(default=None,min_length=6,max_length=32)
     phase_offsets_rad:list[Number]|None=Field(default=None,min_length=6,max_length=32)
     scale_x:Number=Field(default=1,gt=0,le=100)
     scale_y:Number=Field(default=1,gt=0,le=100)
+
+    @model_validator(mode='after')
+    def bounds(self):
+        if self.weights is not None and any(abs(v)>100 for v in self.weights):
+            raise ValueError('Projection weights within ±100 required')
+        if self.phase_offsets_rad is not None and any(abs(v)>1000 for v in self.phase_offsets_rad):
+            raise ValueError('Projection offsets within ±1000 required')
+        return self
+
+
+class Configuration(Contract):
+    schema_version:Literal[1]=1
+    settings:Settings=Field(default_factory=Settings)
+
+
+class Request(Settings):
+    start_sample:int=Field(default=0,ge=0)
 
 
 def project(folder,request,*,reader=None):

@@ -28,6 +28,7 @@ from .research.excitation import Settings as ExcitationSettings
 from .research.resonator_render import Settings as ResonatorRenderSettings
 from .research.parameter_render import Settings as MappingSettings
 from .research.model_projection import Request as ModelProjectionRequest
+from .research.model_projection import Configuration as ModelProjectionConfiguration
 from .research.relational_input import EndpointRequest
 from .research.body import BodyRequest
 from .research.candidate_input import CandidateRequest, candidate_snapshot
@@ -352,6 +353,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         result=body.model_dump()
         if body.mapping is None:result.pop('mapping')
         return result
+
+    @app.post("/api/research/r05/projection/configuration")
+    def projection_configuration(body: ModelProjectionConfiguration):return body.model_dump()
 
     @app.post("/api/research/r05")
     def resonator_start(body: ResonatorRequest):

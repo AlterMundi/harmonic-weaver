@@ -102,3 +102,13 @@ def test_portable_configuration_validates_without_job_or_source(tmp_path):
                     {**config,'resonators':{**config['resonators'],'topology':'custom','adjacency':[[0]]}}):
             assert client.post('/api/research/r05/configuration',json=bad).status_code==422
         assert client.get('/api/research/r05').json()==[]
+        projection={'schema_version':1,'settings':{'scale_x':2,'weights':[1]*6}}
+        validated=client.post('/api/research/r05/projection/configuration',json=projection)
+        assert validated.status_code==200 and validated.json()['settings']['scale_x']==2
+        assert 'start_sample' not in validated.json()['settings']
+        for bad in ({**projection,'source_id':'private'},
+                    {**projection,'settings':{'start_sample':30}},
+                    {**projection,'settings':{'weights':[101]*6}},
+                    {**projection,'schema_version':2}):
+            assert client.post('/api/research/r05/projection/configuration',json=bad).status_code==422
+        assert client.get('/api/research/r05').json()==[]

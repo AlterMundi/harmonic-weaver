@@ -1383,3 +1383,18 @@ tamper del otro brazo también invalida, cambio durante read/symlink/capacidad/
 close. No render/retracking ni copias de video. Ventanas bounded PCM; latencia
 UI y sincronía física aún no medidas. Próximo UI/player/presets de proyección;
 audio live/defaults intactos y aceptación humana pendiente.
+
+
+R05 — inspección manual figura web/preset (2026-09-30): ModelProjectionPanel
+por corrida completa y brazo explícito; start_sample, points/stride, weights/
+phase_offsets JSON y scale_x/y configurables. Canvas traza puntos efectivos de
+todas las voces, sin extrapolar frecuencias acopladas ni normalizar escala.
+Resultado declara indices/reloj/tail/verificación. Preset separado schema1 vía
+POST projection/configuration conserva settings pero excluye corrida/persona/
+calibración/muestra inicial; import no lee ventana ni reproduce. Brazo incompatible
+rechazado; respuestas de ventana obsoletas al cambiar brazo/import/unmount se
+descartan. Seguir audio todavía NO implementado; inspección manual únicamente.
+TypeScript/Vite build y 12 proyección/API pasan, test portable API repetido con
+rechazo source/start_sample/weights/version inválidos y sin encolar. Navegador
+para este nuevo panel pendiente; no afirmar aceptación humana ni sincronía física.
+Defaults/audio live intactos. Próximos: Chrome canvas/presets y player/clock.
