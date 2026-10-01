@@ -240,6 +240,14 @@ artifacts idénticos, tabla de ocho filas y restauración tras reload. Fixture
 sintético aislado detenido. No hay participantes/audio físico en este banco;
 controles transientes y convergencia/atributos científicos siguen pendientes.
 
+Vigésimo séptimo corte: `membrane_controls.compare` genera impulso held de una
+muestra, pulso, suma de todas las componentes declaradas y ruido Gaussian seeded
+desde cero sobre mismo medio/reloj/puntos. Reporta dosis digital sum_squares,
+peak, RMS de campo y energía modal proxy final sin igualar energía ni normalizar.
+Tres pruebas pasan: repetición/semilla, suma multisine (tolerancia de aritmética),
+bordes, cero y particiones de bloques, contratos. No es ruido de presión calibrado
+ni impulso Dirac; artifacts/API/UI de este banco todavía pendientes.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
