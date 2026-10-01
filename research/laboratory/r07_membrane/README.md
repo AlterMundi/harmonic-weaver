@@ -92,6 +92,14 @@ de cancelación ajena, hash alterado y cancelación inmediata de subprocess prop
 La cancelación inmediata prueba la transición queued: falta kill real dentro de
 la promoción y prueba de cancelación durante cálculo ya running. API/UI pendientes.
 
+Noveno corte: prueba con subprocess real pausado justo después del rename de
+result.json, aún manteniendo flock. Mientras está vivo, el inventario conserva
+running y rechaza descargar; tras SIGKILL y wait, restaura interrupted, conserva
+el resultado incompleto sin descargarlo y permite manifest diagnóstico. Tres
+pruebas del servicio pasan. Esto cubre muerte en ese punto de publicación, no
+todos los puntos de fallo ni corte de energía del host. Sigue pendiente cancelar
+un cálculo ya running mediante servicio y la integración API/UI.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
