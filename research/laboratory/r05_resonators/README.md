@@ -87,3 +87,20 @@ evidencia de movimiento humano. Tres tests nuevos prueban roundtrip PCM exacto,
 repetición/hash idéntico con bloques 256/317, suma de voces, niveles, no sobrescritura,
 rechazo previo a crear carpeta e invalidación por entrada alterada durante render.
 Dieciséis tests R05 pasan; no escucha ni aceptación humana realizada.
+
+
+R05 — verificador read-only (2026-09-30): `resonator_artifacts.verify(folder)`
+requiere manifest complete, inventario exacto, archivos regulares sin symlinks,
+hashes antes/después, preparación consistente con entradas congeladas, WAV DOUBLE
+con sr/canales/duración exactos, PCM finito y suma de todas las voces exacta.
+Recalcula niveles por bloques; tolerancia RMS 1e-12 relativa/1e-15 absoluta por
+agrupamiento flotante, pico/conteos exactos. No rerenderiza osciladores ni demuestra
+que una falsificación coherente sea auténtica: integridad local sin firma, no
+custodia ni evidencia científica. Preparación se comprueba con código instalado;
+compatibilidad histórica entre versiones no garantizada.
+CLI: `PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.resonator_artifacts /ruta/local/corrida`.
+24 tests R05 pasan, incluidos 8 de verificación: read-only sin cambios, hash,
+symlink, manifest no terminado, WAV truncado con hash actualizado, suma alterada
+con hash actualizado, niveles y preparación inconsistentes. Worker/API/UI,
+recuperación de corridas interrumpidas y comparación de mecanismos pendientes.
+Sin cambios a audio live/defaults ni aceptación humana.
