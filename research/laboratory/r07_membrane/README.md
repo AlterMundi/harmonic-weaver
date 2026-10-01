@@ -248,6 +248,15 @@ Tres pruebas pasan: repetición/semilla, suma multisine (tolerancia de aritméti
 bordes, cero y particiones de bloques, contratos. No es ruido de presión calibrado
 ni impulso Dirac; artifacts/API/UI de este banco todavía pendientes.
 
+Vigésimo octavo corte: `membrane_controls_run` guarda request/result/manifest
+con hashes de código y versiones Python/NumPy/SciPy. Verificador read-only
+recalcula el banco y rechaza cambios de valores aun con checksum reescrito;
+rechaza entorno desconocido y destino existente. CLI `--request REQUEST.json
+--output NUEVA_CARPETA`; no guarda PCM ni datos corporales. Cinco pruebas
+núcleo/artifacts pasan, incluyendo dos corridas idénticas y request inválido
+sin crear carpeta. Worker cancelable y API/UI pendientes; verificación exacta
+es del entorno registrado, no una promesa de paridad numérica entre builds.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
