@@ -200,6 +200,15 @@ wrap nativo observado por timeupdate y selección de primer frame tras volver al
 comienzo. Servidor sintético detenido. El test usa decoder real, no eventos
 falsos; no mide R24 ni latencia física y no constituye escucha humana.
 
+Vigésimo segundo corte: `Membrane.transfer_response` calcula respuesta compleja
+estacionaria de la discretización exacta held-input a frecuencias declaradas,
+incluyendo cero. Exige amortiguación positiva y frecuencias bajo Nyquist; no
+altera estado causal. Convención de fase: input index n y output del extremo
+derecho de su intervalo. Doce pruebas del núcleo pasan: respuesta estática
+coincide con fuerza/ω² y forcing coseno muestreado converge a amplitud/fase
+predichas (cola de simulación 2 s), bordes nulos/rechazos. Es control analítico
+para banco/convergencia, todavía sin UI ni interpretación como medio calibrado.
+
 ## Próximos cortes, necesarios para la entrega
 
 - Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana

@@ -131,3 +131,25 @@ def test_rolling_gap_reset_and_history_ownership():
     assert rolling.report([.5], [.5])['start_sample'] == 50
     with pytest.raises(ValueError): RollingFieldWindow(model, True)
     with pytest.raises(ValueError): RollingFieldWindow(model, 8_000_001)
+
+
+def test_discrete_transfer_predicts_steady_sampled_forcing_and_static_response():
+    model = Membrane(Settings(modes_x=1, modes_y=1, sample_rate=8000, damping_per_s=20,
+                              excitation_x=.5, excitation_y=.5))
+    frequencies = [0., 31.]
+    response = model.transfer_response(frequencies, [.5, 0], [.5, .5])
+    assert response[0,0].real == pytest.approx(1/model.omega[0]**2)
+    assert response[0,0].imag == 0 and not response[:,1].any()
+    assert model.sample_index == 0 and not model.state.any()
+    indices = np.arange(16000)
+    q = model.render(np.cos(2*np.pi*31*indices/8000))['modal_displacement'][:,0]
+    predicted = (response[1,0]*np.exp(2j*np.pi*31*indices/8000)).real
+    np.testing.assert_allclose(q[-2000:], predicted[-2000:], rtol=1e-9, atol=1e-15)
+
+
+def test_transfer_rejects_nonattracting_or_invalid_frequencies():
+    model = Membrane(Settings(damping_per_s=0))
+    with pytest.raises(ValueError): model.transfer_response([40], [.5], [.5])
+    model = Membrane(Settings())
+    for frequencies in ([-1], [24000], [np.nan], [[40]]):
+        with pytest.raises(ValueError): model.transfer_response(frequencies, [.5], [.5])

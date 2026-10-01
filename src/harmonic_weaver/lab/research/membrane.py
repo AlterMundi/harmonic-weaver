@@ -74,6 +74,35 @@ class Membrane:
         self.state.fill(0)
         self.sample_index = 0
 
+    def transfer_response(self, frequencies_hz, x, y):
+        """Complex steady response to unit sampled forcing at each frequency.
+
+        Uses this model's exact held-input discrete step, not a continuous
+        forcing approximation. State/output indexed by input sample; timestamp
+        is its right edge. Positive damping required for an attracting steady
+        response. Does not mutate causal simulation state.
+        """
+        frequencies = np.asarray(frequencies_hz, dtype=float)
+        if frequencies.ndim != 1 or not np.isfinite(frequencies).all() or (frequencies < 0).any() or (frequencies >= self.settings.sample_rate/2).any():
+            raise ValueError('Finite frequencies from zero to below Nyquist required')
+        if self.settings.damping_per_s <= 0:
+            raise ValueError('Steady transfer requires strictly positive damping')
+        if len(frequencies) > 4096:
+            raise ValueError('At most 4096 transfer frequencies')
+        shapes = self.shapes(x, y)
+        if len(frequencies)*len(shapes)+shapes.size > 8_000_000:
+            raise ValueError('Transfer projection exceeds bounded element budget')
+        response = np.empty((len(frequencies), len(shapes)), dtype=complex)
+        identity = np.eye(2)
+        for i, frequency in enumerate(frequencies):
+            lag = np.exp(-2j*np.pi*frequency/self.settings.sample_rate)
+            modal = np.linalg.solve(identity[None,:,:]-self.transition*lag,
+                                    self.input_step[:,:,None])[:,:,0]
+            response[i] = shapes @ modal[:,0]
+        if not np.isfinite(response).all():
+            raise ValueError('Nonfinite steady transfer response')
+        return response
+
     def field(self, modal_displacement, x, y):
         """Frames × paired points; no scaling, clipping or normalization."""
         q = np.asarray(modal_displacement, dtype=float)
