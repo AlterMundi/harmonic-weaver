@@ -22,6 +22,8 @@ from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
+from .research.activation_service import ActivationService
+from .research.activation_bank import Settings as ActivationSettings,schedules as activation_schedules
 from .research.resonator_service import ResonatorService
 from .research.resonators import Settings as ResonatorSettings
 from .research.excitation import Settings as ExcitationSettings
@@ -111,6 +113,11 @@ class ResonatorRequest(Contract):
     mapping: MappingSettings | None = None
 
 
+class ActivationConfig(Contract):
+    schema_version:Literal[1]=1
+    settings:ActivationSettings=Field(default_factory=ActivationSettings)
+
+
 class ResonatorConfig(Contract):
     schema_version: Literal[1] = 1
     resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
@@ -160,6 +167,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     coincidence = CoincidenceService(data_dir)
     relational = RelationalService(data_dir)
     resonators = ResonatorService(data_dir)
+    activation = ActivationService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -172,6 +180,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            activation.close()
             resonators.close()
             relational.close()
             coincidence.close()
@@ -340,6 +349,27 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/research/r04/{ident}/artifacts/{name}")
     def relational_artifact(ident: str, name: str):
         return FileResponse(relational.artifact(ident,name),filename=name)
+
+    @app.get("/api/research/r06")
+    def activation_jobs():return activation.list()
+
+    @app.post("/api/research/r06/configuration")
+    def activation_configuration(body:ActivationConfig):
+        activation_schedules(body.settings)
+        return body.model_dump()
+
+    @app.post("/api/research/r06")
+    def activation_start(body:ActivationSettings):return activation.start(body.model_dump())
+
+    @app.get("/api/research/r06/{ident}")
+    def activation_report(ident:str):return activation.report(ident)
+
+    @app.post("/api/research/r06/{ident}/cancel")
+    def activation_cancel(ident:str):return activation.cancel(ident)
+
+    @app.get("/api/research/r06/{ident}/artifacts/{name}")
+    def activation_artifact(ident:str,name:str):
+        return FileResponse(activation.artifact(ident,name),filename=name)
 
     @app.get("/api/research/r05")
     def resonator_jobs(): return resonators.list()

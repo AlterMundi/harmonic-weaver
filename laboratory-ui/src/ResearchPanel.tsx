@@ -1,5 +1,6 @@
 import {useEffect,useState} from 'react';
 import {RelationalPanel} from './RelationalPanel';
+import {ActivationPanel} from './ActivationPanel';
 import {ResonatorPanel} from './ResonatorPanel';
 import {CoincidencePanel} from './CoincidencePanel';
 import {BodyResearchPanel} from './BodyResearchPanel';
@@ -35,6 +36,7 @@ export function ResearchPanel({api,run}:Data){
   <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
   <RelationalPanel api={api} run={run}/>
   <ResonatorPanel api={api} run={run}/>
+  <ActivationPanel api={api} run={run}/>
   <CoincidencePanel api={api} run={run}/>
   <BodyResearchPanel api={api} run={run} onStarted={async()=>setJobs(await api('research/r01'))}/>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>

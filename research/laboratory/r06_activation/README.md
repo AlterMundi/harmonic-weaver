@@ -57,3 +57,12 @@ positivos falsificados con hashes reescritos no constituyen evidencia confiable.
 El verificador es un contrato de integridad local, no custodia firmada ni prueba
 HIT. Descargas verifican además del hash; manifest diagnóstico accesible aunque
 la corrida no termine. API/UI/presets y controles ampliados siguen pendientes.
+
+R06 — API/UI portable (2026-10-01): pestaña Investigación integra ActivationPanel.
+Todos los campos del medio/calendario/cálculo editables, preset schema1 validado,
+import sin ejecución, worker/cancelación, artefactos verificados y tabla/trace.
+Default del backend, sin duplicar otro modelo en frontend. worker_active cubre
+intervalo entre manifest completo y salida del proceso para no iniciar otro.
+16 tests + Chrome configuración/repetición/restauración/tabla/trace y build pasan.
+Sustituye pendientes API/UI/preset de entradas anteriores. Quedan ampliación de
+bancos/controles, observables HIT definidos y protocolos físicos/humanos.

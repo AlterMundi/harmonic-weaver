@@ -304,3 +304,21 @@ lista de ratios del experimento, no la afinación del instrumento cotidiano.
 Exportar/importar conserva opciones y valores. Renderizar, escuchar mapped y
 observar su figura usa cuadratura real del modelo modulado. No es audificación,
 fase corporal medida ni evidencia de coordinación fisiológica.
+
+### R06 en la mesa web
+
+En harmonic-weaver-dev, pestaña «Investigación» → «R06 · Banco de activación».
+La web carga defaults validados del servidor. Modificar medio (f1, ratios,
+damping, acoplamiento, topología/matriz y sample rate) y todos los parámetros de
+calendario/cálculo. «Exportar configuración R06» guarda JSON portable;
+«Importar configuración R06» lo valida/restaura sin ejecutar ni elegir cuerpo.
+«Correr banco R06» congela esa configuración y calcula en worker propio.
+Cancelar sólo afecta esa corrida. No requiere video, calibración ni audio.
+
+«Ver resultado R06» muestra cuatro calendarios, dosis/RMS/pico/integral de norma
+y RMS de cola. Selector/slider inspeccionan trace y distinguen cola de excitación.
+Descargar request/result/manifest usa verificación de integridad. Cambiar los
+controles no cambia un resultado ya calculado; su configuración está congelada.
+RMS/loudness, clustering/espectro y eficacia no son equivalentes. No hay ganador
+ni prueba de privilegio phi. Esperar finalización del proceso antes de otra
+corrida: UI también observa worker_active al terminar el manifest.

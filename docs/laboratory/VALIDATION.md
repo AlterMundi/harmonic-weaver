@@ -1692,3 +1692,28 @@ API/UI/presets, bancos/observables HIT y protocolos físicos/humanos pendientes.
 
 Corrida final: 13 tests R06 pasan (3.64 s): banco, verificador, worker y service.
 Handles hijos propios terminados por wait/kill/cancel y servicios de test cerrados.
+
+## R06: API y mesa web portable — 2026-10-01
+
+API configura/inicia/lista/report/cancela y descarga artefactos verificados R06.
+Lifecycle se cierra con la app. Config esquema1 normalizada y calendarios
+validados antes de encolar; import no lanza. UI expone todos los parámetros del
+medio y calendario/cálculo, presets JSON, jobs/cancelación, tabla de métricas y
+selector/slider de trace. worker_active impide lanzar durante salida del worker
+cuando manifest ya está completo. No modifica instrumento live ni requiere pose.
+
+16 tests R06 pasan (5.89 s), incluidos tres HTTP con subprocess reales:
+config/repetición/restauración/hashes, inválidos sin encolar y cancelación propia.
+Build TypeScript/Vite pasa. Primer build encontró nullable inicial de settings;
+se corrigió con guard explícito. Primer Chrome no encontraba topología por nombre
+accesible combinado con opciones; se agregaron aria-labels explícitos.
+
+Recorrido HTTP/Chrome final pasa (4.8 s): sample_rate8000, span/cola .1 s, seed43,
+intensidad .7, bloque317/stride64, topología ring/acoplamiento2, export/import sin
+run, dos workers y results byte-idénticos verificados, tabla de cuatro condiciones,
+selector de trace y restauración tras reload. Harness aislado r06_harness sobre
+API real sin mocks; servidor propio apagado. Fixtures sintéticas, no escucha ni
+hardware ni prueba completa de todas las combinaciones de controles.
+
+Regresión del app compartido: cuatro tests API R05 pasan (9.38 s) después de
+integrar R06. No se amplía con ello evidencia de escucha o hardware.
