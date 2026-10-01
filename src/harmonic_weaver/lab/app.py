@@ -278,6 +278,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def events():
         return session.events()
 
+    @app.get("/api/marks/snapshot")
+    def marks_snapshot():
+        return JSONResponse(session.marks_snapshot(),headers={"Content-Disposition":'attachment; filename="movement-marks.json"'})
+
     @app.post("/api/marks")
     def mark(body: MarkRequest):
         session.mark(body.text, category=body.category)

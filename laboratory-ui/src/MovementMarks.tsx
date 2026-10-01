@@ -28,5 +28,6 @@ export function MovementMarks({api,run}:{api:(path:string,body:unknown)=>Promise
           >
             Guardar marca
           </button>
+ <a href="/api/marks/snapshot" download>Descargar marcas congeladas</a>
  </>;
 }

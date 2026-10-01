@@ -679,3 +679,9 @@ correcto; error conserva texto; éxito limpia texto y mantiene categoría. Defau
 nota libre y botón vacío deshabilitado comprobados. Una prueba Chrome y build
 pasan. API es fixture en esta prueba; integración de persistencia cubierta por
 los tests API anteriores, no aceptación humana.
+
+
+Snapshot de marcas: 5 tests API/store pasan, incluyendo 1005 marcas sin truncado,
+hash repetible/reinicio, cursor creciente y prefijo conservado. Primer intento
+incluía session_id actual y falló al reiniciar; corregido conservando IDs por
+evento. Build pasa. Descargar no implica publicar ni interpretar onset físico.

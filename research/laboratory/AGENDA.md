@@ -76,3 +76,13 @@ y reaction_latency_corrected=false. Es el momento del botón y del último estad
 observado, no un onset físico ni ground truth de intención. Sigue pendiente
 revisión temporal offline, intervalos/incertidumbre y comparación reproducible
 contra candidatos cinemáticos con soporte común y controles reservados.
+
+
+Marcas congeladas: GET /api/marks/snapshot y enlace web descargan todos los
+eventos mark hasta through_sequence, con sequence/event y content_sha256. Hash
+es SHA256 de JSON sin content_sha256, sort_keys=True, separators=(",",":"),
+allow_nan=False, encoding UTF-8 (escape Unicode por default Python). IDs de
+sesión permanecen por evento; no se atribuye historial a la sesión recién abierta.
+Incluye marcas históricas/sistema: filtrar annotation_origin para anotaciones
+humanas tipadas. Texto/contexto privados, descarga sólo local. Pendiente selección
+por fuente/persona/segmento y banco de contraste con candidatos.

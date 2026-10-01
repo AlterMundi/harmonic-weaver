@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from hashlib import sha256
 from pathlib import Path
 import sqlite3
 import threading
@@ -260,6 +261,18 @@ class SessionStore:
                                  "annotation_category": category, "annotation_origin": "human_button",
                                  "timing_basis": "latest_observed_source_time",
                                  "reaction_latency_corrected": False})
+
+    def marks_snapshot(self):
+        with self._lock:
+            cursor=self._db.execute("SELECT COALESCE(MAX(sequence),0) FROM events").fetchone()[0]
+            rows=self._db.execute("SELECT sequence,payload FROM events WHERE sequence<=? AND json_extract(payload,'$.kind')='mark' ORDER BY sequence",(cursor,)).fetchall()
+            result={"schema_version":1,"through_sequence":cursor,
+                    "marks":[{"sequence":seq,"event":json.loads(payload)} for seq,payload in rows],
+                    "limits":["Button timestamps are not reaction-corrected movement onsets",
+                              "Includes historical and system marks; annotation_origin distinguishes typed human marks",
+                              "Local export may contain private text and source/person context"]}
+            canonical=json.dumps(result,sort_keys=True,separators=(",",":"),allow_nan=False).encode()
+            return {**result,"content_sha256":sha256(canonical).hexdigest()}
 
     def events(self, limit=100):
         with self._lock:
