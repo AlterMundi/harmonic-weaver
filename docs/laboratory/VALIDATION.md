@@ -1164,3 +1164,19 @@ symlink, manifest no terminado, WAV truncado con hash actualizado, suma alterada
 con hash actualizado, niveles y preparación inconsistentes. Worker/API/UI,
 recuperación de corridas interrumpidas y comparación de mecanismos pendientes.
 Sin cambios a audio live/defaults ni aceptación humana.
+
+
+R05 — worker/service (2026-09-30): `ResonatorService` inventario separado r05,
+misma propiedad/cancelación/close/admisión por instancia R03/R04. Valida y congela
+settings antes de encolar; worker one-shot bajo flock, manifest running, render
+interno y verificación integral antes de promover WAV/manifest complete. Rehash
+de entradas exteriores, hashes worker/verificador. Descargas de entradas o PCM
+requieren verificación de todo el resultado; manifest disponible para diagnóstico.
+No descarga completa de cancelados; no cancela procesos ajenos/restaurados.
+Tres tests propios con procesos reales: completa/restaura/verifica/tamper y no
+sobrescritura; render largo cancelado con process.wait confirmado, segunda
+corrida rechazada mientras activo, cierre impide nuevos trabajos; contrato inválido
+no encola. 27 tests R05 pasan. Sin procesos de prueba vivos al terminar.
+Pendientes: endpoints/API/UI/presets, pruebas de interrupción abrupta y carreras
+específicas R05, comparación de mecanismos, soporte común y aceptación humana.
+No rutas web habilitadas aún, no dispositivos ni cambios al Shaper/live/defaults.
