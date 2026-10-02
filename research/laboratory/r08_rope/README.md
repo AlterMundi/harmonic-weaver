@@ -633,3 +633,20 @@ explícito desde UI, presets nombrados/export, recorrido cancelación web y fall
 de red, benchmark humano y rendimiento de decoder secuencial. JSON portable
 puede copiarse/pegarse hoy; no equivale a biblioteca de presets nombrados.
 Controles cotidianos/audio/afinación permanecen intactos.
+
+### Corte 46: candidatos temporales sobre el cuadro exacto
+
+Editor superpone anillos azules/índices f sobre la imagen decodificada, sin
+polylines ni edición automática. Sólo muestra puntos presentes con matching
+hash, dimensiones, índice y timestamp exacto, y ready de imagen actual. El
+dibujo separado permanece como vista auxiliar. Cambiar cuadro borra seeds;
+un frame reset/no soportado no muestra puntos ni arrastra los del anterior.
+Recuperar resultado histórico conserva aviso de integridad, no de recálculo.
+
+Chrome real verificó seed x=.5 en overlay, paso a frame reset sin overlay,
+seeds borrados, regreso al seed, borrador intacto, reload y recuperación de
+config sin seeds. Una prueba pasó (2 s; suite 2.9 s); build pasó, fixture HTTP
+sintético con decoder/flow real, servidor propio detenido. No benchmark humano
+ni identificación de soga/material. Pendientes presets nombrados/export,
+recálculo UI, cancelación/fallos de red, decoder secuencial y comparación sobre
+anotaciones humanas en soporte común; no cierre científico de R08.

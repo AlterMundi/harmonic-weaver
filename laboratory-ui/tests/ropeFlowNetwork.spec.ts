@@ -9,6 +9,14 @@ test('temporal flow config and recovery preserve manual annotations',async({page
  await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
  await expect(page.getByText('Corrida temporal R08: complete',{exact:true})).toBeVisible();
  await expect(page.locator('svg[aria-label="Candidatos temporales R08"] circle')).toHaveCount(1);
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(1);
+ await expect(page.getByTestId('rope-flow-overlay').locator('circle')).toHaveAttribute('cx','0.5');
+ await page.getByLabel('Frame R08',{exact:true}).fill('1');
+ await expect(page.getByText(/Cuadro actual: reset, 0 puntos con soporte/)).toBeVisible();
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(0);
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
+ await page.getByLabel('Frame R08',{exact:true}).fill('0');
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(1);
  await expect(draft).toHaveValue(before);
  const jobs=await(await page.request.get(`${origin}/api/research/r08/flow`)).json();expect(jobs).toHaveLength(1);
  const result=await(await page.request.get(`${origin}/api/research/r08/flow/${jobs[0].id}/artifacts/result.json`)).json();

@@ -300,3 +300,9 @@ Dibujo separado de puntos soportados, sin aceptar anotaciones. Chrome real con
 HTTP/MP4 sintéticos pasó en 2.3 s; build pasó. README corte 45 detalla límites:
 overlay de imagen, presets nombrados, recálculo UI, cancelación web/fallos de red
 y benchmark humano pendientes. No cambia experiencia sonora ni defaults.
+
+R08 overlay temporal: puntos candidatos sobre imagen exacta bajo matching
+hash/dimensiones/índice/PTS y ready. Chrome verificó desaparición por reset,
+regreso al cuadro seed y borrador intacto (1 prueba, 2.9 s); build pasó.
+README corte 46. Pendientes recálculo UI, presets nombrados, cancelación web/
+fallos de red, rendimiento y benchmark humano; no validación física de soga.

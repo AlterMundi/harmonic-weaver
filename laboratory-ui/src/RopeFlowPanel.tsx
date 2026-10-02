@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 type Data=Record<string,any>;
 const defaults={frames:10,settings:{window_px:21,pyramid_levels:3,iterations:30,epsilon:.01,min_eigenvalue:.0001,max_forward_backward_error_px:1,max_displacement_px:100,max_gap_s:.2,max_points:128}};
-export function RopeFlowPanel({api,media,source,index,endpoints,ready}:Data){
+export function RopeFlowPanel({api,media,source,index,endpoints,ready,onFrame}:Data){
  const [config,setConfig]=useState(JSON.stringify(defaults,null,2)),[seeds,setSeeds]=useState('[]');
  const [jobs,setJobs]=useState<Data[]>([]),[status,setStatus]=useState<Data|null>(null),[result,setResult]=useState<Data|null>(null),[error,setError]=useState('');
  const alive=useRef(true),active=useRef('');const busy=status?.status==='starting'||status?.status==='running';
@@ -24,7 +24,8 @@ export function RopeFlowPanel({api,media,source,index,endpoints,ready}:Data){
    }else if(state.status!=='cancelled')throw Error(state.error||'Falló corrida temporal');
   }catch(e){if(alive.current){setError(String(e));setStatus({status:'failed'});}}
  };
- const frame=ready&&result&&result.request.media_sha256===media.media_sha256?result.frames.find((f:Data)=>f.frame_index===index):null;
+ const frame=ready&&result&&result.request.media_sha256===media.media_sha256&&result.request.width_px===media.width_px&&result.request.height_px===media.height_px?result.frames.find((f:Data)=>f.frame_index===index&&f.time_s===media.frame_times_s[index]):null;
+ useEffect(()=>{onFrame(frame?{...frame,media_sha256:media.media_sha256}:null);return()=>onFrame(null);},[frame,onFrame,media.media_sha256]);
  return <section><h3>R08 · Candidatos temporales</h3><p>Flujo óptico desde seeds explícitos. No identifica material ni acepta anotaciones. Descargas verifican integridad; no recalculan contra el video.</p>
  {error&&<p role="alert">{error}</p>}
  <label>Configuración temporal portable R08<textarea rows={12} value={config} disabled={busy} onChange={e=>setConfig(e.target.value)}/></label>
