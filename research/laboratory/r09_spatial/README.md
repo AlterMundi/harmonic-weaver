@@ -228,3 +228,15 @@ al inicio sin detenerse, sin loop termina exactamente en 1 s. Fixture 3D monocul
 sintético declarado, sin video/audio asociado. Servidor aislado detenido.
 Evidencia del inspector, no sincronización audiovisual ni reconstrucción física.
 Presets de vista siguen pendientes; no defaults de síntesis cambiados.
+
+## Corte 18 · Presets portables del inspector
+
+Contrato/API `view-presets` conserva sólo ejes, escala/centros, velocidad/loop y gap
+máximo. No admite frames, slot, reloj, calibración ni fuente. Web permite nombrar,
+guardar, importar JSON (64 KiB), exportar y aplicar explícitamente. Aplicación pausa
+la vista, conserva tiempo actual y rechaza XZ/YZ sobre 2D sin fallback silencioso.
+No autoinicio ni cambio de síntesis. Cada guardado crea un ID nuevo.
+
+Prueba HTTP pasó (0,79 s): roundtrip/exportación sin ID, exclusión de datos de
+observación/calibración, valores inválidos y recuperación tras reinicio. Build
+pasó; recorrido de presets en Chrome pendiente. No acredita comparación física.

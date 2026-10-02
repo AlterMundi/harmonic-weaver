@@ -25,6 +25,7 @@ from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial, SourceRequest as SpatialSourceRequest, from_library as spatial_from_library
 from .research.spatial_observations import Stream as SpatialStream
+from .research.spatial_presets import SpatialViewPresets, Preset as SpatialViewPreset
 from .research.spatial_service import SpatialService, SourceSaveRequest as SpatialSourceSaveRequest, SaveRequest as SpatialSaveRequest
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_paired_service import RopeFlowPairedService, Selection as RopeFlowPairedSelection
@@ -268,6 +269,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
+    spatial_presets = SpatialViewPresets(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
     rope_reader = RopeReader()
@@ -422,6 +424,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.get('/api/research/r09/view-presets')
+    def spatial_preset_list():return spatial_presets.list()
+
+    @app.post('/api/research/r09/view-presets')
+    def spatial_preset_save(body:SpatialViewPreset):return spatial_presets.save(body)
+
+    @app.get('/api/research/r09/view-presets/{ident}')
+    def spatial_preset_export(ident:str):
+        return JSONResponse(spatial_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="r09-view-{ident}.json"'})
 
     @app.post('/api/research/r09/conversions')
     def spatial_run_start(body:SpatialSaveRequest):

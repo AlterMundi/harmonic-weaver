@@ -1,9 +1,13 @@
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
-export function SpatialView({stream}:{stream:Data}){
+export function SpatialView({stream,api}:{stream:Data,api:any}){
  const [axes,setAxes]=useState('0,1');
  const [scale,setScale]=useState(100),[x,setX]=useState(0),[y,setY]=useState(0);
  const [playing,setPlaying]=useState(false),[loop,setLoop]=useState(false),[speed,setSpeed]=useState(1),[gap,setGap]=useState(.1);
+ const [presets,setPresets]=useState<Data[]>([]),[name,setName]=useState('Vista R09'),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ useEffect(()=>{let live=true;void api('research/r09/view-presets').then((r:Data[])=>{if(live)setPresets(r);}).catch((e:unknown)=>{if(live)setError(String(e));});return()=>{live=false;};},[api]);
+ const act=async(fn:()=>Promise<void>)=>{setBusy(true);setError('');try{await fn();}catch(e){setError(String(e));}finally{setBusy(false);}};
+ const apply=(c:Data)=>{if(stream.dimensions===2&&c.axes!=='0,1')throw Error('Esta proyección requiere una fuente 3D');setPlaying(false);setAxes(c.axes);setScale(c.scale);setX(c.center_x);setY(c.center_y);setSpeed(c.speed);setLoop(c.loop);setGap(c.max_gap_s);};
  const first=stream.frames[0].source_time_s,last=stream.frames.at(-1).source_time_s;
  const [time,setTime]=useState(first);
  useEffect(()=>{if(!playing)return;let handle=0,previous:number|null=null;const tick=(now:number)=>{if(previous!==null){const delta=(now-previous)*.001*speed;setTime((t:number)=>{let next=t+delta;if(next>=last){if(loop&&last>first)next=first+(next-first)%(last-first);else{next=last;setPlaying(false);}}return next;});}previous=now;handle=requestAnimationFrame(tick);};handle=requestAnimationFrame(tick);return()=>cancelAnimationFrame(handle);},[playing,speed,loop,first,last]);
@@ -29,6 +33,11 @@ export function SpatialView({stream}:{stream:Data}){
  <label>Escala de vista R09<input type="number" min={1} max={10000} value={scale} onChange={e=>setScale(Math.max(1,Math.min(10000,Number(e.target.value)||1)))}/></label>
  <label>Centro horizontal R09<input type="number" value={x} onChange={e=>setX(Number(e.target.value)||0)}/></label>
  <label>Centro vertical R09<input type="number" value={y} onChange={e=>setY(Number(e.target.value)||0)}/></label>
+ {error&&<p role="alert">{error}</p>}
+ <label>Nombre de preset espacial R09<input value={name} onChange={e=>setName(e.target.value)}/></label>
+ <button disabled={busy||!name.trim()} onClick={()=>void act(async()=>{await api('research/r09/view-presets',{name,config:{axes,scale,center_x:x,center_y:y,speed,loop,max_gap_s:gap}});setPresets(await api('research/r09/view-presets'));})}>Guardar vista R09</button>
+ <label>Importar preset espacial R09<input type="file" accept="application/json,.json" disabled={busy} onChange={e=>{const file=e.target.files?.[0];if(file)void act(async()=>{if(file.size>65536)throw Error('Preset supera 64 KiB');await api('research/r09/view-presets',JSON.parse(await file.text()));setPresets(await api('research/r09/view-presets'));});e.target.value='';}}/></label>
+ {presets.map(p=><div key={p.id}>{p.name}<button disabled={busy} onClick={()=>void act(async()=>apply(p.config))}>Aplicar vista R09</button><a href={`/api/research/r09/view-presets/${p.id}`} download>Exportar preset espacial R09</a></div>)}
  <svg aria-label="Puntos proyectados R09" viewBox="0 0 400 300" style={{width:'100%',maxWidth:500,background:'#20232a'}}>
  {projected.filter((p:Data)=>Number.isFinite(p.px)&&Number.isFinite(p.py)&&p.px>=0&&p.px<=400&&p.py>=0&&p.py<=300).map((p:Data)=><g key={p.label} data-state={p.state}><circle cx={p.px} cy={p.py} r={4} fill={p.state==='observed'?'#66ccff':p.state==='held'?'#ffcc66':'none'} stroke={p.state==='inferred'?'#ee88ff':'none'}/><text x={p.px+5} y={p.py} fill="white" fontSize={10}>{p.label}</text></g>)}
  </svg><p>Azul observado · amarillo sostenido · contorno violeta inferido. Los faltantes no se dibujan ni se unen.</p>

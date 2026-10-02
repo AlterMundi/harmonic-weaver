@@ -502,3 +502,7 @@ pasaron. Loop/velocidad específicos y presets pendientes; no sync audiovisual.
 R09 corte 17: Chrome con reloj controlado verificó velocidad x2, pausa, seek/loop y
 parada exacta del inspector (1,6 s). No evidencia de sync audiovisual/reconstrucción;
 presets pendientes.
+
+R09 corte 18: presets portables de vista/playback por API/web, excluyen observaciones,
+reloj, fuente/calibración; aplican sin autoplay y rechazan ejes 3D sobre 2D. HTTP y
+build pasaron; recorrido Chrome pendiente, junto con validación física.
