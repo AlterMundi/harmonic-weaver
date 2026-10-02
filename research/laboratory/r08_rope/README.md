@@ -318,3 +318,15 @@ propio detenido. Primer intento usaba selector de texto del label que
 incluía opciones; corregido test a rol/nombre accesible. No validación humana
 ni benchmark automático/real de cuerda: falta aportar predicciones/etiquetas
 con incertidumbre y soporte comparable. Hash/código/entorno no custodias.
+
+### Corte 25: núcleo de candidatos por color y ROI
+
+`rope_mask.Settings` controla RGB objetivo, distancia euclídea RGB, ROI
+normalizada, área mínima, cantidad y presupuesto de runs. Núcleo `propose`
+produce regiones 4-conectadas en runs de píxeles y declara componentes
+omitidos por filtros. No une huecos mediante morfología, no inventa curva,
+identidad o extremos; candidates no son anotaciones aceptadas. Imagen RGB
+uint8 hasta 4M píxeles, hasta 64 componentes/100k runs. Dos tests sintéticos
+pasaron: segmentos separados, ROI/color, determinismo y límites/validación.
+Pendiente conectar PNG exacto, API/UI/manifest y revisión humana; esta base
+simple no se presenta como tracking de soga ni rendimiento de estado del arte.
