@@ -37,6 +37,10 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         mask_id=saved.json()['id']
         assert client.post(f'/api/research/r08/masks/{mask_id}/reverify',json={'media_id':'local-video'}).json()==candidates.json()
         assert client.get(f'/api/research/r08/masks/{mask_id}/artifacts/frame.png').status_code==422
+        path=client.post('/api/research/r08/path',json={'media_id':'local-video','mask_id':mask_id,'settings':{'component_id':1,'start':{'x':0,'y':0},'stop':{'x':1,'y':1}}})
+        assert path.status_code==200 and path.json()['supported']
+        assert path.json()['frame_index']==2 and path.json()['time_s']==.2
+
 
         assert client.get('/api/research/r08').json()==[]
 

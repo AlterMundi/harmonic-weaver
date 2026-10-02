@@ -404,3 +404,16 @@ incluyendo counts/área/ROI/orden/booleanos/solapamiento y tamper válido que
 requiere recálculo. Código de contrato registrado para corridas nuevas;
 verificación offline no exige código actual para recuperar artefactos
 históricos, reverify sí. No aceptación humana ni conexión física inferidas.
+
+### Corte 32: propuesta de camino guiada por seeds explícitos
+
+`rope_path.Settings` selecciona componente persistido y puntos start/stop
+normalizados, presupuestos de píxeles visitados y puntos de curva. BFS de
+cuatro vecinos dentro de región produce camino mínimo candidato, sin snap,
+closing ni unión de componentes. Seeds fuera, coincidentes, falta de camino
+o presupuesto agotado producen soporte inválido y ninguna curva inventada.
+API `/r08/path` exige propuesta guardada y reverify contra fuente antes de
+calcular. Tres tests núcleo/API pasaron: línea conocida, ruptura, budgets,
+determinismo y binding frame/PTS. No implica centerline real ni seguimiento;
+un blob ancho/cruce puede producir camino arbitrario. Pendientes controles
+web, persistencia/protocolo y benchmark humano; nada se acepta en borrador.

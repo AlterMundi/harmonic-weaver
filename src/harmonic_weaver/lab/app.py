@@ -24,6 +24,7 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
+from .research.rope_path import Settings as RopePathSettings
 from .research.rope_mask_service import RopeMaskService
 from .research.rope_mask_run import Request as RopeMaskRunRequest
 from .research.rope_mask import Settings as RopeMaskSettings
@@ -158,6 +159,12 @@ class RopeSave(Contract):
     media_id: str
     annotation: RopeAnnotation
     parent_id: str | None = None
+
+
+class RopePath(Contract):
+    media_id: str
+    mask_id: str
+    settings: RopePathSettings
 
 
 class RopeMaskSave(Contract):
@@ -323,6 +330,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r08')
     def rope_revisions():return rope.list()
+
+    @app.post('/api/research/r08/path')
+    def rope_path(body:RopePath):
+        from .research.rope_path import propose
+        return propose(rope_masks.reverify(body.mask_id,rope_media_path(body.media_id)),body.settings)
 
     @app.get('/api/research/r08/masks')
     def rope_mask_list():return rope_masks.list()
