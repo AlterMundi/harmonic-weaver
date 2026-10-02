@@ -476,3 +476,14 @@ Chrome pasó 2.1 s (suite 3 s); servidor propio detenido. Prueba automática
 sintética no es aceptación humana de geometría ni desempeño real de tracker.
 Pendientes portable bundle con dependencias, tracking temporal, benchmark
 humano e incertidumbre/propagación; roadmap continúa activo.
+
+### Corte 38: soporte elegible distinto de referencia ilegible
+
+Comparador conserva todas las filas de referencia, separando causa reference
+sin curva, candidata faltante y candidata sin curva. Cobertura informa
+referencias visibles elegibles, referencias sin curva, falta de candidata
+sobre soporte elegible y fracción soportada sobre elegibles (None si cero).
+UI muestra estos denominadores; referencias ilegibles no se presentan como
+fallos de predicción. Cinco tests métrica/artifact/API y build pasaron, con
+caso 1/2 elegibles más frame ilegible y caso sin referencia visible. No se
+imputan errores cero ni se extrapola calidad fuera de soporte observable.

@@ -33,3 +33,18 @@ def test_curve_compare_rejects_wrong_source_dimensions_clock_and_budget():
     crowded=annotation(frames=(0,));crowded['frames'][0].update(state='partial',causes=['occlusion'])
     crowded['frames'][0]['visible_segments']*=64
     with pytest.raises(ValueError,match='budget'):compare({'reference':crowded,'candidate':crowded,'samples_per_segment':64})
+
+
+def test_unidentifiable_reference_is_separate_from_missing_eligible_prediction():
+    ref=annotation();ref['frames'].append({'frame_index':2,'time_s':.2,'state':'unidentifiable','causes':['occlusion']})
+    candidate=annotation(frames=(0,))
+    result=compare({'reference':ref,'candidate':candidate})
+    coverage=result['coverage']
+    assert coverage['eligible_reference_frames']==2
+    assert coverage['reference_frames_without_visible_curve']==1
+    assert coverage['eligible_reference_frames_without_candidate_curve']==1
+    assert coverage['supported_fraction_of_eligible_reference']==.5
+    assert [r['cause'] for r in result['rows']]==[None,'candidate_frame_missing','reference_has_no_visible_curve']
+    unknown={**ref,'frames':[ref['frames'][-1]]}
+    result=compare({'reference':unknown,'candidate':annotation(frames=())})
+    assert result['coverage']['supported_fraction_of_eligible_reference'] is None

@@ -28,15 +28,18 @@ def compare(request):
     if (reference.media_sha256,reference.width_px,reference.height_px)!=(candidate.media_sha256,candidate.width_px,candidate.height_px):
         raise ValueError('Curve comparison requires identical source and image dimensions')
     ref={f.frame_index:f for f in reference.frames};cand={f.frame_index:f for f in candidate.frames}
-    rows=[];supported=0;distance_budget=0
+    rows=[];supported=0;distance_budget=0;eligible=0;missing_candidate=0
     # Reference defines the evaluation inventory; missing candidate observations are retained as unsupported rows.
     for index,r in ref.items():
         c=cand.get(index)
         if c is not None and abs(c.time_s-r.time_s)>1e-6:raise ValueError('Same frame index has incompatible source clocks')
         valid=bool(r.visible_segments) and c is not None and bool(c.visible_segments)
+        if r.visible_segments:eligible+=1
+        if r.visible_segments and (c is None or not c.visible_segments):missing_candidate+=1
+        cause=None if valid else ('reference_has_no_visible_curve' if not r.visible_segments else 'candidate_frame_missing' if c is None else 'candidate_has_no_visible_curve')
         row={'frame_index':index,'time_s':r.time_s,'reference_state':r.state,'candidate_state':c.state if c else None,
              'supported':valid,'sampled_symmetric_mean_distance_px':None,'sampled_hausdorff_px':None,
-             'cause':None if valid else 'missing_visible_curve_support'}
+             'cause':cause}
         if valid:
             a=_points(r,reference,request.samples_per_segment);b=_points(c,candidate,request.samples_per_segment)
             distance_budget+=len(a)*len(b)
@@ -52,8 +55,13 @@ def compare(request):
         rows.append(row)
     return {'schema_version':1,'line':'R08','request':request.model_dump(),'rows':rows,
             'coverage':{'reference_frames':len(ref),'candidate_frames':len(cand),'supported_frames':supported,
-                        'unsupported_reference_frames':len(ref)-supported,'candidate_only_frames':len(cand.keys()-ref.keys())},
+                        'unsupported_reference_frames':len(ref)-supported,'eligible_reference_frames':eligible,
+                        'reference_frames_without_visible_curve':len(ref)-eligible,
+                        'eligible_reference_frames_without_candidate_curve':missing_candidate,
+                        'supported_fraction_of_eligible_reference':supported/eligible if eligible else None,
+                        'candidate_only_frames':len(cand.keys()-ref.keys())},
             'limits':['Reference inventory defines support; absent predictions remain unsupported, never zero error',
+                      'Reference frames without visible curves are recorded separately from missing eligible predictions',
                       'Distances between arc-length samples in image pixels, not exact continuous Hausdorff or physical length',
                       'Each visible segment sampled separately; occluded gaps are never bridged',
                       'Partial curves may describe different visible support; no claim of full-rope agreement',
