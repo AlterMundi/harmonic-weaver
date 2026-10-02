@@ -437,3 +437,7 @@ R09 primer corte: contrato espacial/relojes estricto para distinguir 2D observad
 3D inferido, unidades/escala, calibración declarada y missing. Dos tests pasaron;
 adaptadores/API/UI, evidencia de calibración y benchmark 3D pendientes. No sensores
 ni modelos nuevos instalados; ninguna inferencia física/científica verificada.
+
+R09 corte 2: adaptador MotionFrame→stream espacial conserva unidades isotrópicas
+frame_height, held, gaps y slots faltantes; rechaza streams/geometrías/relojes
+mezclados. Cuatro tests pasaron. API/UI/persistencia y medición real pendientes.

@@ -21,3 +21,18 @@ proveedores monoculares. No se instalaron modelos, compraron sensores ni
 reconstruyeron videos privados. Este contrato no es un benchmark 3D ni evidencia
 sobre HIT. Comparar cámaras/IMUs requiere medir sincronización, escala, deriva y
 error contra referencia independiente; reproyección baja no demuestra profundidad.
+
+## Corte 2 · Adaptador de observaciones existentes
+
+`spatial_adapter.convert` recibe MotionFrames congelados, person_id explícito y
+Clock. Mantiene camera_isotropic/frame_height (x puede superar 1 por aspect);
+no los normaliza como [0,1] ni estima profundidad/metros. Conserva sequence/time,
+confianza soportada y held como held. Produce 17 etiquetas; missing borra posición
+residual y distingue persona ausente, articulación no presente y missing de origen.
+No selecciona otra persona ni transfiere calibración. Fuente/stream, geometría,
+unidades/dimensión y timestamp_origin deben ser homogéneos; gaps no se rellenan.
+
+Cuatro tests contrato/adaptador pasaron (0,14 s): unidades reales, held/missing,
+slot ausente, gaps, repetición sin mutación y rechazo de fuentes/geometrías/relojes
+mezclados o 3D. Fixtures sintéticos del contrato, no tracking privado nuevo.
+Pendiente API/UI/importación/persistencia y validación de clocks/cámaras reales.
