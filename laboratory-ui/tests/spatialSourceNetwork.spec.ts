@@ -8,6 +8,9 @@ test('explicit completed generation and inclusive segment',async({page})=>{
  const submit=panel.getByRole('button',{name:'Procesar observaciones R09'});await expect(submit).toBeDisabled();
  await panel.getByLabel('Slot explícito R09').fill('slot-1-generation-1');await panel.getByLabel('Fin de segmento R09').fill('.2');await submit.click();
  await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 33/)).toBeVisible();
+ await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(1);
+ await panel.getByLabel('Frame espacial R09').fill('1');await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(0);
+ await expect(panel.getByText(/Índice original 2/)).toBeVisible();await panel.getByLabel('Frame espacial R09').fill('0');
  await panel.getByText('Resultado espacial R09',{exact:true}).click();const result=JSON.parse((await panel.locator('pre').textContent())!);
  expect(result.stream.frames.map((f:any)=>f.index)).toEqual([0,2]);expect(result.tracking_provenance.generation).toBe('fixture-generation');expect(result.tracking_provenance).not.toHaveProperty('path');
  let firstSave=true;const saveBodies:any[]=[];

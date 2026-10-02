@@ -1,3 +1,4 @@
+import {SpatialView} from './SpatialView';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 const defaultClock={source_clock:'pts',common_clock:'session',offset_s:0,rate:1,uncertainty_s:0,method:'declared_assumption',evidence_id:null};
@@ -34,7 +35,7 @@ export function SpatialPanel({api}:{api:any}){
  {pending&&<p role="status">Guardado R09 pendiente de confirmar. <button disabled={busy} onClick={()=>void act(async()=>save(pending.route,pending.body))}>Recuperar guardado R09</button></p>}
  {error&&<p role="alert">{error}</p>}
  <button disabled={busy||mode!=='validate'&&!person||mode==='source'&&!job} onClick={()=>void act(async()=>{setResult(null);if(mode==='source'){setResult(await api('research/r09/source',{job_id:job,start_s:start,end_s:end,person_id:person,clock:JSON.parse(clock)}));return;}if(text.length>32*1024*1024)throw Error('JSON supera límite');const observations=JSON.parse(text);setResult(await api(`research/r09/${mode}`,mode==='convert'?{frames:observations,person_id:person,clock:JSON.parse(clock)}:observations));})}>Procesar observaciones R09</button>
- {result&&<div><p>Contrato validado: {result.stream.provider} · {result.stream.dimensions}D · {result.stream.units} · slot {result.stream.subject_slot}.</p>
+ {result&&<div><SpatialView key={JSON.stringify([result.stream.source_id,result.stream.subject_slot,result.stream.frames[0].source_time_s,result.stream.dimensions])} stream={result.stream}/><p>Contrato validado: {result.stream.provider} · {result.stream.dimensions}D · {result.stream.units} · slot {result.stream.subject_slot}.</p>
  {result.coverage&&<p>Cobertura R09: observados {result.coverage.observed}; sostenidos {result.coverage.held}; inferidos {result.coverage.inferred}; faltantes {result.coverage.missing}.</p>}
  {result.tracking_provenance&&<button disabled={busy||!!pending} onClick={()=>void act(async()=>{const p=result.tracking_provenance;await save('source-conversions',{job_id:p.job_id,start_s:p.start_s,end_s:p.end_s,person_id:result.request.person_id,clock:result.request.clock,expected_generation:p.generation});})}>Guardar desde generación R09</button>}
  {result.request&&<button disabled={busy||!!pending} onClick={()=>void act(async()=>{await save('conversions',{conversion:result.request});})}>Guardar conversión declarada R09</button>}

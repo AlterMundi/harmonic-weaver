@@ -192,3 +192,16 @@ Build pasó; Chrome real en fixtures independientes verificó guardado declarado
 reload y reenvío con cuerpo/clave idénticos, una corrida y reapertura. Conserva
 cobertura/procedencia/exportación y ausencia de nueva inferencia. Servidores
 aislados detenidos. Tracking sintético, no aceptación/calibración física.
+
+## Corte 15 · Inspector espacial configurable
+
+Vista por frame con índice/tiempo originales, ejes XY/XZ/YZ (según dimensión),
+escala y centro explícitos. Conserva unidades/marco, distingue observado/held/
+inferido y no dibuja missing ni une puntos. Informa fuera de encuadre; no autoescala
+que oculte amplitudes, no profundidad inventada ni reconstrucción física acreditada.
+
+Build pasó. Chrome real verificó 2D→frame missing sin puntos fantasma (2,0 s,
+con recorrido source/recuperación de guardado), y 3D monocular sintético con XY/XZ,
+centro/escala, coordenadas proyectadas esperadas y clipping informado (1,2 s).
+Servidor aislado detenido. Son proyecciones de datos declarados, no benchmark de
+reconstrucción; presets de vista, reproducción temporal y evidencia física pendientes.

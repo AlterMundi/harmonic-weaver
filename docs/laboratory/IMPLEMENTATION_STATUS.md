@@ -490,3 +490,7 @@ pasaron. Uso de claves/recuperación en UI y Chrome pendientes; sin GC/multiproc
 R09 corte 14: ambos guardados web recuperables con claves/pendientes en sessionStorage.
 Build y dos recorridos Chrome con POST aceptado/respuesta perdida/reload pasaron,
 una corrida/cuerpo-clave idénticos. Cuota/cierre de pestaña y coordinación limitados.
+
+R09 corte 15: inspector espacial por frame/ejes/centro/escala con estados/unidades y
+clipping visibles; sin missing fantasma. Build y Chrome 2D/source + 3D sintético
+pasaron. Presets/reproducción y validación de reconstrucción física pendientes.
