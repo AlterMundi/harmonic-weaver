@@ -1,3 +1,4 @@
+import {ExperienceAnalysisPanel} from './ExperienceAnalysisPanel';
 import {ExperienceResponsesPanel} from './ExperienceResponsesPanel';
 import {ExperienceTransportsPanel} from './ExperienceTransportsPanel';
 import {ExperiencePlayer} from './ExperiencePlayer';
@@ -31,6 +32,7 @@ export function ExperiencePanel({api}:{api:any}){
  <label>Respuesta JSON R10<textarea disabled={busy} rows={8} value={response} onChange={e=>{setResponse(e.target.value);setValidated(null);}}/></label><p>Preguntas independientes; null significa sin respuesta. No inferimos placer, belleza o agencia desde fisiología.</p><button disabled={busy} onClick={()=>void act(async()=>{setValidated(null);setValidated(await api('research/r10/validate-response',{protocol:result.request,response:JSON.parse(response)}));})}>Validar respuesta declarada R10</button>{validated&&<><p>Respuesta declarada válida · rol {validated.role}. No acredita exposición ni participación verificada.</p><pre>{JSON.stringify(validated,null,2)}</pre><button onClick={()=>download(validated,'r10-declared-response.json')}>Exportar respuesta declarada R10</button></>}</>}
  {opened&&result?.sources&&<ExperiencePlayer key={opened+JSON.stringify(result.request)} api={api} protocolId={opened} trials={result.trials}/>}
  <ExperienceResponsesPanel api={api} protocolId={result?opened:''} manifestHash={result?openedHash:''} response={response}/>
+ <ExperienceAnalysisPanel api={api}/>
  <ExperienceSourcesPanel api={api} onSaved={async()=>setRuns(await api('research/r10/protocols'))}/>
  </section>;
 }

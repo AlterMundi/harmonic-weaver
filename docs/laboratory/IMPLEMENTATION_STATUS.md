@@ -1095,3 +1095,18 @@ a cero, corrections rechazadas, roles/escalas separados, repetibilidad y preview
 HTTP. Warning AnyIO de deprecación sin fallo. Pendientes web, manifest de análisis
 frozen/recovery/exportación y contraste pareado explícito. No hipótesis, causalidad
 ni aceptación científica/humana acreditadas; sin defaults ni datos privados nuevos.
+
+
+## Corte 20 · Selección y tabla descriptiva web
+
+Panel de análisis lista respuestas y exige selección explícita vacía inicialmente.
+Preview muestra tabla por preguntas/texto, condición/role y escala: respondidos,
+null, mediana/min/max (— sin valores). Exportación JSON incluye snapshots y hashes
+de fuentes/límites. Cambiar selección/actualizar invalida preview anterior; tokens
+descartan resultados tardíos al desmontar. No participantes inferidos ni autoanálisis.
+
+Build y cinco Chrome pasaron (8,8 s): selección de respuesta sintética, tabla75 y
+null como —, descarga real con ID de fuente/null, deselección limpia tabla y
+deshabilita análisis; suite player/recovery previa también pasa. Sin aceptación
+humana/escucha. Pendientes manifest y publicación/recovery de análisis congelados,
+contraste pareado y cierres duraderos. Sin cambios de sonido/defaults.
