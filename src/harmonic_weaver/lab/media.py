@@ -196,6 +196,13 @@ class VideoLibrary:
             left, right = bisect_right(job.times, start_s), bisect_right(job.times, end_s)
             return job.frames[left:right]
 
+    def spatial_sources(self):
+        with self._lock:
+            return [{'job_id':job.id,'media_id':job.media_id,'generation':job.generation,
+                'cache_key':job.cache_key,'duration_s':job.duration_s,'person_ids':list(job.person_ids),
+                'effective_device':job.settings.device} for job in self.jobs.values()
+                if job.status=='ready' and job.generation and job.cache_key]
+
     def spatial_segment(self, job_id, start_s, end_s):
         """Freeze a completed in-memory tracking generation, inclusive boundaries."""
         import math

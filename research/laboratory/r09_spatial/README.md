@@ -82,3 +82,16 @@ confirmar ausencia de lectura de medios, límites inclusivos, independencia del
 snapshot y rechazo de rango vacío/fuera de duración/tracking incompleto. Ruta
 source aún pendiente de prueba HTTP y UI. La procedencia es una generación
 completa en memoria, no revalidación del cache en disco ni bytes actuales de video.
+
+## Corte 6 · Inventario y controles de biblioteca
+
+GET `/api/research/r09/sources` lista sólo generaciones ready identificadas, con
+slots/device/duración/cache, sin paths. Modo web Desde tracking completo: actualizar
+inventario explícitamente, elegir generación, rango y slot/reloj. Cambio de fuente
+limpia slot/resultado; nunca cambia silenciosamente el cuerpo.
+
+Siete tests hasta HTTP pasaron (0,86 s): inventario, generación/rango inclusivo,
+slot ausente→34 missing, job inexistente→404, tracking incompleto fuera de inventario
+y solicitud rechazada. Build pasó; este recorrido de biblioteca en Chrome está
+pendiente (importación JSON del corte 4 sí verificada). Datos in-memory no acreditan
+integridad actual de cache/video. No inicia tracking ni abre medios por esta ruta.

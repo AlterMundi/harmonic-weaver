@@ -973,6 +973,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             runtime.close_source()
             return snapshot()
 
+        @app.get('/api/research/r09/sources')
+        def spatial_sources():return runtime.library.spatial_sources()
+
         @app.post('/api/research/r09/source')
         def spatial_source(body:SpatialSourceRequest):
             return spatial_from_library(runtime.library,body)

@@ -454,3 +454,7 @@ Sin persistencia automática ni cambio de live; cache autorizado/presets pendien
 R09 corte 5: snapshot inclusivo/deep-copy de generación ready en biblioteca,
 conversión y ruta source del runtime; no recalcula pose ni lee video. Seis tests
 pasaron; source HTTP/UI y verificación de disco pendientes. Procedencia in-memory.
+
+R09 corte 6: inventario HTTP de generaciones completas y controles web para fuente,
+rango/slot/reloj. Siete tests hasta source HTTP y build pasaron. Recorrido Chrome
+biblioteca pendiente; no verificación de bytes del cache/video actual.
