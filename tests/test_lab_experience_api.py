@@ -76,3 +76,29 @@ def test_resolved_r05_protocol_http_and_manual_provenance_rejected(bound):
             assert client.post('/api/research/r10/r05-protocols',json=selection).json()['id']==protocol_id
             assert client.post('/api/research/r10/protocols',json={'protocol':result['request'],'sources':result['sources']}).status_code==422
     finally:resonators.close()
+
+
+def test_transport_http_save_retry_export_restart_and_condition_binding(tmp_path):
+    import hashlib
+    from research.test_experience_transport import trace
+    url='/api/research/r10/transports'
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        saved=client.post('/api/research/r10/protocols',json={'protocol':data()}).json()
+        manifest=client.get(f"/api/research/r10/protocols/{saved['id']}/artifacts/manifest.json")
+        body=trace();body.update(protocol_id=saved['id'],duration_s=60,
+            protocol_manifest_sha256=hashlib.sha256(manifest.content).hexdigest())
+        response=client.post(url,json=body);assert response.status_code==200,response.text
+        ident=response.json()['id'];assert client.post(url,json=body).json()['id']==ident
+        exports={}
+        for name in ('trace.json','binding.json','manifest.json'):
+            exported=client.get(f'{url}/{ident}/artifacts/{name}')
+            assert exported.status_code==200 and 'attachment' in exported.headers['content-disposition']
+            exports[name]=exported.content
+        assert client.post(url,json={**body,'audio_enabled':True}).status_code==422
+        assert client.post(url,json={**body,'trial_id':'unknown'}).status_code==422
+        assert client.get(f'{url}/{ident}/artifacts/audio.wav').status_code==422
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert len(client.get(url).json())==1
+        assert client.post(url,json=body).json()['id']==ident
+        for name,content in exports.items():
+            assert client.get(f'{url}/{ident}/artifacts/{name}').content==content

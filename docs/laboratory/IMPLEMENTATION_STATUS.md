@@ -963,3 +963,18 @@ retry/restart, exportación, lectura sin protocolo original, registro nuevo rech
 sin protocolo, corrupción omitida y traversal rechazado, junto a contrato/binding.
 Pendientes API/UI/captura de eventos; sin cambios de sonido/defaults. Hashes no
 son custodia firmada; snapshots declarados no prueban exposición humana.
+
+
+## Corte 12 · API de registros de transporte
+
+POST/GET /api/research/r10/transports publican/listan telemetría declarada;
+GET /transports/{id}/artifacts/{name} exporta trace/binding/manifest como attachments.
+POST valida contrato y protocolo/trial congelados, retry de contenido idéntico
+recupera registro existente. Rutas no abren dispositivo ni exigen protocolo de
+evaluación para explorar el instrumento cotidiano.
+
+Nueve pruebas API/contrato/servicio pasaron (2,47 s): creación, retry, exportación
+byte a byte después de restart, gates/trial contradictorios y artefactos desconocidos
+rechazados. Warning de deprecación Starlette/AnyIO, sin fallo. Pendientes captura y
+recuperación web de eventos, respuestas persistentes/análisis y aceptación humana.
+No pruebas Chrome nuevas en este corte, no escucha ni sincronía física acreditadas.
