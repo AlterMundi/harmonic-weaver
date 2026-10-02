@@ -295,6 +295,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         from .research.rope_media import probe
         return probe(rope_media_path(body.media_id))
 
+    @app.get('/api/research/r08/media/{ident}/frames/{index}')
+    def rope_frame(ident:str,index:int,sha256:str):
+        from .research.rope_media import frame_png
+        return Response(frame_png(rope_media_path(ident),index,sha256),media_type='image/png',headers={'Cache-Control':'no-store'})
+
     @app.post('/api/research/r08')
     def rope_save(body:RopeSave):
         return rope.save(body.annotation,rope_media_path(body.media_id),parent_id=body.parent_id)

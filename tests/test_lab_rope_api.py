@@ -17,6 +17,13 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
     with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
         media=client.post('/api/research/r08/probe',json={'media_id':'local-video'})
         assert media.status_code==200
+        frame_url='/api/research/r08/media/local-video/frames/2'
+        image=client.get(frame_url,params={'sha256':media.json()['media_sha256']})
+        assert image.status_code==200 and image.content.startswith(b'\x89PNG\r\n\x1a\n')
+        assert int.from_bytes(image.content[16:20],'big')==160
+        assert int.from_bytes(image.content[20:24],'big')==120
+        assert client.get(frame_url,params={'sha256':'0'*64}).status_code==422
+        assert client.get('/api/research/r08/media/local-video/frames/5',params={'sha256':media.json()['media_sha256']}).status_code==422
         annotation={'media_sha256':media.json()['media_sha256'],'width_px':160,'height_px':120,'frames':[]}
         first=client.post('/api/research/r08',json={'media_id':'local-video','annotation':annotation})
         assert first.status_code==200

@@ -83,3 +83,17 @@ Test de API con VideoLibrary real restaurada sin jobs: pasó; TypeScript y
 Vite build pasaron. Interacción del panel aún no verificada en navegador.
 Pendientes: editor gráfico sobre video, visor del reloj decodificado y
 extracción asistida; el textarea no sustituye esos entregables.
+
+### Corte 7: editor gráfico por índice decodificado
+
+Preparar o verificar una revisión habilita el editor: elegir índice muestra
+el timestamp del inventario y un PNG extraído con FFmpeg por `select n`,
+no un seek aproximado del navegador. Hash de fuente comprobado antes y
+después; imágenes sólo en respuesta HTTP, no se guardan/copían videos.
+Click agrega puntos normalizados, nuevo tramo separa curvas, controles
+permiten estado/causas/nota. Aplicar frame actualiza el borrador en orden;
+guardar crea revisión. Cambiar de frame descarta ediciones no aplicadas.
+Backend y compilación comprobados, interacción en navegador pendiente.
+Extracción/probe siguen síncronos y bounded por timeout, con lectura
+completa por solicitud: falta worker observable/cache de imágenes para
+interacción eficiente. No afirmar que está listo para clips largos.

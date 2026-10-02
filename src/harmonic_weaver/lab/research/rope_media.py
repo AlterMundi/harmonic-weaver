@@ -49,3 +49,18 @@ def bind(annotation,path):
         if frame.frame_index>=len(media['frame_times_s']) or abs(frame.time_s-media['frame_times_s'][frame.frame_index])>1e-6:
             raise ValueError('Rope frame differs from decoded presentation clock')
     return media
+
+
+def frame_png(path,index,expected_sha256):
+    """Exact decoded index, no approximate browser seek or persisted image copy."""
+    media=probe(path)
+    if media['media_sha256']!=expected_sha256:raise ValueError('Video changed since editor preparation')
+    if isinstance(index,bool) or not isinstance(index,int) or not 0<=index<len(media['frame_times_s']):
+        raise ValueError('Frame index outside decoded inventory')
+    result=subprocess.run(['ffmpeg','-v','error','-noautorotate','-i',str(path),'-map','0:v:0',
+        '-vf',f'select=eq(n\\,{index})','-frames:v','1','-f','image2pipe','-c:v','png','pipe:1'],
+        capture_output=True,timeout=60,check=False)
+    if result.returncode or not result.stdout.startswith(b'\x89PNG\r\n\x1a\n'):raise ValueError('Exact video frame decoding failed')
+    if len(result.stdout)>32_000_000:raise ValueError('Decoded image exceeds budget')
+    if Path(path).is_symlink() or sha256_file(path)!=expected_sha256:raise ValueError('Video changed during frame decoding')
+    return result.stdout
