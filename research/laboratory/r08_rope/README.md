@@ -555,3 +555,36 @@ controles web y overlays candidatos sin aceptación automática. Luego benchmark
 contra anotaciones humanas en soporte común, incertidumbre/oclusiones/cruces.
 El flujo no segmenta soga, no prueba centerline, identidad de material ni
 propagación de tensión. No se modifican síntesis, defaults ni presets.
+
+### Corte 43: corrida temporal ligada al video y congelada
+
+`rope_flow_run` conecta el núcleo con RopeReader: hash y dimensiones actuales,
+slice de 2–120 índices consecutivos y timestamps **exactos** del probe, seeds
+iniciales explícitos y Settings congelados. Decodifica PNG exacto sólo en RAM,
+convierte a grayscale y aplica el mismo núcleo causal. Respeta cancelación en
+hash/decodificación y entre pasos, no reacquiere puntos perdidos. Cada imagen
+está limitada a 4M píxeles; la corrida guarda request/result/manifest JSON en
+directorio nuevo, código, Python/NumPy/OpenCV y hashes; nunca source path ni
+copias de video/imágenes. Rehash antes de manifest completo.
+
+CLI (request debe contener clock/hash/dimensiones del probe):
+
+```sh
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.rope_flow_run \
+  --request /ruta/local/request.json --video /ruta/local/video.mp4 \
+  --output /ruta/local/corrida-nueva
+```
+
+Verify offline comprueba envelope, finitud, request, clock/settings por frame e
+inventario/hash; **no** comprueba numéricamente candidatos. Verify con video
+exige código/entorno actual y recálculo exacto. Diez tests núcleo/corrida pasaron:
+repetición byte idéntica sobre MP4 sintético real, índices/PTS, recálculo,
+alteración numérica aun con checksum reescrito, clock alterado, cambio de fuente,
+cancelación previa/tras decode sin publicación y budgets/gaps. Metadatos de
+versión no garantizan mismo build FFmpeg/OpenCV ni custodia firmada.
+
+Pendientes inmediatos: jobs API cancelables, UI de seeds/rango/Settings y
+overlays, portable configuración y benchmark humano en soporte común. Decodificar
+cada cuadro mediante lector exacto rehashes/relee el video; esta primera
+implementación acotada no promete rendimiento realtime ni escala de 60 s.
+No identidad de material, segmentación completa ni propagación física inferidas.

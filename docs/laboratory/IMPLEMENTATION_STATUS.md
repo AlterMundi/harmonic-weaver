@@ -280,3 +280,9 @@ explícitos, comprobación ida/vuelta y resets de soporte. Diez tests junto con
 anotaciones pasaron (0.32 s). Aún no integrado en UI/decodificador/persistencia;
 no constituye tracker de soga validado. README corte 42 detalla configuración,
 casos probados, sesgo observado en ruido blanco y dependencias pendientes.
+
+R08 corrida temporal (`rope_flow_run.py`): fuente/clock exactos, 2–120 cuadros,
+request/result/manifest JSON, recálculo opcional con video y cancelación antes
+de publicación. Diez tests núcleo/corrida sobre MP4 sintético pasaron. CLI y
+límites de rendimiento documentados en README corte 43. Jobs/UI/biblioteca de
+configuraciones y benchmark humano pendientes; aún no explorador web temporal.
