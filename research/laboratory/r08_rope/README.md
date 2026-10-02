@@ -948,3 +948,22 @@ Sin datos corporales ni aceptación humana; audio/defaults intactos.
 con vínculos a manifests de revisión/flow, comparación web/mapping editables y
 descargas, luego etiquetas humanas y controles sobre segmentos reales. Evaluar
 endpoints no valida curva completa/centerline, cruces ni incertidumbre física.
+
+### Corte 60 — persistencia del benchmark temporal
+
+`rope_flow_benchmark_run.py` congela referencia, snapshot de flujo y mapeo explícito,
+con IDs y hashes de manifests declarados por el llamador. Escribe únicamente
+request/result/manifest JSON en un directorio nuevo; nunca reemplaza una corrida.
+Verifica inventario, binding de entradas, números finitos, archivos regulares y
+estabilidad de hashes durante lectura. Con código/entorno actuales exige igualdad
+contra recomputación; versiones distintas se presentan como
+`historical_integrity_only`, sin afirmar verificación numérica actual.
+
+Evidencia: siete tests del cálculo/persistencia pasaron (0,39 s), incluyendo
+alteración de métrica con hash reescrito, referencia congelada, binding histórico,
+procedencia inválida, symlink y prohibición de sobrescritura.
+
+Límite: este runner no autentica los artefactos originales ni reejecuta tracking
+contra video. Pendiente resolver ambas fuentes desde servicios verificados,
+comprobar sus hashes antes/después y exponer selección/mapeo/cobertura en la web.
+No se procesaron ni publicaron medios privados; no cambió síntesis ni defaults.

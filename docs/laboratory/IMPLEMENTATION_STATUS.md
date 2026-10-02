@@ -386,3 +386,8 @@ excluido, shared support/coverage y errores faltantes None. Tres tests pasaron
 (0.27 s), distancias/swap/exclusiones/contracts/repetición; README corte 59.
 Persistencia/procedencia/API/UI y referencia humana real todavía pendientes;
 no métrica de forecasting ni evaluación de curva completa. Audio intacto.
+
+R08 corte 60: benchmark temporal persistido con entradas congeladas, procedencia
+declarada y lectura histórica explícita; siete tests cálculo/persistencia pasaron.
+Pendientes autenticación de originales por servicio y API/UI; no equivale a
+validación física ni aceptación de referencias humanas. Ver README de R08.
