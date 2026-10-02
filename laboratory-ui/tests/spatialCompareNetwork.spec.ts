@@ -11,3 +11,15 @@ test('spatial comparison common clock coverage export and reload',async({page})=
  await page.reload();await panel.getByRole('button',{name:'Abrir comparación espacial R09'}).click();await expect(panel.getByText(/Soporte espacial: 1\/2/)).toBeVisible();
  const runs=await(await page.request.get(`${process.env.LAB_R09_COMPARE_URL}/api/research/r09/comparisons`)).json();expect(runs).toHaveLength(1);
 });
+test('saved conversion selection preserves provenance',async({page})=>{
+ test.skip(!process.env.LAB_R09_COMPARE_URL,'isolated fixture required');const url=process.env.LAB_R09_COMPARE_URL!;
+ const frames=[{source_id:'synthetic',stream_id:'test',sequence:0,source_time_s:0,available_monotonic_s:1,timestamp_origin:'pts',width:160,height:120,persons:[{person_id:'slot',joints:[{index:0,position:[.5,.2],confidence:.9,state:'observed'}]}]}];
+ const conversion={frames,person_id:'slot',clock:{source_clock:'pts',common_clock:'session',offset_s:0,rate:1,uncertainty_s:.01,method:'declared_assumption'}};
+ const ids=[];for(let i=0;i<2;i++){const r=await page.request.post(url+'/api/research/r09/conversions',{data:{conversion}});expect(r.ok()).toBeTruthy();ids.push((await r.json()).id);}
+ await page.goto(url);const panel=page.getByRole('region',{name:'Comparación espacial R09',exact:true});
+ await panel.getByLabel('Origen de comparación R09').selectOption('saved');await panel.getByRole('button',{name:'Actualizar conversiones para comparar R09'}).click();
+ await panel.getByLabel('Referencia guardado R09').selectOption(ids[0]);await panel.getByLabel('Candidato guardado R09').selectOption(ids[1]);await panel.getByRole('button',{name:'Guardar comparación espacial R09'}).click();
+ await expect(panel.getByText(/Error medio sobre soporte: 0;/)).toBeVisible();await expect(panel.getByText(/Conversiones comparadas:/)).toContainText(ids[0]);
+ const rows=await(await page.request.get(url+'/api/research/r09/comparisons')).json();const results=await Promise.all(rows.map(async(r:any)=>(await page.request.get(url+'/api/research/r09/comparisons/'+r.id+'/artifacts/result.json')).json()));
+ const result=results.find((r:any)=>r.sources?.reference.id===ids[0]);expect(result.sources.candidate.id).toBe(ids[1]);expect(result.sources.reference.manifest_sha256).toMatch(/^[a-f0-9]{64}$/);
+});

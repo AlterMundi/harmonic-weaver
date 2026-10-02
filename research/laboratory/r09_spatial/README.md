@@ -310,3 +310,18 @@ con incertidumbre .02 por stream usa umbral combinado .04 explícito; defaults
 no cambiados. Ningún medio privado ni audio procesado. No autentica calibración,
 identidad, sincronización física ni custodia firmada. Pendientes selección por ID
 en web, idempotencia y presets de comparación.
+
+
+## Corte 24 · Selección web de conversiones para comparar
+
+El panel R09 ofrece streams declarados o conversiones guardadas. Actualizar
+inventario es explícito; referencia y candidato se eligen sin selección silenciosa.
+Con IDs envía settings a compare-conversions y muestra procedencia en el resultado;
+los hashes completos permanecen en JSON exportable. No se autentican relojes ni
+calibración física. Defaults y síntesis sin cambios.
+
+Build completo pasó. Dos pruebas Chrome contra API real aislada pasaron (1,8 s):
+recorrido declarado/exportación/reload y selección de dos conversiones persistidas,
+error cero conocido y binding de ambos IDs + hash. Datos sintéticos, sin dispositivos
+ni medios privados; servidor de prueba detenido. Pendientes presets e idempotencia
+para comparación y validación física de las fuentes.
