@@ -411,3 +411,8 @@ garantiza recuperación. Síntesis y medios privados sin cambios.
 R08 corte 64: contexto de semillas/extremos iniciales en benchmark web, ventana y
 coordenadas, bloqueo de fuentes/dimensiones incompatibles y semillas inexistentes.
 Build y Chrome real pasaron; esquema sin imagen y calidad manual humana pendientes.
+
+R08 corte 65: núcleo de comparación pareada de 2–16 condiciones sobre referencia,
+etiquetas y soporte temporal comunes; coberturas individuales y diferencias
+firmadas, nulos sin soporte. Seis tests pasaron. Persistencia/API/UI del banco
+pareado pendientes; no implica significancia ni aceptación científica.

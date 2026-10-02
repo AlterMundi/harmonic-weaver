@@ -1039,3 +1039,23 @@ rechazo de índice inexistente, bloqueo de mapeo vacío/duplicado, respuesta POS
 perdida/recuperación, cobertura, descarga y reload. Servidor aislado apagado.
 Pendiente preview con imagen exacta autorizada y revisión humana de referencias;
 no se verificó calidad con video corporal ni se cambió síntesis/defaults.
+
+### Corte 65 — comparación pareada de configuraciones
+
+`rope_flow_paired.py` compara de 2 a 16 condiciones congeladas contra la misma
+referencia manual y las mismas etiquetas seleccionadas. Intersecta elegibilidad
+(descontando ventanas/semillas/etiquetas) y soporte por frame+etiqueta. Reporta
+cobertura individual, soporte sobre elegibilidad común, claves/tiempos del soporte
+común y media/máximo de cada condición sólo sobre esa intersección. Diferencias
+pareadas firmadas: derecha menos izquierda; sin soporte, None, nunca cero.
+
+Seis tests de cálculo individual/pareado pasaron (0,33 s). La prueba con mapeo
+intercambiado tiene sólo dos extremos comunes (no cuatro): las pérdidas pertenecen
+a índices distintos. Media de la condición original sobre esos dos = 10 px,
+frente a 7,5 px en su soporte individual; esto demuestra por qué no comparar
+medias de soportes distintos. Pérdida adicional reduce la intersección sin
+reemplazar faltantes por cero; referencia/etiquetas incompatibles rechazadas.
+
+Pendiente persistencia/API/UI del banco pareado sobre IDs de benchmarks guardados.
+La intersección puede sesgar hacia puntos fáciles: no descartar cobertura. No es
+significancia estadística, forecasting, resultado HIT ni validación física.
