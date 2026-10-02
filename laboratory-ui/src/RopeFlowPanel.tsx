@@ -2,9 +2,10 @@ import {useEffect,useRef,useState} from 'react';
 type Data=Record<string,any>;
 const defaults={frames:10,settings:{window_px:21,pyramid_levels:3,iterations:30,epsilon:.01,min_eigenvalue:.0001,max_forward_backward_error_px:1,max_displacement_px:100,max_gap_s:.2,max_points:128}};
 export function RopeFlowPanel({api,media,source,index,endpoints,ready,onFrame}:Data){
+ const [presets,setPresets]=useState<Data[]>([]),[presetName,setPresetName]=useState(''),[presetBusy,setPresetBusy]=useState(false);
  const [config,setConfig]=useState(JSON.stringify(defaults,null,2)),[seeds,setSeeds]=useState('[]');
  const [jobs,setJobs]=useState<Data[]>([]),[status,setStatus]=useState<Data|null>(null),[result,setResult]=useState<Data|null>(null),[error,setError]=useState('');
- const alive=useRef(true),active=useRef('');const pending=useRef<Data|null>(null),sending=useRef(false);const observing=useRef(false);const busy=Boolean(pending.current)||Boolean(active.current)||status?.status==='starting'||status?.status==='running';
+ const alive=useRef(true),active=useRef('');const pending=useRef<Data|null>(null),sending=useRef(false);const observing=useRef(false);const busy=presetBusy||Boolean(pending.current)||Boolean(active.current)||status?.status==='starting'||status?.status==='running';
  useEffect(()=>{alive.current=true;void api('research/r08/flow').then((j:Data[])=>{if(alive.current)setJobs(j);}).catch((e:unknown)=>{if(alive.current)setError(String(e));});return()=>{alive.current=false;if(active.current)void api(`research/r08/flow/${active.current}/cancel`,{}).catch(()=>{});};},[api]);
  const receiptKey=`r08-flow-pending-v1:${source}:${media.media_sha256}`;
  useEffect(()=>{
@@ -17,6 +18,12 @@ export function RopeFlowPanel({api,media,source,index,endpoints,ready,onFrame}:D
    else{pending.current=saved.body;setStatus({status:'start_unknown'});}
   }catch(e){setError(String(e));}
  },[receiptKey,source,media.media_sha256]);
+ useEffect(()=>{let live=true;void api('research/r08/flow-presets').then((p:Data[])=>{if(live)setPresets(p);}).catch((e:unknown)=>{if(live)setError(String(e));});return()=>{live=false;};},[api]);
+ const savePreset=async(body:Data)=>{
+  setPresetBusy(true);setError('');
+  try{await api('research/r08/flow-presets',body);const p=await api('research/r08/flow-presets');if(alive.current)setPresets(p);}
+  catch(e){if(alive.current)setError(String(e));}finally{if(alive.current)setPresetBusy(false);}
+ };
  useEffect(()=>{setSeeds('[]');},[source,index]);
  const observe=async(id:string,initial?:Data)=>{
   if(observing.current)return;observing.current=true;setError('');
@@ -65,6 +72,10 @@ export function RopeFlowPanel({api,media,source,index,endpoints,ready,onFrame}:D
  {error&&<p role="alert">{error}</p>}
  <label>Configuración temporal portable R08<textarea rows={12} value={config} disabled={busy} onChange={e=>setConfig(e.target.value)}/></label>
  <p>El intento pendiente se conserva sólo en esta pestaña para retomar explícitamente tras recargar; contiene seeds de esta fuente, separados del preset.</p><p>Podés copiar y recuperar este JSON entre fuentes: no incluye seeds, video ni calibración. El rango empieza en el cuadro actual {index}.</p>
+ <label>Nombre de preset temporal R08<input value={presetName} disabled={busy} maxLength={80} onChange={e=>setPresetName(e.target.value)}/></label>
+ <button disabled={busy||!presetName.trim()} onClick={()=>{try{void savePreset({name:presetName.trim(),config:JSON.parse(config)});}catch(e){setError(String(e));}}}>Guardar preset temporal R08</button>
+ <label>Importar preset temporal R08<input type="file" accept="application/json,.json" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;if(file.size>65536){setError('Preset supera 64 KiB');return;}setPresetBusy(true);void file.text().then(t=>savePreset(JSON.parse(t))).catch((e:unknown)=>{if(alive.current){setError(String(e));setPresetBusy(false);}});}}/></label>
+ {presets.map(p=><div key={p.id}>{p.name} <button disabled={busy} onClick={()=>setConfig(JSON.stringify(p.config,null,2))}>Aplicar preset temporal R08 {p.name}</button><a href={`/api/research/r08/flow-presets/${p.id}`} download>Exportar preset temporal R08 {p.name}</a></div>)}
  <label>Seeds temporales R08<textarea rows={4} value={seeds} disabled={busy} onChange={e=>setSeeds(e.target.value)}/></label>
  <button disabled={busy||!ready||!Object.keys(endpoints).length} onClick={()=>setSeeds(JSON.stringify(['a','b'].filter(k=>endpoints[k]).map(k=>endpoints[k]),null,2))}>Copiar extremos actuales como seeds R08</button>
  <button disabled={busy||!ready} onClick={()=>void start()}>Iniciar corrida temporal R08</button>

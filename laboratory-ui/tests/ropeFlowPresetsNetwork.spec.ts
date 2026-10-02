@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+test('named temporal presets export import and apply parameters only',async({page})=>{
+ test.skip(!process.env.LAB_R08_FLOW_PRESETS_URL,'fresh isolated fixture required');
+ const origin=process.env.LAB_R08_FLOW_PRESETS_URL!;await page.goto(origin);
+ const prepare=async()=>{await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();await expect(page.getByText(/Imagen decodificada/)).toBeVisible();};
+ await prepare();const before=await page.getByLabel('Anotación R08 JSON').inputValue();
+ await page.getByLabel('Configuración temporal portable R08').fill('{"frames":3,"settings":{"max_gap_s":0.08}}');
+ const seeds='[{"x":0.5,"y":0.5}]';await page.getByLabel('Seeds temporales R08').fill(seeds);
+ await page.getByLabel('Nombre de preset temporal R08').fill('Prueba portable');
+ await page.getByRole('button',{name:'Guardar preset temporal R08',exact:true}).click();
+ const apply=page.getByRole('button',{name:'Aplicar preset temporal R08 Prueba portable',exact:true});await expect(apply).toHaveCount(1);
+ const link=page.getByRole('link',{name:'Exportar preset temporal R08 Prueba portable',exact:true});
+ const downloadEvent=page.waitForEvent('download');await link.click();const download=await downloadEvent;
+ expect(download.suggestedFilename()).toMatch(/^rope-flow-[a-f0-9]{32}\.json$/);
+ const exported=await(await page.request.get(origin+await link.getAttribute('href'))).json();
+ expect(exported.config.frames).toBe(3);expect(exported.config.settings.max_gap_s).toBe(.08);
+ expect(exported.seeds).toBeUndefined();expect(exported.config.media_id).toBeUndefined();
+ await page.getByLabel('Importar preset temporal R08').setInputFiles((await download.path())!);
+ await expect(apply).toHaveCount(2);
+ await page.getByLabel('Configuración temporal portable R08').fill('{"frames":2,"settings":{}}');
+ await apply.first().click();
+ const restored=JSON.parse(await page.getByLabel('Configuración temporal portable R08').inputValue());expect(restored).toEqual(exported.config);
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe(seeds);
+ await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
+ await page.reload();await prepare();await expect(apply).toHaveCount(2);
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
+});

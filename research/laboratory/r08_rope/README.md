@@ -767,3 +767,25 @@ Así no se confunde consistencia estructural con exactitud óptica ni custodia.
 No nuevos tests browser/build en este corte backend; referencias previas no
 son verificación de este head. Presets/recálculo UI/decoder secuencial/benchmark
 humano y otras líneas del roadmap siguen pendientes. Audio/defaults intactos.
+
+### Corte 53: presets temporales nombrados y portables
+
+Contrato Preset v1 contiene sólo name/config; config sólo frames y Settings.
+Seeds, fuente, request y calibración se rechazan por extra-forbid. Servicio
+persiste entradas UUID nuevas en research/r08-flow-presets; GET/POST
+`/api/research/r08/flow-presets` y GET `/{id}` export JSON portable sin ID local.
+Lectura requiere archivo regular no symlink <=64 KiB. Importar añade entrada,
+no reemplaza preset anterior ni acepta automáticamente observaciones.
+
+UI: nombre, guardar config actual, aplicar preset explícitamente, descarga
+nativa y file input para importar JSON <=64 KiB. Aplicar cambia sólo parámetros;
+seeds presentes del cuadro actual permanecen, no provienen del archivo.
+Presets siguen disponibles tras restart/reload y no cambian instrumento/audio.
+
+Dos tests API pasaron (1.39 s): contrato rechaza observaciones en ambos niveles,
+export/import crea ID nuevo y restart conserva bytes. Chrome real pasó guardar,
+descargar/importar el archivo descargado, aplicar parámetros con seeds/borrador
+intactos y reload con presets persistidos/seeds vacíos (1.4 s; suite 2.2 s).
+TypeScript/Vite build pasó; fixture sintético, servidor detenido. Pendientes
+recálculo UI, decoder secuencial/rendimiento y benchmark humano de seguimiento;
+presets no convierten parámetros en evidencia de calidad física.

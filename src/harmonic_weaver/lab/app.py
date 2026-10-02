@@ -25,6 +25,7 @@ from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_service import RopeFlowService
+from .research.rope_flow_presets import RopeFlowPresets,Preset as RopeFlowPreset
 from .research.rope_flow_run import Request as RopeFlowRequest
 from .research.rope_path_service import RopePathService
 from .research.rope_path import Settings as RopePathSettings
@@ -268,6 +269,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_masks = RopeMaskService(data_dir,rope_reader)
     rope_paths = RopePathService(data_dir)
     rope_flow = RopeFlowService(data_dir,rope_reader)
+    rope_flow_presets = RopeFlowPresets(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -409,6 +411,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.get('/api/research/r08/flow-presets')
+    def rope_flow_preset_list():return rope_flow_presets.list()
+
+    @app.post('/api/research/r08/flow-presets')
+    def rope_flow_preset_save(body:RopeFlowPreset):return rope_flow_presets.save(body)
+
+    @app.get('/api/research/r08/flow-presets/{ident}')
+    def rope_flow_preset_export(ident:str):
+        return JSONResponse(rope_flow_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="rope-flow-{ident}.json"'})
 
     @app.post('/api/research/r08/flow')
     def rope_flow_start(body:RopeFlowStart):

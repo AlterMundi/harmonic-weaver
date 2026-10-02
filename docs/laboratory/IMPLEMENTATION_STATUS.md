@@ -341,3 +341,9 @@ R08 contrato temporal reforzado: estados/puntos/causas, continuidad sin revival,
 seeds, thresholds y resets/clock/bounds verificados offline; exactitud numérica
 sigue requiriendo video. Siete tests contrato/corrida/servicio/API pasaron.
 README corte 52 conserva alcance y pendientes; no evidencia browser nueva.
+
+R08 presets temporales nombrados: contrato estricto sin seeds/fuente/calibración,
+persistencia/API/export/import y controles web. Dos tests API (1.39 s) y Chrome
+con archivo descargado/importado/aplicación/reload (1 test, 2.2 s) pasaron;
+build pasó. README corte 53: seeds actuales no cambian al aplicar parámetros.
+Recálculo UI, decoder secuencial y benchmark humano siguen pendientes.
