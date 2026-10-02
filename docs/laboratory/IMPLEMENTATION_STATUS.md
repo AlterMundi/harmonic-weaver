@@ -1201,3 +1201,17 @@ Siete pruebas núcleo/API pasaron (2,64 s):0→75 delta75, inverso−75, null, m
 input repetible, duplicados/autopar/otro protocolo rechazados y preview HTTP.
 Pendientes pruebas específicas repetición/estímulo distintos, UI, manifest/guardar
 pareados y mediciones/aceptación humanas. Sin conclusiones científicas ni defaults.
+
+
+## Corte 27 · Pares configurables en web
+
+Panel de pares lista respuestas, selección explícita reference/target y editor
+JSON de múltiples pares; cálculo manual, tabla de ambos valores/diferencia/soporte
+y exportación real JSON con input frozen/límites. Editar pares invalida tabla;
+resultados tardíos de cálculo no se aplican tras unmount. Sin emparejamiento auto.
+
+Build y seis Chrome pasaron (10,3 s):75→100 delta25, null como unanswered,
+dirección/IDs en descarga, edición limpia preview; suite previa pasa. Núcleo pasó
+(0,40 s), ahora incluye estímulo/repetición diferentes rechazados. Pendientes
+manifest/guardar/recovery de pares, presets de contrastes y cierre duradero.
+Fixtures sintéticos/audio silenciado, no aceptación humana. Defaults intactos.

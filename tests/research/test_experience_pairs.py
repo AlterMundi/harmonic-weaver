@@ -28,3 +28,12 @@ def test_directional_pairs_missing_answers_and_mismatches(tmp_path):
     other=protocols.start({'protocol':{**data(),'participant_slot':'other'}})
     c=save('trial-0002',50,other['id'],sha256_file(protocols.artifact(other['id'],'manifest.json')))
     with pytest.raises(ValueError,match='same frozen protocol'):preview(responses,{'pairs':[{'reference_id':a,'target_id':c}]})
+
+    extended={**data(),'config':{'repetitions':2},'stimuli':data()['stimuli']+[{'id':'other','reference':'synthetic','start_s':0,'end_s':60}]}
+    p=protocols.start({'protocol':extended});pd=sha256_file(protocols.artifact(p['id'],'manifest.json'))
+    first=save('trial-0001',0,p['id'],pd)
+    different_stimulus=save('trial-0005',75,p['id'],pd)
+    different_repetition=save('trial-0008',75,p['id'],pd)
+    for target in (different_stimulus,different_repetition):
+        with pytest.raises(ValueError,match='same stimulus and repetition'):
+            preview(responses,{'pairs':[{'reference_id':first,'target_id':target}]})

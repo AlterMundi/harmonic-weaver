@@ -1,3 +1,4 @@
+import {ExperiencePairsPanel} from './ExperiencePairsPanel';
 import {ExperienceAnalysisPanel} from './ExperienceAnalysisPanel';
 import {ExperienceResponsesPanel} from './ExperienceResponsesPanel';
 import {ExperienceTransportsPanel} from './ExperienceTransportsPanel';
@@ -33,6 +34,7 @@ export function ExperiencePanel({api}:{api:any}){
  {opened&&result?.sources&&<ExperiencePlayer key={opened+JSON.stringify(result.request)} api={api} protocolId={opened} trials={result.trials}/>}
  <ExperienceResponsesPanel api={api} protocolId={result?opened:''} manifestHash={result?openedHash:''} response={response}/>
  <ExperienceAnalysisPanel api={api}/>
+ <ExperiencePairsPanel api={api}/>
  <ExperienceSourcesPanel api={api} onSaved={async()=>setRuns(await api('research/r10/protocols'))}/>
  </section>;
 }
