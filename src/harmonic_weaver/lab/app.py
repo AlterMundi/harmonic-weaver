@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.neuro_observations import Stream as NeuroStream, inspect as inspect_neuro
 from .research.experience_pair_design import Request as ExperiencePairDesignRequest, preview as preview_pair_design
 from .research.experience_pair_design_presets import PairDesignPresets, Preset as PairDesignPreset
 from .research.experience_pairs_service import PairService, SaveRequest as ExperiencePairSaveRequest
@@ -480,6 +481,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r11/inspect')
+    def neuro_inspect(body:NeuroStream):return inspect_neuro(body)
 
     @app.post('/api/research/r10/pair-design-preview')
     def pair_design_preview(body:ExperiencePairDesignRequest):

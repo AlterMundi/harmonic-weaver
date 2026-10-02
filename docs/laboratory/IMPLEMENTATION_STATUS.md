@@ -1323,3 +1323,18 @@ research/laboratory/r11_neuro/README.md. Pendientes API/UI/persistencia/SNR,
 inventario/adaptador reales, mediciones y participantes; sin aceptación humana.
 Branch feat/r11-neuro-contract continúa encima de R10, mismo workspace dev;
 originales/lab cotidianos intactos, sin defaults de audio cambiados.
+
+
+## R11 · Corte 2: inspección API/web
+
+POST /api/research/r11/inspect valida Stream y devuelve inventario/raw. NeuroPanel
+en Investigación permite native JSON import16MiB/editor, inspect explícito y
+exportación; tabla unidades/referencia/support/artefactos declarados. Editar limpia
+resultado y generaciones descartan respuestas tras unmount. No default hardware,
+no normalización/filtrado/SNR ni archivo persistente.
+
+Build y tres pruebas núcleo/API pasaron (0,88 s; warning AnyIO sin fallo), Chrome
+real contra fixture API pasó (1,4 s): import/export mantiene0/null/.008/unidad,
+gap visible, causa vacía rechazada y tabla inválida no revive. Datos sintéticos,
+sin audio/hardware humano. Servidor fixture detenido. Pendientes manifest/servicio,
+SNR/control synthetic y unidades/clocks de export real; aceptación física pendiente.

@@ -431,3 +431,13 @@ closed cuando se desmonta el player. Registros de transporte permite guardarlo o
 exportarlo después de cerrar player/recargar, sin reproducir. Preparar otro ensayo
 lo reemplaza. Cerrar pestaña/crash no garantiza conservación ni evento closed: para
 copia durable guardar en servidor local o exportar antes.
+
+
+## R11 · Inspección cruda experimental (PR #79)
+
+En Investigación → R11, importar un JSON Stream de neuro_observations con
+unidades/referencia/clock y samples explícitos, o editar Observaciones JSON R11.
+Inspeccionar contrato muestra cobertura/gaps y permite exportar inventario+raw.
+No conecta hardware ni interpreta exports Cyton automáticamente: deben adaptarse
+con procedencia explícita. No calcula SNR ni filtra; no hay guardado de servidor
+en este corte. Fixture Chrome sintética verificada; adquisición humana pendiente.

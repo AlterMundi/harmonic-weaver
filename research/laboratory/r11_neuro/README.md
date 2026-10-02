@@ -53,3 +53,18 @@ Pendientes: API/UI/import y persistencia/manifest de observaciones; estimadores 
 controles SNR explícitos; adaptador de export real y clocks/bindings R10; hardware,
 configuración/electrodos/protocolo acordados, adquisición y validación física.
 R12/R13 siguen abiertos. No resultados sobre estados mentales o fisiología.
+
+
+## Corte 2 · API e inventario web
+
+POST /api/research/r11/inspect valida Stream y devuelve inventario/raw. NeuroPanel
+en Investigación permite native JSON import16MiB/editor, inspect explícito y
+exportación; tabla unidades/referencia/support/artefactos declarados. Editar limpia
+resultado y generaciones descartan respuestas tras unmount. No default hardware,
+no normalización/filtrado/SNR ni archivo persistente.
+
+Build y tres pruebas núcleo/API pasaron (0,88 s; warning AnyIO sin fallo), Chrome
+real contra fixture API pasó (1,4 s): import/export mantiene0/null/.008/unidad,
+gap visible, causa vacía rechazada y tabla inválida no revive. Datos sintéticos,
+sin audio/hardware humano. Servidor fixture detenido. Pendientes manifest/servicio,
+SNR/control synthetic y unidades/clocks de export real; aceptación física pendiente.
