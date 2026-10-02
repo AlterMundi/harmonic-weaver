@@ -758,3 +758,21 @@ respuesta sintética/rechazo fuera de escala. No reproduce ni registra exposici�
 o respuestas humanas; audio/defaults intactos. Plan completo/pedidos en
 research/laboratory/r10_experience/README.md y #24. Persistencia/player/análisis/
 fuentes físicas pendientes; R10 sigue abierto.
+
+
+## Corte 2 · Presets portables persistidos
+
+API /research/r10/presets guarda/lista/exporta name/config versionados con lectura
+regular acotada. Config estricto excluye slot, rol, order_index, estímulos, ratings
+y trial_id. Exportación sin ID local; append-only, reapertura tras restart. Web guarda
+config de preview validada; importa preset completo o config raw exportada (64 KiB),
+no aplica automáticamente. Aplicar reemplaza sólo config del protocolo editable,
+conserva participante/rol/order/stimuli y limpia preview/respuesta validada sin ejecutar.
+
+Cuatro pruebas núcleo/API pasaron (0,92 s), build completo pasó. Chrome API aislada
+pasó (1,7 s): guardar, descargar/importar envelope y raw config, aplicar conservando
+selección, limpiar preview y tres presets tras reload. Mantiene pruebas de respuesta
+sintética/rechazo fuera de escala. Servidor apagado; no exposición/participación
+humanas ni niveles físicos verificados. Defaults del instrumento/audio intactos.
+Pendientes protocolos congelados/manifests, resolución de estímulos, player,
+exposición observada, respuestas persistentes y análisis sobre soporte común.

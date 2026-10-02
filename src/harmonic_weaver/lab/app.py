@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_presets import ExperiencePresets, Preset as ExperiencePreset
 from .research.experience_protocol import Request as ExperienceRequest, ResponseRequest as ExperienceResponseRequest, schedule as experience_schedule, validate_response as validate_experience_response
 from .research.spatial_clock_apply import Request as SpatialClockApplyRequest, apply as apply_spatial_clock
 from .research.spatial_clock_service import SpatialClockService, SaveRequest as SpatialClockSaveRequest
@@ -278,6 +279,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     spatial_presets = SpatialViewPresets(data_dir)
     spatial_comparison_presets = SpatialComparisonPresets(data_dir)
     spatial_clock_runs = SpatialClockService(data_dir)
+    experience_presets = ExperiencePresets(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -459,6 +461,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.get('/api/research/r10/presets')
+    def experience_preset_list():return experience_presets.list()
+
+    @app.post('/api/research/r10/presets')
+    def experience_preset_save(body:ExperiencePreset):return experience_presets.save(body)
+
+    @app.get('/api/research/r10/presets/{ident}')
+    def experience_preset_export(ident:str):
+        return JSONResponse(experience_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="r10-preset-{ident}.json"'})
 
     @app.post('/api/research/r10/preview')
     def experience_preview(body:ExperienceRequest):return experience_schedule(body)
