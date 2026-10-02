@@ -474,3 +474,7 @@ biblioteca congelada, idempotencia/presets pendientes; no origen físico autenti
 R09 corte 10: Chrome real verificó guardado/descarga/reload/reapertura declarada,
 una corrida y bytes intactos (1,7 s). Procedencia de biblioteca, idempotencia y
 presets pendientes; fixtures sintéticos, sin aceptación humana implícita.
+
+R09 corte 11: persistencia de procedencia resuelta de biblioteca con generación
+esperada, rechazos ante cambio/atribución declarada. Diez tests HTTP y build pasaron.
+Botón web de fuente en Chrome, idempotencia y presets pendientes; sin rehash de video.

@@ -142,3 +142,17 @@ reload/reapertura sin otra corrida y bytes originales intactos; conserva validac
 Stream y rechazo de JSON inválido. Fixture/server aislados, servidor detenido.
 No aceptación humana, fuente privada ni validación física. Pendientes procedencia
 de biblioteca congelada, idempotencia/recuperación de POST y presets.
+
+## Corte 11 · Procedencia de generación guardada
+
+Runner admite procedencia tipada y ligada al segmento; recálculo la conserva.
+POST `/api/research/r09/source-conversions` resuelve snapshot/metadata en servidor
+con expected_generation obligatorio; si cambió, rechaza sin trasladar fuente.
+Ruta de conversión declarada rechaza atribuirse tracking_provenance. Web añade
+Guardar desde generación sobre la selección inspeccionada, separado del guardado
+declarado. No revalida cache en disco, video actual ni custodia firmada.
+
+Diez tests hasta HTTP pasaron (1,05 s), incluyendo persistencia de generación,
+rechazo de generación antigua y de procedencia inyectada por ruta declarada.
+Build pasó; botón de procedencia en Chrome pendiente. Idempotencia/presets y
+mediciones físicas pendientes; datos privados/audio no modificados.

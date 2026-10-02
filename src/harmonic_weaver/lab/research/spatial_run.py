@@ -4,7 +4,7 @@ import platform
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from ..cache import atomic_json, sha256_file
 from ..contracts import Contract
@@ -15,8 +15,36 @@ FILES = ('request.json', 'result.json', 'manifest.json')
 CODE = ('spatial_run.py', 'spatial_adapter.py', 'spatial_observations.py', '../contracts.py')
 
 
+class Provenance(Contract):
+    job_id:str=Field(min_length=1,max_length=80)
+    media_id:str|None=None
+    cache_key:str=Field(min_length=1,max_length=160)
+    generation:str=Field(min_length=1,max_length=160)
+    effective_device:str=Field(min_length=1,max_length=80)
+    start_s:float=Field(ge=0)
+    end_s:float=Field(gt=0)
+    verification:Literal['completed_in_memory_generation']
+
+
 class Input(Contract):
     conversion: Request
+    tracking_provenance:Provenance|None=None
+
+    @model_validator(mode='after')
+    def segment(self):
+        p=self.tracking_provenance
+        if p is not None:
+            if not 0<p.end_s-p.start_s<=120 or any(not p.start_s<=f.source_time_s<=p.end_s for f in self.conversion.frames):
+                raise ValueError('Frozen observations outside provenance segment')
+        return self
+
+
+def calculate(frozen):
+    result=evaluate(frozen.conversion)
+    if frozen.tracking_provenance is not None:
+        result['tracking_provenance']=frozen.tracking_provenance.model_dump()
+        result['limits'].append('Recorded completed in-memory generation, not current disk/video integrity or signed custody')
+    return result
 
 
 class Manifest(Contract):
@@ -41,7 +69,7 @@ def code_hashes():
 
 def run(request, folder):
     frozen = Input.model_validate(request)
-    result = evaluate(frozen.conversion)
+    result = calculate(frozen)
     folder = Path(folder)
     folder.mkdir(mode=0o700, parents=True, exist_ok=False)
     atomic_json(folder / 'request.json', frozen.model_dump())
@@ -79,7 +107,7 @@ def verify(folder, *, recompute=True):
     if recompute:
         if manifest['environment'] != environment() or manifest['code_hashes'] != code_hashes():
             raise ValueError('Recorded conversion implementation/environment differs')
-        if result != evaluate(frozen.conversion):
+        if result != calculate(frozen):
             raise ValueError('Spatial conversion recomputation differs')
     for name, digest in hashes.items():
         if (folder / name).is_symlink() or sha256_file(folder / name) != digest:

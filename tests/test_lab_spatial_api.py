@@ -39,6 +39,13 @@ def test_source_http_inventory_generation_and_explicit_slot(tmp_path):
         result=client.post('/api/research/r09/source',json=selection)
         assert result.status_code==200 and result.json()['tracking_provenance']['generation']=='gen-1'
         assert len(result.json()['stream']['frames'])==2
+        saved=client.post('/api/research/r09/source-conversions',json={**selection,'expected_generation':'gen-1'})
+        assert saved.status_code==200
+        ident=saved.json()['id'];frozen=client.get(f'/api/research/r09/conversions/{ident}/artifacts/result.json').json()
+        assert frozen['tracking_provenance']['generation']=='gen-1'
+        assert client.post('/api/research/r09/conversions',json={'conversion':result.json()['request'],'tracking_provenance':frozen['tracking_provenance']}).status_code==422
+        assert client.post('/api/research/r09/source-conversions',json={**selection,'expected_generation':'old'}).status_code==422
+
         absent=client.post('/api/research/r09/source',json={**selection,'person_id':'absent'})
         assert absent.json()['coverage']['missing']==34
         assert client.post('/api/research/r09/source',json={**selection,'job_id':'missing'}).status_code==404

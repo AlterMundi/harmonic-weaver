@@ -5,6 +5,12 @@ import threading
 from uuid import uuid4
 from .rope_compare_service import RopeCompareService
 from .spatial_run import Input,run,read_verified
+from .spatial_adapter import SourceRequest
+from pydantic import Field
+
+
+class SourceSaveRequest(SourceRequest):
+    expected_generation:str=Field(min_length=1,max_length=160)
 
 
 class SpatialService(RopeCompareService):
@@ -37,3 +43,11 @@ class SpatialService(RopeCompareService):
         if name not in ('request.json','result.json','manifest.json'):raise ValueError('Unknown spatial conversion artifact')
         folder=self.folder(ident);read_verified(folder)
         return folder/name
+
+
+    def from_source(self,library,selection):
+        selection=SourceSaveRequest.model_validate(selection)
+        frames,provenance=library.spatial_segment(selection.job_id,selection.start_s,selection.end_s)
+        if provenance['generation']!=selection.expected_generation:raise ValueError('Tracking generation changed; refresh and inspect before saving')
+        return self.start({'conversion':{'frames':frames,'person_id':selection.person_id,'clock':selection.clock},
+                           'tracking_provenance':provenance})
