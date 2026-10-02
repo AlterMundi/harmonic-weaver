@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.spatial_clock_apply import Request as SpatialClockApplyRequest, apply as apply_spatial_clock
 from .research.spatial_clock_service import SpatialClockService, SaveRequest as SpatialClockSaveRequest
 from .research.spatial_clock_fit import Request as SpatialClockFitRequest, fit as fit_spatial_clock
 from .research.spatial_presets import SpatialViewPresets, Preset as SpatialViewPreset, SpatialComparisonPresets, ComparisonPreset
@@ -457,6 +458,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r09/apply-clock')
+    def spatial_clock_apply(body:SpatialClockApplyRequest):return apply_spatial_clock(spatial_clock_runs,body)
 
     @app.post('/api/research/r09/clock-fit')
     def spatial_clock_fit(body:SpatialClockFitRequest):return fit_spatial_clock(body)

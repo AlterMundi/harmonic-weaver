@@ -665,3 +665,22 @@ tras aceptación, reload/reintento idéntico, una corrida y reapertura, input in
 limpia resultado. Servidor detenido, datos sintéticos únicamente, audio intacto.
 Pendientes medición real y aplicación explícita con intervalo/uncertainty a streams;
 no coordinación multiproceso, GC de recibos ni retención garantizada al cerrar tab.
+
+
+## Corte 31 · Aplicación explícita de reloj persistido
+
+POST apply-clock recibe fit_id, Stream y allow_extrapolation(false). Resuelve ajuste
+verificado, exige source_clock idéntico, rechaza frames fuera del intervalo salvo
+opt-in explícito; devuelve índices extrapolados. Reemplaza sólo Clock, conserva
+frames/timestamps/estados/coordenadas tipados y previous_clock, calcula tiempos
+comunes y congela ID/hash de manifest. Revalida ajuste al final. No modifica live,
+no publica conversión ni autentica nombres/evidencia/calibración. Web ofrece ID,
+JSON de stream, opt-in y exportación del resultado para inspección/uso explícito.
+
+Ocho pruebas backend pasaron (1,00 s), build pasó y Chrome real contra API aislada
+pasó (2,0 s): guardado recuperable/reapertura, rechazo de extrapolación, opt-in,
+descarga con frames/reloj original/procedencia preservados. Primera aserción Chrome
+falló por defaults null omitidos en fixture; completada fixture tipada y repetida
+sin cambios de comportamiento. Servidores detenidos, sólo datos sintéticos,
+audio/defaults intactos. Pendientes medición real, persistencia de streams externos
+3D/aplicados y validación temporal independiente; aplicar no mejora incertidumbre.

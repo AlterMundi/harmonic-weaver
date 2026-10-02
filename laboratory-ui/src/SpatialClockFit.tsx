@@ -1,3 +1,4 @@
+import {SpatialClockApply} from './SpatialClockApply';
 import {useEffect,useState} from 'react';
 export function SpatialClockFit({api}:{api:any}){
  const key='weaver.r09.clock-fit.pending.v1';
@@ -13,5 +14,6 @@ export function SpatialClockFit({api}:{api:any}){
  {pending&&<p role="status">Ajuste pendiente de confirmar. <button disabled={busy} onClick={()=>void act(save)}>Recuperar ajuste reloj R09</button></p>}
  {error&&<p role="alert">{error}</p>}{result&&<><p>Desfase: {result.clock.offset_s} s · tasa: {result.clock.rate} · residuo máximo: {result.max_abs_residual_s} s.</p><p>Intervalo de marcas: {result.source_interval_s.join('–')} s. Fuera del intervalo no se verificó extrapolación. Incertidumbre empírica, sin garantía estadística.</p><p>Marcas reservadas: {result.validation.count} · residuo máximo reservado: {result.validation.max_abs_residual_s??'sin validación reservada'} s. Extrapolación identificada por marca en JSON.</p><pre>{JSON.stringify(result,null,2)}</pre><button disabled={busy||!!pending} onClick={()=>void act(save)}>Guardar ajuste reloj R09</button><button onClick={()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(result,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='r09-clock-fit.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>Exportar ajuste reloj R09</button></>}
  {runs.map(r=><div key={r.id}>{r.id} · {r.read_verification==='recomputed'?'Ajuste recalculado':'Histórico: sólo integridad'}<button disabled={busy} onClick={()=>void act(async()=>{setResult(await api(`research/r09/clock-fits/${r.id}/artifacts/result.json`));})}>Abrir ajuste reloj R09</button>{['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r09/clock-fits/${r.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
+ <SpatialClockApply api={api} runs={runs}/>
  </section>;
 }
