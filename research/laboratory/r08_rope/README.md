@@ -163,3 +163,14 @@ proceso confirmado vivo cancelado, timeout, overflow y extracción real.
 No confundir esta base con cancelación web completa: faltan jobs observables,
 conectar eventos desde UI/reader y hashing interrumpible. Hashes actuales se
 calculan fuera del bucle cancelable; API aún síncrona.
+
+### Corte 13: hash y lector cooperativamente cancelables
+
+Hash SHA256 verifica cancelación antes y después de cada lectura de 1 MiB.
+Probe, decodificación y lector cacheado propagan el evento hasta hashing y
+subprocesos, incluyendo hits. Seis tests proceso/reader/media/API pasaron
+en 2.38 s: digest correcto, cancelación entre lecturas y cancelación previa
+sin probe/decode. El lock del lector y una lectura de disco ya iniciada no
+se interrumpen instantáneamente; cancelación es cooperativa. Falta exponer
+trabajos/estado/cancelación HTTP y conectarlos a la UI; no se declara esa
+entrega realizada por haber completado la base del backend.

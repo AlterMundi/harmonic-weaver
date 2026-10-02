@@ -40,3 +40,21 @@ def capture(command,*,max_bytes,timeout=60,cancel=None):
         if process.poll() is None:process.kill()
         process.wait()
         process.stdout.close()
+
+
+def file_hash(path,*,cancel=None):
+    """SHA256 with cooperative cancellation between 1 MiB reads."""
+    import hashlib
+    digest=hashlib.sha256()
+    def check():
+        if cancel is not None and cancel.is_set():raise DecodeCancelled('Video hashing cancelled')
+    check()
+    with open(path,'rb') as source:
+        while True:
+            check()
+            chunk=source.read(1024*1024)
+            check()
+            if not chunk:break
+            digest.update(chunk)
+    check()
+    return digest.hexdigest()

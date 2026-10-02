@@ -2,15 +2,14 @@
 import json
 import math
 from pathlib import Path
-from ..cache import sha256_file
 from .rope_annotations import Annotation
-from .rope_process import capture
+from .rope_process import capture,file_hash
 
 
 def probe(path,*,cancel=None):
     path=Path(path)
     if path.is_symlink() or not path.is_file():raise ValueError('Regular local video required')
-    before=sha256_file(path)
+    before=file_hash(path,cancel=cancel)
     command=['ffprobe','-v','error','-select_streams','v:0','-show_streams','-show_frames',
              '-show_entries','stream=width,height,sample_aspect_ratio:stream_tags=rotate:stream_side_data=rotation:frame=best_effort_timestamp_time,width,height',
              '-of','json',str(path)]
@@ -31,7 +30,7 @@ def probe(path,*,cancel=None):
         times.append(value)
     origin=times[0];times=[t-origin for t in times]
     if any(b<=a for a,b in zip(times,times[1:])):raise ValueError('Strict decoded presentation clock required')
-    if path.is_symlink() or sha256_file(path)!=before:raise ValueError('Media changed during frame probing')
+    if path.is_symlink() or file_hash(path,cancel=cancel)!=before:raise ValueError('Media changed during frame probing')
     return {'schema_version':1,'media_sha256':before,'width_px':width,'height_px':height,
             'time_origin_pts_s':origin,'frame_times_s':times,
             'clock':'first_decoded_presentation_timestamp_zero',
@@ -62,5 +61,5 @@ def _frame_png(path,index,expected_sha256,media,*,cancel=None):
         '-vf',f'select=eq(n\\,{index})','-frames:v','1','-f','image2pipe','-c:v','png','pipe:1'],
         max_bytes=32_000_000,cancel=cancel)
     if not output.startswith(b'\x89PNG\r\n\x1a\n'):raise ValueError('Exact video frame decoding failed')
-    if Path(path).is_symlink() or sha256_file(path)!=expected_sha256:raise ValueError('Video changed during frame decoding')
+    if Path(path).is_symlink() or file_hash(path,cancel=cancel)!=expected_sha256:raise ValueError('Video changed during frame decoding')
     return output

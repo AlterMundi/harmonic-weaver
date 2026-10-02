@@ -20,3 +20,18 @@ def test_bounded_capture_success_overflow_timeout_and_live_cancel(tmp_path):
     stopped.set();worker.join(timeout=2)
     assert not worker.is_alive() and len(errors)==1 and isinstance(errors[0],DecodeCancelled)
     with pytest.raises(DecodeCancelled):capture([sys.executable,'-c','raise Exception()'],max_bytes=10,cancel=stopped)
+
+
+def test_hash_matches_sha256_and_stops_between_reads(tmp_path):
+    import hashlib
+    from harmonic_weaver.lab.research.rope_process import file_hash
+    path=tmp_path/'data';data=b'x'*(3*1024*1024+7);path.write_bytes(data)
+    assert file_hash(path)==hashlib.sha256(data).hexdigest()
+    class CancelDuringReads:
+        def __init__(self):self.calls=0
+        def is_set(self):self.calls+=1;return self.calls>=4
+    event=CancelDuringReads()
+    with pytest.raises(DecodeCancelled,match='hashing'):file_hash(path,cancel=event)
+    assert event.calls==4
+    stopped=threading.Event();stopped.set()
+    with pytest.raises(DecodeCancelled):file_hash(tmp_path/'does-not-exist',cancel=stopped)
