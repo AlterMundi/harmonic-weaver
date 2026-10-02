@@ -62,6 +62,17 @@ def test_resolved_r05_protocol_http_and_manual_provenance_rejected(bound):
             protocol_id=saved.json()['id']
             result=client.get(f'/api/research/r10/protocols/{protocol_id}/artifacts/result.json').json()
             assert result['sources'][0]['r05_id']==ident and result['sources'][0]['person_id']=='one'
+            base=f'/api/research/r10/protocols/{protocol_id}/trials'
+            info=client.get(f'{base}/trial-0001/media-info');assert info.status_code==200
+            assert info.json()['trial']['condition']=='video_only' and info.json()['audio_support_elapsed_s'] is None
+            assert client.get(f'{base}/trial-0001/video').content==b'a'
+            assert client.get(f'{base}/trial-0001/audio').status_code==422
+            assert client.get(f'{base}/trial-0002/video').status_code==422
+            audio=client.get(f'{base}/trial-0002/audio',headers={'Range':'bytes=0-43'})
+            assert audio.status_code==206 and audio.content[:4]==b'RIFF' and len(audio.content)==44
+            assert audio.headers['X-R05-Preview-Gain']=='1.0'
+            assert client.get(f'{base}/unknown/media-info').status_code==404
+
             assert client.post('/api/research/r10/r05-protocols',json=selection).json()['id']==protocol_id
             assert client.post('/api/research/r10/protocols',json={'protocol':result['request'],'sources':result['sources']}).status_code==422
     finally:resonators.close()

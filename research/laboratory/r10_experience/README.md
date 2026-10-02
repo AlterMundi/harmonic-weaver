@@ -139,3 +139,28 @@ real y R05 PCM8kHz; esta prueba NO reproduce audio/video ni verifica sincronía.
 Sólo se duplica el medio sintético pequeño en fixture, ningún original privado.
 Servidor apagado, audio/defaults intactos. Pendiente player/exposición/mediciones
 físicas/respuestas/análisis. Sin garantía de retención al cerrar tab/multipestaña.
+
+
+## Corte 6 · Media verificada por ensayo y relojes nominales
+
+protocols/{id}/trials/{trial}/media-info reabre protocolo verificado y resuelve
+R05/evaluación/video comparando snapshot con publicación. Expone trial, hashes,
+duración y audio_support_elapsed_s (null sin soporte/medio habilitado). Reloj:
+video_time=source_start+elapsed; audio_time=elapsed+offset; positivo adelanta audio.
+Soporte audio intersecta [0,duración] con [0,pcm_frames/sr] desplazado, sin inventar
+samples/wrap. Puede incluir tail R05 en condición desacoplada; no confundirlo con
+movimiento adicional. Medio cambiado rechazado, ensayo desconocido404 y protocolo
+sólo declarado no tiene media resoluble.
+
+Rutas /video y /audio bloquean medio deshabilitado por condición. Video entrega
+original verificado sin copiar; audio usa vista float32/Ranges y gain congelado,
+PCM autoritativo float64 intacto. Archivos se sirven completos, NO recortados:
+metadata define ventana para el player pendiente, no acredita cumplimiento de crop
+ni exposición. No hay autoplay ni dispositivo abierto por estos endpoints.
+
+Diez pruebas núcleo/servicio/runner/API pasaron (5,85 s): offset-.5 soporte[.5,1.2],
+video clock origen.3, media alterada rechazada, gates video_only/sound_only,
+Range44bytes RIFF con gain1, ensayo desconocido404. Fixtures PCM reales con pose
+sintética/video bytes b'a'; NO reproducción Chrome ni medición física. Pendientes
+player por condiciones/seek/pause/gaps/offset, eventos de exposición y aceptación.
+Sin medios privados/hardware/audio ni cambios de defaults del instrumento.

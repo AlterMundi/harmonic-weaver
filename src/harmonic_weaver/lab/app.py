@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_playback import playback as experience_playback
 from .research.experience_sources import Selection as ExperienceSourceSelection
 from .research.experience_service import ExperienceService, SaveRequest as ExperienceSaveRequest
 from .research.experience_presets import ExperiencePresets, Preset as ExperiencePreset
@@ -476,6 +477,23 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r10/protocols')
     def experience_protocol_list():return experience_protocols.list()
+
+    @app.get('/api/research/r10/protocols/{ident}/trials/{trial_id}/media-info')
+    def experience_trial_info(ident:str,trial_id:str):
+        return experience_playback(experience_protocols,resonators,evaluation,ident,trial_id)[0]
+
+    @app.get('/api/research/r10/protocols/{ident}/trials/{trial_id}/video')
+    def experience_trial_video(ident:str,trial_id:str):
+        info,video,_=experience_playback(experience_protocols,resonators,evaluation,ident,trial_id)
+        if not info['trial']['video_enabled']:raise ValueError('Video disabled in this trial condition')
+        return FileResponse(video)
+
+    @app.get('/api/research/r10/protocols/{ident}/trials/{trial_id}/audio')
+    def experience_trial_audio(ident:str,trial_id:str,request:Request):
+        from .research.audio_preview import preview_response
+        info,_,audio=experience_playback(experience_protocols,resonators,evaluation,ident,trial_id)
+        if not info['trial']['audio_enabled']:raise ValueError('Audio disabled in this trial condition')
+        return preview_response(audio,gain=info['trial']['preview_gain'],range_header=request.headers.get('range'))
 
     @app.get('/api/research/r10/protocols/{ident}/artifacts/{name}')
     def experience_protocol_artifact(ident:str,name:str):
