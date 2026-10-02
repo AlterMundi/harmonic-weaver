@@ -494,3 +494,7 @@ una corrida/cuerpo-clave idénticos. Cuota/cierre de pestaña y coordinación li
 R09 corte 15: inspector espacial por frame/ejes/centro/escala con estados/unidades y
 clipping visibles; sin missing fantasma. Build y Chrome 2D/source + 3D sintético
 pasaron. Presets/reproducción y validación de reconstrucción física pendientes.
+
+R09 corte 16: reproducción por timestamps con pausa/seek/loop/velocidad y gap máximo
+visible configurable; sin interpolación/autoplay. Build y Chrome de gap/play/final
+pasaron. Loop/velocidad específicos y presets pendientes; no sync audiovisual.

@@ -205,3 +205,17 @@ con recorrido source/recuperación de guardado), y 3D monocular sintético con X
 centro/escala, coordenadas proyectadas esperadas y clipping informado (1,2 s).
 Servidor aislado detenido. Son proyecciones de datos declarados, no benchmark de
 reconstrucción; presets de vista, reproducción temporal y evidencia física pendientes.
+
+## Corte 16 · Reproducción con gaps explícitos
+
+Inspector reproduce por timestamps fuente con RAF, velocidad ajustable, pausa,
+loop y seek por tiempo/frame. Un gap máximo visible configurable (default .1 s)
+oculta puntos cuyo soporte venció hasta la próxima observación, sin interpolar.
+Índice/tiempo de observación y reloj de reproducción separados. No autoplay ni
+sincronización implícita con video/audio; límite exacto termina reproducción.
+
+Build y Chrome real con generación sintética pasaron (2,0 s): seek a .15 s entre
+frames 0/.2 oculta puntos, play avanza hasta .2 y se detiene; recorrido previo de
+missing, recuperación de guardado y procedencia intacto. Loop/velocidad están
+implementados, validación específica aún pendiente, igual presets de vista.
+Servidor aislado detenido; no aceptación física ni audio modificado.

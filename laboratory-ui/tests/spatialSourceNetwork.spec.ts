@@ -9,6 +9,8 @@ test('explicit completed generation and inclusive segment',async({page})=>{
  await panel.getByLabel('Slot explícito R09').fill('slot-1-generation-1');await panel.getByLabel('Fin de segmento R09').fill('.2');await submit.click();
  await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 33/)).toBeVisible();
  await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(1);
+ await panel.getByLabel('Tiempo de reproducción R09').fill('0.15');await expect(panel.getByText(/gap: sin puntos vigentes/)).toBeVisible();await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(0);
+ await panel.getByLabel('Frame espacial R09').fill('0');await panel.getByRole('button',{name:'Reproducir observaciones R09'}).click();await expect(panel.getByRole('button',{name:'Reproducir observaciones R09'})).toBeVisible();await expect(panel.getByText(/Reloj fuente de reproducción: 0.200/)).toBeVisible();
  await panel.getByLabel('Frame espacial R09').fill('1');await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(0);
  await expect(panel.getByText(/Índice original 2/)).toBeVisible();await panel.getByLabel('Frame espacial R09').fill('0');
  await panel.getByText('Resultado espacial R09',{exact:true}).click();const result=JSON.parse((await panel.locator('pre').textContent())!);
