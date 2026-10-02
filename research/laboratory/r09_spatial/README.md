@@ -133,3 +133,12 @@ reinicio y métricas alteradas con hash reescrito rechazadas/excluidas de invent
 Build pasó; recorrido de persistencia web en Chrome pendiente. También idempotencia,
 recuperación de respuesta POST perdida, presets y mediciones físicas pendientes.
 No guardado automático ni modificación de live/audio; ningún video privado copiado.
+
+## Corte 10 · Persistencia web verificada en Chrome
+
+Chrome real contra API pasó (1,7 s): importación MotionFrames sintéticos, slot/reloj,
+cobertura/t_común, exportación, guardado explícito, descarga nativa del artefacto,
+reload/reapertura sin otra corrida y bytes originales intactos; conserva validación
+Stream y rechazo de JSON inválido. Fixture/server aislados, servidor detenido.
+No aceptación humana, fuente privada ni validación física. Pendientes procedencia
+de biblioteca congelada, idempotencia/recuperación de POST y presets.

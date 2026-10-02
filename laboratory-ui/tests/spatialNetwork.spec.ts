@@ -11,6 +11,15 @@ test('spatial import clock configuration conversion and export',async({page})=>{
  const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar resultado R09'}).click();expect((await download).suggestedFilename()).toBe('r09-spatial-result.json');
  await panel.getByText('Resultado espacial R09',{exact:true}).click();
  const raw=await panel.locator('pre').textContent();const result=JSON.parse(raw!);expect(result.common_times_s).toEqual([.2]);
+ await panel.getByRole('button',{name:'Guardar conversión declarada R09'}).click();
+ await expect(panel.getByRole('button',{name:'Abrir conversión R09'})).toBeVisible();
+ const saved=await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions`)).json();expect(saved).toHaveLength(1);
+ const before=await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).body();
+ const artifact=page.waitForEvent('download');await panel.getByRole('link',{name:'result.json',exact:true}).click();expect((await artifact).suggestedFilename()).toBe('result.json');
+ await page.reload();await panel.getByRole('button',{name:'Abrir conversión R09'}).click();
+ await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 16/)).toBeVisible();
+ expect((await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions`)).json())).toHaveLength(1);
+ expect(await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).body()).toEqual(before);
  await panel.getByLabel('Modalidad R09').selectOption('validate');await panel.getByLabel('Observaciones JSON R09').fill(JSON.stringify(result.stream));
  await panel.getByRole('button',{name:'Procesar observaciones R09'}).click();await expect(panel.getByText(/Contrato validado: image_pose/)).toBeVisible();
  await panel.getByLabel('Observaciones JSON R09').fill('{}');await panel.getByRole('button',{name:'Procesar observaciones R09'}).click();await expect(panel.getByRole('alert')).toBeVisible();

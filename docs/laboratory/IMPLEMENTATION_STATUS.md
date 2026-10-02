@@ -470,3 +470,7 @@ persistida pendientes; no validación de calibración ni profundidad física.
 R09 corte 9: persistencia declarada por servicio/API y controles de guardado/reapertura
 web. Diez tests hasta HTTP y build pasaron. Chrome persistencia, procedencia de
 biblioteca congelada, idempotencia/presets pendientes; no origen físico autenticado.
+
+R09 corte 10: Chrome real verificó guardado/descarga/reload/reapertura declarada,
+una corrida y bytes intactos (1,7 s). Procedencia de biblioteca, idempotencia y
+presets pendientes; fixtures sintéticos, sin aceptación humana implícita.
