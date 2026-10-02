@@ -32,8 +32,25 @@ def test_flow_api_library_binding_download_and_restart(tmp_path):
         assert client.get(base+'/artifacts/video.mp4').status_code==422
         assert client.get('/api/research/r08/flow').json()[0]['read_verification']=='integrity_only'
         assert client.post(base+'/cancel').json()['status']=='complete'
+        verification=client.post(base+'/reverify',json={'media_id':'synthetic'})
+        assert verification.status_code==200
+        verification_url=f"/api/research/r08/flow-verifications/{verification.json()['id']}"
+        deadline=time.monotonic()+5
+        while client.get(verification_url).json()['status']=='running' and time.monotonic()<deadline:time.sleep(.01)
+        checked=client.get(verification_url).json()
+        assert checked['status']=='complete' and checked['verification']=='recomputed'
+        assert checked['source_run_id']==ident
+        assert client.get(base+'/artifacts/result.json').content==result.content
     with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
         assert client.post('/api/research/r08/flow',json=body).json()['id']==ident
         assert client.get(base).json()['status']=='complete'
         assert client.get(base+'/artifacts/result.json').content==result.content
         assert len(client.get('/api/research/r08/flow').json())==1
+        with video.open('ab') as handle:handle.write(b'changed')
+        failed=client.post(base+'/reverify',json={'media_id':'synthetic'}).json()
+        url=f"/api/research/r08/flow-verifications/{failed['id']}"
+        deadline=time.monotonic()+5
+        while client.get(url).json()['status']=='running' and time.monotonic()<deadline:time.sleep(.01)
+        assert client.get(url).json()['status']=='failed'
+        assert client.get(url).json()['verification'] is None
+        assert client.get(base+'/artifacts/result.json').content==result.content

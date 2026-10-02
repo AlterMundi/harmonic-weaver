@@ -789,3 +789,29 @@ intactos y reload con presets persistidos/seeds vacíos (1.4 s; suite 2.2 s).
 TypeScript/Vite build pasó; fixture sintético, servidor detenido. Pendientes
 recálculo UI, decoder secuencial/rendimiento y benchmark humano de seguimiento;
 presets no convierten parámetros en evidencia de calidad física.
+
+### Corte 54: recálculo explícito contra fuente desde web
+
+POST `/api/research/r08/flow/{id}/reverify` recibe media_id autorizado y crea
+job owned efímero de verificación. GET `/flow-verifications/{id}` consulta y
+POST `/{id}/cancel` cancela; uno activo, ocho estados, cierre cancela/espera.
+Verifica artifacts originales, código/entorno actual y recalcula con video por
+el mismo núcleo/clock/config. Coincidencia exacta marca `recomputed`, ligada
+a ID original y hash de su manifest comprobado antes/después. Cancelación o
+fallo no publican esa marca; originales nunca se reescriben. Estado no es
+custodia firmada ni benchmark de precisión física.
+
+Web ofrece recalcular/cancelar/retomar polling por corrida; evidencia desplegable
+indica coincidencia **en ese recálculo** y carácter efímero. Inventario continúa
+marcado por integridad; reload no presenta prueba anterior como estado actual.
+Dos tests servicio/API pasaron (1.36 s): cálculo real exacto, fuente alterada
+rechazada, archivos intactos y subproceso de verificación vivo detenido en test.
+Chrome con HTTP/MP4 reales sintéticos pasó recálculo, marca sólo tras completar,
+bytes originales idénticos, borrador intacto y reload sin marca (1.8 s; suite
+2.6 s); build pasó y servidor detenido.
+
+Pendientes evidencia de verificación persistida/exportable, casos browser de
+cancelación/red específica de recálculo e inicio perdido (verificación es sólo
+lectura), decoder secuencial/rendimiento y benchmark humano. Cambios de código/
+entorno en históricos se rechazan: recálculo actual no migra resultados viejos
+ni falsea verificación. Audio/defaults y demás roadmap intactos.

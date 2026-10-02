@@ -347,3 +347,9 @@ persistencia/API/export/import y controles web. Dos tests API (1.39 s) y Chrome
 con archivo descargado/importado/aplicación/reload (1 test, 2.2 s) pasaron;
 build pasó. README corte 53: seeds actuales no cambian al aplicar parámetros.
 Recálculo UI, decoder secuencial y benchmark humano siguen pendientes.
+
+R08 recálculo web: jobs owned/cancelables contra fuente/código/entorno actual,
+marca recomputed ligada al manifest original sin reescribir artifacts. Dos
+tests backend (1.36 s) y Chrome (1 prueba, 2.6 s) pasaron, build pasó. README
+corte 54: evidencia efímera, persistencia/export y browser cancel/red del
+recálculo pendientes; decoder secuencial y benchmark humanos siguen abiertos.

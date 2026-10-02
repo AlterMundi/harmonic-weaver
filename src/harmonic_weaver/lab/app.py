@@ -26,6 +26,7 @@ from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_service import RopeFlowService
 from .research.rope_flow_presets import RopeFlowPresets,Preset as RopeFlowPreset
+from .research.rope_flow_verification import RopeFlowVerification
 from .research.rope_flow_run import Request as RopeFlowRequest
 from .research.rope_path_service import RopePathService
 from .research.rope_path import Settings as RopePathSettings
@@ -270,6 +271,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_paths = RopePathService(data_dir)
     rope_flow = RopeFlowService(data_dir,rope_reader)
     rope_flow_presets = RopeFlowPresets(data_dir)
+    rope_flow_verification = RopeFlowVerification(rope_flow,rope_reader)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -282,6 +284,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            rope_flow_verification.close()
             rope_flow.close()
             rope_jobs.close()
             activation.close()
@@ -434,6 +437,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r08/flow/{ident}/cancel')
     def rope_flow_cancel(ident:str):return rope_flow.cancel(ident)
+
+    @app.post('/api/research/r08/flow/{ident}/reverify')
+    def rope_flow_reverify(ident:str,body:RopeBinding):
+        return rope_flow_verification.start(ident,rope_media_path(body.media_id))
+
+    @app.get('/api/research/r08/flow-verifications/{ident}')
+    def rope_flow_verification_report(ident:str):return rope_flow_verification.report(ident)
+
+    @app.post('/api/research/r08/flow-verifications/{ident}/cancel')
+    def rope_flow_verification_cancel(ident:str):return rope_flow_verification.cancel(ident)
 
     @app.get('/api/research/r08/flow/{ident}/artifacts/{name}')
     def rope_flow_artifact(ident:str,name:str):

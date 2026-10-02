@@ -1,3 +1,4 @@
+import {RopeFlowVerify} from './RopeFlowVerify';
 import {useEffect,useRef,useState} from 'react';
 type Data=Record<string,any>;
 const defaults={frames:10,settings:{window_px:21,pyramid_levels:3,iterations:30,epsilon:.01,min_eigenvalue:.0001,max_forward_backward_error_px:1,max_displacement_px:100,max_gap_s:.2,max_points:128}};
@@ -87,6 +88,6 @@ export function RopeFlowPanel({api,media,source,index,endpoints,ready,onFrame}:D
  {frame&&<svg aria-label="Candidatos temporales R08" viewBox={`0 0 ${media.width_px} ${media.height_px}`} style={{width:'100%',maxWidth:600,background:'#171717'}}>{frame.rows.filter((r:Data)=>r.point).map((r:Data)=><g key={r.seed_index}><circle cx={r.point.x*media.width_px} cy={r.point.y*media.height_px} r={3} fill="cyan"/><text x={r.point.x*media.width_px+5} y={r.point.y*media.height_px} fill="white">{r.seed_index}</text></g>)}</svg>}
  <details><summary>Resultado temporal congelado R08</summary><pre>{JSON.stringify(result,null,2)}</pre></details>
  <button disabled={busy} onClick={()=>setConfig(JSON.stringify({frames:result.frames.length,settings:result.request.settings},null,2))}>Recuperar sólo configuración temporal R08</button></>}
- {jobs.map(j=><div key={j.id}>{j.id} · Integridad verificada, sin recálculo de video. <button disabled={busy} onClick={()=>{setError('');void api(`research/r08/flow/${j.id}/artifacts/result.json`).then((r:Data)=>{if(alive.current)setResult(r);}).catch((e:unknown)=>{if(alive.current)setError(String(e));});}}>Ver corrida temporal R08</button>{['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r08/flow/${j.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
+ {jobs.map(j=><div key={j.id}><RopeFlowVerify api={api} source={source} runId={j.id} disabled={busy||!ready}/>{j.id} · Integridad verificada, sin recálculo de video. <button disabled={busy} onClick={()=>{setError('');void api(`research/r08/flow/${j.id}/artifacts/result.json`).then((r:Data)=>{if(alive.current)setResult(r);}).catch((e:unknown)=>{if(alive.current)setError(String(e));});}}>Ver corrida temporal R08</button>{['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r08/flow/${j.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
  </section>;
 }
