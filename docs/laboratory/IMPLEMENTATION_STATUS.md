@@ -1140,3 +1140,19 @@ alterada con hash actualizado rechazada por recálculo, lectura histórica expl�
 y fuentes distintas rechazadas aun con hashes rehechos. Hashes no custodia firmada.
 Pendientes servicio/recibos, API y guardar/reabrir web del análisis; pareados y
 aceptación humana. Sin defaults/sonido ni datos privados nuevos.
+
+
+## Corte 23 · Servicio y API de análisis congelados
+
+AnalysisService exige IDs+hashes expected_sources de preview, revalida fuentes
+antes/después de publicar. ID por selección/hashes permite retry tras restart sin
+fuentes originales; lectura recalcula snapshots. Fallo de publicación elimina sólo
+su carpeta nueva, sin tocar respuestas u otros análisis. API POST/GET analyses y
+GET analyses/{id}/artifacts/{name}; tres artefactos exportables.
+
+Ocho pruebas servicio/runner/API pasaron (2,70 s): hashes distintos desde preview
+rechazados sin publicación, retry mismo ID, exportación idéntica tras restart,
+fuente eliminada y paridad preview/resultado guardado. Warning AnyIO sin fallo.
+No inyección de fallo durante publicación en este corte; caso queda pendiente
+para verificación específica. Pendientes guardar/recovery/reabrir web, pareados y
+ensayos humanos. Sonido/defaults y datos privados intactos.

@@ -122,8 +122,17 @@ def test_response_http_export_restart_and_null(tmp_path):
         preview=client.post('/api/research/r10/analysis-preview',json={'response_ids':[ident]})
         assert preview.status_code==200,preview.text
         assert preview.json()['groups'][0]['items'][0]['unanswered_count']==1
+        selection={'response_ids':[ident],'expected_sources':[{k:v[k] for k in ('id','manifest_sha256')} for v in preview.json()['sources']]}
+        analysis=client.post('/api/research/r10/analyses',json=selection)
+        assert analysis.status_code==200,analysis.text
+        aid=analysis.json()['id']
+        assert client.post('/api/research/r10/analyses',json=selection).json()['id']==aid
+        frozen_analysis=client.get(f'/api/research/r10/analyses/{aid}/artifacts/result.json')
+        assert frozen_analysis.json()==preview.json()
         assert client.post('/api/research/r10/analysis-preview',json={'response_ids':[ident,ident]}).status_code==422
         assert client.post(url,json={**body,'response':{'trial_id':'unknown','ratings':body['response']['ratings']}}).status_code==422
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert len(client.get(url).json())==1
         assert client.get(f'{url}/{ident}/artifacts/result.json').content==artifact.content
+        assert len(client.get('/api/research/r10/analyses').json())==1
+        assert client.get(f'/api/research/r10/analyses/{aid}/artifacts/result.json').content==frozen_analysis.content
