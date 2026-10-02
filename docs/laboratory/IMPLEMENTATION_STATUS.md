@@ -264,3 +264,13 @@ conserva run ID/hash y exact/edited; API rechaza geometría modificada declarada
 exacta. Chrome real probó edición, reload y original intacto con borrador
 editado; contratos/API/artifacts/build pasan. No centroline real ni aceptación
 humana inferidos; tracking temporal, incertidumbre y benchmark pendientes.
+# R08: recuperación histórica y verificación web (2026-10-02)
+
+Comparaciones y curvas de otra versión permanecen visibles y descargables con
+estado `historical_integrity_only`; versiones actuales requieren recálculo.
+Curvas históricas no se incorporan como candidatas verificadas actuales.
+Chrome real sobre fixture sintético verificó lectura, etiquetas, descargas sin
+cambios de bytes, reload y bloqueo por UI/API; una prueba pasó en 1.9 s.
+Evidencia detallada: `research/laboratory/r08_rope/README.md`, cortes 40–41.
+Pendientes: migración/re-corrida explícita, bundles con dependencias,
+seguimiento temporal y evaluación humana de geometría. No se modificó audio.

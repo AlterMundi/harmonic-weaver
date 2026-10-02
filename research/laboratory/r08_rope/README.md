@@ -513,3 +513,17 @@ API pasaron cambios de entorno, bytes intactos, rechazo de corrupción y
 adopción histórica bloqueada; build pasó. Pendiente Chrome de esta etiqueta,
 migración explícita/re-corrida y portable bundle de dependencias. No custodia
 ni resultados científicos falsificados; originales no se reescriben.
+
+### Corte 41: recuperación histórica verificada en Chrome
+
+Fixture HTTP aislado crea comparación y curva sintéticas y simula entorno
+anterior sólo en sus manifests locales. Chrome real verificó etiquetas de
+integridad histórica, apertura de comparación, descargas nativas de ambos
+manifests, bytes idénticos antes/después, persistencia tras reload y curva
+histórica no incorporable: botón deshabilitado y API rebind rechazada con 422.
+El borrador no cambió. Una prueba pasó (975 ms; suite 1.9 s), sin dispositivos
+ni datos corporales; servidor propio detenido. Esto verifica el recorrido web,
+no desempeño del tracker ni aceptación humana. Migración explícita/re-corrida,
+bundle portable con dependencias, seguimiento temporal e incertidumbre siguen
+pendientes; la recuperación histórica no convierte resultados antiguos en
+evidencia recalculada bajo código actual.
