@@ -522,3 +522,22 @@ idempotencia y referencia física pendientes. Inputs importados declarados.
 R09 corte 22: comparación espacial configurable en web con cobertura, error/cause,
 guardado/descargas/reapertura. Build y Chrome sintético pasaron. IDs/procedencia,
 presets/idempotencia y validación física pendientes.
+
+
+## Corte 23 · Comparación de conversiones persistidas
+
+`POST /api/research/r09/compare-conversions` recibe reference_id, candidate_id
+(IDs de conversión) y settings (labels, edad/incertidumbre máxima, opt-ins).
+Resuelve streams de artefactos verificados y congela IDs + SHA256 de cada manifest
+como sources en request/result. Revalida fuentes antes y después de publicar;
+si cambian elimina únicamente la nueva comparación. La ruta declarada
+/comparisons rechaza sources suministrados por cliente. El verificador exige
+binding de sources también al leer resultados históricos.
+
+Siete pruebas de núcleo/runner/servicio/HTTP pasaron (1,02 s): error conocido,
+causalidad, procedencia, fuentes intactas, rechazo de cambios durante publicación,
+exportación/reapertura y rechazo de procedencia declarada como resuelta. Fixture
+con incertidumbre .02 por stream usa umbral combinado .04 explícito; defaults
+no cambiados. Ningún medio privado ni audio procesado. No autentica calibración,
+identidad, sincronización física ni custodia firmada. Pendientes selección por ID
+en web, idempotencia y presets de comparación.

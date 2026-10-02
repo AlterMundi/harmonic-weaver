@@ -2,9 +2,20 @@
 from pathlib import Path
 from uuid import uuid4
 import shutil
+import json
+from pydantic import Field
+from ..contracts import Contract
+from ..cache import sha256_file
+from .spatial_compare import Settings
 import threading
 from .rope_compare_service import RopeCompareService
 from .spatial_compare_run import Input,run,read_verified
+
+
+class Selection(Contract):
+    reference_id:str=Field(pattern=r'^[a-f0-9]{32}$')
+    candidate_id:str=Field(pattern=r'^[a-f0-9]{32}$')
+    settings:Settings
 
 
 class SpatialCompareService(RopeCompareService):
@@ -36,3 +47,23 @@ class SpatialCompareService(RopeCompareService):
         if name not in ('request.json','result.json','manifest.json'):raise ValueError('Unknown spatial comparison artifact')
         folder=self.folder(ident);read_verified(folder)
         return folder/name
+
+
+    def from_conversions(self,conversions,selection):
+        selection=Selection.model_validate(selection)
+        with self.lock:
+            sources={};streams={}
+            for role,ident in (('reference',selection.reference_id),('candidate',selection.candidate_id)):
+                manifest=conversions.artifact(ident,'manifest.json')
+                sources[role]={'id':ident,'manifest_sha256':sha256_file(manifest)}
+                streams[role]=json.loads(conversions.artifact(ident,'result.json').read_text())['stream']
+            def unchanged():
+                for source in sources.values():
+                    if sha256_file(conversions.artifact(source['id'],'manifest.json'))!=source['manifest_sha256']:
+                        raise ValueError('Spatial comparison source changed during publication')
+            unchanged()
+            saved=self.start({'comparison':{**selection.settings.model_dump(),**streams},'sources':sources})
+            try:unchanged()
+            except Exception:
+                shutil.rmtree(self.folder(saved['id']));raise
+            return saved

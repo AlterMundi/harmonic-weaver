@@ -15,12 +15,25 @@ FILES = ('request.json', 'result.json', 'manifest.json')
 CODE = ('spatial_compare_run.py', 'spatial_compare.py', 'spatial_observations.py', '../contracts.py')
 
 
+class Source(Contract):
+    id:str=Field(pattern=r'^[a-f0-9]{32}$')
+    manifest_sha256:Digest
+
+
+class Sources(Contract):
+    reference:Source
+    candidate:Source
+
+
 class Input(Contract):
     comparison: Request
+    sources:Sources|None=None
 
 
 def calculate(frozen):
-    return evaluate(frozen.comparison)
+    result=evaluate(frozen.comparison)
+    if frozen.sources is not None:result['sources']=frozen.sources.model_dump()
+    return result
 
 
 class Manifest(Contract):
@@ -80,6 +93,7 @@ def verify(folder, *, recompute=True):
     Contract.finite_tree(result)
     if not isinstance(result, dict) or result.get('schema_version') != 1 or result.get('line') != 'R09' or result.get('request') != frozen.comparison.model_dump():
         raise ValueError('Spatial comparison result/input binding mismatch')
+    if result.get('sources') != (frozen.sources.model_dump() if frozen.sources else None):raise ValueError('Spatial comparison provenance binding mismatch')
     if recompute:
         if manifest['environment'] != environment() or manifest['code_hashes'] != code_hashes():
             raise ValueError('Recorded comparison implementation/environment differs')

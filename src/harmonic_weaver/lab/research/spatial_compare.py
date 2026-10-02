@@ -6,14 +6,16 @@ from ..contracts import Contract
 from .spatial_observations import Stream
 
 
-class Request(Contract):
-    reference:Stream
-    candidate:Stream
+class Settings(Contract):
     labels:list[str]=Field(min_length=1,max_length=4096)
     max_age_s:float=Field(default=.05,ge=0,le=10)
     max_combined_clock_uncertainty_s:float=Field(default=.02,ge=0,le=10)
     allow_inferred:bool=False
     allow_held:bool=False
+
+class Request(Settings):
+    reference:Stream
+    candidate:Stream
 
     @model_validator(mode='after')
     def compatible(self):

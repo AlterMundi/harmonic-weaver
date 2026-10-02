@@ -291,3 +291,22 @@ Build y Chrome contra API real pasaron (1,3 s): error sintético conocido .5,
 coverage 1/2 (primer candidato futuro excluido), descarga nativa y reload/reapertura
 sin otra corrida. Servidor aislado detenido. Pendientes selección de conversiones
 por IDs/procedencia, presets de comparación e idempotencia; no calibración física.
+
+
+## Corte 23 · Comparación de conversiones persistidas
+
+`POST /api/research/r09/compare-conversions` recibe reference_id, candidate_id
+(IDs de conversión) y settings (labels, edad/incertidumbre máxima, opt-ins).
+Resuelve streams de artefactos verificados y congela IDs + SHA256 de cada manifest
+como sources en request/result. Revalida fuentes antes y después de publicar;
+si cambian elimina únicamente la nueva comparación. La ruta declarada
+/comparisons rechaza sources suministrados por cliente. El verificador exige
+binding de sources también al leer resultados históricos.
+
+Siete pruebas de núcleo/runner/servicio/HTTP pasaron (1,02 s): error conocido,
+causalidad, procedencia, fuentes intactas, rechazo de cambios durante publicación,
+exportación/reapertura y rechazo de procedencia declarada como resuelta. Fixture
+con incertidumbre .02 por stream usa umbral combinado .04 explícito; defaults
+no cambiados. Ningún medio privado ni audio procesado. No autentica calibración,
+identidad, sincronización física ni custodia firmada. Pendientes selección por ID
+en web, idempotencia y presets de comparación.

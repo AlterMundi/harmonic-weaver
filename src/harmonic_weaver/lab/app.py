@@ -25,7 +25,7 @@ from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial, SourceRequest as SpatialSourceRequest, from_library as spatial_from_library
 from .research.spatial_observations import Stream as SpatialStream
-from .research.spatial_compare_service import SpatialCompareService
+from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection
 from .research.spatial_compare_run import Input as SpatialComparisonInput
 from .research.spatial_presets import SpatialViewPresets, Preset as SpatialViewPreset
 from .research.spatial_service import SpatialService, SourceSaveRequest as SpatialSourceSaveRequest, SaveRequest as SpatialSaveRequest
@@ -429,7 +429,13 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
                         'samples_per_segment':body.samples_per_segment})
 
     @app.post('/api/research/r09/comparisons')
-    def spatial_comparison_start(body:SpatialComparisonInput):return spatial_comparisons.start(body)
+    def spatial_comparison_start(body:SpatialComparisonInput):
+        if body.sources is not None:raise ValueError('Resolve comparison provenance through conversion IDs')
+        return spatial_comparisons.start(body)
+
+    @app.post('/api/research/r09/compare-conversions')
+    def spatial_compare_conversions(body:SpatialCompareSelection):
+        return spatial_comparisons.from_conversions(spatial_runs,body)
 
     @app.get('/api/research/r09/comparisons')
     def spatial_comparison_list():return spatial_comparisons.list()
