@@ -1312,3 +1312,14 @@ sessionStorage no sobrevive garantía de cerrar pestaña ni crash/quota; reload 
 conservar último snapshot sin closed (cleanup React no garantiza cierre de página).
 Para durabilidad, guardar en servidor local o exportar. Pendientes sesiones largas/
 latencia/storage, acceptance humana y R11–R13. Sonido/defaults intactos.
+
+
+## R11 · Corte 1: contrato crudo de importación
+
+neuro_observations preserva unidades/referencia, índices/timestamps originales,
+null+causa y anotaciones, reutiliza Clock R09. No filtrado/conversión automática ni
+hardware. Dos pruebas sintéticas pasan (0,14 s). Protocolo y fuentes oficiales en
+research/laboratory/r11_neuro/README.md. Pendientes API/UI/persistencia/SNR,
+inventario/adaptador reales, mediciones y participantes; sin aceptación humana.
+Branch feat/r11-neuro-contract continúa encima de R10, mismo workspace dev;
+originales/lab cotidianos intactos, sin defaults de audio cambiados.

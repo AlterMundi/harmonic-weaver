@@ -895,3 +895,7 @@ y desacoplamiento opcional, orden reproducible, preguntas/escala configurables y
 null explícito. Tests sintéticos no son exposición ni respuestas humanas. Persistencia,
 player con procedencia, niveles/sincronización medidos, análisis y participantes
 siguen pendientes; no resultado sobre placer/belleza/agencia ni sus proxies.
+
+R11 tiene contrato inicial de observaciones crudas y protocolo abierto en
+[r11_neuro/README.md](r11_neuro/README.md): no adquisición/hardware ni índice de
+placer implementados. Import/API/UI/SNR y sincronización física siguen pendientes.
