@@ -487,3 +487,15 @@ UI muestra estos denominadores; referencias ilegibles no se presentan como
 fallos de predicción. Cinco tests métrica/artifact/API y build pasaron, con
 caso 1/2 elegibles más frame ilegible y caso sin referencia visible. No se
 imputan errores cero ni se extrapola calidad fuera de soporte observable.
+
+### Corte 39: comparador de extremos con etiquetas explícitas
+
+Reportes con extremos añaden error firmado x/y y distancia px por etiqueta
+a/b en mismo frame; cobertura visible, faltantes y extremos sólo candidata.
+No se minimiza error permutando etiquetas ni se interpolan frames ausentes;
+rows faltantes permanecen None. UI muestra cobertura de extremos; resultados
+persistidos incluyen estas métricas. Seis tests métrica/artifact/API y build
+pasaron swap de etiquetas (100 px, no cero), faltante y cero elegibles.
+No valida identidad física ni propagación de tensión; tracking temporal y
+benchmark humano continúan pendientes. Cambio de código obliga a distinguir
+artefactos históricos de recálculos verificables bajo versión actual.

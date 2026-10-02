@@ -53,7 +53,22 @@ def compare(request):
             row['sampled_symmetric_mean_distance_px']=float((nearest_a.mean()+nearest_b.mean())/2)
             row['sampled_hausdorff_px']=float(max(nearest_a.max(),nearest_b.max()));supported+=1
         rows.append(row)
-    return {'schema_version':1,'line':'R08','request':request.model_dump(),'rows':rows,
+    endpoint_rows=[];endpoint_eligible=0;endpoint_supported=0;candidate_only_labels=0
+    for index,r in ref.items():
+        c=cand.get(index)
+        for label,point in r.endpoints.items():
+            endpoint_eligible+=1
+            predicted=c.endpoints.get(label) if c else None
+            dx=(predicted.x-point.x)*reference.width_px if predicted else None
+            dy=(predicted.y-point.y)*reference.height_px if predicted else None
+            if predicted is not None:endpoint_supported+=1
+            endpoint_rows.append({'frame_index':index,'time_s':r.time_s,'label':label,
+                'supported':predicted is not None,'error_x_px':dx,'error_y_px':dy,
+                'error_distance_px':float(np.hypot(dx,dy)) if predicted else None,
+                'cause':None if predicted else 'candidate_labeled_endpoint_missing'})
+        if c:candidate_only_labels+=len(c.endpoints.keys()-r.endpoints.keys())
+    candidate_only_labels+=sum(len(cand[i].endpoints) for i in cand.keys()-ref.keys())
+    result={'schema_version':1,'line':'R08','request':request.model_dump(),'rows':rows,
             'coverage':{'reference_frames':len(ref),'candidate_frames':len(cand),'supported_frames':supported,
                         'unsupported_reference_frames':len(ref)-supported,'eligible_reference_frames':eligible,
                         'reference_frames_without_visible_curve':len(ref)-eligible,
@@ -66,3 +81,13 @@ def compare(request):
                       'Each visible segment sampled separately; occluded gaps are never bridged',
                       'Partial curves may describe different visible support; no claim of full-rope agreement',
                       'Annotations are declarations; source integrity and human labeling quality require independent checks']}
+
+    if endpoint_eligible or candidate_only_labels:
+        result['endpoint_comparison']={'rows':endpoint_rows,'coverage':{
+            'eligible_reference_endpoints':endpoint_eligible,'supported_endpoints':endpoint_supported,
+            'missing_candidate_endpoints':endpoint_eligible-endpoint_supported,'candidate_only_endpoints':candidate_only_labels,
+            'supported_fraction':endpoint_supported/endpoint_eligible if endpoint_eligible else None},
+            'limits':['Match only explicit endpoint label a/b on the same frame clock; never optimize a label swap',
+                      'Missing labels retain unsupported rows; no zero error or temporal interpolation',
+                      'Image pixel errors do not establish physical endpoint identity or tension propagation']}
+    return result

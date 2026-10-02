@@ -48,3 +48,18 @@ def test_unidentifiable_reference_is_separate_from_missing_eligible_prediction()
     unknown={**ref,'frames':[ref['frames'][-1]]}
     result=compare({'reference':unknown,'candidate':annotation(frames=())})
     assert result['coverage']['supported_fraction_of_eligible_reference'] is None
+
+
+def test_endpoint_errors_never_swap_labels_or_score_missing_points_as_zero():
+    ref=annotation();ref['frames'][0]['endpoints']={'a':{'x':0,'y':0},'b':{'x':1,'y':0}}
+    ref['frames'][1]['endpoints']={'a':{'x':.2,'y':.1}}
+    cand=annotation();cand['frames'][0]['endpoints']={'a':{'x':1,'y':0},'b':{'x':0,'y':0}}
+    result=compare({'reference':ref,'candidate':cand})['endpoint_comparison']
+    assert [r['error_distance_px'] for r in result['rows']]==[100,100,None]
+    assert result['rows'][0]['error_x_px']==100 and result['rows'][1]['error_x_px']==-100
+    assert result['coverage']['supported_endpoints']==2
+    assert result['coverage']['missing_candidate_endpoints']==1
+    assert result['coverage']['supported_fraction']==pytest.approx(2/3)
+    only=compare({'reference':annotation(frames=()),'candidate':cand})['endpoint_comparison']
+    assert only['coverage']['candidate_only_endpoints']==2
+    assert only['coverage']['supported_fraction'] is None
