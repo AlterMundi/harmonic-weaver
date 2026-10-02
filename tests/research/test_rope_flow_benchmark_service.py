@@ -23,7 +23,7 @@ def test_real_inputs_provenance_restart_and_changed_publication(tmp_path, monkey
         deadline=time.monotonic()+10
         while flows.report(job['id'])['status']=='running' and time.monotonic()<deadline:time.sleep(.01)
         assert flows.report(job['id'])['status']=='complete'
-        selection={'reference_id':ref['id'],'flow_id':job['id'],'endpoint_seeds':{'a':0}}
+        selection={'reference_id':ref['id'],'flow_id':job['id'],'endpoint_seeds':{'a':0},'idempotency_key':'e'*32}
         original={str(p):sha256_file(p) for root in (refs.root/ref['id'],flows.root/job['id']) for p in root.iterdir()}
         service=RopeFlowBenchmarkService(tmp_path,refs,flows);saved=service.start(selection)
         result=json.loads(service.artifact(saved['id'],'result.json').read_text())
@@ -34,6 +34,10 @@ def test_real_inputs_provenance_restart_and_changed_publication(tmp_path, monkey
         assert RopeFlowBenchmarkService(tmp_path,refs,flows).list()[0]['read_verification']=='recomputed'
         with pytest.raises(ValueError):service.start({**selection,'endpoint_seeds':{'a':2}})
         assert len(service.list())==1
+        restored=RopeFlowBenchmarkService(tmp_path,refs,flows)
+        assert restored.start(selection)['id']==saved['id']
+        with pytest.raises(ValueError,match='different selection'):
+            restored.start({**selection,'endpoint_seeds':{'a':1}})
         import harmonic_weaver.lab.research.rope_flow_benchmark_service as module
         real=module.run
         def changed(request,folder):
@@ -42,6 +46,7 @@ def test_real_inputs_provenance_restart_and_changed_publication(tmp_path, monkey
             atomic_json(path,data)
             return manifest
         monkeypatch.setattr(module,'run',changed)
-        with pytest.raises(ValueError,match='changed'):service.start(selection)
+        with pytest.raises(ValueError,match='changed'):service.start({**selection,'idempotency_key':'f'*32})
+        with pytest.raises(ValueError):restored.start({**selection,'idempotency_key':'f'*32})
         assert len(service.list())==1
     finally:flows.close()

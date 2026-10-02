@@ -14,7 +14,16 @@ test('explicit mapping coverage and persisted result',async({page})=>{
  await panel.getByLabel('Corrida temporal R08').selectOption(job.id);
  const start=panel.getByRole('button',{name:'Evaluar extremos R08',exact:true});await expect(start).toBeDisabled();
  await panel.getByLabel('Semilla para extremo a R08').fill('0');await panel.getByLabel('Semilla para extremo b R08').fill('0');await expect(start).toBeDisabled();
- await panel.getByLabel('Semilla para extremo b R08').fill('');await start.click();
+ await panel.getByLabel('Semilla para extremo b R08').fill('');
+ let first=true;const sent:any[]=[];
+ await page.route('**/api/research/r08/flow-benchmarks',async route=>{
+  if(route.request().method()!=='POST'){await route.continue();return;}
+  sent.push(route.request().postDataJSON());
+  if(first){first=false;await route.fetch();await route.abort('failed');}else await route.continue();
+ });
+ await start.click();await expect(panel.getByRole('button',{name:'Recuperar comparación pendiente R08'})).toBeVisible();
+ await page.reload();await page.getByRole('button',{name:'Recuperar comparación pendiente R08'}).click();
+ expect(sent).toHaveLength(2);expect(sent[1]).toEqual(sent[0]);
  await expect(panel.getByText(/entrada de semillas 1/)).toBeVisible();await expect(panel.getByText(/Soporte: .*\/2 extremos elegibles/)).toBeVisible();
  const download=page.waitForEvent('download');await panel.getByRole('link',{name:'result.json',exact:true}).click();expect((await download).suggestedFilename()).toBe('result.json');
  await page.reload();await expect(page.getByText(/Métrica recalculada sobre entradas congeladas/)).toBeVisible();

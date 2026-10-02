@@ -401,3 +401,9 @@ R08 corte 62: benchmark temporal integrado a web con mapeo explícito, cobertura
 exclusiones, errores, inventario y descargas. Build y Chrome contra API/video
 sintético pasaron; calidad de referencias humanas no evaluada. Recuperación de
 respuesta POST perdida e idempotencia aún pendientes para este benchmark.
+
+R08 corte 63: recuperación idempotente de benchmarks en servicio/web, recibos
+persistentes e intento pendiente en sessionStorage. Nueve tests y build pasaron;
+Chrome verificó POST aceptado con respuesta perdida, reload y recuperación sin
+duplicación. No coordinación multiproceso ni GC de recibos; cierre de pestaña no
+garantiza recuperación. Síntesis y medios privados sin cambios.

@@ -4,6 +4,9 @@ export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
  const [flows,setFlows]=useState<Data[]>([]),[runs,setRuns]=useState<Data[]>([]);
  const [reference,setReference]=useState(''),[flow,setFlow]=useState('');
  const [a,setA]=useState(''),[b,setB]=useState('');
+ const receiptKey='weaver.r08.endpoint-benchmark.pending.v1';
+ const [pending,setPending]=useState<Data|null>(null);
+ useEffect(()=>{try{const raw=sessionStorage.getItem(receiptKey);if(!raw)return;if(raw.length>4096)throw Error('oversize');const p=JSON.parse(raw);if(!/^[a-f0-9]{32}$/.test(p.idempotency_key)||! /^[a-f0-9]{32}$/.test(p.reference_id)||! /^[a-f0-9]{32}$/.test(p.flow_id)||!p.endpoint_seeds||Object.keys(p.endpoint_seeds).some(k=>!['a','b'].includes(k)||!Number.isInteger(p.endpoint_seeds[k])))throw Error('invalid');setPending(p);}catch{sessionStorage.removeItem(receiptKey);}},[]);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[result,setResult]=useState<Data|null>(null);
  const refresh=async()=>{const [f,r]=await Promise.all([api('research/r08/flow'),api('research/r08/flow-benchmarks')]);setFlows(f);setRuns(r);};
  useEffect(()=>{let active=true;void Promise.all([api('research/r08/flow'),api('research/r08/flow-benchmarks')]).then(([f,r])=>{if(active){setFlows(f);setRuns(r);}}).catch(e=>{if(active)setError(String(e));});return()=>{active=false;};},[api]);
@@ -12,19 +15,25 @@ export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
  const mappingValid=valid(a)&&valid(b)&&(a!==''||b!=='')&&(a===''||b===''||Number(a)!==Number(b));
  const start=async()=>{
   const endpoint_seeds:Data={};if(a!=='')endpoint_seeds.a=Number(a);if(b!=='')endpoint_seeds.b=Number(b);
-  const saved=await api('research/r08/flow-benchmarks',{reference_id:reference,flow_id:flow,endpoint_seeds});
-  setResult(await api(`research/r08/flow-benchmarks/${saved.id}/artifacts/result.json`));await refresh();
+  const body=pending||{reference_id:reference,flow_id:flow,endpoint_seeds,idempotency_key:crypto.randomUUID().replaceAll('-','')};
+  sessionStorage.setItem(receiptKey,JSON.stringify(body));setPending(body);
+  try{
+   const saved=await api('research/r08/flow-benchmarks',body);
+   setResult(await api(`research/r08/flow-benchmarks/${saved.id}/artifacts/result.json`));
+   sessionStorage.removeItem(receiptKey);setPending(null);await refresh();
+  }catch(e){const status=(e as any)?.status;if(status>=400&&status<500){sessionStorage.removeItem(receiptKey);setPending(null);}throw e;}
  };
  const fmt=(v:any)=>v==null?'sin soporte':Number(v).toFixed(3);
  return <section aria-label="Benchmark temporal de extremos R08"><h3>Evaluar tracking de extremos R08</h3>
  <p>Elegí una revisión manual y una corrida del mismo video. Declarás qué índice de semilla representa cada extremo; dejar vacío excluye esa etiqueta. El frame inicial no cuenta como predicción.</p>
  {error&&<p role="alert">{error}</p>}
  <button disabled={busy} onClick={()=>void act(refresh)}>Actualizar fuentes del benchmark R08</button>
- <label>Referencia temporal R08<select disabled={busy} value={reference} onChange={e=>setReference(e.target.value)}><option value="">Elegir revisión</option>{revisions.map(r=><option key={r.id} value={r.id}>{r.id}</option>)}</select></label>
- <label>Corrida temporal R08<select disabled={busy} value={flow} onChange={e=>{setFlow(e.target.value);setA('');setB('');}}><option value="">Elegir corrida</option>{flows.map(r=><option key={r.id} value={r.id}>{r.id} · {r.read_verification}</option>)}</select></label>
- <label>Semilla para extremo a R08<input disabled={busy} type="text" inputMode="numeric" value={a} onChange={e=>setA(e.target.value)}/></label>
- <label>Semilla para extremo b R08<input disabled={busy} type="text" inputMode="numeric" value={b} onChange={e=>setB(e.target.value)}/></label>
- <button disabled={busy||!reference||!flow||!mappingValid} onClick={()=>void act(start)}>Evaluar extremos R08</button>
+ <label>Referencia temporal R08<select disabled={busy||!!pending} value={reference} onChange={e=>setReference(e.target.value)}><option value="">Elegir revisión</option>{revisions.map(r=><option key={r.id} value={r.id}>{r.id}</option>)}</select></label>
+ <label>Corrida temporal R08<select disabled={busy||!!pending} value={flow} onChange={e=>{setFlow(e.target.value);setA('');setB('');}}><option value="">Elegir corrida</option>{flows.map(r=><option key={r.id} value={r.id}>{r.id} · {r.read_verification}</option>)}</select></label>
+ <label>Semilla para extremo a R08<input disabled={busy||!!pending} type="text" inputMode="numeric" value={a} onChange={e=>setA(e.target.value)}/></label>
+ <label>Semilla para extremo b R08<input disabled={busy||!!pending} type="text" inputMode="numeric" value={b} onChange={e=>setB(e.target.value)}/></label>
+ <button disabled={busy||!!pending||!reference||!flow||!mappingValid} onClick={()=>void act(start)}>Evaluar extremos R08</button>
+ {pending&&<p role="status">Comparación pendiente de confirmar: {pending.reference_id} / {pending.flow_id}. <button disabled={busy} onClick={()=>void act(start)}>Recuperar comparación pendiente R08</button></p>}
  {result&&<div aria-label="Resultado de benchmark R08"><p>Soporte: {result.coverage.supported_endpoints}/{result.coverage.eligible_endpoints} extremos elegibles; sin candidato: {result.coverage.unsupported_eligible_endpoints}.</p>
  <p>Excluidos: fuera de ventana {result.coverage.outside_window_endpoints}; entrada de semillas {result.coverage.seed_input_endpoints}; etiqueta no seleccionada {result.coverage.unselected_label_endpoints}.</p>
  <p>Error sobre soporte: media {fmt(result.summary.mean_error_distance_px_on_supported)} px; máximo {fmt(result.summary.max_error_distance_px_on_supported)} px.</p>

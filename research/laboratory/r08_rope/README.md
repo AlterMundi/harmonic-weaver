@@ -1005,3 +1005,21 @@ Servidor aislado apagado. No hubo revisión de calidad manual ni aceptación hum
 Pendiente recuperación de respuesta POST perdida/idempotencia del benchmark y
 selección asistida más legible con previews; no confundir métricas de imágenes
 observadas con forecasting, profundidad o identidad física.
+
+### Corte 63 — recuperar respuesta perdida del benchmark
+
+Clave opcional estricta de idempotencia, recibo persistido antes del cálculo y
+selección ligada por hash: mismo intento recupera la corrida congelada; otra
+selección con esa clave se rechaza. Una publicación interrumpida no se reinicia
+silenciosamente con el mismo recibo. El recibo no contiene paths, video ni seeds.
+La web conserva el cuerpo pendiente en sessionStorage antes del POST; ante
+respuesta perdida bloquea un nuevo intento y ofrece recuperación explícita.
+Recargar muestra el intento sin enviarlo automáticamente; error HTTP 4xx libera
+el pendiente. Cierre de pestaña no garantiza retención. Recibos sin GC, servicio
+con un solo propietario; múltiples procesos no están coordinados.
+
+Evidencia: nueve tests backend/HTTP pasaron (2,16 s), incluidos recuperación tras
+reinicio, rechazo de clave con selección distinta y publicación fallida sin
+rearranque. Build pasó. Chrome real (2,4 s) abortó la respuesta después de aceptar
+el POST, recargó, recuperó con cuerpo/clave idénticos y comprobó una sola corrida,
+además de cobertura, descarga y reapertura. Servidor aislado apagado.

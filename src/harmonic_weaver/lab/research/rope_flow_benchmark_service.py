@@ -1,5 +1,6 @@
 """Resolve verified local inputs before publishing a frozen endpoint benchmark."""
 import json
+import hashlib
 import shutil
 import threading
 from pathlib import Path
@@ -7,7 +8,7 @@ from typing import Literal
 from uuid import uuid4
 from pydantic import Field
 from ..contracts import Contract
-from ..cache import sha256_file
+from ..cache import sha256_file, atomic_json
 from .rope_flow_benchmark_run import Identifier, Input, run
 from .rope_compare_service import RopeCompareService
 from .rope_flow_benchmark_run import read_verified
@@ -17,6 +18,7 @@ class Selection(Contract):
     reference_id: Identifier
     flow_id: Identifier
     endpoint_seeds: dict[Literal['a','b'], int] = Field(min_length=1, max_length=2)
+    idempotency_key: Identifier | None = None
 
 
 class RopeFlowBenchmarkService(RopeCompareService):
@@ -24,12 +26,26 @@ class RopeFlowBenchmarkService(RopeCompareService):
         self.root = Path(data_dir) / 'research/r08-flow-benchmarks'
         self.lock = threading.RLock()
         self.root.mkdir(mode=0o700, parents=True, exist_ok=True)
+        self.receipts = self.root.parent / 'r08-flow-benchmark-starts'
+        self.receipts.mkdir(mode=0o700, parents=True, exist_ok=True)
         self.references = references
         self.flows = flows
 
     def start(self, selection):
         selection = Selection.model_validate(selection)
+        digest = hashlib.sha256(json.dumps(selection.model_dump(exclude={'idempotency_key'}),
+            sort_keys=True, separators=(',', ':')).encode()).hexdigest()
         with self.lock:
+            receipt = self.receipts / f'{selection.idempotency_key}.json' if selection.idempotency_key else None
+            if receipt is not None and receipt.exists():
+                if receipt.is_symlink() or not receipt.is_file() or receipt.stat().st_size > 4096:
+                    raise ValueError('Regular bounded benchmark receipt required')
+                previous = json.loads(receipt.read_text())
+                if previous.get('selection_sha256') != digest:
+                    raise ValueError('Benchmark start key reused with different selection')
+                # A preallocated key never starts another calculation after interruption.
+                manifest = read_verified(self.folder(previous['id']))
+                return {**manifest, 'id': previous['id'], 'source_resolution': 'frozen_receipt_recovery'}
             # Resolve via owners, not client-supplied snapshots, paths or hashes.
             ref_manifest = self.references.artifact(selection.reference_id, 'manifest.json')
             flow_manifest = self.flows.artifact(selection.flow_id, 'manifest.json')
@@ -50,6 +66,8 @@ class RopeFlowBenchmarkService(RopeCompareService):
             unchanged()
             ident = uuid4().hex
             folder = self.root / ident
+            if receipt is not None:
+                atomic_json(receipt, {'id': ident, 'selection_sha256': digest})
             try:
                 manifest = run(frozen, folder)
                 unchanged()
