@@ -482,3 +482,7 @@ Botón web de fuente en Chrome, idempotencia y presets pendientes; sin rehash de
 R09 corte 12: Chrome real verificó guardar desde generación y recuperar procedencia
 idéntica tras reload, una corrida y cero solicitudes de tracking; fixture sintético.
 Idempotencia/presets y validación física siguen pendientes.
+
+R09 corte 13: servicio/API con recibos idempotentes de ambos guardados; recuperación
+sin generación activa y rechazo de request distinto/fallo sin relanzar. Cinco tests
+pasaron. Uso de claves/recuperación en UI y Chrome pendientes; sin GC/multiproceso.

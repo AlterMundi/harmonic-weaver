@@ -165,3 +165,16 @@ Conserva selección explícita, rango inclusivo, missing para slot ausente y rec
 fuera de duración; cero POST de inicio de tracking. Servidor aislado detenido.
 No prueba calidad corporal, cache físico ni calibración; idempotencia y presets
 siguen pendientes. No datos privados ni cambios sonoros.
+
+## Corte 13 · Recibos persistentes de guardado
+
+SaveRequest/source-save admiten clave estricta opcional de idempotencia. Recibo
+previo al cálculo liga modalidad+request por hash; recuperar mismo intento devuelve
+corrida congelada antes de resolver biblioteca. Funciona tras reinicio y sin job
+in-memory; solicitud distinta se rechaza. Falla/interrupción no relanza con ese
+recibo. Un propietario, sin coordinación multiproceso ni GC; no signed custody.
+
+Cinco tests servicio/HTTP pasaron (0,99 s): declarado recuperado tras reinicio,
+request incompatible, fallo sin relanzar y fuente recuperada tras eliminar job.
+Pendiente envío/recuperación de claves desde web y Chrome de respuesta perdida;
+las claves opcionales no corrigen aún reintentos de botones web actuales.
