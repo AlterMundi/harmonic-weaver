@@ -419,3 +419,9 @@ nominal no demuestra exposición completa; volumen/mute no mide nivel físico.
 Preguntas no son escalas validadas. sessionStorage conserva pendientes sólo durante
 la sesión de esa pestaña; exportaciones/manifests son la copia durable elegida.
 Escucha y aceptación humanas de este recorrido siguen pendientes.
+
+Diseños portables de contrastes R10: editar condiciones/dirección en Diseño JSON,
+guardar o importar/exportar sin IDs. Seleccionar respuestas explícitamente, preparar
+y revisar pares disponibles y faltantes. Usar pares del diseño sólo escribe Pares
+JSON; Calcular pares y Guardar pares congelados siguen siendo acciones separadas.
+Importar/aplicar preset conserva respuestas seleccionadas y descarta preview viejo.

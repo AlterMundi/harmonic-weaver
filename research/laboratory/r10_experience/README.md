@@ -573,3 +573,18 @@ explícita, dirección, preset tras restart/export byte idéntico, IDs/calibraci
 rechazados, contraste duplicado y aplicación HTTP. Warning AnyIO sin fallo.
 Pendientes controles/import/apply de diseños en web y cierre duradero; R11–R13
 y aceptación humana siguen abiertos. No cambios de sonido/defaults.
+
+
+## Corte 32 · Diseños portables en web
+
+Panel diseños incluye configuración JSON, save/list/apply/export presets y native
+import raw/config wrapper (64KiB). Respuestas elegidas explícitamente, preview
+pares disponibles/missing y Usar pares como acción separada; no cálculo/autoplay.
+Import/aplicar cambia sólo diseño, conserva selección y limpia preview obsoleto.
+Config no contiene IDs/calibración; backend estrictamente valida al guardar/preparar.
+
+Build y siete Chrome pasaron (11,1 s): diseño guardado, export sin IDs, import
+wrapped/raw conserva checkbox,1 par+1faltante y aplicación escribe un par; suite
+previa completa pasa. Sin respuestas humanas ni sincronía medida. Pendientes cierre
+durable, sesiones largas/aceptación física y R11–R13; roadmap sigue abierto.
+Servidor sintético detenido, defaults/sonido intactos.
