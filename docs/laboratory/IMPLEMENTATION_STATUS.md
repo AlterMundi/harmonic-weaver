@@ -978,3 +978,22 @@ byte a byte después de restart, gates/trial contradictorios y artefactos descon
 rechazados. Warning de deprecación Starlette/AnyIO, sin fallo. Pendientes captura y
 recuperación web de eventos, respuestas persistentes/análisis y aceptación humana.
 No pruebas Chrome nuevas en este corte, no escucha ni sincronía física acreditadas.
+
+
+## Corte 13 · Captura y guardado explícito desde player
+
+Player captura prepared/play_requested/pause/seek/waiting/media_error/nominal_end,
+snapshots cada 250 ms mientras corre y estado HTMLMediaElement. Exportación JSON
+local y guardado explícito en pausa, con enlaces trace/binding/manifest. No autoplay
+ni protocolo obligatorio para exploración cotidiana. Registro local se reemplaza
+al preparar otro ensayo, advertencia visible; máximo 20000 eventos, overflow visible.
+
+Build pasó y tres Chrome pasaron (7,6 s), incluidos registro guardado por API,
+trial/seek/play/snapshot/secuencia de trace exportado, gates/offset/buffering/cierre
+de cortes previos. Medios sintéticos y audio silenciado; no exposición humana ni
+sincronía física. waiting inyectado, no congestión real.
+
+Pendientes congelar y recuperar POST fallido tras reload, inventario web de registros
+y conservación de cierre/unmount: closed queda sólo en memoria si no se exporta;
+no se afirma durabilidad de eventos posteriores al guardado. Guardar produce snapshot
+finito, no actualiza artefacto existente. Sin cambios al instrumento/sonido/defaults.
