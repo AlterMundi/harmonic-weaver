@@ -51,3 +51,18 @@ roundtrip y rechazo de slot booleano, reloj inválido, paths extras y metros
 incompatibles. Pendiente UI/importación por fuente autorizada, persistencia
 reproducible y medición real de calibraciones/relojes. Validación de esquema no
 presenta observaciones monoculares como reconstrucción 3D verificada.
+
+## Corte 4 · Importación y configuración en web
+
+Panel R09 en Investigación: importar JSON local (32 MiB), editar datos, elegir
+MotionFrames→2D o validación de Stream, slot explícito y reloj completo editables.
+Muestra proveedor/dimensión/unidad, cobertura por estado y JSON resultante; exporta
+resultado por descarga nativa. Edición limpia resultado anterior. Reloj inicial
+es suposición declarada: incertidumbre cero no demuestra sincronización.
+No guarda automáticamente, selecciona personas ni modifica audio/live.
+
+Build pasó; Chrome real con API (1,4 s) importó MotionFrames sintéticos, configuró
+slot/offset/incertidumbre, verificó cobertura y tiempo común, descargó resultado,
+validó el Stream y mostró rechazo de input inválido. Servidor aislado detenido.
+Pendientes persistencia/presets, acceso desde cache autorizado, visualización
+espacial y medición real; el JSON importado es declaración, no origen autenticado.

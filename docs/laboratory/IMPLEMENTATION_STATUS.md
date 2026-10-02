@@ -446,3 +446,7 @@ R09 corte 3: API stateless de conversión MotionFrames y validación de streams;
 cobertura y tiempos comunes declarados. Cinco tests hasta HTTP pasaron. UI,
 persistencia y resolución por fuente autorizada pendientes; contract_only no
 verifica hardware/calibración/sincronización ni identidad humana.
+
+R09 corte 4: panel web para importar/editar JSON, slot/reloj explícitos, convertir
+2D/validar stream, ver cobertura y exportar. Build y Chrome real contra API pasaron.
+Sin persistencia automática ni cambio de live; cache autorizado/presets pendientes.
