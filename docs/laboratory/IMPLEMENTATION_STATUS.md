@@ -728,3 +728,22 @@ frames preservados, restart/recovery sin fuente, mutación durante publicación 
 rechazo de procedencia manual. Sin medios privados/dispositivos/audio. No autentica
 mediciones físicas ni nombre del reloj. Pendiente controles web por ambos IDs,
 recuperación/Chrome y proveedores/calibración/sincronización reales.
+
+
+## Corte 34 · Guardado web por IDs de reloj y conversión
+
+Panel selecciona conversión original/ajuste persistidos, inventario de conversiones
+se actualiza explícitamente y extrapolación default false. Guardar publica por
+clock-conversions, muestra resultado congelado/ID y descarga tres artefactos.
+Pedido con clave va a sessionStorage antes de POST, reload restaura sin envío
+automático, recuperación explícita conserva selección congelada y bloquea otro
+save mientras pendiente. Respuesta aceptada limpia pendiente antes de lecturas.
+Rechazos 4xx lo limpian; sin almacenamiento no se envía. Inventario incluye la
+nueva conversión; reapertura está en panel general R09. No cambia fuentes/live.
+
+Build completo pasó. Chrome real contra API aislada pasó (1,4 s): selección de
+ambos IDs sintéticos, aceptación con respuesta perdida, reload/reintento idéntico,
+una nueva conversión (dos totales), descarga nativa con IDs y frames preservados,
+clock original offset0/nuevo offset2. Servidor apagado. Sin medios privados ni
+hardware, defaults/audio intactos. Retención al cerrar tab/coordinación multipestaña
+no garantizadas; exactitud física/calibración/proveedores 3D reales siguen pendientes.
