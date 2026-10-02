@@ -432,3 +432,8 @@ idempotente del POST pareado y revisión humana pendientes. Audio sin cambios.
 R08 corte 69: recuperación idempotente del banco pareado en servicio/web con
 recibos persistentes y sessionStorage. Servicio/HTTP, build y Chrome tras POST
 aceptado con respuesta perdida pasaron; único banco. Sin GC/coordinación multiproceso.
+
+R09 primer corte: contrato espacial/relojes estricto para distinguir 2D observado,
+3D inferido, unidades/escala, calibración declarada y missing. Dos tests pasaron;
+adaptadores/API/UI, evidencia de calibración y benchmark 3D pendientes. No sensores
+ni modelos nuevos instalados; ninguna inferencia física/científica verificada.
