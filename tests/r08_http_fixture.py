@@ -14,9 +14,10 @@ parser.add_argument('--slow-frame-first',action='store_true')
 parser.add_argument('--historical-artifacts',action='store_true')
 parser.add_argument('--slow-flow-first',action='store_true')
 parser.add_argument('--spatial-generation',action='store_true')
+parser.add_argument('--experience-stimulus',action='store_true')
 args=parser.parse_args();args.root.mkdir(parents=True,exist_ok=False)
 video=args.root/'synthetic.mp4'
-subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','testsrc2=size=160x120:rate=10:duration=0.5','-c:v','libx264',str(video)],check=True)
+subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i',f'testsrc2=size=160x120:rate=10:duration={3 if args.experience_stimulus else .5}','-c:v','libx264',str(video)],check=True)
 library=VideoLibrary(args.root/'library')
 library.index.write_text(json.dumps({'synthetic':{'id':'synthetic','name':'synthetic.mp4','path':str(video)}}))
 library=VideoLibrary(args.root/'library')
@@ -64,6 +65,28 @@ if args.slow_flow_first:
             capture([sys.executable,'-c',f'from pathlib import Path;import os,time;Path({str(pidfile)!r}).write_text(str(os.getpid()));time.sleep(30)'],max_bytes=1024,cancel=cancel)
         return original_flow_run(request,path,folder,reader,cancel=cancel)
     flow_module.run=slow_flow
+if args.experience_stimulus:
+    from test_lab_evaluation import source_fixture
+    from harmonic_weaver.lab.evaluation.runner import Request as EvaluationRequest,run as evaluate
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    from harmonic_weaver.lab.store import SessionStore
+    from harmonic_weaver.lab.routing import PreparedRoutes
+    from harmonic_weaver.lab.presets import initial_presets
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.research.candidate_input import candidate_snapshot
+    from harmonic_weaver.lab.research.resonator_run import run as render
+    pose_root=args.root/'synthetic-pose';pose_root.mkdir()
+    source,_,_=source_fixture(pose_root,media_bytes=video.read_bytes())
+    ident='a'*32;folder=args.root/'evaluations'/ident;folder.mkdir(parents=True)
+    request=EvaluationRequest(presets=[next(p for p in initial_presets() if p.algorithm.id=='local')],sources=[source])
+    atomic_json(folder/'request.json',request.model_dump());evaluate(request,folder/'result')
+    store=SessionStore(args.root/'fixture-store',prepare=PreparedRoutes)
+    evaluation=EvaluationService(args.root,store,library)
+    try:
+        document=candidate_snapshot(evaluation,{'evaluation_id':ident,'run_index':0,'signal_id':'zone.1.speed',
+            'start_s':.3,'end_s':1.5,'high':.1,'low':.02})
+        render(document,{'resonators':{'sample_rate':8000},'render':{'tail_s':.1}},args.root/'research/r05'/('b'*32))
+    finally:evaluation.close();store.close()
 app=create_app(args.root,runtime=runtime,ui_dir=args.ui)
 if args.historical_artifacts:
     import numpy as np

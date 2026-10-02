@@ -55,6 +55,9 @@ def test_resolved_r05_protocol_http_and_manual_provenance_rejected(bound):
         with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
             selection={'config':{},'participant_slot':'synthetic','role':'observer','order_index':0,
                 'stimuli':[{'id':'clip','r05_id':ident,'arm':'single'}],'idempotency_key':'f'*32}
+            preview=client.post('/api/research/r10/r05-preview',json=selection);assert preview.status_code==200,preview.text
+            assert client.get('/api/research/r10/protocols').json()==[]
+            selection['expected_sources']=preview.json()['sources']
             saved=client.post('/api/research/r10/r05-protocols',json=selection);assert saved.status_code==200,saved.text
             protocol_id=saved.json()['id']
             result=client.get(f'/api/research/r10/protocols/{protocol_id}/artifacts/result.json').json()

@@ -8,7 +8,7 @@ from ..cache import atomic_json
 import threading
 from uuid import uuid4
 from .rope_compare_service import RopeCompareService
-from .experience_run import Input,run,read_verified
+from .experience_run import Input,run,read_verified,calculate
 from pydantic import Field
 from .experience_sources import Selection,resolve
 
@@ -77,10 +77,22 @@ class ExperienceService(RopeCompareService):
         sources=[]
         def freeze():
             sources.extend(resolve(resonators,evaluation,ref) for ref in selection.stimuli)
-            protocol=selection.model_dump(exclude={'idempotency_key','stimuli'})
+            if selection.expected_sources is not None and sources!=selection.expected_sources:raise ValueError('Stimuli changed since preview; inspect again before saving')
+            protocol=selection.model_dump(exclude={'idempotency_key','stimuli','expected_sources'})
             protocol['stimuli']=[source.stimulus().model_dump() for source in sources]
             return {'protocol':protocol,'sources':sources}
         def check():
             for ref,source in zip(selection.stimuli,sources):
                 if resolve(resonators,evaluation,ref)!=source:raise ValueError('R10 stimulus changed during publication')
-        return self.publish('r05',selection.model_dump(exclude={'idempotency_key'}),selection.idempotency_key,freeze,check)
+        return self.publish('r05',selection.model_dump(exclude={'idempotency_key','expected_sources'} if selection.expected_sources is None else {'idempotency_key'}),selection.idempotency_key,freeze,check)
+
+    def preview_r05(self,resonators,evaluation,selection):
+        selection=Selection.model_validate(selection)
+        sources=[resolve(resonators,evaluation,ref) for ref in selection.stimuli]
+        if selection.expected_sources is not None and sources!=selection.expected_sources:raise ValueError('Stimuli changed since preview')
+        protocol=selection.model_dump(exclude={'idempotency_key','stimuli','expected_sources'})
+        protocol['stimuli']=[s.stimulus().model_dump() for s in sources]
+        result=calculate(Input(protocol=protocol,sources=sources))
+        for ref,source in zip(selection.stimuli,sources):
+            if resolve(resonators,evaluation,ref)!=source:raise ValueError('R10 stimulus changed during preview')
+        return result

@@ -822,3 +822,25 @@ sin fuentes, mutación de PCM durante publicación, API/recibo y procedencia man
 rechazada. Medio original de fixture son bytes b'a', NO video decodificable/Chrome
 ni prueba audiovisual. Sin medios privados/hardware/audio device. Pendientes UI/
 Chrome de selección por IDs, fixture video real, player/exposición y registros.
+
+
+## Corte 5 · Vista previa y selección R05 por web
+
+r05-preview resuelve fuentes sin publicar. Selection admite expected_sources; al
+publicar compara snapshots completos, rechazando cambios respecto a preview.
+Canonical previo de recibos sin expected_sources permanece igual. Web inventario
+R05 completo, selector single o excited/mapped según kind, etiquetas y builder
+para varios estímulos; selección/config/rol/orden editables en JSON. Guarda sólo
+tras preparar y envía hashes esperados. Pedido+clave se conserva antes de POST;
+reload/reintento explícito recupera la misma entrada y actualiza inventario general
+R10. 4xx limpia pendiente y preview; no aplica de nuevo fuentes silenciosamente.
+
+Once pruebas núcleo/servicio/runner/API pasaron (4,71 s), build pasó. Chrome real
+API aislada pasó (1,7 s): inventario/añadir/preparar, cero protocolos antes de save,
+respuesta aceptada perdida/reload/reintento idéntico con expected_sources, una copia,
+reapertura/calendario y descarga de hashes/crop .3–1.5. Fixture --experience-stimulus
+con H264 sintético3s y tracking sintético preparado (no inferido del video), evaluación
+real y R05 PCM8kHz; esta prueba NO reproduce audio/video ni verifica sincronía.
+Sólo se duplica el medio sintético pequeño en fixture, ningún original privado.
+Servidor apagado, audio/defaults intactos. Pendiente player/exposición/mediciones
+físicas/respuestas/análisis. Sin garantía de retención al cerrar tab/multipestaña.

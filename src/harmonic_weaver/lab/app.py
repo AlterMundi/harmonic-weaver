@@ -465,6 +465,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
 
+    @app.post('/api/research/r10/r05-preview')
+    def experience_source_preview(body:ExperienceSourceSelection):return experience_protocols.preview_r05(resonators,evaluation,body)
+
     @app.post('/api/research/r10/r05-protocols')
     def experience_source_protocol_save(body:ExperienceSourceSelection):return experience_protocols.from_r05(resonators,evaluation,body)
 

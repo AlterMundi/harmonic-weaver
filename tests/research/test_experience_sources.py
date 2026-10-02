@@ -43,3 +43,19 @@ def test_changed_pcm_discards_new_protocol_only(bound,tmp_path,monkeypatch):
         with pytest.raises(ValueError,match='hash'):service.from_r05(resonators,evaluation,{**selection,'idempotency_key':None})
         assert [r['id'] for r in service.list()]==[saved['id']]
     finally:resonators.close()
+
+
+def test_preview_freezes_expected_sources_and_rejects_valid_changed_manifest(bound,tmp_path):
+    evaluation,resonators,selection=prepare(bound,tmp_path)
+    try:
+        service=ExperienceService(tmp_path/'r10-session')
+        preview=service.preview_r05(resonators,evaluation,selection)
+        assert service.list()==[]
+        expected={**selection,'expected_sources':preview['sources']}
+        path=resonators.root/('d'*32)/'manifest.json'
+        manifest=json.loads(path.read_text());manifest['limits'].append('changed metadata')
+        from harmonic_weaver.lab.cache import atomic_json
+        atomic_json(path,manifest)
+        with pytest.raises(ValueError,match='since preview'):service.from_r05(resonators,evaluation,expected)
+        assert service.list()==[]
+    finally:resonators.close()

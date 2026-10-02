@@ -15,11 +15,6 @@ class Reference(Contract):
     arm:Literal['single','excited','mapped']='single'
 
 
-class Selection(Request):
-    stimuli:list[Reference]=Field(min_length=1,max_length=8)
-    idempotency_key:str|None=Field(default=None,pattern=r'^[a-f0-9]{32}$')
-
-
 class Source(Contract):
     stimulus_id:str=Field(min_length=1,max_length=80)
     r05_id:str=Field(pattern=r'^[a-f0-9]{32}$')
@@ -45,6 +40,12 @@ class Source(Contract):
 
     def stimulus(self):
         return Stimulus(id=self.stimulus_id,reference=f'r05:{self.r05_id}:{self.arm}',start_s=self.source_start_s,end_s=self.source_end_s,nominal_audio_offset_s=0)
+
+
+class Selection(Request):
+    stimuli:list[Reference]=Field(min_length=1,max_length=8)
+    expected_sources:list[Source]|None=Field(default=None,min_length=1,max_length=8)
+    idempotency_key:str|None=Field(default=None,pattern=r'^[a-f0-9]{32}$')
 
 
 def resolve(resonators,evaluation,reference):
