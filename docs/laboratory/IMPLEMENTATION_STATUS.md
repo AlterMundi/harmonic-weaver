@@ -380,3 +380,9 @@ confirma inventario, sin fabricar timestamps. Medición local cinco cuadros:
 individual 15.515 s vs secuencia 3.830 s, features idénticos; probe 16.146 s aparte.
 README corte 58 preserva controles/limitaciones y privacidad. Sin default nuevo;
 benchmark humano, más modalidades y demás roadmap pendientes.
+
+R08 benchmark de extremos: núcleo con mapping seed/etiqueta explícito, seed-input
+excluido, shared support/coverage y errores faltantes None. Tres tests pasaron
+(0.27 s), distancias/swap/exclusiones/contracts/repetición; README corte 59.
+Persistencia/procedencia/API/UI y referencia humana real todavía pendientes;
+no métrica de forecasting ni evaluación de curva completa. Audio intacto.

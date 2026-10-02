@@ -920,3 +920,31 @@ mano/persona ni calidad de tracking. Sin persistir resultados/imágenes/video.
 Sólo tiempos/paridad agregados publicados. Una corrida de este equipo no es
 promesa realtime ni experimento científico de cuerpo/HIT. No cambios de
 producción/defaults en este corte; benchmark humano y roadmap siguen abiertos.
+
+### Corte 59: núcleo de benchmark de extremos con soporte explícito
+
+`rope_flow_benchmark.evaluate` recibe Annotation manual y snapshot de flow
+validado, más mapping explícito etiqueta a/b → índice de seed (distintos y
+existentes). Exige mismo hash/dimensiones y clock compartido. No asigna identidad
+por proximidad ni optimiza swaps. Evalúa extremos seleccionados anotados dentro
+de ventana; excluye cuadro inicial porque seeds son input, no estimación.
+Referencia fuera de ventana/etiqueta no seleccionada se conserva como exclusión,
+no fallo de tracker. Candidatos perdidos permanecen unsupported con error None,
+incluida pérdida anterior sin reactivación; causa del frame se conserva si existe.
+
+Errores x/y/distancia en px; mean/max sólo sobre soporte válido y coverage sobre
+elegibles explícita (None si cero), sin imputar ceros. Snapshot/request normaliza
+contrato pero no verifica archivo fuente ni origen de los artefactos por sí solo.
+Flow observa imagen actual, por lo que no son métricas de forecasting ni pruebas
+de identidad física/propagación. Referencia humana requiere calidad independiente.
+
+Tres tests pasaron (0.27 s): errores conocidos ±10 px, media 7.5 px sobre cuatro
+de ocho elegibles, cuadro input y exterior excluidos, faltantes/no revival,
+swap explícito con 70 px (no optimizado a cero), etiquetas seleccionadas, cero
+soporte, source/clock/mapping/bools/snapshot inválidos y repetición exacta.
+Sin datos corporales ni aceptación humana; audio/defaults intactos.
+
+**Núcleo todavía no integrado a persistencia/API/UI.** Próximo: corrida congelada
+con vínculos a manifests de revisión/flow, comparación web/mapping editables y
+descargas, luego etiquetas humanas y controles sobre segmentos reales. Evaluar
+endpoints no valida curva completa/centerline, cruces ni incertidumbre física.
