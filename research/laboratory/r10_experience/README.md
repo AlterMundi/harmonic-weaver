@@ -292,3 +292,23 @@ Pendientes congelar y recuperar POST fallido tras reload, inventario web de regi
 y conservación de cierre/unmount: closed queda sólo en memoria si no se exporta;
 no se afirma durabilidad de eventos posteriores al guardado. Guardar produce snapshot
 finito, no actualiza artefacto existente. Sin cambios al instrumento/sonido/defaults.
+
+
+## Corte 14 · Recuperación web e inventario de transporte
+
+Antes del POST, player congela JSON en sessionStorage. Envió fallido conserva
+contenido; no permite guardar otro hasta recuperar el pendiente. Panel independiente
+restaura tras reload, retry explícito sin autoplay/player, lista registros y ofrece
+attachments. Identidad por contenido evita duplicados; retry no añade snapshots
+posteriores. No autoenvío, almacenamiento limitado a la sesión de esa pestaña.
+
+Build y tres Chrome pasaron (7,8 s). API aceptó primer POST y respuesta fue abortada
+a propósito; reload restauró pendiente, segundo POST idéntico recuperó un único
+registro. También verificadas condiciones/seek/offset/buffering/carga tardía. Audio
+silenciado y medios sintéticos; no exposición humana ni sincronía física.
+
+Pendientes gestión explícita de pendiente inválido/rechazado (ahora conserva para
+diagnóstico), conservar cierres/unmount posteriores al snapshot, respuestas
+persistentes/análisis y ensayo humano. sessionStorage no garantiza recuperación
+al cerrar pestaña ni si almacenamiento falla; fallo visible evita enviar sin copia.
+No cambios del instrumento/sonido/defaults ni medios privados.

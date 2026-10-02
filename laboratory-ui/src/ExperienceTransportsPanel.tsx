@@ -1,0 +1,12 @@
+import {useEffect,useState} from 'react';
+export const transportPendingKey='weaver.r10.transport.pending.v1';
+export const transportChanged='weaver-r10-transport-changed';
+export function notifyTransports(){window.dispatchEvent(new Event(transportChanged));}
+export function ExperienceTransportsPanel({api}:{api:any}){
+ const [rows,setRows]=useState<any[]>([]),[pending,setPending]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const loadPending=()=>{try{const raw=sessionStorage.getItem(transportPendingKey);if(!raw){setPending(null);return;}if(raw.length>16*1024*1024)throw Error('Registro pendiente demasiado grande');const p=JSON.parse(raw);if(p.schema_version!==1||!/^[a-f0-9]{32}$/.test(p.protocol_id)||!/^[a-f0-9]{64}$/.test(p.protocol_manifest_sha256)||!Array.isArray(p.events)||!p.events.length||p.events.length>20000)throw Error('Registro pendiente inválido');setPending(p);}catch(e){setError(String(e));setPending(null);}};
+ const refresh=async()=>{setRows(await api('research/r10/transports'));};
+ useEffect(()=>{loadPending();void refresh().catch(e=>setError(String(e)));const changed=()=>{loadPending();void refresh().catch(e=>setError(String(e)));};window.addEventListener(transportChanged,changed);return()=>window.removeEventListener(transportChanged,changed);},[api]);
+ const retry=async()=>{if(!pending)return;setBusy(true);setError('');try{await api('research/r10/transports',pending);sessionStorage.removeItem(transportPendingKey);setPending(null);notifyTransports();await refresh();}catch(e){setError(String(e));}finally{setBusy(false);}};
+ return <section aria-label="Registros de transporte R10"><h3>Registros declarados de transporte</h3><p>Snapshots guardados, sin acreditar escucha o exposición humana. El envío pendiente conserva su contenido; reintentar no incorpora eventos nuevos ni reproduce medios.</p>{error&&<p role="alert">{error}</p>}{pending&&<><p>Envío pendiente: {pending.trial_id} · {pending.events.length} eventos.</p><button disabled={busy} onClick={()=>void retry()}>Recuperar envío de transporte R10</button></>}<button disabled={busy} onClick={()=>void refresh().catch(e=>setError(String(e)))}>Actualizar registros de transporte R10</button>{rows.map(r=><div key={r.id}>{r.id} · {r.read_verification} {['trace.json','binding.json','manifest.json'].map(name=><a key={name} href={`/api/research/r10/transports/${r.id}/artifacts/${name}`} download>{name} </a>)}</div>)}</section>;
+}
