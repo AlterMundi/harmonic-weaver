@@ -100,3 +100,24 @@ relations if the research question is phase coupling; Anni's v0 was defined
 for adjacent segments and should not be relabelled as a failed universal HIT
 test. Real footage, perceptual judgments, and task outcomes require separate
 consent, instruments, controls, and held-out sessions.
+
+## Review follow-up — 2026-10-02
+
+Nico's review of PR #36 identified that the adapter discarded stream identity
+and indexed comparisons only by source time. A second session or loop could
+silently overwrite another row at the same timestamp. The original single-epoch
+bench results above were unaffected.
+
+Output records now retain source/stream/person identity and sequence.
+Comparisons use `(source_id, stream_id, person_id, source_time_s)`, validate both
+inputs for duplicates, and preserve that identity in the returned pairs.
+Epochs can be reordered or omitted without aligning unrelated observations.
+Records without identity are explicitly rejected. A loop/seek must declare a
+new stream epoch; reusing an old epoch with backward time fails before model
+evaluation. Source changes reset history even when sessions reuse stream names.
+
+Regression cases cover repeated timestamps across loops/seeks/sessions,
+different people, reordered and missing epochs, duplicate units on either
+side (including missing signals), legacy records, and model-history reset.
+All **18 bridge tests** pass on the original pinned Weaver base. The change
+extends only this research adapter and its tests/documentation.
