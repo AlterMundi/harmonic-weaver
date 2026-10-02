@@ -102,3 +102,24 @@ def test_transport_http_save_retry_export_restart_and_condition_binding(tmp_path
         assert client.post(url,json=body).json()['id']==ident
         for name,content in exports.items():
             assert client.get(f'{url}/{ident}/artifacts/{name}').content==content
+
+
+def test_response_http_export_restart_and_null(tmp_path):
+    import hashlib
+    url='/api/research/r10/responses'
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        protocol=client.post('/api/research/r10/protocols',json={'protocol':data()}).json()
+        base=f"/api/research/r10/protocols/{protocol['id']}/artifacts/"
+        result=client.get(base+'result.json').json()
+        body={'protocol_id':protocol['id'],
+            'protocol_manifest_sha256':hashlib.sha256(client.get(base+'manifest.json').content).hexdigest(),
+            'response':{'trial_id':'trial-0001','ratings':{i['id']:None for i in result['request']['config']['items']}}}
+        response=client.post(url,json=body);assert response.status_code==200,response.text
+        ident=response.json()['id'];assert client.post(url,json=body).json()['id']==ident
+        artifact=client.get(f'{url}/{ident}/artifacts/result.json')
+        assert artifact.status_code==200 and 'attachment' in artifact.headers['content-disposition']
+        assert artifact.json()['validated']['response']['ratings']['pleasure'] is None
+        assert client.post(url,json={**body,'response':{'trial_id':'unknown','ratings':body['response']['ratings']}}).status_code==422
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert len(client.get(url).json())==1
+        assert client.get(f'{url}/{ident}/artifacts/result.json').content==artifact.content

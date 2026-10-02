@@ -27,6 +27,8 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_response import Request as FrozenExperienceResponse
+from .research.experience_response_service import ResponseService
 from .research.experience_transport import Trace as ExperienceTrace
 from .research.experience_transport_service import TransportService
 from .research.experience_playback import playback as experience_playback
@@ -287,6 +289,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     experience_presets = ExperiencePresets(data_dir)
     experience_protocols = ExperienceService(data_dir)
     experience_transports = TransportService(data_dir)
+    experience_responses = ResponseService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -468,6 +471,17 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r10/responses')
+    def experience_response_save(body:FrozenExperienceResponse):
+        return experience_responses.start(experience_protocols,experience_transports,body)
+
+    @app.get('/api/research/r10/responses')
+    def experience_response_list():return experience_responses.list()
+
+    @app.get('/api/research/r10/responses/{ident}/artifacts/{name}')
+    def experience_response_artifact(ident:str,name:str):
+        return FileResponse(experience_responses.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r10/transports')
     def experience_transport_save(body:ExperienceTrace):

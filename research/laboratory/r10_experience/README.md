@@ -340,3 +340,20 @@ Cuatro pruebas response/protocol/transport-service pasaron (0,37 s): null/75,
 reapertura, rechazo de escala/item/hash/trial y transporte de otro protocolo/ensayo.
 Este corte resuelve/vincula en memoria; persistencia, API/UI de respuestas y análisis
 siguen pendientes. Sin datos humanos nuevos ni cambios de sonido/defaults.
+
+
+## Corte 17 · Respuestas persistentes y API
+
+ResponseService guarda request/result/manifest inmutables bajo r10-responses,
+ID por contenido y retry idéntico tras restart. Corrección crea registro nuevo sin
+reemplazar ni deduplicar participantes implícitamente. Snapshot conserva preguntas,
+escala/trial/role/slot y vínculo opcional de transporte. Lectura valida hashes,
+identidad y binding de respuesta/role/slot aun histórica; con código coincidente
+recalcula ratings. Reabrir no exige protocolo/media originales; nuevo registro sí.
+
+POST/GET /api/research/r10/responses y GET /responses/{id}/artifacts/{name}.
+Ocho pruebas API/servicio/binding pasaron (2,62 s); dos repetidas tras reforzar
+binding histórico (0,37 s inicial previo). Retry, corrección, null, exportación
+idéntica tras restart, fuente eliminada y corrupción verificadas. Warning AnyIO
+de deprecación sin fallos. Pendientes UI/recovery y análisis descriptivo, aceptación
+humana y hardware. Datos sintéticos, sin respuestas humanas nuevas ni defaults.
