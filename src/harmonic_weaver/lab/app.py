@@ -23,6 +23,7 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.rope_compare_service import RopeCompareService
 from .research.rope_jobs import RopeJobs
 from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
@@ -233,6 +234,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope = RopeService(data_dir)
     rope_reader = RopeReader()
     rope_jobs = RopeJobs(rope_reader)
+    rope_comparisons = RopeCompareService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -309,10 +311,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r08/compare')
     def rope_compare(body:RopeCompare):
-        from .research.rope_compare import compare
-        return compare({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
+        return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.get('/api/research/r08/comparisons')
+    def rope_comparison_list():return rope_comparisons.list()
+
+    @app.get('/api/research/r08/comparisons/{ident}/artifacts/{name}')
+    def rope_comparison_artifact(ident:str,name:str):
+        return FileResponse(rope_comparisons.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r08/reads')
     def rope_read_start(body:RopeRead):

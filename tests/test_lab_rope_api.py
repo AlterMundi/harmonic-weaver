@@ -39,12 +39,16 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         second=client.post('/api/research/r08',json={'media_id':'local-video','annotation':annotation,'parent_id':ident})
         assert second.status_code==200 and second.json()['parent_manifest_sha256']
         comparison=client.post('/api/research/r08/compare',json={'reference_id':ident,'candidate_id':second.json()['id']})
-        assert comparison.status_code==200 and comparison.json()['coverage']['reference_frames']==0
+        assert comparison.status_code==200
+        compared=client.get(f"/api/research/r08/comparisons/{comparison.json()['id']}/artifacts/result.json")
+        assert compared.status_code==200 and compared.json()['coverage']['reference_frames']==0
         assert client.post('/api/research/r08/probe',json={'media_id':str(video)}).status_code==404
         assert client.post('/api/research/r08/probe',json={'media_id':'local-video','path':str(video)}).status_code==422
         assert client.get(f'/api/research/r08/{ident}/artifacts/worker.log').status_code==422
     with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
         assert len(client.get('/api/research/r08').json())==2
+        assert len(client.get('/api/research/r08/comparisons').json())==1
+        assert client.get(f"/api/research/r08/comparisons/{comparison.json()['id']}/artifacts/worker.log").status_code==422
         assert client.get(f'/api/research/r08/{ident}/artifacts/annotation.json').json()['frames']==[]
         assert client.post(f'/api/research/r08/{ident}/rebind',json={'media_id':'local-video'}).status_code==200
         with video.open('ab') as handle:handle.write(b'changed')

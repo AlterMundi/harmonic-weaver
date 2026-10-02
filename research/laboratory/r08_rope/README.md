@@ -291,3 +291,18 @@ pueden tener distinto soporte visible y requieren interpretación explícita.
 Tres tests numéricos/API y build pasaron; test adicional de presupuesto pasó.
 Pendiente recorrido Chrome y persistir corrida/manifest; resultado actual
 se muestra en web y se pierde al recargar, revisiones sí se conservan.
+
+### Corte 23: corridas de comparación persistidas
+
+Comparar revisiones ahora crea una corrida en research/r08-comparisons con
+request/result/manifest, hashes, implementación y entorno Python/NumPy.
+API/UI recuperan lista verificada y artefactos whitelist tras reiniciar;
+resultado congela ambas anotaciones, no depende de IDs efímeros. Verificador
+recalcula métricas con código/entorno registrados y rechaza alteración aun
+si se reescribe checksum; cambios de versión impiden verificación exacta,
+no se anuncian como fallos científicos. CLI `python -m
+harmonic_weaver.lab.research.rope_compare_run --request <json> --output <nuevo>`.
+Cuatro tests métrica/artifact/API y build pasaron, incluyendo repeat bytes,
+no sobrescritura, manipulación numérica, entorno y restauración/whitelist.
+Chrome del comparador pendiente. Hashes locales no son custodia firmada,
+calidad de anotación humana ni rebind actual a video: requerirlo aparte.
