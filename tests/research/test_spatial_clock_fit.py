@@ -26,3 +26,15 @@ def test_clock_fit_rejects_missing_evidence_duplicate_and_invalid_rates():
                    {'anchors':[{'source_time_s':i*1e155,'common_time_s':i*1e155} for i in range(3)]},
                    {'anchors':[{'source_time_s':i,'common_time_s':3*i} for i in range(3)]}):
         with pytest.raises(ValueError):fit({**data(),**change})
+
+
+def test_reserved_anchors_do_not_change_fit_or_uncertainty():
+    body=data();original=fit(body)
+    body['validation_anchors']=[{'source_time_s':5,'common_time_s':7.105},{'source_time_s':30,'common_time_s':32.23}]
+    result=fit(body)
+    assert result['clock']==original['clock']
+    assert result['validation']['count']==2
+    assert result['validation']['max_abs_residual_s']==pytest.approx(.2)
+    assert [r['extrapolated'] for r in result['validation']['rows']]==[False,True]
+    body['validation_anchors']=[body['anchors'][0]]
+    with pytest.raises(ValueError,match='separate'):fit(body)

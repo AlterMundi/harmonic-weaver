@@ -395,3 +395,22 @@ duplicados, tasa inválida y extremos numéricos. Build completo pasó. Pendient
 Chrome de ajuste/exportación, marcas reales con referencia independiente,
 validación reservada temporal y persistencia de resultados. Sin dispositivos ni
 medios privados; síntesis/defaults intactos. No es evidencia de exactitud física.
+
+
+## Corte 29 · Marcas reservadas y Chrome de reloj
+
+validation_anchors opcionales se evalúan con reloj ajustado exclusivamente sobre
+anchors. Rechaza tiempos compartidos entre conjuntos y orden inválido. Exporta
+residuos por marca, máximo reservado (null sin marcas), count y extrapolated
+fuera del intervalo de ajuste. No altera tasa/desfase ni incertidumbre empírica;
+reservar marcas no autentica su origen ni demuestra independencia física.
+Web muestra número/residuo reservado y JSON completo.
+
+Seis pruebas núcleo/API pasaron (1,02 s): perturbaciones reservadas no cambian
+fit/uncertainty, residuo .2 conocido, extrapolación identificada y overlap rechazado.
+Build pasó. Chrome real con API aislada pasó (1,3 s), repetido después de ampliar
+contrato: offset/tasa conocidos, descarga nativa con entrada completa, edición
+limpia resultado y evidencia vacía rechazada; no crea comparación. Ese recorrido
+Chrome no incluye marcas reservadas no vacías (verificadas por backend).
+Servidores detenidos, sólo datos sintéticos, defaults/audio intactos. Pendientes
+medición real, validación con marcas independientes y persistencia del ajuste.
