@@ -20,11 +20,29 @@ test('R08 configurable candidate overlay keeps annotation draft unchanged',async
  const first=page.locator('svg rect').first();
  await expect(first).toHaveAttribute('x','0');await expect(first).toHaveAttribute('width','0.5');
  await expect(draft).toHaveValue(before);
+ // Uncomputed edits must not change the settings saved with the displayed proposal.
+ await settings.fill(JSON.stringify({...config,distance_rgb:0}));
+ await page.getByRole('button',{name:'Guardar propuesta R08',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Verificar y mostrar propuesta R08',exact:true})).toHaveCount(1);
+ const proposals=await(await page.request.get(`${origin}/api/research/r08/masks`)).json();
+ const saved=await(await page.request.get(`${origin}/api/research/r08/masks/${proposals[0].id}/artifacts/request.json`)).json();
+ expect(saved.settings.distance_rgb).toBe(442);
+ expect(saved.settings.roi).toEqual([0,0,.5,1]);
  expect(await(await page.request.get(`${origin}/api/research/r08`)).json()).toEqual([]);
+
  await page.getByRole('button',{name:'Ocultar candidatos R08',exact:true}).click();
  await expect(page.locator('svg rect')).toHaveCount(0);
+ await expect(draft).toHaveValue(before);
+ await page.reload();
+ await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
+ await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
+ await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
+ await expect(page.getByRole('button',{name:'Verificar y mostrar propuesta R08',exact:true})).toHaveCount(1);
+ await page.getByRole('button',{name:'Verificar y mostrar propuesta R08',exact:true}).click();
+ await expect(page.locator('svg rect')).toHaveCount(120);
  await expect(draft).toHaveValue(before);
  await page.getByLabel('Frame R08',{exact:true}).fill('1');
  await expect(page.getByText(/Tiempo fuente: 0.1 s. Imagen decodificada/)).toBeVisible();
  await expect(page.locator('svg rect')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Verificar y mostrar propuesta R08',exact:true})).toBeDisabled();
 });

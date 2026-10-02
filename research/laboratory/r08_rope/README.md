@@ -380,3 +380,15 @@ reinicio; integridad offline distinta de reverify con fuente. Dos tests
 persistencia/API pasaron guardado, recálculo idéntico, whitelist y restauración;
 TypeScript/Vite pasó tras agregar guard explícito de máscara nullable.
 Pendiente Chrome de guardado/recuperación; datos/etiquetas humanas no inferidos.
+
+### Corte 30: propuestas persistidas verificadas en Chrome
+
+Chrome HTTP real pasó calcular ROI, modificar textarea sin recalcular,
+guardar los settings **efectivos anteriores**, recargar, preparar misma
+fuente y recuperar propuesta mediante recomputación. Overlay de 120 runs
+restaurado, borrador byte idéntico/cero anotaciones, mostrar bloqueado en
+frame distinto. Pasó 1.6 s (suite 2.4 s); servidor propio detenido. Verificar
+requiere fuente disponible y código/entorno exactos; integridad offline no
+sustituye esa prueba. Persistencia no acepta máscara como soga/ground truth.
+Pendientes benchmark anotado humano, algoritmo de curva asistida/tracking,
+incertidumbre y latencia/acceso a frames iniciales. Roadmap sigue abierto.

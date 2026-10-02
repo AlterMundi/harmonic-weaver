@@ -244,3 +244,14 @@ Pruebas numéricas/API/restauración/tamper y Chrome real de crear/configurar,
 24 px conocidos, soporte faltante sin score, reload y descarga de manifest
 pasaron. No constituye benchmark corporal ni validación científica de
 cuerda; faltan extracción asistida, etiquetas humanas/uncertainty y protocolo.
+
+R08 segmentación asistida inicial: candidatos por distancia RGB/ROI,
+regiones 4-conectadas sin cerrar huecos, filtros/límites configurables en
+web y overlay de runs separado de curvas humanas. Propuestas persistidas
+sólo como JSON request/result/manifest, sin imágenes ni video copiados;
+reverify recalcula contra fuente exacta antes de mostrar. Chrome real
+verificó parámetros efectivos frente a textarea editado, guardado, recarga,
+recomputación, frame incompatible bloqueado y borrador intacto. Núcleo/API/
+persistencia probados con datos sintéticos. Esto no valida discriminación
+soga/fondo, curvas automáticas ni tracking/propagación; benchmark humano y
+algoritmos asistidos adicionales permanecen pendientes.
