@@ -450,3 +450,7 @@ verifica hardware/calibración/sincronización ni identidad humana.
 R09 corte 4: panel web para importar/editar JSON, slot/reloj explícitos, convertir
 2D/validar stream, ver cobertura y exportar. Build y Chrome real contra API pasaron.
 Sin persistencia automática ni cambio de live; cache autorizado/presets pendientes.
+
+R09 corte 5: snapshot inclusivo/deep-copy de generación ready en biblioteca,
+conversión y ruta source del runtime; no recalcula pose ni lee video. Seis tests
+pasaron; source HTTP/UI y verificación de disco pendientes. Procedencia in-memory.

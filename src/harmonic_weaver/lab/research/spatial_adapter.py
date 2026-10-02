@@ -49,3 +49,19 @@ def convert(request):
 
     Contract.finite_tree(result)
     return result
+
+
+class SourceRequest(Contract):
+    job_id:str=Field(min_length=1,max_length=80)
+    start_s:float=Field(ge=0)
+    end_s:float=Field(gt=0)
+    person_id:str=Field(min_length=1,max_length=80)
+    clock:Clock
+
+
+def from_library(library,request):
+    request=SourceRequest.model_validate(request)
+    frames,provenance=library.spatial_segment(request.job_id,request.start_s,request.end_s)
+    result=convert({'frames':frames,'person_id':request.person_id,'clock':request.clock})
+    return {**result,'tracking_provenance':provenance,
+            'limits':result['limits']+['In-memory completed generation snapshot; does not reverify disk cache or current video bytes']}

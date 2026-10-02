@@ -196,6 +196,24 @@ class VideoLibrary:
             left, right = bisect_right(job.times, start_s), bisect_right(job.times, end_s)
             return job.frames[left:right]
 
+    def spatial_segment(self, job_id, start_s, end_s):
+        """Freeze a completed in-memory tracking generation, inclusive boundaries."""
+        import math
+        from bisect import bisect_left
+        if not all(math.isfinite(t) for t in (start_s, end_s)) or not 0 <= start_s < end_s or end_s-start_s>120:
+            raise ValueError('Choose a finite spatial segment of at most 120 seconds')
+        with self._lock:
+            job=self.jobs[job_id]
+            if job.status!='ready' or not job.generation or not job.cache_key:
+                raise ValueError('Completed identified tracking generation required')
+            if end_s>job.duration_s:raise ValueError('Spatial segment outside source duration')
+            left,right=bisect_left(job.times,start_s),bisect_right(job.times,end_s)
+            frames=[f.model_copy(deep=True) for f in job.frames[left:right]]
+            if not frames:raise ValueError('No tracking frames in spatial segment')
+            return frames, {'job_id':job.id,'media_id':job.media_id,'cache_key':job.cache_key,
+                'generation':job.generation,'effective_device':job.settings.device,
+                'start_s':start_s,'end_s':end_s,'verification':'completed_in_memory_generation'}
+
     def cancel(self, job_id):
         with self._lock:
             job = self.jobs[job_id]

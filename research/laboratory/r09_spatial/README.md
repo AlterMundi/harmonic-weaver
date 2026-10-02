@@ -66,3 +66,19 @@ slot/offset/incertidumbre, verificó cobertura y tiempo común, descargó result
 validó el Stream y mostró rechazo de input inválido. Servidor aislado detenido.
 Pendientes persistencia/presets, acceso desde cache autorizado, visualización
 espacial y medición real; el JSON importado es declaración, no origen autenticado.
+
+## Corte 5 · Segmento desde biblioteca de tracking
+
+`VideoLibrary.spatial_segment` congela bajo lock una generación in-memory ready
+con cache_key/generation definidos, rango inclusivo <=120 s y deep copies. Devuelve
+procedencia sin path: job/media/cache/generación/device y rango. `from_library`
+convierte ese snapshot con slot/reloj explícitos. POST `/api/research/r09/source`
+se registra cuando existe runtime de biblioteca; no calcula tracking ni lee/copia
+video. Un slot ausente permanece missing, no selecciona otro.
+
+Seis tests biblioteca/adaptador/contrato/API de conversión pasaron (0,83 s).
+Prueba biblioteca usa video inexistente y tracking sintético identificado para
+confirmar ausencia de lectura de medios, límites inclusivos, independencia del
+snapshot y rechazo de rango vacío/fuera de duración/tracking incompleto. Ruta
+source aún pendiente de prueba HTTP y UI. La procedencia es una generación
+completa en memoria, no revalidación del cache en disco ni bytes actuales de video.
