@@ -499,3 +499,17 @@ pasaron swap de etiquetas (100 px, no cero), faltante y cero elegibles.
 No valida identidad física ni propagación de tensión; tracking temporal y
 benchmark humano continúan pendientes. Cambio de código obliga a distinguir
 artefactos históricos de recálculos verificables bajo versión actual.
+
+### Corte 40: historial recuperable frente a cambios de versión
+
+Inventarios/read de comparaciones y curvas distinguen `recomputed` de
+`historical_integrity_only`. Código/entorno distinto no oculta artefactos
+íntegros: descargas preservan bytes, finitud/envelope/request/hashes se
+verifican; no se afirma recálculo actual. Código/entorno actuales requieren
+recomputación y corrupción sigue rechazada. UI etiqueta históricos; curvas
+históricas descargables no recuperables/incorporables como verificadas
+actuales, API interna mantiene verify estricto. Cinco tests historia/artifact/
+API pasaron cambios de entorno, bytes intactos, rechazo de corrupción y
+adopción histórica bloqueada; build pasó. Pendiente Chrome de esta etiqueta,
+migración explícita/re-corrida y portable bundle de dependencias. No custodia
+ni resultados científicos falsificados; originales no se reescriben.

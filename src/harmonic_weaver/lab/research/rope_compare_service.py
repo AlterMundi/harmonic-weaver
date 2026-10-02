@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import uuid4
 import re
 import threading
-from .rope_compare_run import run,verify
+from .rope_compare_run import run,verify,read_verified
 
 
 class RopeCompareService:
@@ -29,11 +29,11 @@ class RopeCompareService:
             rows=[]
             for folder in sorted(self.root.iterdir()):
                 if re.fullmatch('[a-f0-9]{32}',folder.name) and folder.is_dir() and not folder.is_symlink():
-                    try:rows.append({**verify(folder),'id':folder.name})
+                    try:rows.append({**read_verified(folder),'id':folder.name})
                     except (OSError,ValueError,KeyError):continue
             return rows
 
     def artifact(self,ident,name):
         if name not in ('request.json','result.json','manifest.json'):raise ValueError('Unknown rope comparison artifact')
-        folder=self.folder(ident);verify(folder)
+        folder=self.folder(ident);read_verified(folder)
         return folder/name

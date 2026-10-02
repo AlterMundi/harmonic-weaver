@@ -360,7 +360,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return {**result,'run_id':ident,'path_manifest_sha256':sha256_file(rope_paths.artifact(ident,'manifest.json'))}
 
     @app.get('/api/research/r08/paths/{ident}/artifacts/{name}')
-    def rope_path_artifact(ident:str,name:str):return FileResponse(rope_paths.artifact(ident,name),filename=name)
+    def rope_path_artifact(ident:str,name:str):return FileResponse(rope_paths.artifact(ident,name,historical=True),filename=name)
 
     @app.get('/api/research/r08/masks')
     def rope_mask_list():return rope_masks.list()
