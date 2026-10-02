@@ -212,3 +212,18 @@ física o sincronización medida. No se requirieron cambios de producción ni de
 El servidor sintético terminó con exit 0; medios corporales y servicios cotidianos
 intactos. Pendientes registro persistente de transporte/observaciones, respuestas
 y análisis, y ensayos humanos con niveles y sincronización medidos.
+
+
+## Corte 9 · Contrato de telemetría de transporte
+
+experience_transport.py define snapshots de estado HTMLMediaElement y eventos con
+secuencia contigua, reloj monotónico, epochs y posición acotada al ensayo. Rechaza
+retroceso sin nuevo epoch, medios incompatibles con condición y valores no finitos.
+Resumen determinista cuenta seeks/waiting/errores y fin nominal declarado: NO
+calcula duración de exposición interpolando eventos ni equipara fin con completitud.
+Hashes e IDs son declaraciones hasta que el servicio futuro los vincule al protocolo.
+
+Dos pruebas pasaron (0,12 s): retroceso/epoch, secuencia/reloj/posición, NaN y medio
+deshabilitado; resumen repetible sin métrica de exposición inventada. Es un contrato
+aún no conectado al player ni persistido/API/UI. Esos entregables siguen pendientes.
+Sin cambios de defaults, sonido, hardware ni medios corporales.
