@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+test('web cancellation stops a live flow worker and permits explicit fresh run',async({page})=>{
+ test.skip(!process.env.LAB_R08_FLOW_CANCEL_URL,'slow-first-flow fixture required');
+ const origin=process.env.LAB_R08_FLOW_CANCEL_URL!;await page.goto(origin);
+ await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
+ await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
+ await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
+ const before=await page.getByLabel('Anotación R08 JSON').inputValue();
+ await page.getByLabel('Configuración temporal portable R08').fill('{"frames":3,"settings":{}}');
+ await page.getByLabel('Seeds temporales R08').fill('[{"x":0.5,"y":0.5}]');
+ await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
+ await expect.poll(async()=> (await(await page.request.get(`${origin}/test/decode-live`)).json()).live).toBe(true);
+ await page.getByRole('button',{name:'Cancelar corrida temporal R08',exact:true}).click();
+ await expect(page.getByText(/Corrida temporal R08: cancelled/)).toBeVisible();
+ expect((await(await page.request.get(`${origin}/test/decode-live`)).json()).live).toBe(false);
+ expect(await(await page.request.get(`${origin}/api/research/r08/flow`)).json()).toEqual([]);
+ expect(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('r08-flow-pending-v1:')))).toHaveLength(0);
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(0);
+ await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
+ await expect(page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
+ await expect(page.getByText(/Corrida temporal R08: complete/)).toBeVisible();
+ expect(await(await page.request.get(`${origin}/api/research/r08/flow`)).json()).toHaveLength(1);
+ await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
+});

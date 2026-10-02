@@ -728,3 +728,22 @@ permite editar. Una prueba pasó (1.4 s; suite 2.2 s); build pasó y servidor
 detenido. Recuperación de ID conocido tiene implementación pero requiere caso
 browser propio; cancelación viva, presets/recálculo, rendimiento y benchmark
 humano siguen pendientes. No cambios de audio/defaults ni aceptación humana.
+
+### Corte 51: recuperación de ID conocido y cancelación viva en Chrome
+
+Dos recorridos browser HTTP verificaron casos pendientes. Primero, servidor
+completó cálculo y devolución del artifact fue abortada; UI persistió ID,
+reload recuperó consulta explícita, mismo resultado/overlay y recibo eliminado,
+sin segundo POST ni mutar anotación (1.6 s; suite 2.4 s). Segundo, fixture
+slow-flow-first ejecutó subproceso Python de 30 s por capture cancelable;
+endpoint exclusivo de test confirmó PID vivo. Botón cancelar produjo estado
+cancelled, PID muerto, inventario vacío, recibo eliminado, sin overlay ni cambio
+de borrador. Nuevo inicio explícito ejecutó decoder/flow reales y completó
+una corrida (1.4 s; suite 2.2 s). Ambos servidores propios detenidos.
+
+El proceso lento es inyección de test del worker, no medición de cancelación
+durante optimización OpenCV ni benchmark de soga. Segundo cálculo y caso de
+recuperación sí usan MP4 sintético/decoder/flow reales. Pendientes recálculo UI,
+presets nombrados, decoder secuencial, benchmark humano/uncertainty y otros
+fallos de almacenamiento/red/reinicio durante cálculo. Sin cambios de código
+de producción en este corte; no repetir build anterior como evidencia nueva.

@@ -330,3 +330,9 @@ fuente/hash antes del POST; remount ofrece retomar explícitamente sin auto-star
 Chrome verificó POST aceptado/respuesta perdida/reload/mismo ID/una corrida y
 limpieza de recibo (1 prueba, 2.2 s); build pasó. README corte 50: cierre de
 pestaña, recuperación browser de ID conocido y otras dependencias pendientes.
+
+R08 Chrome: ID conocido tras artifact perdido/reload recupera resultado sin
+otro POST (1 prueba, 2.4 s); cancelación web de PID confirmado vivo deja inventario
+vacío y permite nuevo cálculo real (1 prueba, 2.2 s). README corte 51 distingue
+worker lento inyectado de decode/flow reales. Servidores detenidos, código de
+producción intacto. Presets/recálculo/rendimiento/benchmark y otros fallos pendientes.

@@ -12,6 +12,7 @@ parser.add_argument('--port',type=int,default=8879)
 parser.add_argument('--slow-probe-first',action='store_true')
 parser.add_argument('--slow-frame-first',action='store_true')
 parser.add_argument('--historical-artifacts',action='store_true')
+parser.add_argument('--slow-flow-first',action='store_true')
 args=parser.parse_args();args.root.mkdir(parents=True,exist_ok=False)
 video=args.root/'synthetic.mp4'
 subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','testsrc2=size=160x120:rate=10:duration=0.5','-c:v','libx264',str(video)],check=True)
@@ -40,6 +41,18 @@ if args.slow_probe_first or args.slow_frame_first:
                 self.slow(cancel)
             return super().frame(path,index,expected_sha256,cancel=cancel)
     app_module.RopeReader=SlowFirstReader
+if args.slow_flow_first:
+    import harmonic_weaver.lab.research.rope_flow_service as flow_module
+    from harmonic_weaver.lab.research.rope_process import capture
+    original_flow_run=flow_module.run
+    flow_first=True
+    def slow_flow(request,path,folder,reader,*,cancel=None):
+        global flow_first
+        if flow_first:
+            flow_first=False
+            capture([sys.executable,'-c',f'from pathlib import Path;import os,time;Path({str(pidfile)!r}).write_text(str(os.getpid()));time.sleep(30)'],max_bytes=1024,cancel=cancel)
+        return original_flow_run(request,path,folder,reader,cancel=cancel)
+    flow_module.run=slow_flow
 app=create_app(args.root,runtime=runtime,ui_dir=args.ui)
 if args.historical_artifacts:
     import numpy as np
