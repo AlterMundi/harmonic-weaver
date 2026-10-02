@@ -1,6 +1,9 @@
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 export function SpatialCompare({api}:{api:any}){
+ const receiptKey='weaver.r09.comparison.pending.v1';
+ const [pending,setPending]=useState<Data|null>(null);
+ useEffect(()=>{try{const raw=sessionStorage.getItem(receiptKey);if(!raw)return;if(raw.length>32*1024*1024)throw Error('oversize');const p=JSON.parse(raw);if(!['comparisons','compare-conversions'].includes(p.route)||!p.body||!/^[a-f0-9]{32}$/.test(p.body.idempotency_key))throw Error('invalid');setPending(p);}catch{sessionStorage.removeItem(receiptKey);}},[]);
  const [presets,setPresets]=useState<Data[]>([]),[presetName,setPresetName]=useState('Comparación espacial');
  const [mode,setMode]=useState('declared'),[conversions,setConversions]=useState<Data[]>([]),[referenceId,setReferenceId]=useState(''),[candidateId,setCandidateId]=useState('');
  const [reference,setReference]=useState('{}'),[candidate,setCandidate]=useState('{}'),[labels,setLabels]=useState('["joint-0"]');
@@ -8,6 +11,15 @@ export function SpatialCompare({api}:{api:any}){
  const [runs,setRuns]=useState<Data[]>([]),[result,setResult]=useState<Data|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  useEffect(()=>{let live=true;void api('research/r09/comparisons').then((r:Data[])=>{if(live)setRuns(r);}).catch((e:unknown)=>{if(live)setError(String(e));});return()=>{live=false;};},[api]);
  const act=async(fn:()=>Promise<void>)=>{setBusy(true);setError('');try{await fn();}catch(e){setError(String(e));}finally{setBusy(false);}};
+ const save=async(route:string,body:Data)=>{
+  const attempt=pending||{route,body:{...body,idempotency_key:crypto.randomUUID().replaceAll('-','')}};
+  sessionStorage.setItem(receiptKey,JSON.stringify(attempt));setPending(attempt);
+  let saved:Data;
+  try{saved=await api(`research/r09/${attempt.route}`,attempt.body);}
+  catch(e){const status=(e as any)?.status;if(status>=400&&status<500){sessionStorage.removeItem(receiptKey);setPending(null);}throw e;}
+  sessionStorage.removeItem(receiptKey);setPending(null);
+  setResult(await api(`research/r09/comparisons/${saved.id}/artifacts/result.json`));setRuns(await api('research/r09/comparisons'));
+ };
  return <section aria-label="Comparación espacial R09"><h3>Comparar streams R09</h3>
  <p>Mismos marcos, unidades y reloj común declarados. El candidato sólo puede venir del presente o pasado; no ajustamos escala, rotación ni desfase para mejorar error.</p>
  <label>Origen de comparación R09<select disabled={busy} value={mode} onChange={e=>setMode(e.target.value)}><option value="declared">Streams JSON declarados</option><option value="saved">Conversiones guardadas</option></select></label>
@@ -24,8 +36,9 @@ export function SpatialCompare({api}:{api:any}){
  <label>Importar preset comparación R09<input disabled={busy} type="file" accept="application/json,.json" onChange={e=>{const file=e.target.files?.[0];if(file)void act(async()=>{if(file.size>65536)throw new Error('Preset supera 64 KiB');await api('research/r09/comparison-presets',JSON.parse(await file.text()));setPresets(await api('research/r09/comparison-presets'));});e.target.value='';}}/></label>
  <p>Presets portables de parámetros y etiquetas; aplicar no cambia fuentes ni ejecuta comparación.</p>
  {presets.map(p=><div key={p.id}>{p.name}<button disabled={busy} onClick={()=>{setLabels(JSON.stringify(p.config.labels));setAge(p.config.max_age_s);setUncertainty(p.config.max_combined_clock_uncertainty_s);setInferred(p.config.allow_inferred);setHeld(p.config.allow_held);}}>Aplicar preset comparación R09</button><a href={`/api/research/r09/comparison-presets/${p.id}`} download>Exportar preset comparación R09</a></div>)}
+ {pending&&<p role="status">Comparación pendiente de confirmar. <button disabled={busy} onClick={()=>void act(async()=>save(pending.route,pending.body))}>Recuperar comparación R09</button></p>}
  {error&&<p role="alert">{error}</p>}
- <button disabled={busy} onClick={()=>void act(async()=>{const settings={labels:JSON.parse(labels),max_age_s:age,max_combined_clock_uncertainty_s:uncertainty,allow_inferred:inferred,allow_held:held};if(mode==='saved'&&(!referenceId||!candidateId))throw new Error('Elegir ambas conversiones');const saved=mode==='saved'?await api('research/r09/compare-conversions',{reference_id:referenceId,candidate_id:candidateId,settings}):await api('research/r09/comparisons',{comparison:{reference:JSON.parse(reference),candidate:JSON.parse(candidate),...settings}});setResult(await api(`research/r09/comparisons/${saved.id}/artifacts/result.json`));setRuns(await api('research/r09/comparisons'));})}>Guardar comparación espacial R09</button>
+ <button disabled={busy||!!pending} onClick={()=>void act(async()=>{const settings={labels:JSON.parse(labels),max_age_s:age,max_combined_clock_uncertainty_s:uncertainty,allow_inferred:inferred,allow_held:held};if(mode==='saved'&&(!referenceId||!candidateId))throw new Error('Elegir ambas conversiones');if(mode==='saved')await save('compare-conversions',{reference_id:referenceId,candidate_id:candidateId,settings});else await save('comparisons',{comparison:{reference:JSON.parse(reference),candidate:JSON.parse(candidate),...settings}});})}>Guardar comparación espacial R09</button>
  {result&&<div>{result.sources&&<p>Conversiones comparadas: referencia {result.sources.reference.id} · candidato {result.sources.candidate.id}. Hashes completos en el resultado descargable.</p>}<p>Soporte espacial: {result.coverage.supported_points}/{result.coverage.eligible_points} puntos elegibles. Unidad: {result.unit}.</p><p>Error medio sobre soporte: {result.mean_error_on_support??'sin soporte'}; máximo: {result.max_error_on_support??'sin soporte'}.</p><details><summary>Causas y entradas de comparación espacial R09</summary><pre>{JSON.stringify(result,null,2)}</pre></details></div>}
  {runs.map(r=><div key={r.id}>{r.id} · {r.read_verification==='recomputed'?'Comparación recalculada':'Histórico: sólo integridad'}<button disabled={busy} onClick={()=>void act(async()=>setResult(await api(`research/r09/comparisons/${r.id}/artifacts/result.json`)))}>Abrir comparación espacial R09</button>{['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r09/comparisons/${r.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
  </section>;

@@ -590,3 +590,20 @@ cinco pruebas de servicio/API pasaron (1,02 s), incluyendo recuperación misma I
 conflicto de clave, recuperación sin fuentes y fallo sin relanzamiento. No hay
 coordinación multiproceso ni GC de recibos. Pendiente usar recibos y recuperación
 explícita en web. Audio/defaults intactos, sin dispositivos ni medios privados.
+
+
+## Corte 27 · Recuperación web de comparación
+
+Antes de POST, web guarda ruta/entrada/clave en sessionStorage; sin capacidad de
+persistir no envía. Ante fallo de transporte conserva el pedido congelado y ofrece
+Recuperar comparación R09. Recargar restaura sólo el pendiente, nunca reenvía solo.
+Mientras hay pendiente bloquea nuevas publicaciones; recuperar usa misma entrada
+aunque cambien controles. Respuesta aceptada limpia pendiente antes de lecturas
+posteriores; rechazo 4xx lo limpia. Aplica a streams declarados y conversiones por
+IDs. No garantiza retención al cerrar pestaña ni coordinación entre pestañas.
+
+Build completo pasó. Dos pruebas Chrome contra API real aislada pasaron (2,3 s):
+ambas rutas aceptan POST y pierden respuesta artificialmente, reintento idéntico
+recupera sin duplicar; ruta declarada incluye recarga. Además exportación/reapertura,
+presets con descarga/importación y procedencia preservadas. Servidores aislados
+apagados. Sin dispositivos/medios privados, audio y defaults sin cambios.
