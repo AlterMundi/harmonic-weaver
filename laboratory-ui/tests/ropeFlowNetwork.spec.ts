@@ -1,0 +1,24 @@
+import {test,expect} from '@playwright/test';
+test('temporal flow config and recovery preserve manual annotations',async({page})=>{
+ test.skip(!process.env.LAB_R08_FLOW_URL,'isolated fixture required');
+ const origin=process.env.LAB_R08_FLOW_URL!;await page.goto(origin);
+ const prepare=async()=>{await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();await expect(page.getByText(/Imagen decodificada/)).toBeVisible();};
+ await prepare();const draft=page.getByLabel('Anotación R08 JSON'),before=await draft.inputValue();
+ await page.getByLabel('Configuración temporal portable R08').fill(JSON.stringify({frames:3,settings:{max_gap_s:.05}}));
+ await page.getByLabel('Seeds temporales R08').fill('[{"x":0.5,"y":0.5}]');
+ await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
+ await expect(page.getByText('Corrida temporal R08: complete',{exact:true})).toBeVisible();
+ await expect(page.locator('svg[aria-label="Candidatos temporales R08"] circle')).toHaveCount(1);
+ await expect(draft).toHaveValue(before);
+ const jobs=await(await page.request.get(`${origin}/api/research/r08/flow`)).json();expect(jobs).toHaveLength(1);
+ const result=await(await page.request.get(`${origin}/api/research/r08/flow/${jobs[0].id}/artifacts/result.json`)).json();
+ expect(result.frames.map((f:any)=>f.status)).toEqual(['seeded','reset','reset']);
+ await page.reload();await prepare();
+ await page.getByRole('button',{name:'Ver corrida temporal R08',exact:true}).click();
+ await expect(page.getByText(/Resultado temporal R08: 3 cuadros/)).toBeVisible();
+ await page.getByRole('button',{name:'Recuperar sólo configuración temporal R08',exact:true}).click();
+ const config=JSON.parse(await page.getByLabel('Configuración temporal portable R08').inputValue());
+ expect(config.frames).toBe(3);expect(config.settings.max_gap_s).toBe(.05);expect(config.seeds).toBeUndefined();
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
+ await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
+});

@@ -293,3 +293,10 @@ persistidas recuperables tras reinicio. Siete pruebas de servicio/API/corrida y
 API previa pasaron; incluye proceso vivo detenido y limpieza de parciales.
 README corte 44 distingue mocks de worker y decode real, integridad vs recálculo.
 UI temporal y aceptación/benchmark humanos pendientes; no cambian defaults.
+
+R08 UI temporal inicial: JSON de todos los controles/rango, seeds separados,
+inicio/cancelación, inventario/lectura/descargas y recuperación de configuración.
+Dibujo separado de puntos soportados, sin aceptar anotaciones. Chrome real con
+HTTP/MP4 sintéticos pasó en 2.3 s; build pasó. README corte 45 detalla límites:
+overlay de imagen, presets nombrados, recálculo UI, cancelación web/fallos de red
+y benchmark humano pendientes. No cambia experiencia sonora ni defaults.

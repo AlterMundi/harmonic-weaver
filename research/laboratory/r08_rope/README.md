@@ -611,3 +611,25 @@ publicación y error sin revelar ruta. Casos de subproceso/publicación usan wor
 de test; el caso API ejecuta decoder/flujo reales sobre video sintético. Sin
 dispositivos, cuerpos ni audio. UI temporal, controles/config portable y
 overlays/benchmark humano siguen pendientes; no se promete realtime.
+
+### Corte 45: exploración temporal configurable en web
+
+Editor integra RopeFlowPanel: JSON portable `{frames,settings}` con todos los
+controles del núcleo, JSON separado de seeds, copia explícita de extremos
+actuales, inicio desde cuadro actual, polling/cancelación y recuperación de
+corridas/descargas. Cambiar cuadro/fuente borra seeds; recuperar configuración
+recupera parámetros/duración y no observaciones ni calibración. Desmontar panel
+solicita cancelar su job propio. Dibujo separado muestra sólo puntos con
+soporte del cuadro actual, cuando imagen está lista y hash coincide; no dibuja
+líneas ni une gaps. Resultado completo conserva causas y config efectivas.
+Lectura recuperada dice integridad, no recálculo de fuente; no adopta anotaciones.
+
+Chrome real pasó corrida de tres cuadros (seeded/reset/reset), dibujo del seed,
+borrador intacto, reload/recuperación y config sin seeds (1.5 s; suite 2.3 s).
+TypeScript/Vite build pasó. Fixture HTTP ejecutó decoder/flow reales sobre
+MP4 sintético, sin dispositivos ni cuerpos; servidor detenido. No aceptación
+humana ni desempeño de soga real. Pendientes overlay sobre imagen, recálculo
+explícito desde UI, presets nombrados/export, recorrido cancelación web y fallos
+de red, benchmark humano y rendimiento de decoder secuencial. JSON portable
+puede copiarse/pegarse hoy; no equivale a biblioteca de presets nombrados.
+Controles cotidianos/audio/afinación permanecen intactos.
