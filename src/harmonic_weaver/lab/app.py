@@ -190,6 +190,7 @@ class RopeCompare(Contract):
 class RopeFlowStart(Contract):
     media_id:str
     request:RopeFlowRequest
+    idempotency_key:str|None=Field(default=None,pattern='^[a-f0-9]{32}$')
 
 
 class RopeRead(Contract):
@@ -411,7 +412,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r08/flow')
     def rope_flow_start(body:RopeFlowStart):
-        return rope_flow.start(rope_media_path(body.media_id),body.request)
+        return rope_flow.start(rope_media_path(body.media_id),body.request,idempotency_key=body.idempotency_key)
 
     @app.get('/api/research/r08/flow')
     def rope_flow_list():return rope_flow.list()

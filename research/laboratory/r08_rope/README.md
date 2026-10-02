@@ -671,3 +671,19 @@ ID; requiere clave idempotente/recuperación de inicio, no resuelta por este
 cambio. Cancelación web de worker vivo y pérdidas de artefacto/inventario aún
 requieren casos propios. Presets nombrados, recálculo UI, decoder secuencial
 y benchmark humano continúan pendientes; audio/defaults intactos.
+
+### Corte 48: inicio idempotente en API con recibo persistido
+
+POST flow admite idempotency_key opcional de 32 hex. Antes de iniciar thread
+persiste research/r08-flow-starts/KEY.json con ID y SHA256 del request canónico,
+sin path, seeds ni imágenes en recibo. Bajo el owner único del servicio, misma
+clave/request devuelve mismo job; distinto request rechaza. Recibo permanece
+tras eviction/reinicio: completa recuperable vuelve al mismo ID, corrida
+cancelada/incompleta sin artifacts rechaza reintento y nunca relanza.
+No coordinación multi-proceso ni garbage collection de recibos implementadas.
+
+Tres tests servicio/API pasaron: reutilización activa, request distinto,
+recuperación completa tras restart, cancelada en owner actual y rechazo tras
+restart sin nuevo worker. La UI aún no envía clave ni conserva request de POST
+sin respuesta: integración/reintento browser pendientes, no declarar ese caso
+resuelto end-to-end. Audio/presets intactos; roadmap/benchmark siguen abiertos.

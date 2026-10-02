@@ -312,3 +312,8 @@ inicio y retoma mismo job; Chrome verificó un único POST y resultado/borrador
 intacto (1 prueba, 2.8 s), build pasó. README corte 47. Pendiente respuesta
 perdida del POST inicial sin ID (idempotencia), cancelación web viva y otros
 casos de red, además de presets/benchmark/recálculo y rendimiento.
+
+R08 inicio API idempotente: clave opcional y recibo persistido, reutilización
+mismo request/job y rechazo de request distinto o incompleto tras restart.
+Tres tests servicio/API pasaron. README corte 48: owner único, recibos sin GC;
+UI/reintento de POST sin respuesta aún pendientes. Sin cambios de audio.

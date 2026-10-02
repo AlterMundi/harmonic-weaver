@@ -5,6 +5,9 @@ from uuid import uuid4
 import re
 import shutil
 import threading
+import hashlib
+import json
+from ..cache import atomic_json
 from .rope_flow_run import Request,run,verify
 from .rope_process import DecodeCancelled
 
@@ -13,6 +16,8 @@ class RopeFlowService:
     def __init__(self,data_dir,reader):
         self.root=Path(data_dir)/'research/r08-flow'
         self.root.mkdir(mode=0o700,parents=True,exist_ok=True)
+        self.receipts=Path(data_dir)/'research/r08-flow-starts'
+        self.receipts.mkdir(mode=0o700,parents=True,exist_ok=True)
         self.reader=reader;self.lock=threading.RLock();self.jobs=OrderedDict();self.closed=False
 
     def folder(self,ident):
@@ -24,10 +29,19 @@ class RopeFlowService:
     @staticmethod
     def public(job):return {k:job[k] for k in ('id','status','error')}
 
-    def start(self,path,request):
+    def start(self,path,request,*,idempotency_key=None):
         request=Request.model_validate(request)
+        if idempotency_key is not None and (not isinstance(idempotency_key,str) or not re.fullmatch('[a-f0-9]{32}',idempotency_key)):raise ValueError('Invalid flow start key')
+        digest=hashlib.sha256(json.dumps(request.model_dump(),sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
         with self.lock:
             if self.closed:raise ValueError('Flow service closed')
+            receipt=self.receipts/f'{idempotency_key}.json' if idempotency_key else None
+            if receipt is not None and receipt.exists():
+                if receipt.is_symlink() or not receipt.is_file():raise ValueError('Regular flow receipt required')
+                previous=json.loads(receipt.read_text())
+                if previous.get('request_sha256')!=digest:raise ValueError('Flow start key reused with different request')
+                # Never launch again after restart, eviction or interrupted publication.
+                return self.report(previous['id'])
             if any(j['thread'].is_alive() for j in self.jobs.values()):raise ValueError('A flow run is active; cancel or wait')
             while len(self.jobs)>=8:self.jobs.popitem(last=False)
             ident=uuid4().hex;folder=self.root/ident
@@ -49,6 +63,7 @@ class RopeFlowService:
                         job['status']='cancelled' if not cleanup_failed and (isinstance(exc,DecodeCancelled) or job['cancel'].is_set()) else 'failed'
                         if job['status']=='failed':job['error']='Flow calculation failed; check source, clock, seeds and limits'
             job['thread']=threading.Thread(target=work,name='rope-flow',daemon=True)
+            if receipt is not None:atomic_json(receipt,{'id':ident,'request_sha256':digest})
             self.jobs[ident]=job;job['thread'].start()
             return self.public(job)
 
