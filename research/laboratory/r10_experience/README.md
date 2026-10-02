@@ -325,3 +325,18 @@ Build y cuatro Chrome pasaron (8,3 s): exportación exacta '{broken-json', ausen
 de retry inválido, descarte explícito y reload sin pendiente, más suite del player y
 recovery aceptado-respuesta perdida. Medios sintéticos/audio silenciado, sin escucha
 humana. Pendientes conservación de cierre y respuestas/análisis; defaults intactos.
+
+
+## Corte 16 · Respuesta vinculada a preguntas congeladas
+
+experience_response.Request referencia protocolo/hash + Response estricta y
+transport_id opcional. resolve verifica protocolo, trial guardado y escala/items,
+conserva null; recupera preguntas/role/slot del protocolo. Transporte opcional debe
+coincidir en protocolo/hash/trial y trial completo; hash se verifica al terminar.
+No exige transporte para declarar una respuesta ni infiere exposición desde fin
+nominal. Preguntas configuradas no son escalas científicamente validadas.
+
+Cuatro pruebas response/protocol/transport-service pasaron (0,37 s): null/75,
+reapertura, rechazo de escala/item/hash/trial y transporte de otro protocolo/ensayo.
+Este corte resuelve/vincula en memoria; persistencia, API/UI de respuestas y análisis
+siguen pendientes. Sin datos humanos nuevos ni cambios de sonido/defaults.
