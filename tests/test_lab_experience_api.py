@@ -119,6 +119,10 @@ def test_response_http_export_restart_and_null(tmp_path):
         artifact=client.get(f'{url}/{ident}/artifacts/result.json')
         assert artifact.status_code==200 and 'attachment' in artifact.headers['content-disposition']
         assert artifact.json()['validated']['response']['ratings']['pleasure'] is None
+        preview=client.post('/api/research/r10/analysis-preview',json={'response_ids':[ident]})
+        assert preview.status_code==200,preview.text
+        assert preview.json()['groups'][0]['items'][0]['unanswered_count']==1
+        assert client.post('/api/research/r10/analysis-preview',json={'response_ids':[ident,ident]}).status_code==422
         assert client.post(url,json={**body,'response':{'trial_id':'unknown','ratings':body['response']['ratings']}}).status_code==422
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert len(client.get(url).json())==1

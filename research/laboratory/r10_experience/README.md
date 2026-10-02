@@ -374,3 +374,19 @@ Snapshots nuevos requieren protocolo abierto; validación stateless sigue separa
 Pendientes análisis descriptivo, cierre duradero de transporte, ensayos humanos
 y mediciones físicas. sessionStorage limitado a sesión/pestaña, no backup.
 Sin cambios de sonido/defaults ni medios privados.
+
+
+## Corte 19 · Análisis descriptivo seleccionado
+
+experience_analysis analiza 1–256 IDs de respuestas verificadas, congela snapshots
+y hashes, revalida al terminar. Agrupa sólo preguntas/texto/escala idénticos, role y
+condición; informa valores, conteo respondido/null, mediana/min/max sin imputación.
+Rechaza IDs duplicados y dos correcciones de un mismo protocolo/trial. Registros de
+otros protocolos no se consideran participantes independientes por tener otro ID.
+API POST /api/research/r10/analysis-preview stateless; no publicación todavía.
+
+Siete pruebas núcleo/API pasaron (2,63 s): mediana50 de0/100, null sin convertir
+a cero, corrections rechazadas, roles/escalas separados, repetibilidad y preview
+HTTP. Warning AnyIO de deprecación sin fallo. Pendientes web, manifest de análisis
+frozen/recovery/exportación y contraste pareado explícito. No hipótesis, causalidad
+ni aceptación científica/humana acreditadas; sin defaults ni datos privados nuevos.
