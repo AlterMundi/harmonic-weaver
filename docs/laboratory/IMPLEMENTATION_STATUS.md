@@ -391,3 +391,8 @@ R08 corte 60: benchmark temporal persistido con entradas congeladas, procedencia
 declarada y lectura histórica explícita; siete tests cálculo/persistencia pasaron.
 Pendientes autenticación de originales por servicio y API/UI; no equivale a
 validación física ni aceptación de referencias humanas. Ver README de R08.
+
+R08 corte 61: servicio/API de benchmark resuelve revisiones y flujos verificados,
+congela hashes y rechaza cambios durante publicación. Nueve tests incluyendo video
+sintético, HTTP, reinicio y conservación de originales pasaron. UI pendiente;
+resolución local no equivale a revalidar el video ni la referencia humana.

@@ -967,3 +967,24 @@ Límite: este runner no autentica los artefactos originales ni reejecuta trackin
 contra video. Pendiente resolver ambas fuentes desde servicios verificados,
 comprobar sus hashes antes/después y exponer selección/mapeo/cobertura en la web.
 No se procesaron ni publicaron medios privados; no cambió síntesis ni defaults.
+
+### Corte 61 — resolución de originales y API del benchmark
+
+`RopeFlowBenchmarkService` recibe sólo IDs de revisión/flujo y mapeo a/b→índice.
+Obtiene los snapshots mediante los propietarios que verifican los artefactos,
+congela sus hashes de manifest y los vuelve a comprobar antes/después de guardar.
+Un cambio descarta únicamente la nueva corrida; originales quedan intactos.
+POST/GET `/api/research/r08/flow-benchmarks` y GET
+`/{id}/artifacts/{request,result,manifest}.json` permiten ejecutar, listar y
+exportar. Reabrir una corrida no exige que sigan presentes los originales:
+recomputa la métrica sobre las entradas congeladas, con lectura histórica explícita.
+
+Evidencia: nueve tests cálculo/persistencia/servicio/HTTP pasaron (2,23 s), con
+video sintético y tracking real, originales sin cambios, procedencia ligada,
+fallo ante modificación durante publicación, descarga y restauración después de
+reinicio; HTTP rechaza booleanos como índices, campos extra e IDs inválidos.
+
+La resolución verifica artefactos locales al crear; no es firma/custodia ni
+revalidación del tracking contra el video actual. La referencia sigue siendo
+manual y no aceptada científicamente por esta prueba. Pendiente UI para elegir
+revisión y flujo, declarar el mapeo y mostrar error junto con cobertura/exclusiones.
