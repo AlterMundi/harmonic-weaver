@@ -9,6 +9,7 @@ from pydantic import Field, model_validator
 from ..cache import atomic_json, sha256_file
 from ..contracts import Contract
 from .spatial_adapter import Request, convert as evaluate
+from .spatial_observations import Stream
 
 Digest = Annotated[str, Field(pattern=r'^[a-f0-9]{64}$')]
 FILES = ('request.json', 'result.json', 'manifest.json')
@@ -27,12 +28,15 @@ class Provenance(Contract):
 
 
 class Input(Contract):
-    conversion: Request
+    conversion: Request|None=None
+    stream:Stream|None=None
     tracking_provenance:Provenance|None=None
 
     @model_validator(mode='after')
     def segment(self):
+        if (self.conversion is None)==(self.stream is None):raise ValueError('Choose exactly one conversion or declared stream')
         p=self.tracking_provenance
+        if p is not None and self.conversion is None:raise ValueError('Tracking provenance only belongs to resolved MotionFrames')
         if p is not None:
             if not 0<p.end_s-p.start_s<=120 or any(not p.start_s<=f.source_time_s<=p.end_s for f in self.conversion.frames):
                 raise ValueError('Frozen observations outside provenance segment')
@@ -40,7 +44,15 @@ class Input(Contract):
 
 
 def calculate(frozen):
-    result=evaluate(frozen.conversion)
+    if frozen.stream is not None:
+        stream=frozen.stream
+        result={'schema_version':1,'line':'R09','input_kind':'external_stream','request':stream.model_dump(),'stream':stream.model_dump(),
+            'common_times_s':[stream.clock.common_time(f.source_time_s) for f in stream.frames],
+            'coverage':{state:sum(p.state==state for f in stream.frames for p in f.points) for state in ('observed','held','inferred','missing')},
+            'limits':['External stream is caller-declared; persistence validates contract, not depth, calibration or synchronization',
+                      'Coordinates, units, support states and source timestamps are preserved without interpolation']}
+        Contract.finite_tree(result)
+    else:result=evaluate(frozen.conversion)
     if frozen.tracking_provenance is not None:
         result['tracking_provenance']=frozen.tracking_provenance.model_dump()
         result['limits'].append('Recorded completed in-memory generation, not current disk/video integrity or signed custody')
@@ -102,8 +114,10 @@ def verify(folder, *, recompute=True):
     frozen = Input.model_validate_json((folder / 'request.json').read_text())
     result = json.loads((folder / 'result.json').read_text())
     Contract.finite_tree(result)
-    if not isinstance(result, dict) or result.get('schema_version') != 1 or result.get('line') != 'R09' or result.get('request') != frozen.conversion.model_dump():
+    if not isinstance(result, dict) or result.get('schema_version') != 1 or result.get('line') != 'R09' or result.get('request') != (frozen.stream or frozen.conversion).model_dump():
         raise ValueError('Spatial conversion result/input binding mismatch')
+    if frozen.stream is not None and (result.get('stream')!=frozen.stream.model_dump() or result.get('input_kind')!='external_stream'):raise ValueError('External stream result/input binding mismatch')
+    if result.get('tracking_provenance') != (frozen.tracking_provenance.model_dump() if frozen.tracking_provenance else None):raise ValueError('Spatial conversion provenance binding mismatch')
     if recompute:
         if manifest['environment'] != environment() or manifest['code_hashes'] != code_hashes():
             raise ValueError('Recorded conversion implementation/environment differs')

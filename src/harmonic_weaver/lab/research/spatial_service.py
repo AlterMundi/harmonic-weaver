@@ -54,7 +54,7 @@ class SpatialService(RopeCompareService):
 
     def start(self,request):
         body=SaveRequest.model_validate(request)
-        frozen=body.model_dump(exclude={'idempotency_key'})
+        frozen=body.model_dump(exclude={'idempotency_key','stream'} if body.conversion is not None else {'idempotency_key','conversion','tracking_provenance'})
         return self.publish('declared',frozen,body.idempotency_key,lambda:frozen)
 
     def list(self):

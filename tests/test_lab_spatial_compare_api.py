@@ -45,3 +45,17 @@ def test_clock_fit_http_is_explicit_and_stateless(tmp_path):
         body['evidence_id']=''
         assert client.post('/api/research/r09/clock-fit',json=body).status_code==422
         assert client.get('/api/research/r09/comparisons').json()==[]
+
+
+def test_external_3d_stream_http_reopen_and_compare(tmp_path):
+    from research.test_spatial_external_stream import data as stream_data
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        body={'stream':stream_data(),'idempotency_key':'e'*32}
+        saved=client.post('/api/research/r09/conversions',json=body);assert saved.status_code==200
+        ident=saved.json()['id'];assert client.post('/api/research/r09/conversions',json=body).json()['id']==ident
+        result=client.get(f'/api/research/r09/conversions/{ident}/artifacts/result.json').json()
+        assert result['stream']['dimensions']==3 and result['coverage']['inferred']==1
+        comparison=client.post('/api/research/r09/compare-conversions',json={'reference_id':ident,'candidate_id':ident,'settings':{'labels':['hand'],'allow_inferred':True}})
+        assert comparison.status_code==200
+        invalid=stream_data();invalid['frames'][0]['points'][0]['state']='observed'
+        assert client.post('/api/research/r09/conversions',json={'stream':invalid}).status_code==422

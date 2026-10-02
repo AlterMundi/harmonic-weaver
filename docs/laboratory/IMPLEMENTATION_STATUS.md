@@ -684,3 +684,27 @@ falló por defaults null omitidos en fixture; completada fixture tipada y repeti
 sin cambios de comportamiento. Servidores detenidos, sólo datos sintéticos,
 audio/defaults intactos. Pendientes medición real, persistencia de streams externos
 3D/aplicados y validación temporal independiente; aplicar no mejora incertidumbre.
+
+
+## Corte 32 · Persistencia de streams externos 2D/3D
+
+Input de conversión admite exactamente conversion MotionFrames o stream declarado;
+tracking_provenance sólo con MotionFrames resueltos. Se conserva ruta conversions,
+inventario, recibos y selección por ID del comparador. Stream conserva contrato,
+frames/unidades/estados, exporta coverage y tiempos comunes; input_kind externo
+explícito. Binding de stream y tracking_provenance se verifica también en histórico.
+Canonical de recibos de MotionFrames mantiene campos previos (sin stream null)
+para no invalidar sus claves. Web guardar stream declarado disponible tras validación
+(o sobre resultado existente); reabrir conserva visualización 3D y no ofrece guardar
+como MotionFrames. No autentica origen ni convierte metadatos importados en
+procedencia verificada. Clock evidence_id persiste como declaración del stream.
+
+Once pruebas núcleo/servicio/HTTP pasaron (1,28 s), otras cuatro de recibos/
+biblioteca/API existentes pasaron (0,90 s), build pasó. Chrome con API aislada pasó
+(1,9 s): guardar externo con respuesta aceptada perdida, reload/recuperación
+idéntica y una conversión, reabrir figura inferred hueca, self-comparison excluye
+inferred por defecto y opt-in obtiene soporte1/1/error0. Esto es control sintético,
+no precisión 3D. Servidor detenido, sin medios privados/sensores, audio intacto.
+Pendientes proveedores 3D reales, calibración/sincronización medidas y conservación
+server-resolved de procedencia al persistir una aplicación de reloj (copiar JSON
+externo conserva reloj, pero no autentica el vínculo a corrida de ajuste).
