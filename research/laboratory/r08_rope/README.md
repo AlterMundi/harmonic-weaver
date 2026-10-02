@@ -442,3 +442,13 @@ no vuelve a video ni firma custodia. Dos tests artifact/API pasaron repeat,
 binding y modificación numérica aun con checksum reescrito; build pasó.
 Pendientes recuperación web de curvas, vínculo de procedencia al tramo
 incorporado, Chrome y benchmark/tracking humano. Camino sigue candidato.
+
+### Corte 35: recuperar curvas con fuente/clock actuales
+
+Inventario de curvas verificadas incluye hash/frame/PTS/soporte; editor
+muestra misma fuente y sólo habilita recuperación en frame correspondiente.
+POST `/paths/{id}/rebind` recalcula artefacto congelado, verifica hash/PTS
+contra video actual y vuelve a verificar artefacto antes de devolver. Usar
+tramo permanece explícito; no aplicar automáticamente al recuperar. Dos tests
+artifact/API y build pasaron recuperación exacta. Pendiente Chrome de reload,
+vínculo de procedencia dentro de la anotación y benchmark humano/tracker.

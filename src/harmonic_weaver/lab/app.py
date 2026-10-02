@@ -348,6 +348,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r08/paths')
     def rope_path_list():return rope_paths.list()
 
+    @app.post('/api/research/r08/paths/{ident}/rebind')
+    def rope_path_rebind(ident:str,body:RopeBinding):
+        import json
+        result=json.loads(rope_paths.artifact(ident,'result.json').read_text())
+        media=rope_reader.probe(rope_media_path(body.media_id))
+        index=result['frame_index']
+        if result['media_sha256']!=media['media_sha256'] or index>=len(media['frame_times_s']) or abs(result['time_s']-media['frame_times_s'][index])>1e-6:raise ValueError('Stored path differs from current source clock')
+        rope_paths.artifact(ident,'result.json')
+        return {**result,'run_id':ident}
+
     @app.get('/api/research/r08/paths/{ident}/artifacts/{name}')
     def rope_path_artifact(ident:str,name:str):return FileResponse(rope_paths.artifact(ident,name),filename=name)
 

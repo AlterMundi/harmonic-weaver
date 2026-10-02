@@ -40,6 +40,7 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         path=client.post('/api/research/r08/path',json={'media_id':'local-video','mask_id':mask_id,'settings':{'component_id':1,'start':{'x':0,'y':0},'stop':{'x':1,'y':1}}})
         assert path.status_code==200 and path.json()['supported']
         assert path.json()['frame_index']==2 and path.json()['time_s']==.2
+        assert client.post(f"/api/research/r08/paths/{path.json()['run_id']}/rebind",json={'media_id':'local-video'}).json()==path.json()
 
 
         assert client.get('/api/research/r08').json()==[]
