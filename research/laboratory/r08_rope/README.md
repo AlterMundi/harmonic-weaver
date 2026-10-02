@@ -465,3 +465,14 @@ conserva origen sólo en estados visibles. Cinco tests contratos/run/API
 pasaron exact/edited, rechazo de geometría/manifest falsos y persistencia;
 build pasó. Pendiente Chrome de recuperación/procedencia y export portable
 con dependencias; un vínculo local no implica aceptación científica humana.
+
+### Corte 37: procedencia/edición/recuperación verificadas en Chrome
+
+Recorrido real pasó candidato de 49 puntos, incorporación/aplicación con
+origen exact y manifest hash, edición a 50 puntos marcada edited, guardado,
+reload y recuperación de anotación con origen intacto. Recuperar curva
+original verifica fuente y conserva 49 puntos, sin modificar tramo editado.
+Chrome pasó 2.1 s (suite 3 s); servidor propio detenido. Prueba automática
+sintética no es aceptación humana de geometría ni desempeño real de tracker.
+Pendientes portable bundle con dependencias, tracking temporal, benchmark
+humano e incertidumbre/propagación; roadmap continúa activo.

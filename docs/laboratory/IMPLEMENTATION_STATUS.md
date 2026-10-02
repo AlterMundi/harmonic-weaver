@@ -255,3 +255,12 @@ recomputación, frame incompatible bloqueado y borrador intacto. Núcleo/API/
 persistencia probados con datos sintéticos. Esto no valida discriminación
 soga/fondo, curvas automáticas ni tracking/propagación; benchmark humano y
 algoritmos asistidos adicionales permanecen pendientes.
+
+R08 curvas guiadas: seeds/componente/budgets explícitos, shortest path dentro
+de máscara verificada sin unir huecos. Candidatos request/result/manifest
+persistidos sobre máscara congelada y manifest de origen; rebind antes de
+recuperar. Incorporar→aplicar→guardar son acciones separadas. Cada tramo
+conserva run ID/hash y exact/edited; API rechaza geometría modificada declarada
+exacta. Chrome real probó edición, reload y original intacto con borrador
+editado; contratos/API/artifacts/build pasan. No centroline real ni aceptación
+humana inferidos; tracking temporal, incertidumbre y benchmark pendientes.
