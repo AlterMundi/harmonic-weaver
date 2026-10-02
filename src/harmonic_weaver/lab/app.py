@@ -24,6 +24,7 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
+from .research.rope_flow_paired_service import RopeFlowPairedService, Selection as RopeFlowPairedSelection
 from .research.rope_flow_benchmark_service import RopeFlowBenchmarkService, Selection as RopeFlowBenchmarkSelection
 from .research.rope_flow_service import RopeFlowService
 from .research.rope_flow_presets import RopeFlowPresets,Preset as RopeFlowPreset
@@ -272,6 +273,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_paths = RopePathService(data_dir)
     rope_flow = RopeFlowService(data_dir,rope_reader)
     rope_flow_benchmarks = RopeFlowBenchmarkService(data_dir, rope, rope_flow)
+    rope_flow_paired = RopeFlowPairedService(data_dir, rope_flow_benchmarks)
     rope_flow_presets = RopeFlowPresets(data_dir)
     rope_flow_verification = RopeFlowVerification(rope_flow,rope_reader)
     evaluation = None
@@ -416,6 +418,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.post('/api/research/r08/flow-paired')
+    def rope_flow_paired_start(body:RopeFlowPairedSelection):return rope_flow_paired.start(body)
+
+    @app.get('/api/research/r08/flow-paired')
+    def rope_flow_paired_list():return rope_flow_paired.list()
+
+    @app.get('/api/research/r08/flow-paired/{ident}/artifacts/{name}')
+    def rope_flow_paired_artifact(ident:str,name:str):
+        return FileResponse(rope_flow_paired.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r08/flow-benchmarks')
     def rope_flow_benchmark_start(body:RopeFlowBenchmarkSelection):

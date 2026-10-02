@@ -1074,3 +1074,18 @@ alterada con hash reescrito rechazada, procedencia incompleta, histórico y
 prohibición de sobrescritura. No revalida originales ni video: próximo servicio
 resolverá IDs de benchmarks verificados y congelará sus manifests; API/UI siguen
 pendientes. No hay significancia estadística ni aceptación humana implícitas.
+
+### Corte 67 — resolver banco pareado y API
+
+`RopeFlowPairedService` recibe 2–16 etiquetas→IDs de benchmarks distintos. Resuelve
+sus requests mediante el servicio verificador, congela manifests y comprueba su
+estabilidad antes/después de publicar. Referencia/etiquetas manuales incompatibles
+siguen rechazadas por el núcleo. Ante modificación elimina sólo la nueva corrida.
+POST/GET `/api/research/r08/flow-paired` y GET `/{id}/artifacts/{name}` exponen
+publicación, inventario y tres JSON; reabrir recomputa inputs congelados, no video.
+
+Siete tests núcleo/persistencia/servicio/HTTP pasaron (1,74 s), con artefactos
+reales, originales intactos, modificación durante publicación, duplicados rechazados,
+video sintético con tracking para HTTP, descargas y recuperación tras reinicio.
+Pendiente UI del banco e idempotencia/recuperación de su POST. Ninguna prueba
+valida calidad manual, significancia, identidad física ni aceptación humana.

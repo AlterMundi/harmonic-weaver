@@ -420,3 +420,7 @@ pareado pendientes; no implica significancia ni aceptación científica.
 R08 corte 66: persistencia/verificación del banco pareado con condiciones y
 procedencias congeladas, recálculo y lectura histórica diferenciados. Cinco tests
 pasaron. Resolución de originales, API/UI pendientes; no valida fuentes humanas.
+
+R08 corte 67: servicio/API pareados resuelven benchmarks verificados, congelan
+manifests y rechazan cambio durante publicación. Siete tests hasta HTTP/reinicio
+pasaron. UI e idempotencia del banco pendientes; no revalida video ni ciencia.

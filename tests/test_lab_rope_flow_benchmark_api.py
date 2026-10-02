@@ -34,6 +34,19 @@ def test_actual_http_benchmark_download_and_restart(tmp_path):
         for invalid in ({**body,'endpoint_seeds':{'a':True}},{**body,'flow_id':'missing'},{**body,'path':'private'}):
             assert client.post(url,json=invalid).status_code==422
         assert client.get(f'{url}/{ident}/artifacts/video.mp4').status_code==422
+        other=client.post(url,json=body).json()['id']
+        paired_url='/api/research/r08/flow-paired'
+        paired=client.post(paired_url,json={'conditions':{'original':ident,'repeat':other}})
+        assert paired.status_code==200
+        paired_id=paired.json()['id']
+        paired_result=client.get(f'{paired_url}/{paired_id}/artifacts/result.json')
+        assert paired_result.status_code==200
+        assert paired_result.json()['common_eligible_endpoints']==1
+        assert client.post(paired_url,json={'conditions':{'a':ident,'b':ident}}).status_code==422
+        assert client.get(f'{paired_url}/{paired_id}/artifacts/video.mp4').status_code==422
+
     with TestClient(create_app(root),base_url='http://127.0.0.1') as client:
+        assert client.get(paired_url).json()[0]['read_verification']=='recomputed'
+        assert client.get(f'{paired_url}/{paired_id}/artifacts/result.json').content==paired_result.content
         assert client.get(url).json()[0]['read_verification']=='recomputed'
         assert client.get(f'{url}/{ident}/artifacts/result.json').content==result.content
