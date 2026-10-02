@@ -1062,3 +1062,20 @@ binding histórico (0,37 s inicial previo). Retry, corrección, null, exportaci�
 idéntica tras restart, fuente eliminada y corrupción verificadas. Warning AnyIO
 de deprecación sin fallos. Pendientes UI/recovery y análisis descriptivo, aceptación
 humana y hardware. Datos sintéticos, sin respuestas humanas nuevas ni defaults.
+
+
+## Corte 18 · Guardado y recuperación web de respuestas
+
+Panel independiente usa respuesta JSON existente y protocolo abierto; apertura
+calcula SHA-256 de bytes del manifest recibido, guardado referencia ese hash.
+Transport_id opcional explícito. Congela POST en sessionStorage antes de enviar,
+retry tras reload sin incorporar ediciones posteriores, listado/exportaciones.
+Pendiente inválido/rechazado exportable y descartable localmente; no autoenvío.
+
+Build y cinco Chrome pasaron (9,1 s): respuesta sintética pleasure75/beautynull,
+POST aceptado con respuesta abortada, reload, retry idéntico, único registro y
+listado; también suite player/transporte. No respuestas humanas ni aceptación.
+Snapshots nuevos requieren protocolo abierto; validación stateless sigue separada.
+Pendientes análisis descriptivo, cierre duradero de transporte, ensayos humanos
+y mediciones físicas. sessionStorage limitado a sesión/pestaña, no backup.
+Sin cambios de sonido/defaults ni medios privados.
