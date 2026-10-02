@@ -1251,6 +1251,13 @@ function App() {
               <>
                 <h2>Cómo interpretar el movimiento</h2>
                 <p>
+                  El modelo produce mediciones; Ruteos elige cuáles controlan
+                  el sonido. Los presets afinados 08–11 hacen audible el error
+                  local, la oposición relativa, la velocidad angular o los
+                  modos colectivos mediante intensidad, con seis voces.
+                  Elegilos en Presets y calibrá el torso de esta fuente/persona.
+                </p>
+                <p>
                   T = longitud de torso calibrada. Modelos exploratorios:
                   describen relaciones cinemáticas. No prueban intención,
                   causalidad ni eficacia corporal.

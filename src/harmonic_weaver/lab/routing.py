@@ -16,7 +16,7 @@ def signal_catalog():
         for name, unit in {"gain": "1", "detune": "1", "phase_deg": "deg", "speed": "T/s",
                            "acceleration": "T/s2", "position_error": "T", "velocity_error": "T",
                            "I": "1", "R": "1", "A": "1", "angle_deg": "deg",
-                           "angular_velocity": "deg/s", "angular_error": "deg",
+                           "angular_velocity": "deg/s", "angular_speed": "deg/s", "angular_error": "deg",
                            "event": "1", "center_score": "1"}.items():
             catalog[f"zone.{zone}.{name}"] = unit
     catalog.update({"collective.residual": "1", "collective.change": "deg", "collective.rank": "1",

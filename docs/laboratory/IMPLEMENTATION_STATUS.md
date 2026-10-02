@@ -1447,3 +1447,57 @@ se verificó usando proxy HTTP local Vite→API y medios originales sin ese rela
 No se cambió el media/render ni se relajaron los checks de posición/pausa/reanudar.
 Estos resultados no acreditan rendimiento para cualquier duración/dispositivo.
 Carga completa de voice-frames y cambio sin crossfade siguen límites de esta entrega.
+
+
+## Presets afinados por descriptor corporal (2026-10-02)
+
+Los templates históricos local/relational/angular/collective calculan descriptores
+distintos pero usan velocidad zonal para gain; sus diferencias iniciales se
+expresaban en detune/fase. Con esas rutas apagadas, elegir otro modelo no hacía
+claramente audible su descriptor. Se agregan cuatro presets lab-v3-descriptor-*
+(08–11) con gain específico y sin detune/fase. No reescriben templates existentes,
+presets guardados ni referencia01c. seed_presets sólo incorpora IDs ausentes.
+
+| Preset | Intensidad antes de master | Unidad/soporte |
+|---|---|---|
+|08 · Local|5 × error de predicción de posición a velocidad constante, clamp0..0.45|T; derivadas/historia causales, calibración explícita|
+|09 · Relacional|gain zonal × (1−I)/2, clamp0..0.45|I del modo previo relativo; sin modo/contribución válida se silencia, oposición no equivale a malo|
+|10 · Angular|0.45 × angular_speed/180, clamp0..0.45|deg/s; promedio de magnitudes izquierda/derecha, exige ambos lados observados|
+|11 · Colectivo|voces1–3:0.75×abs(amplitud de modo);4:0.75×residuo×velocidad global;5:0.75×cambio/30×velocidad global;6:0.75×velocidad global;clamp0..0.45|modos/speed enT/s,cambio endeg,residuo sin unidad; tres componentes/seis voces|
+
+Ganancias iniciales exploratorias editables en Ruteos: no normalización automática
+por fuente ni escalas físicas/metabólicas. Smoothing0.03s, expresión0 y transientes0
+para escuchar el descriptor con el carrier sostenido; se pueden ajustar libremente.
+Algoritmo y rutas quedan en preset portable como antes, sin cuerpo/video/escala.
+Calibración permanece explícita y ligada a fuente/persona; no viaja en el preset. Modelos explica la relación entre
+mediciones y ruteo. Colectivo necesita historia/rango suficiente: un modo faltante
+queda silencioso; componentes del análisis no fijan número de armónicos.
+
+Nueva señal aditiva zone.N.angular_speed: media(abs(velocidad angular)) bilateral.
+Conserva angular_velocity firmado existente. Rotaciones opuestas podían cancelarse
+en su promedio firmado; el nuevo observable mide rapidez, no dirección/intención.
+Caderas/hombros/rodillas/codos mantienen ángulo interno; tobillos/muñecas describen
+orientación distal COCO17, sin manos/pies/ángulos inventados. Missing/held de un lado
+no se rellena con el otro. No cambia decisiones antiguas ni output baseline.
+
+Evidencia: 59 tests modelos/routing/colectivo/runtime/API/store/replay pasan
+(13,48s; deprecación AnyIO sin fallo), build TypeScript/Vite. Test de rotaciones
+opuestas±1rad/s obtiene promedio firmado0 y rapidez57,2958deg/s; pérdida de muñeca
+invalida destino. Fixtures por descriptor prueban soporte/ratios/seis voces/sin
+modulación; seeding repetido preserva edición y configuración activa.
+
+Se renderizó comparación local de referencia+4 modelos×60s de cacheCPU existente:
+3600ticks y2880000samples@48kHz por brazo. Escala aparente de torso medida a5s de
+hombros/caderas observados del slot derecho seleccionado previamente, timestamp/
+sequence/generación/cachehash/unidad congelados. No metros, identidad ni 3D;
+calibración sólo en esa solicitud, sin aplicarla a otro cuerpo/source o sesión live.
+Todos los modelos generan audio no nulo y cada una de las seis voces tiene ticks
+activos con ratios40.4×1..6 preservados. PCM y voice-frames de la referencia tienen
+hashes idénticos a la comparación local anterior. No se copió/reprocesó el video.
+
+Chrome con API/video/WAV/voice-frames reales pasa (1 test,6,1s): alterna los cinco
+presets a15s en pausa y reanuda conservando tiempo/video/figura. Audio muted: sin
+escucha/aceptación humana ni prueba de niveles/sincronización física. Datos/receipt
+locales, servidores de prueba detenidos. Presets incorporados sólo en desarrollo,
+configuración activa preservada, workspaces cotidianos intactos. Preguntas de HIT,
+eficacia/intención, tracking físico y protocolos perceptuales siguen abiertas.

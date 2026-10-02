@@ -494,3 +494,27 @@ cd ~/Projects/harmonic-weaver-dev
 
 Web de desarrollo http://127.0.0.1:8875; instalación cotidiana harmonic-weaver-lab
 permanece separada y no contiene automáticamente esta rama.
+
+
+### Hacer audible cada modelo conservando la afinación
+
+En Presets, elegir08–11. Calibrar torso con hombros/caderas visibles para la
+fuente/persona actual. Estos presets sólo rutean intensidad: local escucha error
+de predicción, relacional oposición relativa ponderada por movimiento, angular
+rapidez sin cancelación bilateral, colectivo tres modos más residuo/cambio/
+velocidad en seis voces. Todos los parámetros siguen editables en Modelos/Ruteos.
+Se agregan sin sobrescribir presets existentes ni cambiar configuración activa.
+
+Valores iniciales: realce0, articulación0, smoothing0.03s, techo gain0.45. Local
+usa peso5T⁻¹; angular0.45/180 por deg/s; relacional gain×(1−I)/2. Colectivo normaliza
+amplitudes con0.75porT/s y cambio con1/30porgrado. Son puntos de exploración,
+no escalas físicas ni resultados sobre calidad del movimiento. Las rutas antiguas
+siguen disponibles. T es torso aparente calibrado de esa toma/cuerpo.
+
+También está preparada una comparación local con referencia y los cuatro modelos
+para el mismo minuto. Consultar su ID en
+~/.local/share/harmonic-weaver/laboratory-dev/model-playback-validation.json;
+Comparar → Ver comparación → Ver video, sonido y figura → Preset del mismo segmento.
+La calibración de esa corrida está congelada en su solicitud; no queda aplicada a
+la sesión live. El render/recorrido software pasó; escuchar y dar feedback está
+pendiente. No se publicó ningún video, tracking o resultado corporal.

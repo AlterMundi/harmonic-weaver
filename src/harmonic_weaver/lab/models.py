@@ -94,6 +94,9 @@ class MotionModel:
                                       ("angular_error", "prediction_error_deg", "deg")):
                 vals = [a.get(key) for a in angles]
                 put(prefix+output, finite_mean(vals) if all(v is not None for v in vals) else None, unit)
+            angular_speeds = [a.get("velocity_deg_s") for a in angles]
+            put(prefix+"angular_speed", finite_mean([abs(v) for v in angular_speeds])
+                if all(v is not None for v in angular_speeds) else None, "deg/s")
             cfg = self.preset.response.zones[z]
             factor = cfg.sensitivity/(1+self.preset.response.core_falloff*cfg.distance)
             gain = min(1., speed*factor/cfg.speed_range) if speed is not None else None
