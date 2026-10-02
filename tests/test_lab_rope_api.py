@@ -44,6 +44,17 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
 
 
         assert client.get('/api/research/r08').json()==[]
+        from copy import deepcopy
+        origin={'segment_index':0,'path_run_id':path.json()['run_id'],'path_manifest_sha256':path.json()['path_manifest_sha256'],'relation':'exact'}
+        assisted={'media_sha256':media.json()['media_sha256'],'width_px':160,'height_px':120,'frames':[{'frame_index':2,'time_s':.2,'state':'observed','visible_segments':[path.json()['points']],'curve_sources':[origin]}]}
+        assert client.post('/api/research/r08',json={'media_id':'local-video','annotation':assisted}).status_code==200
+        edited=deepcopy(assisted);edited['frames'][0]['visible_segments'][0][0]['x']=.01
+        assert client.post('/api/research/r08',json={'media_id':'local-video','annotation':edited}).status_code==422
+        edited['frames'][0]['curve_sources'][0]['relation']='edited'
+        assert client.post('/api/research/r08',json={'media_id':'local-video','annotation':edited}).status_code==200
+        wrong=deepcopy(assisted);wrong['frames'][0]['curve_sources'][0]['path_manifest_sha256']='0'*64
+        assert client.post('/api/research/r08',json={'media_id':'local-video','annotation':wrong}).status_code==422
+
 
         assert client.post('/api/research/r08/reads',json={'media_id':'local-video','frame_index':0}).status_code==422
 
@@ -68,7 +79,7 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         assert client.post('/api/research/r08/probe',json={'media_id':'local-video','path':str(video)}).status_code==422
         assert client.get(f'/api/research/r08/{ident}/artifacts/worker.log').status_code==422
     with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
-        assert len(client.get('/api/research/r08').json())==2
+        assert len(client.get('/api/research/r08').json())==4
         assert len(client.get('/api/research/r08/comparisons').json())==1
         assert len(client.get('/api/research/r08/masks').json())==1
         assert client.get(f"/api/research/r08/comparisons/{comparison.json()['id']}/artifacts/worker.log").status_code==422
@@ -77,5 +88,5 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         with video.open('ab') as handle:handle.write(b'changed')
         assert client.post(f'/api/research/r08/{ident}/rebind',json={'media_id':'local-video'}).status_code==422
     with TestClient(create_app(root),base_url='http://127.0.0.1') as client:
-        assert len(client.get('/api/research/r08').json())==2
+        assert len(client.get('/api/research/r08').json())==4
         assert client.post('/api/research/r08/probe',json={'media_id':'local-video'}).status_code==422

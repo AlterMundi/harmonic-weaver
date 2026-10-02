@@ -10,6 +10,13 @@ class Point(Contract):
     y:Number=Field(ge=0,le=1)
 
 
+class CurveSource(Contract):
+    segment_index:int=Field(ge=0,le=63)
+    path_run_id:str=Field(pattern='^[a-f0-9]{32}$')
+    path_manifest_sha256:str=Field(pattern='^[a-f0-9]{64}$')
+    relation:Literal['exact','edited']='exact'
+
+
 class Frame(Contract):
     frame_index:int=Field(ge=0)
     time_s:Number=Field(ge=0)
@@ -17,16 +24,20 @@ class Frame(Contract):
     visible_segments:list[list[Point]]=Field(default_factory=list,max_length=64)
     causes:list[Literal['blur','occlusion','crossing_ambiguity','out_of_frame']]=Field(default_factory=list,max_length=4)
     note:str=Field(default='',max_length=2000)
+    curve_sources:list[CurveSource]=Field(default_factory=list,max_length=64)
     endpoints:dict[Literal['a','b'],Point]=Field(default_factory=dict,max_length=2)
 
     @model_serializer(mode='wrap')
     def serialize(self,handler):
         data=handler(self)
         if not self.endpoints:data.pop('endpoints',None)
+        if not self.curve_sources:data.pop('curve_sources',None)
         return data
 
     @model_validator(mode='after')
     def valid(self):
+        indices=[source.segment_index for source in self.curve_sources]
+        if len(set(indices))!=len(indices) or any(i>=len(self.visible_segments) for i in indices):raise ValueError('Curve source must reference a unique visible segment')
         if self.state in ('absent','unidentifiable') and self.endpoints:raise ValueError('No invented endpoints for absent/unidentifiable rope')
         if any(len(s)<2 or len(s)>4096 for s in self.visible_segments):raise ValueError('Each visible polyline requires 2–4096 points')
         if self.state in ('absent','unidentifiable') and self.visible_segments:raise ValueError('No invented curve for absent/unidentifiable rope')

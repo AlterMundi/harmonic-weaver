@@ -343,20 +343,21 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         job=rope_paths.start({'mask':mask,'settings':body.settings,'mask_manifest_sha256':digest})
         import json
         result=json.loads(rope_paths.artifact(job['id'],'result.json').read_text())
-        return {**result,'run_id':job['id']}
+        return {**result,'run_id':job['id'],'path_manifest_sha256':sha256_file(rope_paths.artifact(job['id'],'manifest.json'))}
 
     @app.get('/api/research/r08/paths')
     def rope_path_list():return rope_paths.list()
 
     @app.post('/api/research/r08/paths/{ident}/rebind')
     def rope_path_rebind(ident:str,body:RopeBinding):
+        from .cache import sha256_file
         import json
         result=json.loads(rope_paths.artifact(ident,'result.json').read_text())
         media=rope_reader.probe(rope_media_path(body.media_id))
         index=result['frame_index']
         if result['media_sha256']!=media['media_sha256'] or index>=len(media['frame_times_s']) or abs(result['time_s']-media['frame_times_s'][index])>1e-6:raise ValueError('Stored path differs from current source clock')
         rope_paths.artifact(ident,'result.json')
-        return {**result,'run_id':ident}
+        return {**result,'run_id':ident,'path_manifest_sha256':sha256_file(rope_paths.artifact(ident,'manifest.json'))}
 
     @app.get('/api/research/r08/paths/{ident}/artifacts/{name}')
     def rope_path_artifact(ident:str,name:str):return FileResponse(rope_paths.artifact(ident,name),filename=name)
@@ -431,6 +432,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r08')
     def rope_save(body:RopeSave):
+        import json
+        from .cache import sha256_file
+        for frame in body.annotation.frames:
+            for origin in frame.curve_sources:
+                manifest=rope_paths.artifact(origin.path_run_id,'manifest.json')
+                if sha256_file(manifest)!=origin.path_manifest_sha256:raise ValueError('Curve provenance manifest mismatch')
+                result=json.loads(rope_paths.artifact(origin.path_run_id,'result.json').read_text())
+                if not result['supported'] or result['media_sha256']!=body.annotation.media_sha256 or result['frame_index']!=frame.frame_index or abs(result['time_s']-frame.time_s)>1e-6:raise ValueError('Curve provenance source/frame mismatch')
+                if origin.relation=='exact' and result['points']!=[p.model_dump() for p in frame.visible_segments[origin.segment_index]]:raise ValueError('Edited curve cannot claim exact candidate geometry')
+                if sha256_file(manifest)!=origin.path_manifest_sha256:raise ValueError('Curve provenance changed during validation')
         return rope.save(body.annotation,rope_media_path(body.media_id),parent_id=body.parent_id)
 
     @app.post('/api/research/r08/{ident}/rebind')

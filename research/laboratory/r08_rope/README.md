@@ -452,3 +452,16 @@ contra video actual y vuelve a verificar artefacto antes de devolver. Usar
 tramo permanece explícito; no aplicar automáticamente al recuperar. Dos tests
 artifact/API y build pasaron recuperación exacta. Pendiente Chrome de reload,
 vínculo de procedencia dentro de la anotación y benchmark humano/tracker.
+
+### Corte 36: procedencia del tramo asistido en anotación
+
+Frame admite curve_sources por segmento: ID de curva, hash de su manifest y
+relación exact/edited. Campos vacíos se omiten conservando revisiones previas.
+Guardar por API verifica manifest/soporte/fuente/frame/PTS y geometría si
+exact; un tramo modificado no puede declararse copia exacta. Edited conserva
+vínculo sin afirmar misma geometría. Editor incorpora origen al usar camino,
+marca edited al agregar puntos y borra vínculos al borrar curvas; aplicar
+conserva origen sólo en estados visibles. Cinco tests contratos/run/API
+pasaron exact/edited, rechazo de geometría/manifest falsos y persistencia;
+build pasó. Pendiente Chrome de recuperación/procedencia y export portable
+con dependencias; un vínculo local no implica aceptación científica humana.
