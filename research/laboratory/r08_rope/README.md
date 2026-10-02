@@ -115,3 +115,16 @@ compilar `tests/r08_harness` con Vite; iniciar fixture con `--root`, `--ui`
 y `--port`; ejecutar Playwright con `PLAYWRIGHT_CHANNEL=chrome` y
 `LAB_R08_NETWORK_URL=http://127.0.0.1:<port>`. El test requiere inventario
 vacío inicial; nunca apuntarlo al laboratorio cotidiano con datos propios.
+
+### Corte 9: caché de lectura en memoria
+
+RopeReader conserva hasta cuatro inventarios y 32 MB de imágenes PNG con
+expulsión LRU. Reconsultar un frame evita FFprobe/FFmpeg, pero verifica el
+hash del archivo en cada lectura antes y después; no confía sólo en mtime.
+No hay archivos de imagen persistidos ni copias de video. El inventario
+se devuelve como copia para evitar mutaciones externas. El servicio HTTP
+usa este lector para preparar y decodificar; guardado/rebind conservan su
+verificación independiente. Tres tests reader/API/media pasaron en 2.05 s,
+incluyendo conteos de probe/decode, presupuesto, copia e invalidación.
+Pendientes: trabajos observables/cancelables y medición con clips corporales;
+rehash completo sigue costando I/O y el primer decode continúa síncrono.

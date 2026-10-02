@@ -23,6 +23,7 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
 from .research.rope_annotations import Annotation as RopeAnnotation
 from .research.membrane_service import MembraneService
@@ -217,6 +218,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
     rope = RopeService(data_dir)
+    rope_reader = RopeReader()
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -292,13 +294,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r08/probe')
     def rope_probe(body:RopeBinding):
-        from .research.rope_media import probe
-        return probe(rope_media_path(body.media_id))
+        return rope_reader.probe(rope_media_path(body.media_id))
 
     @app.get('/api/research/r08/media/{ident}/frames/{index}')
     def rope_frame(ident:str,index:int,sha256:str):
-        from .research.rope_media import frame_png
-        return Response(frame_png(rope_media_path(ident),index,sha256),media_type='image/png',headers={'Cache-Control':'no-store'})
+        return Response(rope_reader.frame(rope_media_path(ident),index,sha256),media_type='image/png',headers={'Cache-Control':'no-store'})
 
     @app.post('/api/research/r08')
     def rope_save(body:RopeSave):

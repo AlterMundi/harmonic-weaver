@@ -53,7 +53,10 @@ def bind(annotation,path):
 
 def frame_png(path,index,expected_sha256):
     """Exact decoded index, no approximate browser seek or persisted image copy."""
-    media=probe(path)
+    return _frame_png(path,index,expected_sha256,probe(path))
+
+
+def _frame_png(path,index,expected_sha256,media):
     if media['media_sha256']!=expected_sha256:raise ValueError('Video changed since editor preparation')
     if isinstance(index,bool) or not isinstance(index,int) or not 0<=index<len(media['frame_times_s']):
         raise ValueError('Frame index outside decoded inventory')
