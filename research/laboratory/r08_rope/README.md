@@ -430,3 +430,15 @@ sin aceptación silenciosa (1.3 s; suite 2.2 s). Build pasó, servidor detenido.
 Test automático no es aceptación humana de soga. Pendientes persistir
 procedencia específica de curva asistida, tracker temporal/benchmark humano
 y protocolos de incertidumbre/propagación; shortest path no prueba centerline.
+
+### Corte 34: curva candidata persistida con máscara y seeds congelados
+
+Proponer curva crea research/r08-paths con request/result/manifest: máscara
+JSON congelada, hash del manifest de máscara, seeds/componente/budgets,
+código/entorno y recálculo exacto. API lista/artefactos y descargas del
+candidato en editor; no PNG/video copiados. API reverify máscara contra video
+antes de congelarla. Verificador de curva recalcula **sobre máscara congelada**,
+no vuelve a video ni firma custodia. Dos tests artifact/API pasaron repeat,
+binding y modificación numérica aun con checksum reescrito; build pasó.
+Pendientes recuperación web de curvas, vínculo de procedencia al tramo
+incorporado, Chrome y benchmark/tracking humano. Camino sigue candidato.

@@ -24,6 +24,7 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
+from .research.rope_path_service import RopePathService
 from .research.rope_path import Settings as RopePathSettings
 from .research.rope_mask_service import RopeMaskService
 from .research.rope_mask_run import Request as RopeMaskRunRequest
@@ -257,6 +258,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_jobs = RopeJobs(rope_reader)
     rope_comparisons = RopeCompareService(data_dir)
     rope_masks = RopeMaskService(data_dir,rope_reader)
+    rope_paths = RopePathService(data_dir)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -333,8 +335,21 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r08/path')
     def rope_path(body:RopePath):
-        from .research.rope_path import propose
-        return propose(rope_masks.reverify(body.mask_id,rope_media_path(body.media_id)),body.settings)
+        from .cache import sha256_file
+        mask_manifest=rope_masks.artifact(body.mask_id,'manifest.json')
+        digest=sha256_file(mask_manifest)
+        mask=rope_masks.reverify(body.mask_id,rope_media_path(body.media_id))
+        if sha256_file(mask_manifest)!=digest:raise ValueError('Mask changed while preparing path')
+        job=rope_paths.start({'mask':mask,'settings':body.settings,'mask_manifest_sha256':digest})
+        import json
+        result=json.loads(rope_paths.artifact(job['id'],'result.json').read_text())
+        return {**result,'run_id':job['id']}
+
+    @app.get('/api/research/r08/paths')
+    def rope_path_list():return rope_paths.list()
+
+    @app.get('/api/research/r08/paths/{ident}/artifacts/{name}')
+    def rope_path_artifact(ident:str,name:str):return FileResponse(rope_paths.artifact(ident,name),filename=name)
 
     @app.get('/api/research/r08/masks')
     def rope_mask_list():return rope_masks.list()
