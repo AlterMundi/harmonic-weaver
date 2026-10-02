@@ -1231,3 +1231,19 @@ rechazado, histórico explícito e input distinto rechazado. Warning AnyIO sin f
 Pendientes guardar/recovery/reabrir pares desde web, inyección de fallo específica
 de PairService, presets de contrastes y cierre duradero. Sin cambios de sonido,
 defaults ni datos humanos nuevos; no causalidad/aceptación científica acreditadas.
+
+
+## Corte 29 · Guardar/recover/reabrir pares desde web
+
+Records compartido para análisis y pares usa recursos, pending keys y selección
+propios. Guarda pares+hashes de fuentes de preview, congela envío antes de POST;
+retry tras reload no añade ediciones posteriores. Listado/reapertura/attachments,
+label de resultado guardado y generación que invalida reapertura ante nueva edición.
+No cambia flujo cotidiano ni activa reproducción.
+
+Build y seis Chrome pasaron (10,6 s): pares POST aceptado/respuesta perdida,
+reload/retry idéntico, único registro, reopen delta25, edición limpia tabla; también
+guardado/recovery/apertura de análisis sigue pasando tras compartir componente.
+Fixtures sintéticos/audio silenciado, sin aceptación humana. Pendientes presets
+portables de contrastes, fallo específico PairService, cierre duradero y R11–R13.
+Servidor de fixture detenido, sonido/defaults intactos.
