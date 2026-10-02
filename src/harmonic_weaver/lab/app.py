@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_pairs import Selection as ExperiencePairSelection, preview as preview_experience_pairs
 from .research.experience_analysis_service import AnalysisService, SaveRequest as ExperienceAnalysisSaveRequest
 from .research.experience_analysis import Selection as ExperienceAnalysisSelection, analyze as analyze_experience
 from .research.experience_response import Request as FrozenExperienceResponse
@@ -474,6 +475,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r10/pairs-preview')
+    def experience_pairs_preview(body:ExperiencePairSelection):
+        return preview_experience_pairs(experience_responses,body)
 
     @app.post('/api/research/r10/analyses')
     def experience_analysis_save(body:ExperienceAnalysisSaveRequest):

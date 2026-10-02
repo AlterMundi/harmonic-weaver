@@ -1186,3 +1186,18 @@ retenida, checkbox desmarcado durante carga, liberación no revive tabla ni vuel
 a seleccionar respuesta. Recovery/guardado/playback previos pasan. Servidor
 sintético detenido; audio silenciado, sin aceptación humana. Pendientes contraste
 pareado, cierre duradero y líneas R11–R13; no defaults/sonido modificados.
+
+
+## Corte 26 · Contrastes pareados explícitos
+
+experience_pairs define pares reference_id/target_id (máximo128), dirección
+target−reference, mismo protocolo/hash/questions, estímulo/repetición y condiciones
+diferentes. Reutiliza validación frozen de análisis; input exportable recalculable.
+Null de cualquier lado produce delta null; resumen mediana de diferencias soportadas
+y conteo de pares faltantes, sin imputación. Pueden compartir respuestas: no son
+participantes independientes. API POST pairs-preview stateless.
+
+Siete pruebas núcleo/API pasaron (2,64 s):0→75 delta75, inverso−75, null, mismo
+input repetible, duplicados/autopar/otro protocolo rechazados y preview HTTP.
+Pendientes pruebas específicas repetición/estímulo distintos, UI, manifest/guardar
+pareados y mediciones/aceptación humanas. Sin conclusiones científicas ni defaults.

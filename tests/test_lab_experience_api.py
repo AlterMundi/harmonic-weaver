@@ -131,8 +131,12 @@ def test_response_http_export_restart_and_null(tmp_path):
         assert frozen_analysis.json()==preview.json()
         assert client.post('/api/research/r10/analysis-preview',json={'response_ids':[ident,ident]}).status_code==422
         assert client.post(url,json={**body,'response':{'trial_id':'unknown','ratings':body['response']['ratings']}}).status_code==422
+        second=client.post(url,json={**body,'response':{**body['response'],'trial_id':'trial-0002'}}).json()['id']
+        pairs=client.post('/api/research/r10/pairs-preview',json={'pairs':[{'reference_id':ident,'target_id':second}]})
+        assert pairs.status_code==200,pairs.text
+        assert pairs.json()['pairs'][0]['items'][0]['target_minus_reference'] is None
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
-        assert len(client.get(url).json())==1
+        assert len(client.get(url).json())==2
         assert client.get(f'{url}/{ident}/artifacts/result.json').content==artifact.content
         assert len(client.get('/api/research/r10/analyses').json())==1
         assert client.get(f'/api/research/r10/analyses/{aid}/artifacts/result.json').content==frozen_analysis.content
