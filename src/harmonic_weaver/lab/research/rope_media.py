@@ -1,23 +1,21 @@
 """Read-only R08 source binding to decoded video presentation timestamps."""
 import json
 import math
-import subprocess
 from pathlib import Path
 from ..cache import sha256_file
 from .rope_annotations import Annotation
+from .rope_process import capture
 
 
-def probe(path):
+def probe(path,*,cancel=None):
     path=Path(path)
     if path.is_symlink() or not path.is_file():raise ValueError('Regular local video required')
     before=sha256_file(path)
     command=['ffprobe','-v','error','-select_streams','v:0','-show_streams','-show_frames',
              '-show_entries','stream=width,height,sample_aspect_ratio:stream_tags=rotate:stream_side_data=rotation:frame=best_effort_timestamp_time,width,height',
              '-of','json',str(path)]
-    result=subprocess.run(command,capture_output=True,timeout=60,check=False)
-    if result.returncode:raise ValueError('Video frame probing failed')
-    if len(result.stdout)>16_000_000:raise ValueError('Video frame inventory exceeds probe budget')
-    data=json.loads(result.stdout);streams=data.get('streams',[])
+    output=capture(command,max_bytes=16_000_000,cancel=cancel)
+    data=json.loads(output);streams=data.get('streams',[])
     if len(streams)!=1:raise ValueError('One selected video stream required')
     stream=streams[0]
     if stream.get('sample_aspect_ratio') not in ('1:1','N/A',None):raise ValueError('Non-square pixels require explicit display-coordinate adapter')
@@ -51,19 +49,18 @@ def bind(annotation,path):
     return media
 
 
-def frame_png(path,index,expected_sha256):
+def frame_png(path,index,expected_sha256,*,cancel=None):
     """Exact decoded index, no approximate browser seek or persisted image copy."""
-    return _frame_png(path,index,expected_sha256,probe(path))
+    return _frame_png(path,index,expected_sha256,probe(path,cancel=cancel),cancel=cancel)
 
 
-def _frame_png(path,index,expected_sha256,media):
+def _frame_png(path,index,expected_sha256,media,*,cancel=None):
     if media['media_sha256']!=expected_sha256:raise ValueError('Video changed since editor preparation')
     if isinstance(index,bool) or not isinstance(index,int) or not 0<=index<len(media['frame_times_s']):
         raise ValueError('Frame index outside decoded inventory')
-    result=subprocess.run(['ffmpeg','-v','error','-noautorotate','-i',str(path),'-map','0:v:0',
+    output=capture(['ffmpeg','-v','error','-noautorotate','-i',str(path),'-map','0:v:0',
         '-vf',f'select=eq(n\\,{index})','-frames:v','1','-f','image2pipe','-c:v','png','pipe:1'],
-        capture_output=True,timeout=60,check=False)
-    if result.returncode or not result.stdout.startswith(b'\x89PNG\r\n\x1a\n'):raise ValueError('Exact video frame decoding failed')
-    if len(result.stdout)>32_000_000:raise ValueError('Decoded image exceeds budget')
+        max_bytes=32_000_000,cancel=cancel)
+    if not output.startswith(b'\x89PNG\r\n\x1a\n'):raise ValueError('Exact video frame decoding failed')
     if Path(path).is_symlink() or sha256_file(path)!=expected_sha256:raise ValueError('Video changed during frame decoding')
-    return result.stdout
+    return output

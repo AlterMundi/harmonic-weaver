@@ -151,3 +151,15 @@ extremos. La tolerancia refleja cuantización de clicks del navegador;
 contratos numéricos ya prueban valores exactos por separado. Chrome pasó
 1.6 s (suite 2.3 s), servidor propio detenido. Sólo video sintético;
 correspondencias corporales humanas y velocidad física siguen pendientes.
+
+### Corte 12: procesos de decodificación cancelables y salida acotada
+
+FFprobe/FFmpeg usan captura POSIX con lectura no bloqueante y límite aplicado
+mientras llegan bytes (16 MB inventario, 32 MB PNG), no después de acumular
+salida ilimitada. Cancelación cooperativa y timeout de 60 s terminan y esperan
+el proceso propio; stderr no expone rutas privadas. Cancelación previa no
+lanza proceso. Cuatro tests proceso/media/reader/API pasaron en 2.26 s:
+proceso confirmado vivo cancelado, timeout, overflow y extracción real.
+No confundir esta base con cancelación web completa: faltan jobs observables,
+conectar eventos desde UI/reader y hashing interrumpible. Hashes actuales se
+calculan fuera del bucle cancelable; API aún síncrona.
