@@ -156,3 +156,12 @@ Diez tests hasta HTTP pasaron (1,05 s), incluyendo persistencia de generación,
 rechazo de generación antigua y de procedencia inyectada por ruta declarada.
 Build pasó; botón de procedencia en Chrome pendiente. Idempotencia/presets y
 mediciones físicas pendientes; datos privados/audio no modificados.
+
+## Corte 12 · Procedencia persistida verificada en Chrome
+
+Chrome real contra API/generación sintética pasó (1,7 s): guardar desde generación,
+una corrida, reload/reapertura y tracking_provenance idéntica al artefacto guardado.
+Conserva selección explícita, rango inclusivo, missing para slot ausente y rechazo
+fuera de duración; cero POST de inicio de tracking. Servidor aislado detenido.
+No prueba calidad corporal, cache físico ni calibración; idempotencia y presets
+siguen pendientes. No datos privados ni cambios sonoros.

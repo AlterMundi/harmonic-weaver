@@ -478,3 +478,7 @@ presets pendientes; fixtures sintéticos, sin aceptación humana implícita.
 R09 corte 11: persistencia de procedencia resuelta de biblioteca con generación
 esperada, rechazos ante cambio/atribución declarada. Diez tests HTTP y build pasaron.
 Botón web de fuente en Chrome, idempotencia y presets pendientes; sin rehash de video.
+
+R09 corte 12: Chrome real verificó guardar desde generación y recuperar procedencia
+idéntica tras reload, una corrida y cero solicitudes de tracking; fixture sintético.
+Idempotencia/presets y validación física siguen pendientes.
