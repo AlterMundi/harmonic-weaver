@@ -424,3 +424,7 @@ pasaron. Resolución de originales, API/UI pendientes; no valida fuentes humanas
 R08 corte 67: servicio/API pareados resuelven benchmarks verificados, congelan
 manifests y rechazan cambio durante publicación. Siete tests hasta HTTP/reinicio
 pasaron. UI e idempotencia del banco pendientes; no revalida video ni ciencia.
+
+R08 corte 68: banco pareado en web con selección múltiple, cobertura/error común,
+diferencias, JSON, inventario y descargas. Build y Chrome real pasaron; recuperación
+idempotente del POST pareado y revisión humana pendientes. Audio sin cambios.

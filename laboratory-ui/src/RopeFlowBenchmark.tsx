@@ -1,3 +1,4 @@
+import {RopeFlowPaired} from './RopeFlowPaired';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
@@ -66,5 +67,6 @@ export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
  {runs.map(r=><div key={r.id}>{r.id} · {r.read_verification==='recomputed'?'Métrica recalculada sobre entradas congeladas':'Histórico: sólo integridad, sin recálculo actual'}
  <button disabled={busy} onClick={()=>void act(async()=>setResult(await api(`research/r08/flow-benchmarks/${r.id}/artifacts/result.json`)))}>Ver benchmark R08</button>
  {['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r08/flow-benchmarks/${r.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
+ <RopeFlowPaired api={api} benchmarks={runs}/>
  </section>;
 }

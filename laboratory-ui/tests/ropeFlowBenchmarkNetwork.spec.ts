@@ -31,4 +31,17 @@ test('explicit mapping coverage and persisted result',async({page})=>{
  await page.reload();await expect(page.getByText(/Métrica recalculada sobre entradas congeladas/)).toBeVisible();
  await page.getByRole('button',{name:'Ver benchmark R08',exact:true}).click();await expect(page.getByText(/entrada de semillas 1/)).toBeVisible();
  expect((await(await page.request.get(`${origin}/api/research/r08/flow-benchmarks`)).json())).toHaveLength(1);
+ const existing=await(await page.request.get(`${origin}/api/research/r08/flow-benchmarks`)).json();
+ const second=await post('flow-benchmarks',{reference_id:ref.id,flow_id:job.id,endpoint_seeds:{a:0}});
+ await page.reload();const paired=page.getByRole('region',{name:'Comparación pareada R08',exact:true});
+ const compare=paired.getByRole('button',{name:'Comparar soporte común R08'});await expect(compare).toBeDisabled();
+ await paired.getByLabel(existing[0].id,{exact:true}).check();await expect(compare).toBeDisabled();
+ await paired.getByLabel(second.id,{exact:true}).check();await compare.click();
+ await expect(paired.getByText(/Soporte común:/)).toBeVisible();
+ await expect(paired.getByRole('table')).toBeVisible();
+ const pairedDownload=page.waitForEvent('download');await paired.getByRole('link',{name:'result.json',exact:true}).click();expect((await pairedDownload).suggestedFilename()).toBe('result.json');
+ await page.reload();await page.getByRole('button',{name:'Ver banco pareado R08',exact:true}).click();
+ await expect(page.getByText(/Soporte común:/)).toBeVisible();
+ expect((await(await page.request.get(`${origin}/api/research/r08/flow-paired`)).json())).toHaveLength(1);
+
 });

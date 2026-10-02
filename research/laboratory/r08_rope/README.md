@@ -1089,3 +1089,18 @@ reales, originales intactos, modificación durante publicación, duplicados rech
 video sintético con tracking para HTTP, descargas y recuperación tras reinicio.
 Pendiente UI del banco e idempotencia/recuperación de su POST. Ninguna prueba
 valida calidad manual, significancia, identidad física ni aceptación humana.
+
+### Corte 68 — banco pareado en web
+
+El panel permite elegir 2–16 benchmarks guardados distintos, ejecutar el banco y
+ver soporte común/elegible, cobertura individual, soporte sobre elegibilidad común,
+media/máximo común y diferencias firmadas. IDs actúan como etiquetas inequívocas;
+JSON conserva entradas completas. Inventario histórico, descargas y reapertura
+sin ejecución nueva. La comparación no toca borradores ni síntesis.
+
+Build pasó; Chrome real sobre API/video sintético pasó (2,8 s), incluyendo mínimo
+de dos selecciones, tabla, descarga nativa y reload/reapertura con un solo banco;
+conserva las verificaciones de mapeo, contexto y recuperación del benchmark individual.
+Servidor aislado detenido. Pendiente idempotencia/recuperación del POST del banco,
+labels más legibles y aceptación/calidad manual humana. Soporte común puede sesgar
+hacia puntos fáciles: diferencias no afirman significancia ni validación física.
