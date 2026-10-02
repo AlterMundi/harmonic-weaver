@@ -68,3 +68,18 @@ real contra fixture API pasó (1,4 s): import/export mantiene0/null/.008/unidad,
 gap visible, causa vacía rechazada y tabla inválida no revive. Datos sintéticos,
 sin audio/hardware humano. Servidor fixture detenido. Pendientes manifest/servicio,
 SNR/control synthetic y unidades/clocks de export real; aceptación física pendiente.
+
+
+## Corte 3 · Observaciones persistentes y manifest
+
+neuro_run publica Stream/request, inventario/result y manifest con hashes/código/
+entorno. Recalcula inventory actual, histórico dice integridad sólo y siempre exige
+raw/result binding. NeuroService usa identidad por contenido para retry/restart,
+listado y attachments; POST/GET observations y artifacts API. No registra dispositivo
+ni normaliza/filtra; importación raw explícita conserva metadata y datos.
+
+Cinco pruebas núcleo/runner/API pasaron (1,08 s): retry/restart/export idéntico,
+0/null/causas preservadas, inventory alterado con hashes rehechos rechazado,
+histórico y rawbinding, traversal/artefacto desconocido. Warning AnyIO sin fallo.
+Pendientes guardar/recovery/reabrir web, presupuestos de tamaño/latencia, estimadores
+SNR, adaptador/hardware real y sync física. Fixtures sintéticas; sonido intacto.

@@ -13,4 +13,18 @@ def test_neuro_inspect_preserves_raw_without_acquisition_or_archive(tmp_path):
         assert result['index_gaps'][0]['missing_index_count']==1
         assert result['channels'][0]['reference']=='declared-reference'
         assert client.post('/api/research/r11/inspect',json={**body,'device':'invented'}).status_code==422
-        assert not (tmp_path/'research/r11-observations').exists()
+        assert list((tmp_path/'research/r11-observations').iterdir())==[]
+
+
+def test_neuro_saved_raw_export_retry_and_restart(tmp_path):
+    url='/api/research/r11/observations'
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        saved=client.post(url,json=data());assert saved.status_code==200,saved.text
+        ident=saved.json()['id'];assert client.post(url,json=data()).json()['id']==ident
+        exported=client.get(f'{url}/{ident}/artifacts/request.json')
+        assert 'attachment' in exported.headers['content-disposition']
+        assert exported.json()['samples'][1]['missing_causes']=={'ch1':'dropped'}
+        assert client.get(f'{url}/{ident}/artifacts/private.mp4').status_code==422
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert len(client.get(url).json())==1
+        assert client.get(f'{url}/{ident}/artifacts/request.json').content==exported.content
