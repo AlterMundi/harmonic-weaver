@@ -201,3 +201,15 @@ Chrome HTTP real del recorrido con preparación async pasó 2.3 s (suite 3 s).
 Servidor propio detenido. Aún pendiente prueba del botón contra una lectura
 larga real y migrar cada imagen del editor a jobs; imágenes/rebind/guardar
 siguen usando sus rutas síncronas actuales. No declarar todo R08 cancelable.
+
+### Corte 16: lectura de imágenes mediante jobs web
+
+RopeEditor inicia un job de frame exacto, muestra estado y ofrece cancelar
+imagen/reintentar. Índice bloqueado mientras inicia/lee; ninguna curva se
+aplica sin imagen cargada. Cleanup solicita cancelación y descarta respuestas
+tardías del trabajo viejo. PNG se obtiene sólo desde resultado completo;
+no usa la ruta síncrona de frames. Chrome HTTP real del recorrido completo
+pasó 2.4 s (suite 3.1 s), build pasó; servidor propio detenido. Faltan prueba
+de cancelación con lectura larga real y concurrencia al cambiar fuente/
+repreparar; rebind y guardado siguen síncronos. No declarar esa cobertura
+por extrapolar el recorrido exitoso de imágenes pequeñas sintéticas.
