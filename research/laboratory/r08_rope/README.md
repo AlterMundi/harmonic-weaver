@@ -188,3 +188,16 @@ Tres tests jobs/API pasaron: probe y decode reales, expiración, fallo,
 exclusión de trabajos simultáneos, cancelación y cierre. Pendiente conectar
 UI y probar cancelación HTTP real de proceso largo; rutas síncronas anteriores
 permanecen disponibles durante la transición. Revisiones persistidas aparte.
+
+### Corte 15: preparación observable en la web
+
+Preparar anotación inicia `/reads`, muestra estado, consulta el mismo ID
+hasta terminal y carga el resultado completo. Botón cancelar solicita al
+trabajo propio; desmontar el panel también solicita cancelación, incluida
+la respuesta de creación que llega después del desmontaje. No se aplica
+un resultado posterior al desmontaje. Fuente/acciones bloqueadas durante
+preparación; revisiones no cambian al cancelar. Compilación web pasó;
+Chrome HTTP real del recorrido con preparación async pasó 2.3 s (suite 3 s).
+Servidor propio detenido. Aún pendiente prueba del botón contra una lectura
+larga real y migrar cada imagen del editor a jobs; imágenes/rebind/guardar
+siguen usando sus rutas síncronas actuales. No declarar todo R08 cancelable.
