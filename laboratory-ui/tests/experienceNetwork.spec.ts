@@ -1,0 +1,10 @@
+import {test,expect} from '@playwright/test';
+import {readFile} from 'node:fs/promises';
+test('experience protocol preview and declared response stay distinct',async({page})=>{
+ test.skip(!process.env.LAB_R10_URL,'isolated fixture required');await page.goto(process.env.LAB_R10_URL!);const panel=page.getByRole('region',{name:'Protocolo de experiencia R10',exact:true});
+ const request={config:{},participant_slot:'synthetic-slot',role:'observer',order_index:0,stimuli:[{id:'synthetic',reference:'declared-synthetic',start_s:0,end_s:60}]};
+ await panel.getByLabel('Protocolo JSON R10').fill(JSON.stringify(request));await panel.getByRole('button',{name:'Preparar protocolo R10'}).click();await expect(panel.getByText(/3 ensayos planificados · ciclo de órdenes: 6/)).toBeVisible();await expect(panel.getByRole('table',{name:'Orden de ensayos R10'}).locator('tbody tr')).toHaveCount(3);
+ const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar configuración portable R10'}).click();const file=await download;expect(file.suggestedFilename()).toBe('r10-configuration.json');const config=JSON.parse(await readFile((await file.path())!,'utf8'));expect(config.conditions).toEqual(['video_only','sound_only','audiovisual']);expect(config).not.toHaveProperty('participant_slot');expect(config).not.toHaveProperty('stimuli');
+ const response=JSON.parse(await panel.getByLabel('Respuesta JSON R10').inputValue());response.ratings.pleasure=75;await panel.getByLabel('Respuesta JSON R10').fill(JSON.stringify(response));await panel.getByRole('button',{name:'Validar respuesta declarada R10'}).click();await expect(panel.getByText(/Respuesta declarada válida · rol observer/)).toBeVisible();
+ response.ratings.pleasure=101;await panel.getByLabel('Respuesta JSON R10').fill(JSON.stringify(response));await panel.getByRole('button',{name:'Validar respuesta declarada R10'}).click();await expect(panel.getByRole('alert')).toBeVisible();await expect(panel.getByRole('button',{name:'Exportar respuesta declarada R10'})).toHaveCount(0);
+});

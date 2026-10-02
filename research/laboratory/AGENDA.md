@@ -887,3 +887,11 @@ manifest/env/hash y CLI de referencia. Tres tests pasan. Calendarios digitales
 son racionales tras cuantización; diferencias temporales/medio no se atribuyen
 al nombre phi ni prueban HIT. Plan y pendientes web/worker/verificador/bancos/
 protocolos en research/laboratory/r06_activation/README.md. Instrumento live intacto.
+
+
+R10 — primer protocolo declarado (2026-10-02): [contratos/API/web y siguientes
+entregas](r10_experience/README.md). Roles separados, condiciones video/sonido/ambos
+y desacoplamiento opcional, orden reproducible, preguntas/escala configurables y
+null explícito. Tests sintéticos no son exposición ni respuestas humanas. Persistencia,
+player con procedencia, niveles/sincronización medidos, análisis y participantes
+siguen pendientes; no resultado sobre placer/belleza/agencia ni sus proxies.

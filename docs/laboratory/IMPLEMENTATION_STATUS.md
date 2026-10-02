@@ -747,3 +747,14 @@ una nueva conversión (dos totales), descarga nativa con IDs y frames preservado
 clock original offset0/nuevo offset2. Servidor apagado. Sin medios privados ni
 hardware, defaults/audio intactos. Retención al cerrar tab/coordinación multipestaña
 no garantizadas; exactitud física/calibración/proveedores 3D reales siguen pendientes.
+
+
+## R10 corte 1 · Protocolo de experiencia declarado
+
+Rama feat/r10-experience-protocol sobre PR #76; mismo workspace dev. Núcleo/API/web
+para calendario de condiciones y respuestas tipadas, export portable sin fuentes/
+participante. 3 tests y build pasan; Chrome real aislado 1,4s con calendario/export/
+respuesta sintética/rechazo fuera de escala. No reproduce ni registra exposición
+o respuestas humanas; audio/defaults intactos. Plan completo/pedidos en
+research/laboratory/r10_experience/README.md y #24. Persistencia/player/análisis/
+fuentes físicas pendientes; R10 sigue abierto.

@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_protocol import Request as ExperienceRequest, ResponseRequest as ExperienceResponseRequest, schedule as experience_schedule, validate_response as validate_experience_response
 from .research.spatial_clock_apply import Request as SpatialClockApplyRequest, apply as apply_spatial_clock
 from .research.spatial_clock_service import SpatialClockService, SaveRequest as SpatialClockSaveRequest
 from .research.spatial_clock_fit import Request as SpatialClockFitRequest, fit as fit_spatial_clock
@@ -458,6 +459,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r10/preview')
+    def experience_preview(body:ExperienceRequest):return experience_schedule(body)
+
+    @app.post('/api/research/r10/validate-response')
+    def experience_response_validation(body:ExperienceResponseRequest):return validate_experience_response(body.protocol,body.response)
 
     @app.post('/api/research/r09/clock-conversions')
     def spatial_clock_conversion_save(body:SpatialClockConversionSaveRequest):return spatial_runs.from_clock(spatial_clock_runs,body)
