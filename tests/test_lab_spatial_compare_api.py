@@ -35,3 +35,13 @@ def test_compare_saved_conversion_ids_and_provenance(tmp_path):
         assert client.post('/api/research/r09/comparisons',json=declared).status_code==422
         selection['candidate_id']='f'*32
         assert client.post('/api/research/r09/compare-conversions',json=selection).status_code==422
+
+
+def test_clock_fit_http_is_explicit_and_stateless(tmp_path):
+    from research.test_spatial_clock_fit import data as clock_data
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        body=clock_data();response=client.post('/api/research/r09/clock-fit',json=body)
+        assert response.status_code==200 and response.json()['clock']['rate']==1.001
+        body['evidence_id']=''
+        assert client.post('/api/research/r09/clock-fit',json=body).status_code==422
+        assert client.get('/api/research/r09/comparisons').json()==[]

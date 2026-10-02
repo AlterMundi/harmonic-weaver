@@ -376,3 +376,22 @@ ambas rutas aceptan POST y pierden respuesta artificialmente, reintento idéntic
 recupera sin duplicar; ruta declarada incluye recarga. Además exportación/reapertura,
 presets con descarga/importación y procedencia preservadas. Servidores aislados
 apagados. Sin dispositivos/medios privados, audio y defaults sin cambios.
+
+
+## Corte 28 · Ajuste explícito de reloj desde marcas
+
+POST /api/research/r09/clock-fit y panel web reciben nombres de relojes,
+evidence_id, incertidumbre declarada y >=3 pares source_time_s/common_time_s
+estrictamente crecientes. Ajuste afín por mínimos cuadrados centrado, tasa válida
+(0,2], residuos individuales/RMS/máximo e intervalo de marcas. Incertidumbre es
+máximo residuo + incertidumbre declarada, NO límite estadístico ni validación
+independiente. evidence_id/pares siguen siendo declaraciones no autenticadas.
+Resultado exportable incluye entrada completa; no aplica a streams/live ni guarda
+corrida. Extrapolación fuera de marcas no validada. Span numérico extremo rechazado.
+
+Cinco pruebas núcleo/API pasaron (1,01 s) para desfase2s/tasa1.001 conocidos,
+repetibilidad, perturbación con residuo .02, evidencia ausente, pares insuficientes/
+duplicados, tasa inválida y extremos numéricos. Build completo pasó. Pendientes
+Chrome de ajuste/exportación, marcas reales con referencia independiente,
+validación reservada temporal y persistencia de resultados. Sin dispositivos ni
+medios privados; síntesis/defaults intactos. No es evidencia de exactitud física.
