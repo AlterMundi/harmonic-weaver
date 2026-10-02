@@ -15,7 +15,8 @@ def test_mask_run_repeats_rebinds_and_rejects_numerical_tamper(tmp_path):
     assert (a/'result.json').read_bytes()==(b/'result.json').read_bytes()
     assert verify(a,path=video,reader=reader)['status']=='complete'
     assert sorted(p.name for p in a.iterdir())==['manifest.json','request.json','result.json']
-    result=json.loads((a/'result.json').read_text());result['candidate_components'][0]['area_px']=0
+    result=json.loads((a/'result.json').read_text());result['candidate_components'][0]['area_px']-=1
+    result['candidate_components'][0]['runs_y_x_start_x_stop_exclusive'][0][2]-=1
     (a/'result.json').write_text(json.dumps(result));manifest=json.loads((a/'manifest.json').read_text())
     manifest['output']['sha256']=sha256_file(a/'result.json');(a/'manifest.json').write_text(json.dumps(manifest))
     assert verify(a)['status']=='complete' # Integrity-only explicitly does not claim recomputation.

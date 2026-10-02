@@ -392,3 +392,15 @@ requiere fuente disponible y código/entorno exactos; integridad offline no
 sustituye esa prueba. Persistencia no acepta máscara como soga/ground truth.
 Pendientes benchmark anotado humano, algoritmo de curva asistida/tracking,
 incertidumbre y latencia/acceso a frames iniciales. Roadmap sigue abierto.
+
+### Corte 31: verificación semántica offline de propuestas
+
+Contrato de Result comprueba dimensiones/budget, inventario de componentes,
+IDs únicos/ranking por área, runs enteros ordenados dentro de ROI, área
+exacta por sumatoria y ausencia de solapamiento global. Semántica no sustituye
+recomputación: una máscara geométricamente válida pero incorrecta sólo se
+detecta contra video. Tres tests contratos/persistencia/API pasaron en 1.96 s,
+incluyendo counts/área/ROI/orden/booleanos/solapamiento y tamper válido que
+requiere recálculo. Código de contrato registrado para corridas nuevas;
+verificación offline no exige código actual para recuperar artefactos
+históricos, reverify sí. No aceptación humana ni conexión física inferidas.

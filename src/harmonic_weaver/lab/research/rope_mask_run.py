@@ -8,6 +8,7 @@ from pydantic import Field
 from ..contracts import Contract,Number
 from ..cache import atomic_json,sha256_file
 from .rope_mask import Settings,propose
+from .rope_mask_contract import Result
 from .rope_reader import RopeReader
 
 
@@ -21,7 +22,7 @@ class Request(Contract):
 
 
 def environment():return {'python':platform.python_version(),'numpy':np.__version__,'scipy':scipy.__version__,'opencv':cv2.__version__}
-def code():return {name:sha256_file(Path(__file__).parent/name) for name in ('rope_mask.py','rope_mask_run.py','rope_reader.py','rope_media.py','rope_process.py','../contracts.py')}
+def code():return {name:sha256_file(Path(__file__).parent/name) for name in ('rope_mask.py','rope_mask_contract.py','rope_mask_run.py','rope_reader.py','rope_media.py','rope_process.py','../contracts.py')}
 
 
 def calculate(request,path,reader=None):
@@ -60,6 +61,7 @@ def verify(folder,*,path=None,reader=None):
     if manifest.get('input_hashes')!={'request.json':hashes['request.json']} or manifest.get('output')!={'file':'result.json','sha256':hashes['result.json']}:raise ValueError('Mask artifact hash mismatch')
     request=Request.model_validate_json((folder/'request.json').read_text())
     result=json.loads((folder/'result.json').read_text())
+    Result.model_validate(result)
     for key in ('media_sha256','frame_index','time_s','width_px','height_px','settings'):
         if result.get(key)!=request.model_dump()[key]:raise ValueError('Mask request/result binding mismatch')
     if path is not None:
