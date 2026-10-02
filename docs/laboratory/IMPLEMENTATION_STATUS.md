@@ -274,3 +274,9 @@ cambios de bytes, reload y bloqueo por UI/API; una prueba pasó en 1.9 s.
 Evidencia detallada: `research/laboratory/r08_rope/README.md`, cortes 40–41.
 Pendientes: migración/re-corrida explícita, bundles con dependencias,
 seguimiento temporal y evaluación humana de geometría. No se modificó audio.
+
+R08 núcleo temporal inicial (`rope_flow.py`): candidatos ópticos con seeds
+explícitos, comprobación ida/vuelta y resets de soporte. Diez tests junto con
+anotaciones pasaron (0.32 s). Aún no integrado en UI/decodificador/persistencia;
+no constituye tracker de soga validado. README corte 42 detalla configuración,
+casos probados, sesgo observado en ruido blanco y dependencias pendientes.

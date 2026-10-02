@@ -527,3 +527,31 @@ no desempeño del tracker ni aceptación humana. Migración explícita/re-corrid
 bundle portable con dependencias, seguimiento temporal e incertidumbre siguen
 pendientes; la recuperación histórica no convierte resultados antiguos en
 evidencia recalculada bajo código actual.
+
+### Corte 42: núcleo temporal causal con seeds explícitos
+
+`rope_flow.RopeFlow` implementa candidatos Lucas–Kanade piramidales sobre
+imágenes grayscale decodificadas. Configuración validada: ventana, niveles,
+iteraciones, epsilon, mínimo eigenvalor, error forward/backward, desplazamiento,
+gap máximo y presupuesto de puntos. Cada índice corresponde al seed declarado;
+no asigna etiquetas físicas a/b. Flujo ida/vuelta, finitud, bounds y umbrales
+determinan soporte. Puntos rechazados no reaparecen automáticamente. Saltos de
+índice, timestamps no crecientes, gaps excesivos o dimensiones distintas
+resetean soporte; nuevas seeds deben ser explícitas. La imagen anterior se
+copia en RAM para evitar mutación del caller; no persiste imágenes.
+
+Diez tests núcleo/anotación pasaron (0.32 s): desplazamiento sintético conocido,
+repetición exacta en este entorno, pérdida de textura, umbral de desplazamiento,
+cuatro tipos de reset, validación sin mutar estado y ownership de buffer.
+Una primera prueba con textura de ruido blanco produjo sesgo subpixel mayor
+que 0.1 px; fixture de traslación usa textura suavizada con GaussianBlur.
+No se presenta este fixture como benchmark de videos reales ni evidencia de
+precisión general. Coordenadas normalizadas escalan por width/height igual que
+anotaciones; seed en borde máximo se limita al último píxel explícitamente.
+
+**No está conectado a la web todavía.** Próxima entrega: secuencia de frames
+exactos y clock/sha verificados, corrida congelada con código/OpenCV/config,
+controles web y overlays candidatos sin aceptación automática. Luego benchmark
+contra anotaciones humanas en soporte común, incertidumbre/oclusiones/cruces.
+El flujo no segmenta soga, no prueba centerline, identidad de material ni
+propagación de tensión. No se modifican síntesis, defaults ni presets.
