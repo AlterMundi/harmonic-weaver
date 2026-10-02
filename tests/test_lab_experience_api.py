@@ -141,10 +141,19 @@ def test_response_http_export_restart_and_null(tmp_path):
         assert pair_saved.status_code==200,pair_saved.text
         pair_id=pair_saved.json()['id']
         assert client.post('/api/research/r10/pairs',json=pair_selection).json()['id']==pair_id
+        design={'contrasts':[{'reference_condition':'video_only','target_condition':'sound_only'}]}
+        applied=client.post('/api/research/r10/pair-design-preview',json={'response_ids':[ident,second],'config':design})
+        assert applied.status_code==200 and len(applied.json()['pairs'])==1
+        preset=client.post('/api/research/r10/pair-design-presets',json={'name':'contrast','config':design})
+        assert preset.status_code==200
+        preset_id=preset.json()['id']
+        exported_design=client.get(f'/api/research/r10/pair-design-presets/{preset_id}')
+        assert 'attachment' in exported_design.headers['content-disposition'] and 'id' not in exported_design.json()
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert len(client.get(url).json())==2
         assert client.get(f'{url}/{ident}/artifacts/result.json').content==artifact.content
         assert len(client.get('/api/research/r10/analyses').json())==1
         assert len(client.get('/api/research/r10/pairs').json())==1
+        assert client.get(f'/api/research/r10/pair-design-presets/{preset_id}').content==exported_design.content
         assert client.get(f'/api/research/r10/pairs/{pair_id}/artifacts/result.json').json()==pairs.json()
         assert client.get(f'/api/research/r10/analyses/{aid}/artifacts/result.json').content==frozen_analysis.content

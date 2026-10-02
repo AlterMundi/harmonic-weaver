@@ -27,6 +27,8 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_pair_design import Request as ExperiencePairDesignRequest, preview as preview_pair_design
+from .research.experience_pair_design_presets import PairDesignPresets, Preset as PairDesignPreset
 from .research.experience_pairs_service import PairService, SaveRequest as ExperiencePairSaveRequest
 from .research.experience_pairs import Selection as ExperiencePairSelection, preview as preview_experience_pairs
 from .research.experience_analysis_service import AnalysisService, SaveRequest as ExperienceAnalysisSaveRequest
@@ -296,6 +298,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     experience_responses = ResponseService(data_dir)
     experience_analyses = AnalysisService(data_dir)
     experience_pairs = PairService(data_dir)
+    pair_design_presets = PairDesignPresets(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -477,6 +480,20 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r10/pair-design-preview')
+    def pair_design_preview(body:ExperiencePairDesignRequest):
+        return preview_pair_design(experience_responses,body)
+
+    @app.get('/api/research/r10/pair-design-presets')
+    def pair_design_preset_list():return pair_design_presets.list()
+
+    @app.post('/api/research/r10/pair-design-presets')
+    def pair_design_preset_save(body:PairDesignPreset):return pair_design_presets.save(body)
+
+    @app.get('/api/research/r10/pair-design-presets/{ident}')
+    def pair_design_preset_export(ident:str):
+        return JSONResponse(pair_design_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="r10-pair-design-{ident}.json"'})
 
     @app.post('/api/research/r10/pairs')
     def experience_pair_save(body:ExperiencePairSaveRequest):

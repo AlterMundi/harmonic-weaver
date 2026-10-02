@@ -557,3 +557,19 @@ humana ni física. RUNNING incorpora recorrido opcional R10.
 Pendientes presets portables de contrastes, cierre duradero, tamaño/latencia con
 sesiones largas, ensayos humanos/sincronía física, R11–R13 y agenda anterior.
 Roadmap permanece abierto; no defaults/sonido cambiados ni medios privados publicados.
+
+
+## Corte 31 · Diseños portables de contrastes y API
+
+Configuration contiene sólo pares directionales de condiciones (máximo12 únicos).
+PairDesignPresets guarda/exporta sin IDs de personas/respuestas/fuentes/calibración.
+Aplicación explícita a response_ids verificados junta por protocolo/estímulo/
+repetición, muestra pares disponibles y missing por lado; no selecciona respuestas
+externas ni calcula/publica automáticamente. Más de128 pares exige reducir selección.
+API pair-design-preview y GET/POST pair-design-presets con exportación portable.
+
+Siete pruebas núcleo/API pasaron (2,81 s): diseño reproducible, fuente faltante
+explícita, dirección, preset tras restart/export byte idéntico, IDs/calibración
+rechazados, contraste duplicado y aplicación HTTP. Warning AnyIO sin fallo.
+Pendientes controles/import/apply de diseños en web y cierre duradero; R11–R13
+y aceptación humana siguen abiertos. No cambios de sonido/defaults.
