@@ -279,3 +279,15 @@ congeladas, resultado alterado con hash reescrito rechazado, binding histórico,
 symlink/sobrescritura, exportación/reinicio e incompatibilidad de marco.
 Pendientes web, resolución de IDs de conversiones/procedencia, idempotencia y
 comparación física independiente. No medios privados ni audio modificados.
+
+## Corte 22 · Comparación espacial en web
+
+Panel con referencia/candidato JSON, etiquetas, edad/incertidumbre máxima y opt-in
+inferred/held. Guarda explícitamente, muestra soporte y error en unidad original,
+JSON con causas, inventario histórico/reapertura y descargas. No ajusta relojes ni
+geometría para mejorar error. Entradas siguen declaradas.
+
+Build y Chrome contra API real pasaron (1,3 s): error sintético conocido .5,
+coverage 1/2 (primer candidato futuro excluido), descarga nativa y reload/reapertura
+sin otra corrida. Servidor aislado detenido. Pendientes selección de conversiones
+por IDs/procedencia, presets de comparación e idempotencia; no calibración física.

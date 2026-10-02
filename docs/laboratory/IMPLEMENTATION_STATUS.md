@@ -518,3 +518,7 @@ Dos tests pasaron; persistencia/API/UI y calibración/reference físicas pendien
 R09 corte 21: runner/servicio/API de comparaciones congeladas con recálculo,
 inventario/descargas y recuperación. Cinco tests pasaron; web, procedencia resuelta,
 idempotencia y referencia física pendientes. Inputs importados declarados.
+
+R09 corte 22: comparación espacial configurable en web con cobertura, error/cause,
+guardado/descargas/reapertura. Build y Chrome sintético pasaron. IDs/procedencia,
+presets/idempotencia y validación física pendientes.

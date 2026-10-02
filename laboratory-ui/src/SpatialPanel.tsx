@@ -1,3 +1,4 @@
+import {SpatialCompare} from './SpatialCompare';
 import {SpatialView} from './SpatialView';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
@@ -42,5 +43,6 @@ export function SpatialPanel({api}:{api:any}){
  <button onClick={exportResult}>Exportar resultado R09</button><details><summary>Resultado espacial R09</summary><pre>{JSON.stringify(result,null,2)}</pre></details></div>}
  <p>Guardar conserva la conversión y sus observaciones declaradas; no autentica el origen. Guardar desde generación resuelve la procedencia en el servidor; no revalida bytes del cache/video.</p>
  {runs.map(r=><div key={r.id}>{r.id} · {r.read_verification==='recomputed'?'Conversión recalculada':'Histórico: sólo integridad'}<button disabled={busy} onClick={()=>void act(async()=>setResult(await api(`research/r09/conversions/${r.id}/artifacts/result.json`)))}>Abrir conversión R09</button>{['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r09/conversions/${r.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
+ <SpatialCompare api={api}/>
  </section>;
 }
