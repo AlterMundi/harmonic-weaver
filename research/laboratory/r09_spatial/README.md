@@ -414,3 +414,23 @@ limpia resultado y evidencia vacía rechazada; no crea comparación. Ese recorri
 Chrome no incluye marcas reservadas no vacías (verificadas por backend).
 Servidores detenidos, sólo datos sintéticos, defaults/audio intactos. Pendientes
 medición real, validación con marcas independientes y persistencia del ajuste.
+
+
+## Corte 30 · Persistencia reproducible de ajustes de reloj
+
+clock-fits POST/GET/artifacts y panel guardan request/result/manifest con hashes,
+versión Python/código, binding y recomputación. Lecturas históricas son integridad,
+no recomputación actual; no autentican marcas ni sincronización. Recibos persistentes
+antes de ejecutar recuperan misma ID tras reinicio; conflicto de clave rechazado.
+Web guarda pedido/clave antes de POST en sessionStorage y restaura pendiente sin
+envío automático, ofrece recuperación explícita y bloquea nuevo guardado mientras
+pendiente. Descargas de tres artefactos y reapertura disponibles. No aplica reloj.
+
+Seis pruebas núcleo/runner/servicio/API pasaron (0,89 s, repetidas tras limpieza de
+mensajes): repetición, no overwrite, hash alterado, recomputación alterada incluso
+con hash reescrito, binding histórico, recibos/reinicio/exportación. Build pasó.
+Chrome contra API aislada pasó (1,6 s): ajuste/exportación, pérdida de respuesta
+tras aceptación, reload/reintento idéntico, una corrida y reapertura, input inválido
+limpia resultado. Servidor detenido, datos sintéticos únicamente, audio intacto.
+Pendientes medición real y aplicación explícita con intervalo/uncertainty a streams;
+no coordinación multiproceso, GC de recibos ni retención garantizada al cerrar tab.
