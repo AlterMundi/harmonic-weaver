@@ -12,7 +12,7 @@ def test_resolve_real_artifacts_preserve_sources_and_restart(tmp_path,monkeypatc
     ids=['a'*32,'b'*32]
     for ident in ids:benchmark_run(inputs(),benchmarks.root/ident)
     before={str(p):sha256_file(p) for ident in ids for p in (benchmarks.root/ident).iterdir()}
-    service=RopeFlowPairedService(tmp_path,benchmarks);selection={'conditions':{'one':ids[0],'two':ids[1]}}
+    service=RopeFlowPairedService(tmp_path,benchmarks);selection={'conditions':{'one':ids[0],'two':ids[1]},'idempotency_key':'e'*32}
     saved=service.start(selection)
     result=json.loads(service.artifact(saved['id'],'result.json').read_text())
     assert result['common_supported_endpoints']==4
@@ -20,6 +20,10 @@ def test_resolve_real_artifacts_preserve_sources_and_restart(tmp_path,monkeypatc
     assert before=={p:sha256_file(p) for p in before}
     assert RopeFlowPairedService(tmp_path,benchmarks).list()[0]['read_verification']=='recomputed'
     with pytest.raises(ValueError,match='distinct'):service.start({'conditions':{'one':ids[0],'two':ids[0]}})
+    restored=RopeFlowPairedService(tmp_path,benchmarks)
+    assert restored.start(selection)['id']==saved['id']
+    with pytest.raises(ValueError,match='different selection'):
+        restored.start({**selection,'conditions':{'changed':ids[0],'two':ids[1]}})
     import harmonic_weaver.lab.research.rope_flow_paired_service as module
     real=module.run
     def changed(request,folder):
@@ -27,5 +31,6 @@ def test_resolve_real_artifacts_preserve_sources_and_restart(tmp_path,monkeypatc
         manifest=json.loads(path.read_text());manifest['limits'].append('changed');atomic_json(path,manifest)
         return result
     monkeypatch.setattr(module,'run',changed)
-    with pytest.raises(ValueError,match='changed'):service.start(selection)
+    with pytest.raises(ValueError,match='changed'):service.start({**selection,'idempotency_key':'f'*32})
+    with pytest.raises(ValueError):restored.start({**selection,'idempotency_key':'f'*32})
     assert len(service.list())==1

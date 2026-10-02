@@ -1104,3 +1104,20 @@ conserva las verificaciones de mapeo, contexto y recuperación del benchmark ind
 Servidor aislado detenido. Pendiente idempotencia/recuperación del POST del banco,
 labels más legibles y aceptación/calidad manual humana. Soporte común puede sesgar
 hacia puntos fáciles: diferencias no afirman significancia ni validación física.
+
+### Corte 69 — recuperación idempotente del banco pareado
+
+Clave estricta opcional con recibo persistido antes del cálculo y hash de selección;
+mismo intento recupera banco congelado tras reinicio, selección distinta se rechaza
+y publicación fallida no se relanza con ese recibo. Web guarda cuerpo/clave en
+sessionStorage y ofrece recuperación explícita tras respuesta perdida/reload,
+sin ejecutar al montar y bloqueando nuevas selecciones mientras está pendiente.
+4xx libera pendiente. Un propietario por servicio, sin coordinación multiproceso
+ni GC de recibos; cierre de pestaña no garantiza retención.
+
+Dos tests servicio/HTTP pasaron (1,57 s), incluyendo recuperación, clave/selección
+incompatible y publicación fallida sin rearranque; build pasó. Chrome real (2,9 s)
+abortó respuesta después del POST pareado aceptado, recargó y recuperó cuerpo/clave
+idénticos; confirmó un único banco, descarga y reapertura. Conserva recorrido del
+benchmark individual. Servidor aislado detenido. No cambios de audio/defaults ni
+medios privados; aceptación/calidad manual y ciencia siguen pendientes.

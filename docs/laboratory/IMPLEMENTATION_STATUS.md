@@ -428,3 +428,7 @@ pasaron. UI e idempotencia del banco pendientes; no revalida video ni ciencia.
 R08 corte 68: banco pareado en web con selección múltiple, cobertura/error común,
 diferencias, JSON, inventario y descargas. Build y Chrome real pasaron; recuperación
 idempotente del POST pareado y revisión humana pendientes. Audio sin cambios.
+
+R08 corte 69: recuperación idempotente del banco pareado en servicio/web con
+recibos persistentes y sessionStorage. Servicio/HTTP, build y Chrome tras POST
+aceptado con respuesta perdida pasaron; único banco. Sin GC/coordinación multiproceso.

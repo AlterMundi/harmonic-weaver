@@ -36,7 +36,16 @@ test('explicit mapping coverage and persisted result',async({page})=>{
  await page.reload();const paired=page.getByRole('region',{name:'Comparación pareada R08',exact:true});
  const compare=paired.getByRole('button',{name:'Comparar soporte común R08'});await expect(compare).toBeDisabled();
  await paired.getByLabel(existing[0].id,{exact:true}).check();await expect(compare).toBeDisabled();
- await paired.getByLabel(second.id,{exact:true}).check();await compare.click();
+ await paired.getByLabel(second.id,{exact:true}).check();
+ let pairedFirst=true;const pairedSent:any[]=[];
+ await page.route('**/api/research/r08/flow-paired',async route=>{
+  if(route.request().method()!=='POST'){await route.continue();return;}
+  pairedSent.push(route.request().postDataJSON());
+  if(pairedFirst){pairedFirst=false;await route.fetch();await route.abort('failed');}else await route.continue();
+ });
+ await compare.click();await expect(paired.getByRole('button',{name:'Recuperar banco pareado pendiente R08'})).toBeVisible();
+ await page.reload();await page.getByRole('button',{name:'Recuperar banco pareado pendiente R08'}).click();
+ expect(pairedSent).toHaveLength(2);expect(pairedSent[1]).toEqual(pairedSent[0]);
  await expect(paired.getByText(/Soporte común:/)).toBeVisible();
  await expect(paired.getByRole('table')).toBeVisible();
  const pairedDownload=page.waitForEvent('download');await paired.getByRole('link',{name:'result.json',exact:true}).click();expect((await pairedDownload).suggestedFilename()).toBe('result.json');
