@@ -10,7 +10,7 @@ from harmonic_weaver.lab.cache import atomic_json,sha256_file
 from test_experience_protocol import data
 
 
-def test_pairs_manifest_recompute_without_originals_and_reject_modified_delta(tmp_path):
+def test_pairs_manifest_recompute_without_originals_and_reject_modified_delta(tmp_path,monkeypatch):
     protocols=ExperienceService(tmp_path);responses=ResponseService(tmp_path);transports=TransportService(tmp_path)
     p=protocols.start({'protocol':data()});pid=p['id'];digest=sha256_file(protocols.artifact(pid,'manifest.json'))
     ids=[]
@@ -26,6 +26,28 @@ def test_pairs_manifest_recompute_without_originals_and_reject_modified_delta(tm
     service=PairService(tmp_path)
     selection={**result['input']['selection'],'expected_sources':[{k:s[k] for k in ('id','manifest_sha256')} for s in result['input']['analysis']['sources']]}
     saved=service.start(responses,selection)
+    preserved=service.artifact(saved['id'],'result.json').read_bytes()
+    reverse={**selection,'pairs':[{'reference_id':ids[1],'target_id':ids[0]}]}
+    import harmonic_weaver.lab.research.experience_pairs_service as module
+    original_run=module.run
+    def failed(*args):original_run(*args);raise RuntimeError('after-write failure')
+    with monkeypatch.context() as patch:
+        patch.setattr(module,'run',failed)
+        with pytest.raises(RuntimeError,match='after-write'):service.start(responses,reverse)
+    assert len(service.list())==1
+    assert service.artifact(saved['id'],'result.json').read_bytes()==preserved
+    source_manifest=responses.artifact(ids[0],'manifest.json');original_bytes=source_manifest.read_bytes()
+    def changed(*args):
+        output=original_run(*args)
+        document=json.loads(source_manifest.read_text());document['limits'].append('synthetic mutation')
+        atomic_json(source_manifest,document);return output
+    with monkeypatch.context() as patch:
+        patch.setattr(module,'run',changed)
+        with pytest.raises(ValueError,match='changed during'):service.start(responses,reverse)
+    assert len(service.list())==1
+    assert service.artifact(saved['id'],'result.json').read_bytes()==preserved
+    source_manifest.write_bytes(original_bytes)
+
     for ident in ids:responses.artifact(ident,'result.json').unlink()
     assert PairService(tmp_path).start(responses,selection)['id']==saved['id']
     assert len(service.list())==1

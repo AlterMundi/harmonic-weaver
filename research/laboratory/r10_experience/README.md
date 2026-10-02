@@ -542,3 +542,18 @@ guardado/recovery/apertura de análisis sigue pasando tras compartir componente.
 Fixtures sintéticos/audio silenciado, sin aceptación humana. Pendientes presets
 portables de contrastes, fallo específico PairService, cierre duradero y R11–R13.
 Servidor de fixture detenido, sonido/defaults intactos.
+
+
+## Corte 30 · Fallos de publicación y verificación integrada R10
+
+PairService probado con fallo después de escribir y fuente manifest modificada
+durante publicación. Ambos rechazan/limpian únicamente nuevo intento y conservan
+bytes/listado del análisis válido anterior. No cambio de producción requerido.
+Suite completa R10 backend pasó:26 pruebas,7,84 s; contratos/protocols/presets,
+fuentes/media clocks, transporte/responses, análisis/pares/manifest/retry y API.
+Warning Starlette/AnyIO de deprecación, sin fallo. Alcance sintético, no verificación
+humana ni física. RUNNING incorpora recorrido opcional R10.
+
+Pendientes presets portables de contrastes, cierre duradero, tamaño/latencia con
+sesiones largas, ensayos humanos/sincronía física, R11–R13 y agenda anterior.
+Roadmap permanece abierto; no defaults/sonido cambiados ni medios privados publicados.

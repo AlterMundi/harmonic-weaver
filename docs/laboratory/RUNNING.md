@@ -386,3 +386,36 @@ Esta membrana es un modelo sound-only, sin presión/material calibrados ni
 dinámica de arena/agua. No altera el instrumento live. Software/backend y
 recorrido Chrome con señales sintéticas verificados; escucha humana, latencia
 física, convergencia modal y recuperación científica de atributos pendientes.
+
+
+## Recorrido R10 experimental · PR #78
+
+En harmonic-weaver-dev, con el arranque de desarrollo documentado arriba, abrir
+Investigación → R10. Este recorrido es opcional: el instrumento cotidiano sigue
+funcionando sin completar ensayos ni responder preguntas.
+
+1. Desde una corrida R05 completa, seleccionar estímulo/arm y editar condiciones,
+   preguntas, escala, slot declarado y rol. Preparar estímulos resueltos R10, revisar
+   fuentes y guardar protocolo R05 R10. Guardar no reproduce automáticamente.
+2. Abrir protocolo congelado R10. Elegir ensayo y preparar reproducción; reproducir,
+   pausar o mover tiempo nominal en pausa. Video original siempre silenciado;
+   el audio viene de R05. Offset positivo adelanta audio; fuera de soporte se pausa.
+3. Guardar transporte R10 en pausa si interesa conservar ese snapshot. Preparar
+   otro ensayo reemplaza la memoria local; guardar/exportar antes. Registros de
+   transporte permiten recuperar envíos pendientes o descargar tres artefactos.
+4. Editar Respuesta JSON R10: trial correcto, todos los items y null para faltantes.
+   Guardar respuesta R10, con ID de transporte opcional del mismo ensayo. Una
+   corrección crea registro nuevo; no reemplaza automáticamente la anterior.
+5. Actualizar selección de respuestas R10, seleccionar una versión por ensayo y
+   analizar. Tablas separan escala/preguntas/rol/condición; exportar o guardar
+   análisis congelado. Pares requieren referencia/destino del mismo protocolo,
+   estímulo/repetición y condiciones distintas: diferencia destino menos referencia.
+6. Listados permiten reabrir y exportar análisis/pares. Tras respuesta de red perdida,
+   recargar y usar Recuperar envío explícitamente: conserva selección/hash original.
+   Exportar/descartar pendiente afecta sólo esa pestaña, no registros del servidor.
+
+Los conteos son registros/pares declarados, no participantes independientes. Fin
+nominal no demuestra exposición completa; volumen/mute no mide nivel físico.
+Preguntas no son escalas validadas. sessionStorage conserva pendientes sólo durante
+la sesión de esa pestaña; exportaciones/manifests son la copia durable elegida.
+Escucha y aceptación humanas de este recorrido siguen pendientes.
