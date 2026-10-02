@@ -416,3 +416,7 @@ R08 corte 65: núcleo de comparación pareada de 2–16 condiciones sobre refere
 etiquetas y soporte temporal comunes; coberturas individuales y diferencias
 firmadas, nulos sin soporte. Seis tests pasaron. Persistencia/API/UI del banco
 pareado pendientes; no implica significancia ni aceptación científica.
+
+R08 corte 66: persistencia/verificación del banco pareado con condiciones y
+procedencias congeladas, recálculo y lectura histórica diferenciados. Cinco tests
+pasaron. Resolución de originales, API/UI pendientes; no valida fuentes humanas.

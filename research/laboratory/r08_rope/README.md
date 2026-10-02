@@ -1059,3 +1059,18 @@ reemplazar faltantes por cero; referencia/etiquetas incompatibles rechazadas.
 Pendiente persistencia/API/UI del banco pareado sobre IDs de benchmarks guardados.
 La intersección puede sesgar hacia puntos fáciles: no descartar cobertura. No es
 significancia estadística, forecasting, resultado HIT ni validación física.
+
+### Corte 66 — artefactos de comparación pareada
+
+`rope_flow_paired_run.py` congela el banco completo y procedencia declarada por
+condición. Etiquetas de procedencia deben coincidir exactamente con condiciones.
+Publica request/result/manifest en directorio nuevo; verifica binding, inventario,
+archivos regulares, estabilidad durante lectura y recálculo exacto con entorno/
+código actuales. Versiones distintas admiten sólo lectura histórica explícita.
+
+Cinco tests cálculo/persistencia pasaron (0,37 s): banco idéntico con diferencia
+cero, mutación posterior de entradas sin efecto sobre artefacto, diferencia
+alterada con hash reescrito rechazada, procedencia incompleta, histórico y
+prohibición de sobrescritura. No revalida originales ni video: próximo servicio
+resolverá IDs de benchmarks verificados y congelará sus manifests; API/UI siguen
+pendientes. No hay significancia estadística ni aceptación humana implícitas.
