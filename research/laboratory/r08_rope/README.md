@@ -250,3 +250,16 @@ medición de lectura, no calidad de tracking ni aceptación humana. La primera
 preparación aún es lenta; cache mejora repetición pero rehash completo tiene
 coste. Próxima mejora debe conservar binding y límites, sin sustituir el hash
 por confianza silenciosa en mtime. Concurrencia web sigue pendiente.
+
+### Corte 20: control de hilos descartado por evidencia negativa
+
+Se probó `-threads 1` en FFprobe y decoder/encoder FFmpeg sobre el mismo
+fragmento local, sin copiarlo ni guardar imágenes. Seis tests reader/media/
+jobs/API pasaron. Medición: probe 16.040 s (antes 15.764), frame 0 1.216 s,
+900 8.569 s (antes 2.936), 1799 16.521 s (antes 4.618), hit 900 0.670 s.
+Inventario 1800×1920×1080, tiempos y tamaños PNG coinciden con corrida previa;
+fuente hash intacta. Ajuste revertido: no se publica un default más lento.
+Una corrida por configuración no prueba causalidad general de scheduling,
+pero no justifica adoptar el ajuste en este host. Siguiente optimización
+requiere acceso más eficiente sin reemplazar índice/PTS real por seeks
+aproximados ni inventar timestamps desde FPS. Concurrencia UI sigue pendiente.
