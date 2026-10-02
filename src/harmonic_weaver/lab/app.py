@@ -24,6 +24,8 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
+from .research.rope_flow_service import RopeFlowService
+from .research.rope_flow_run import Request as RopeFlowRequest
 from .research.rope_path_service import RopePathService
 from .research.rope_path import Settings as RopePathSettings
 from .research.rope_mask_service import RopeMaskService
@@ -185,6 +187,11 @@ class RopeCompare(Contract):
     samples_per_segment: int = Field(default=32,ge=2,le=64)
 
 
+class RopeFlowStart(Contract):
+    media_id:str
+    request:RopeFlowRequest
+
+
 class RopeRead(Contract):
     media_id: str
     frame_index: int | None = Field(default=None,ge=0)
@@ -259,6 +266,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_comparisons = RopeCompareService(data_dir)
     rope_masks = RopeMaskService(data_dir,rope_reader)
     rope_paths = RopePathService(data_dir)
+    rope_flow = RopeFlowService(data_dir,rope_reader)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -271,6 +279,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            rope_flow.close()
             rope_jobs.close()
             activation.close()
             membrane.close()
@@ -399,6 +408,23 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.post('/api/research/r08/flow')
+    def rope_flow_start(body:RopeFlowStart):
+        return rope_flow.start(rope_media_path(body.media_id),body.request)
+
+    @app.get('/api/research/r08/flow')
+    def rope_flow_list():return rope_flow.list()
+
+    @app.get('/api/research/r08/flow/{ident}')
+    def rope_flow_report(ident:str):return rope_flow.report(ident)
+
+    @app.post('/api/research/r08/flow/{ident}/cancel')
+    def rope_flow_cancel(ident:str):return rope_flow.cancel(ident)
+
+    @app.get('/api/research/r08/flow/{ident}/artifacts/{name}')
+    def rope_flow_artifact(ident:str,name:str):
+        return FileResponse(rope_flow.artifact(ident,name),filename=name)
 
     @app.get('/api/research/r08/comparisons')
     def rope_comparison_list():return rope_comparisons.list()

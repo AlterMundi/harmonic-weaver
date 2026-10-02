@@ -588,3 +588,26 @@ overlays, portable configuración y benchmark humano en soporte común. Decodifi
 cada cuadro mediante lector exacto rehashes/relee el video; esta primera
 implementación acotada no promete rendimiento realtime ni escala de 60 s.
 No identidad de material, segmentación completa ni propagación física inferidas.
+
+### Corte 44: jobs temporales cancelables y API de artefactos
+
+RopeFlowService permite un job activo por instancia, ocho estados efímeros y
+corridas JSON persistidas verificadas. POST `/api/research/r08/flow` recibe
+media_id autorizado de biblioteca y Request; GET del mismo recurso lista
+corridas completas, GET `/{id}` consulta estado, POST `/{id}/cancel` cancela
+sólo ese job y GET `/{id}/artifacts/{name}` descarga request/result/manifest.
+No ruta de video arbitraria. Inventario marca `integrity_only`: descargar o
+reiniciar servicio no equivale a recalcular optical flow. Fallos devuelven
+diagnóstico genérico sin paths privados. Cancelación también comprueba la
+ventana posterior a publicación antes de marcar complete; archivos de ese job
+se eliminan si fue cancelado/falló. Jobs parciales nunca aparecen como completos.
+Cierre cancela y espera los threads propios, como lector existente.
+
+Siete tests servicio/API/corrida/API R08 pasaron: ejecución real desde biblioteca,
+artefactos y recuperación tras reinicio, recursos no autorizados y clock inválido,
+cancelación de subproceso Python confirmado vivo y comprobación de terminación,
+cancelación ajena rechazada, limpieza de parciales, cancelación posterior a
+publicación y error sin revelar ruta. Casos de subproceso/publicación usan workers
+de test; el caso API ejecuta decoder/flujo reales sobre video sintético. Sin
+dispositivos, cuerpos ni audio. UI temporal, controles/config portable y
+overlays/benchmark humano siguen pendientes; no se promete realtime.

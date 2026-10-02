@@ -286,3 +286,10 @@ request/result/manifest JSON, recálculo opcional con video y cancelación antes
 de publicación. Diez tests núcleo/corrida sobre MP4 sintético pasaron. CLI y
 límites de rendimiento documentados en README corte 43. Jobs/UI/biblioteca de
 configuraciones y benchmark humano pendientes; aún no explorador web temporal.
+
+R08 jobs temporales/API: `RopeFlowService` integrado al lifespan y biblioteca,
+inicio/consulta/cancelación/inventario/descargas, estados acotados, corridas
+persistidas recuperables tras reinicio. Siete pruebas de servicio/API/corrida y
+API previa pasaron; incluye proceso vivo detenido y limpieza de parciales.
+README corte 44 distingue mocks de worker y decode real, integridad vs recálculo.
+UI temporal y aceptación/benchmark humanos pendientes; no cambian defaults.
