@@ -343,3 +343,14 @@ colgado. Cinco tests núcleo/jobs/API y build pasaron; test API adicional
 verificó máscara real, binding índice/PTS y cero revisiones automáticas.
 Pendientes Chrome y manifest persistido de propuestas; no tracking ni
 etiqueta humana inferidos. Cálculo de máscara aún síncrono y acotado.
+
+### Corte 27: candidatos web verificados sin aceptación implícita
+
+Chrome HTTP real verificó JSON inválido recuperable, ROI de media imagen,
+120 runs verdes del PNG exacto, ocultar y cambiar frame sin máscara vieja.
+Borrador byte idéntico y cero revisiones; cálculo no acepta automáticamente
+candidatos. Pasó 1.2 s (suite 2 s); servidor propio detenido. UI muestra
+settings efectivos/frame/PTS/limits de máscara calculada por separado del
+textarea editable, para no atribuir overlay a ajustes todavía no calculados.
+Build pasó. Pendiente persistencia de propuestas/manifest y benchmark
+corporal humano; este test no demuestra discriminación de soga frente a fondo.
