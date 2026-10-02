@@ -22,10 +22,11 @@ def test_compare_saved_conversion_ids_and_provenance(tmp_path):
     from research.test_spatial_adapter import data as conversion_data
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         ids=[client.post('/api/research/r09/conversions',json={'conversion':conversion_data()}).json()['id'] for _ in range(2)]
-        selection={'reference_id':ids[0],'candidate_id':ids[1],'settings':{'labels':['joint-0'],'max_combined_clock_uncertainty_s':.04}}
+        selection={'reference_id':ids[0],'candidate_id':ids[1],'settings':{'labels':['joint-0'],'max_combined_clock_uncertainty_s':.04},'idempotency_key':'d'*32}
         saved=client.post('/api/research/r09/compare-conversions',json=selection)
         assert saved.status_code==200
         ident=saved.json()['id']
+        assert client.post('/api/research/r09/compare-conversions',json=selection).json()['id']==ident
         result=client.get(f'/api/research/r09/comparisons/{ident}/artifacts/result.json').json()
         assert result['mean_error_on_support']==0
         assert result['sources']['reference']['id']==ids[0]

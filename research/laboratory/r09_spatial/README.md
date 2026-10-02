@@ -342,3 +342,20 @@ contra API aislada pasaron (2,0 s), incluyendo guardar/aplicar conservando fuent
 descarga/importación nativa y procedencia de comparación. Sin medios privados ni
 dispositivos; servidor detenido. Defaults/síntesis sin cambios. Pendiente
 idempotencia de comparación y validación física de relojes/calibración.
+
+
+## Corte 26 · Recibos persistentes del comparador
+
+Ambas rutas de publicación aceptan idempotency_key (32 hex). Congelan un recibo
+con ID y hash de tipo/entrada normalizada antes de ejecutar. Reintentar la misma
+entrada devuelve la corrida verificada, también tras reinicio y sin resolver de
+nuevo conversiones originales; otra entrada con esa clave se rechaza. Un fallo
+con recibo reservado no relanza cálculo: informa corrida no disponible. Fuentes
+resueltas siguen verificándose antes/después de publicación inicial; sólo la
+nueva carpeta se elimina al fallar. Sin clave, cada llamada sigue siendo nueva.
+
+Once pruebas backend pasaron (1,29 s); después de ampliar el recorrido HTTP,
+cinco pruebas de servicio/API pasaron (1,02 s), incluyendo recuperación misma ID,
+conflicto de clave, recuperación sin fuentes y fallo sin relanzamiento. No hay
+coordinación multiproceso ni GC de recibos. Pendiente usar recibos y recuperación
+explícita en web. Audio/defaults intactos, sin dispositivos ni medios privados.
