@@ -359,3 +359,10 @@ con UTC/código/entorno y vínculo a manifest original, API/historial/descargas 
 Dos tests backend (1.37 s), Chrome (1 prueba, 2.7 s) y build pasaron. README
 corte 55: lectura histórica por integridad, sin verificación actual ni custodia
 firmada. Browser cancel/red del recálculo, rendimiento y benchmark pendientes.
+
+R08 decoder secuencial inicial: núcleo streaming PNG exacto/cancelable/bounded,
+cuatro tests de pixel-parity/source/count/CRC/close/cancel/timeout pasaron.
+Cinco cuadros privados autorizados: 11.123 s individual vs 2.699 s secuencia,
+igualdad exacta, sin archivos/copias; probe aparte 15.747 s. README corte 56:
+una medición local, no realtime. Integración en flow/UI/presets todavía pendiente;
+defaults/audio intactos, benchmark humano y demás roadmap abierto.

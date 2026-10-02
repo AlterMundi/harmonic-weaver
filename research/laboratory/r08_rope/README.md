@@ -840,3 +840,32 @@ servidores detenidos. Un checksum reescrito con reporte semánticamente válido
 no es detectable como falsificación: no hay firma/custodia externa. Pendientes
 browser cancel/red específicos de recálculo, decoder secuencial/rendimiento,
 benchmark humano y demás líneas abiertas. Audio/defaults intactos.
+
+### Corte 56: decoder secuencial exacto y medición local
+
+`rope_sequence.sequence` lee 1–120 cuadros consecutivos con un FFmpeg owned,
+select por índices y vsync 0, PNG en pipe; no seek aproximado ni resampling.
+Streaming valida signature/IHDR/IEND/CRC, count exacto, 32 MB/frame, chunks
+<=1 MB y deadline 60 s del proceso/consumo. Buffer no acumula la secuencia;
+caller puede acumular si lo decide. Cierre temprano del generador mata/espera
+su proceso; cancelación antes/durante decode hace lo mismo. Fuente regular,
+hash/inventario, 4M píxeles y rehash al agotar generador. Consumir sólo un
+prefijo no equivale a comprobar integridad final; cerrar explícitamente en
+salidas tempranas. Sin cambios al lector/flow existentes en este corte.
+
+Cuatro tests reales/sintéticos pasaron: igualdad pixel-array con lector
+individual para índices no cero, fuente modificada, count/CRC/truncación,
+presupuesto, cancelación/close con PID confirmado vivo, rangos/symlink,
+pre-cancel sin spawn y timeout con proceso detenido.
+
+Medición privada sobre fragmento local ya autorizado, sólo agregados públicos:
+probe 15.747 s; cinco cuadros consecutivos en ventana intermedia, individual
+11.123 s, secuencia 2.699 s. Todos los píxeles iguales, fuente SHA intacta,
+0 archivos escritos/0 imágenes o videos copiados. Una corrida en este host,
+sin controlar cache del sistema, no benchmark general ni calidad de pose/soga
+ni promesa realtime. Coste de probe aparte; ventana corta incluye preroll.
+
+**Todavía no integrado en corridas/UI.** Próximo paso: modalidad de decoder
+configurable/congelada y presets, pruebas de paridad de features/manifest y
+cancelación integrada. No cambiar default hasta evidenciar esa integración.
+Benchmark humano, cruces/uncertainty y resto de roadmap pendientes.
