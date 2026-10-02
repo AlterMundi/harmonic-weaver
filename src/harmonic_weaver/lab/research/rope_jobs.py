@@ -11,7 +11,7 @@ class RopeJobs:
         self.reader=reader;self.jobs=OrderedDict();self.lock=threading.RLock();self.closed=False
 
     def _public(self,job):
-        return {k:job[k] for k in ('id','kind','status','error')}
+        return {k:job[k] for k in ('id','kind','status','error','frame_index','media_sha256')}
 
     def start(self,path,*,index=None,sha256=None):
         if index is not None and (type(index) is not int or index<0 or not isinstance(sha256,str) or len(sha256)!=64):
@@ -24,7 +24,7 @@ class RopeJobs:
                 if j['kind']=='frame':j['result']=None
             while len(self.jobs)>=8:self.jobs.popitem(last=False)
             ident=uuid4().hex
-            job={'id':ident,'kind':'probe' if index is None else 'frame','status':'running','error':None,'result':None,'cancel':threading.Event()}
+            job={'id':ident,'kind':'probe' if index is None else 'frame','status':'running','error':None,'result':None,'cancel':threading.Event(),'frame_index':index,'media_sha256':sha256}
             def work():
                 try:
                     result=self.reader.probe(path,cancel=job['cancel']) if index is None else self.reader.frame(path,index,sha256,cancel=job['cancel'])

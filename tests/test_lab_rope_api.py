@@ -23,6 +23,16 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         while client.get(f"/api/research/r08/reads/{job['id']}").json()['status']=='running' and time.monotonic()<deadline:time.sleep(.01)
         decoded=client.get(f"/api/research/r08/reads/{job['id']}/result")
         assert decoded.status_code==200 and decoded.json()==media.json()
+        assert client.post('/api/research/r08/mask',json={'media_id':'local-video','read_id':job['id']}).status_code==422
+        frame_job=client.post('/api/research/r08/reads',json={'media_id':'local-video','frame_index':2,'sha256':media.json()['media_sha256']}).json()
+        deadline=time.monotonic()+5
+        while client.get(f"/api/research/r08/reads/{frame_job['id']}").json()['status']=='running' and time.monotonic()<deadline:time.sleep(.01)
+        candidates=client.post('/api/research/r08/mask',json={'media_id':'local-video','read_id':frame_job['id'],'settings':{'distance_rgb':442,'min_component_px':1}})
+        assert candidates.status_code==200
+        assert candidates.json()['frame_index']==2 and candidates.json()['time_s']==.2
+        assert candidates.json()['candidate_components'][0]['area_px']==160*120
+        assert client.get('/api/research/r08').json()==[]
+
         assert client.post('/api/research/r08/reads',json={'media_id':'local-video','frame_index':0}).status_code==422
 
         frame_url='/api/research/r08/media/local-video/frames/2'

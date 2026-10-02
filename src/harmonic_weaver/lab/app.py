@@ -24,6 +24,7 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
+from .research.rope_mask import Settings as RopeMaskSettings
 from .research.rope_jobs import RopeJobs
 from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
@@ -155,6 +156,12 @@ class RopeSave(Contract):
     media_id: str
     annotation: RopeAnnotation
     parent_id: str | None = None
+
+
+class RopeMask(Contract):
+    media_id: str
+    read_id: str
+    settings: RopeMaskSettings = Field(default_factory=RopeMaskSettings)
 
 
 class RopeCompare(Contract):
@@ -308,6 +315,26 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r08')
     def rope_revisions():return rope.list()
+
+    @app.post('/api/research/r08/mask')
+    def rope_mask(body:RopeMask):
+        import cv2
+        import numpy as np
+        from .research.rope_mask import propose
+        from .research.rope_process import file_hash
+        job=rope_jobs.report(body.read_id)
+        if job['kind']!='frame':raise ValueError('Mask requires a completed frame read')
+        png=rope_jobs.result(body.read_id)
+        path=rope_media_path(body.media_id)
+        media=rope_reader.probe(path)
+        if media['media_sha256']!=job['media_sha256']:raise ValueError('Mask frame/source mismatch')
+        image=cv2.imdecode(np.frombuffer(png,dtype=np.uint8),cv2.IMREAD_COLOR)
+        if image is None:raise ValueError('Frame image unavailable')
+        if image.shape[:2]!=(media['height_px'],media['width_px']):raise ValueError('Decoded frame dimensions differ from source')
+        result=propose(cv2.cvtColor(image,cv2.COLOR_BGR2RGB),body.settings)
+        if file_hash(path)!=media['media_sha256']:raise ValueError('Video changed during mask calculation')
+        return {**result,'media_sha256':media['media_sha256'],'frame_index':job['frame_index'],
+                'time_s':media['frame_times_s'][job['frame_index']]}
 
     @app.post('/api/research/r08/compare')
     def rope_compare(body:RopeCompare):

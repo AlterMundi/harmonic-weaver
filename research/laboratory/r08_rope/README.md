@@ -330,3 +330,16 @@ uint8 hasta 4M píxeles, hasta 64 componentes/100k runs. Dos tests sintéticos
 pasaron: segmentos separados, ROI/color, determinismo y límites/validación.
 Pendiente conectar PNG exacto, API/UI/manifest y revisión humana; esta base
 simple no se presenta como tracking de soga ni rendimiento de estado del arte.
+
+### Corte 26: candidatos vinculados al frame exacto en API/UI
+
+`POST /r08/mask` recibe media_id, read_id de frame completo y Settings.
+Verifica hash/dimensiones actuales, decodifica PNG owned en RGB y reporta
+candidatos con frame_index/PTS reales. Probe jobs no son imágenes aceptables;
+resultados expirados fallan. UI edita todos los parámetros JSON y superpone
+runs verdes separados; no modifica curvas/revisiones. Cambiar frame borra
+máscara, calcular bloquea acciones de fuente, JSON inválido no deja busy
+colgado. Cinco tests núcleo/jobs/API y build pasaron; test API adicional
+verificó máscara real, binding índice/PTS y cero revisiones automáticas.
+Pendientes Chrome y manifest persistido de propuestas; no tracking ni
+etiqueta humana inferidos. Cálculo de máscara aún síncrono y acotado.
