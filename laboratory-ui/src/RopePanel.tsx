@@ -2,7 +2,9 @@ import {RopeEditor} from './RopeEditor';
 import {useEffect,useRef,useState} from 'react';
 type Data=Record<string,any>;
 export function RopePanel({api}:Data){
- const [assets,setAssets]=useState<Data[]>([]),[jobs,setJobs]=useState<Data[]>([]),[source,setSource]=useState(''),[text,setText]=useState(''),[parent,setParent]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [assets,setAssets]=useState<Data[]>([]),[jobs,setJobs]=useState<Data[]>([]),[source,setSource]=useState(''),[text,setText]=useState(''),[parent,setParent]=useState(''),[error,setError]=useState(''),[actionBusy,setBusy]=useState(false);
+ const [frameBusy,setFrameBusy]=useState(false);
+ const busy=actionBusy||frameBusy;
  const [media,setMedia]=useState<Data|null>(null);
  const alive=useRef(true),readId=useRef('');
  const [read,setRead]=useState<Data|null>(null);
@@ -27,7 +29,7 @@ export function RopePanel({api}:Data){
  {read&&<p role="status">Lectura R08: {read.status}</p>}
  <button disabled={!readId.current||read?.status!=='running'} onClick={()=>{const id=readId.current;if(id)void api(`research/r08/reads/${id}/cancel`,{}).then((j:Data)=>{if(alive.current)setRead(j);}).catch((e:unknown)=>{if(alive.current)setError(String(e));});}}>Cancelar preparación R08</button>
  <p>Frames con índice y tiempo real del archivo; curvas normalizadas [0,1]. Estados: observed, partial, unidentifiable, absent. Partial/unidentifiable requieren causas: blur, occlusion, crossing_ambiguity, out_of_frame. No unir tramos ocultos.</p>
- {media&&source&&<RopeEditor key={source} api={api} media={media} source={source} text={text} onChange={setText}/>}
+ {media&&source&&<RopeEditor key={source} api={api} onReading={setFrameBusy} media={media} source={source} text={text} onChange={setText}/>}
  <label>Anotación R08 JSON<textarea rows={18} value={text} onChange={e=>setText(e.target.value)}/></label>
  <p>Revisión previa: {parent||'ninguna'}</p>
  <button disabled={busy||!source||!text} onClick={()=>void act(async()=>{const j=await api('research/r08',{media_id:source,annotation:JSON.parse(text),parent_id:parent||null});setParent(j.id);setJobs(await api('research/r08'));})}>Guardar revisión R08</button>

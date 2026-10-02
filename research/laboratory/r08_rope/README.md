@@ -263,3 +263,15 @@ Una corrida por configuración no prueba causalidad general de scheduling,
 pero no justifica adoptar el ajuste en este host. Siguiente optimización
 requiere acceso más eficiente sin reemplazar índice/PTS real por seeks
 aproximados ni inventar timestamps desde FPS. Concurrencia UI sigue pendiente.
+
+### Corte 21: exclusión de acciones durante lectura de imagen
+
+El editor comunica lectura activa al panel; fuente, preparación y guardado
+se bloquean durante starting/running. Cancelar imagen vuelve a habilitar
+acciones cuando el job termina, no cuando se envía la solicitud. Esto evita
+colisiones con el contrato de un decode activo y guardados que compitan por
+I/O. Mensaje visible explica cómo cambiar fuente durante lectura. Chrome
+verificó bloqueo, cancelación de proceso vivo, desbloqueo y reintento (1.2 s,
+suite 2 s); build pasó, servidor detenido. No hay cola de trabajos ni cambio
+instantáneo con lectura activa: requiere cancelar primero. No altera audio.
+Pendientes extracción asistida/benchmark anotado y mejora de acceso inicial.
