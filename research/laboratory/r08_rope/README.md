@@ -174,3 +174,17 @@ sin probe/decode. El lock del lector y una lectura de disco ya iniciada no
 se interrumpen instantáneamente; cancelación es cooperativa. Falta exponer
 trabajos/estado/cancelación HTTP y conectarlos a la UI; no se declara esa
 entrega realizada por haber completado la base del backend.
+
+### Corte 14: trabajos efímeros observables por HTTP
+
+POST `/api/research/r08/reads` recibe media_id y opcional frame_index+sha256.
+GET `/reads/{id}` observa running/complete/cancelled/failed; POST
+`/reads/{id}/cancel` solicita cancelación; GET `/reads/{id}/result` devuelve
+inventario JSON o PNG sólo completo. Un trabajo activo por instancia, ocho
+registros como máximo; el siguiente trabajo libera resultados PNG anteriores.
+Resultados temporales no se restauran al reiniciar y no copian medios. Cierre
+solicita cancelación y espera threads propios; errores no publican rutas.
+Tres tests jobs/API pasaron: probe y decode reales, expiración, fallo,
+exclusión de trabajos simultáneos, cancelación y cierre. Pendiente conectar
+UI y probar cancelación HTTP real de proceso largo; rutas síncronas anteriores
+permanecen disponibles durante la transición. Revisiones persistidas aparte.

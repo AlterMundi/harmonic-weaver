@@ -23,6 +23,7 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.rope_jobs import RopeJobs
 from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
 from .research.rope_annotations import Annotation as RopeAnnotation
@@ -155,6 +156,12 @@ class RopeSave(Contract):
     parent_id: str | None = None
 
 
+class RopeRead(Contract):
+    media_id: str
+    frame_index: int | None = Field(default=None,ge=0)
+    sha256: str | None = Field(default=None,pattern="^[a-f0-9]{64}$")
+
+
 class RopeBinding(Contract):
     media_id: str
 
@@ -219,6 +226,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     controls = ControlService(data_dir)
     rope = RopeService(data_dir)
     rope_reader = RopeReader()
+    rope_jobs = RopeJobs(rope_reader)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -231,6 +239,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         try:
             yield
         finally:
+            rope_jobs.close()
             activation.close()
             membrane.close()
             controls.close()
@@ -291,6 +300,21 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r08')
     def rope_revisions():return rope.list()
+
+    @app.post('/api/research/r08/reads')
+    def rope_read_start(body:RopeRead):
+        return rope_jobs.start(rope_media_path(body.media_id),index=body.frame_index,sha256=body.sha256)
+
+    @app.get('/api/research/r08/reads/{ident}')
+    def rope_read_report(ident:str):return rope_jobs.report(ident)
+
+    @app.post('/api/research/r08/reads/{ident}/cancel')
+    def rope_read_cancel(ident:str):return rope_jobs.cancel(ident)
+
+    @app.get('/api/research/r08/reads/{ident}/result')
+    def rope_read_result(ident:str):
+        result=rope_jobs.result(ident)
+        return Response(result,media_type='image/png',headers={'Cache-Control':'no-store'}) if isinstance(result,bytes) else result
 
     @app.post('/api/research/r08/probe')
     def rope_probe(body:RopeBinding):
