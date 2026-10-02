@@ -25,6 +25,8 @@ from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial, SourceRequest as SpatialSourceRequest, from_library as spatial_from_library
 from .research.spatial_observations import Stream as SpatialStream
+from .research.spatial_service import SpatialService
+from .research.spatial_run import Input as SpatialRunInput
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_paired_service import RopeFlowPairedService, Selection as RopeFlowPairedSelection
 from .research.rope_flow_benchmark_service import RopeFlowBenchmarkService, Selection as RopeFlowBenchmarkSelection
@@ -267,6 +269,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
+    spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
     rope_reader = RopeReader()
     rope_jobs = RopeJobs(rope_reader)
@@ -420,6 +423,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.post('/api/research/r09/conversions')
+    def spatial_run_start(body:SpatialRunInput):return spatial_runs.start(body)
+
+    @app.get('/api/research/r09/conversions')
+    def spatial_run_list():return spatial_runs.list()
+
+    @app.get('/api/research/r09/conversions/{ident}/artifacts/{name}')
+    def spatial_run_artifact(ident:str,name:str):
+        return FileResponse(spatial_runs.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r09/convert')
     def spatial_convert(body:SpatialAdapterRequest):return convert_spatial(body)

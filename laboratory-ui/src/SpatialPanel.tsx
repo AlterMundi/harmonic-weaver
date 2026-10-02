@@ -1,7 +1,9 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
 const defaultClock={source_clock:'pts',common_clock:'session',offset_s:0,rate:1,uncertainty_s:0,method:'declared_assumption',evidence_id:null};
 export function SpatialPanel({api}:{api:any}){
+ const [runs,setRuns]=useState<Data[]>([]);
+ useEffect(()=>{let live=true;void api('research/r09/conversions').then((r:Data[])=>{if(live)setRuns(r);}).catch(()=>{});return()=>{live=false;};},[api]);
  const [text,setText]=useState('[]'),[person,setPerson]=useState(''),[clock,setClock]=useState(JSON.stringify(defaultClock,null,2));
  const [sources,setSources]=useState<Data[]>([]),[job,setJob]=useState(''),[start,setStart]=useState(0),[end,setEnd]=useState(1);
  const [mode,setMode]=useState('convert'),[busy,setBusy]=useState(false),[error,setError]=useState(''),[result,setResult]=useState<Data|null>(null);
@@ -24,6 +26,9 @@ export function SpatialPanel({api}:{api:any}){
  <button disabled={busy||mode!=='validate'&&!person||mode==='source'&&!job} onClick={()=>void act(async()=>{setResult(null);if(mode==='source'){setResult(await api('research/r09/source',{job_id:job,start_s:start,end_s:end,person_id:person,clock:JSON.parse(clock)}));return;}if(text.length>32*1024*1024)throw Error('JSON supera límite');const observations=JSON.parse(text);setResult(await api(`research/r09/${mode}`,mode==='convert'?{frames:observations,person_id:person,clock:JSON.parse(clock)}:observations));})}>Procesar observaciones R09</button>
  {result&&<div><p>Contrato validado: {result.stream.provider} · {result.stream.dimensions}D · {result.stream.units} · slot {result.stream.subject_slot}.</p>
  {result.coverage&&<p>Cobertura R09: observados {result.coverage.observed}; sostenidos {result.coverage.held}; inferidos {result.coverage.inferred}; faltantes {result.coverage.missing}.</p>}
+ {result.request&&<button disabled={busy} onClick={()=>void act(async()=>{await api('research/r09/conversions',{conversion:result.request});setRuns(await api('research/r09/conversions'));})}>Guardar conversión declarada R09</button>}
  <button onClick={exportResult}>Exportar resultado R09</button><details><summary>Resultado espacial R09</summary><pre>{JSON.stringify(result,null,2)}</pre></details></div>}
+ <p>Guardar conserva la conversión y sus observaciones declaradas; no autentica el origen ni guarda la procedencia de biblioteca como evidencia verificada.</p>
+ {runs.map(r=><div key={r.id}>{r.id} · {r.read_verification==='recomputed'?'Conversión recalculada':'Histórico: sólo integridad'}<button disabled={busy} onClick={()=>void act(async()=>setResult(await api(`research/r09/conversions/${r.id}/artifacts/result.json`)))}>Abrir conversión R09</button>{['request.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r09/conversions/${r.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
  </section>;
 }

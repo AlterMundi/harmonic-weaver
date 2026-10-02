@@ -118,3 +118,18 @@ Seis tests persistencia/adaptador/contrato pasaron (0,17 s): inputs independient
 resultado alterado con hash reescrito rechazado, binding histórico, versiones,
 symlinks y sobrescritura. Pendiente servicio/API/UI y procedencia de biblioteca
 congelada; por ahora runner conserva inputs declarados, sin afirmar origen verificado.
+
+## Corte 9 · Servicio/API e inventario web
+
+POST/GET `/api/research/r09/conversions` y GET `/{id}/artifacts/{name}` guardan
+conversiones declaradas, listan resultados verificados y descargan tres JSON.
+Servicio elimina sólo su carpeta nueva si falla publicación. Reabrir no necesita
+tracking vivo. Web incorpora guardar explícito, inventario/reapertura y descargas.
+Guarda sólo Request de conversión, no tracking_provenance: se informa expresamente
+que el origen sigue declarado. Persistir procedencia verificada sigue pendiente.
+
+Diez tests contrato/adaptador/biblioteca/runner/HTTP pasaron (1,03 s): descarga,
+reinicio y métricas alteradas con hash reescrito rechazadas/excluidas de inventario.
+Build pasó; recorrido de persistencia web en Chrome pendiente. También idempotencia,
+recuperación de respuesta POST perdida, presets y mediciones físicas pendientes.
+No guardado automático ni modificación de live/audio; ningún video privado copiado.

@@ -466,3 +466,7 @@ tracking. No prueba tracking real/calidad corporal; persistencia/presets pendien
 R09 corte 8: runner de conversiones congeladas con recálculo/binding/hash y lectura
 histórica explícita. Seis tests pasaron. Servicio/API/UI/procedencia de biblioteca
 persistida pendientes; no validación de calibración ni profundidad física.
+
+R09 corte 9: persistencia declarada por servicio/API y controles de guardado/reapertura
+web. Diez tests hasta HTTP y build pasaron. Chrome persistencia, procedencia de
+biblioteca congelada, idempotencia/presets pendientes; no origen físico autenticado.
