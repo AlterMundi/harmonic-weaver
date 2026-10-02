@@ -317,3 +317,10 @@ R08 inicio API idempotente: clave opcional y recibo persistido, reutilización
 mismo request/job y rechazo de request distinto o incompleto tras restart.
 Tres tests servicio/API pasaron. README corte 48: owner único, recibos sin GC;
 UI/reintento de POST sin respuesta aún pendientes. Sin cambios de audio.
+
+R08 reintento web conectado: clave/request congelados en RAM, start_unknown
+bloquea edición/nuevo inicio, reintento recupera mismo ID. Chrome verificó
+respuesta POST perdida tras aceptación, dos envíos iguales y una sola corrida;
+validación 4xx libera edición (1 prueba, 2.2 s). Build pasó. README corte 49:
+persistencia del intento entre cierres/reload todavía pendiente; también
+cancelación web viva, presets, recálculo, rendimiento y benchmark humano.

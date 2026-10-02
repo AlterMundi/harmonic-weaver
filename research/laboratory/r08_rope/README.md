@@ -687,3 +687,23 @@ recuperación completa tras restart, cancelada en owner actual y rechazo tras
 restart sin nuevo worker. La UI aún no envía clave ni conserva request de POST
 sin respuesta: integración/reintento browser pendientes, no declarar ese caso
 resuelto end-to-end. Audio/presets intactos; roadmap/benchmark siguen abiertos.
+
+### Corte 49: reintento web del inicio sin respuesta
+
+UI crea clave aleatoria por intento y conserva request congelado en RAM antes
+del POST. Si respuesta no llega, estado start_unknown bloquea nuevo inicio y
+edición de config/seeds; Reintentar mismo inicio reenvía exactamente clave y
+request original, aunque se haya movido el frame. ID recibido pasa al observer
+existente. API común conserva status HTTP en Error: rechazo explícito 4xx libera
+intento para corregir parámetros; errores de transporte/5xx mantienen request.
+No cambio de mensajes de error ni comportamiento de otros paneles.
+
+Chrome real interceptó POST, dejó que servidor lo aceptara y abortó respuesta
+al navegador; reintento produjo mismo ID, dos POST de bytes JSON equivalentes,
+una sola corrida y borrador intacto. Validación de seeds vacíos desbloqueó
+edición. Una prueba pasó (1.3 s; suite 2.2 s); build pasó, fixture sintético
+con decoder/flow real, servidor detenido. Pendiente persistir/recuperar intento
+desconocido al cerrar/recargar panel (request en RAM), cancelación web viva,
+presets/recálculo/decoder secuencial y benchmark humano. Recibos del servidor
+evitan relanzar una clave conocida; no recuperan por sí solos una clave perdida
+por el navegador. Sin cambios de audio/defaults ni datos privados publicados.

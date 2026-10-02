@@ -120,9 +120,9 @@ async function api(path: string, body?: any, method = "POST") {
   );
   const data = await response.json();
   if (!response.ok)
-    throw new Error(
+    throw Object.assign(new Error(
       typeof data.detail === "string" ? data.detail : JSON.stringify(data),
-    );
+    ), { status: response.status });
   return data;
 }
 const clone = (x: any) => structuredClone(x);
