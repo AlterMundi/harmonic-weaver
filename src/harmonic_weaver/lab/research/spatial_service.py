@@ -4,12 +4,14 @@ import shutil
 import json
 import hashlib
 from typing import Annotated
-from ..cache import atomic_json
+from ..cache import atomic_json,sha256_file
 import threading
 from uuid import uuid4
 from .rope_compare_service import RopeCompareService
 from .spatial_run import Input,run,read_verified
 from .spatial_adapter import SourceRequest
+from .spatial_clock_binding import Application,transformed
+from ..contracts import Contract
 from pydantic import Field
 
 
@@ -25,6 +27,13 @@ class SourceSaveRequest(SourceRequest):
     expected_generation:str=Field(min_length=1,max_length=160)
 
 
+class ClockSaveRequest(Contract):
+    conversion_id:Key
+    fit_id:Key
+    allow_extrapolation:bool=False
+    idempotency_key:Key|None=None
+
+
 class SpatialService(RopeCompareService):
     def __init__(self,data_dir):
         self.root=Path(data_dir)/'research/r09-conversions'
@@ -33,7 +42,7 @@ class SpatialService(RopeCompareService):
         self.receipts.mkdir(mode=0o700,parents=True,exist_ok=True)
         self.lock=threading.RLock()
 
-    def publish(self,kind,selection,key,resolve):
+    def publish(self,kind,selection,key,resolve,check=lambda:None):
         digest=hashlib.sha256(json.dumps({'kind':kind,'selection':selection},sort_keys=True,separators=(',',':')).encode()).hexdigest()
         with self.lock:
             receipt=self.receipts/f'{key}.json' if key else None
@@ -44,9 +53,12 @@ class SpatialService(RopeCompareService):
                 if previous.get('request_sha256')!=digest:raise ValueError('Spatial start key reused with different request')
                 return {**read_verified(self.folder(previous['id'])),'id':previous['id']}
             frozen=Input.model_validate(resolve())
+            check()
             ident=uuid4().hex;folder=self.root/ident
             if receipt is not None:atomic_json(receipt,{'id':ident,'request_sha256':digest})
-            try:manifest=run(frozen,folder)
+            try:
+                manifest=run(frozen,folder)
+                check()
             except Exception:
                 if folder.is_dir() and not folder.is_symlink():shutil.rmtree(folder)
                 raise
@@ -54,7 +66,8 @@ class SpatialService(RopeCompareService):
 
     def start(self,request):
         body=SaveRequest.model_validate(request)
-        frozen=body.model_dump(exclude={'idempotency_key','stream'} if body.conversion is not None else {'idempotency_key','conversion','tracking_provenance'})
+        if body.clock_application is not None:raise ValueError('Resolve clock application through saved IDs')
+        frozen=body.model_dump(exclude={'idempotency_key','stream','clock_application'} if body.conversion is not None else {'idempotency_key','conversion','tracking_provenance','clock_application'})
         return self.publish('declared',frozen,body.idempotency_key,lambda:frozen)
 
     def list(self):
@@ -81,3 +94,21 @@ class SpatialService(RopeCompareService):
             return {'conversion':{'frames':frames,'person_id':selection.person_id,'clock':selection.clock},
                     'tracking_provenance':provenance}
         return self.publish('library',selection.model_dump(exclude={'idempotency_key'}),selection.idempotency_key,resolve)
+
+    def from_clock(self,clocks,selection):
+        selection=ClockSaveRequest.model_validate(selection)
+        snapshots=[]
+        def resolve():
+            source_manifest=self.artifact(selection.conversion_id,'manifest.json')
+            fit_manifest=clocks.artifact(selection.fit_id,'manifest.json')
+            source={'id':selection.conversion_id,'manifest_sha256':sha256_file(source_manifest)}
+            clock={'id':selection.fit_id,'manifest_sha256':sha256_file(fit_manifest)}
+            snapshots.extend([(self,source),(clocks,clock)])
+            original=json.loads(self.artifact(selection.conversion_id,'result.json').read_text())['stream']
+            fitted=json.loads(clocks.artifact(selection.fit_id,'result.json').read_text())
+            application=Application(conversion=source,clock_fit=clock,original_stream=original,fit_input=fitted['request'],allow_extrapolation=selection.allow_extrapolation)
+            return {'stream':transformed(application),'clock_application':application}
+        def check():
+            for service,source in snapshots:
+                if sha256_file(service.artifact(source['id'],'manifest.json'))!=source['manifest_sha256']:raise ValueError('Clock application source changed during publication')
+        return self.publish('clock_application',selection.model_dump(exclude={'idempotency_key'}),selection.idempotency_key,resolve,check)

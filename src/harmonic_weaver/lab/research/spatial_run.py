@@ -10,10 +10,11 @@ from ..cache import atomic_json, sha256_file
 from ..contracts import Contract
 from .spatial_adapter import Request, convert as evaluate
 from .spatial_observations import Stream
+from .spatial_clock_binding import Application,transformed
 
 Digest = Annotated[str, Field(pattern=r'^[a-f0-9]{64}$')]
 FILES = ('request.json', 'result.json', 'manifest.json')
-CODE = ('spatial_run.py', 'spatial_adapter.py', 'spatial_observations.py', '../contracts.py')
+CODE = ('spatial_run.py', 'spatial_adapter.py', 'spatial_observations.py', 'spatial_clock_binding.py', 'spatial_clock_fit.py', '../contracts.py')
 
 
 class Provenance(Contract):
@@ -30,11 +31,13 @@ class Provenance(Contract):
 class Input(Contract):
     conversion: Request|None=None
     stream:Stream|None=None
+    clock_application:Application|None=None
     tracking_provenance:Provenance|None=None
 
     @model_validator(mode='after')
     def segment(self):
         if (self.conversion is None)==(self.stream is None):raise ValueError('Choose exactly one conversion or declared stream')
+        if self.clock_application is not None and self.stream is None:raise ValueError('Clock application requires declared stream')
         p=self.tracking_provenance
         if p is not None and self.conversion is None:raise ValueError('Tracking provenance only belongs to resolved MotionFrames')
         if p is not None:
@@ -44,6 +47,7 @@ class Input(Contract):
 
 
 def calculate(frozen):
+    if frozen.clock_application is not None and frozen.stream.model_dump()!=transformed(frozen.clock_application).model_dump():raise ValueError('Frozen clock application differs from stream')
     if frozen.stream is not None:
         stream=frozen.stream
         result={'schema_version':1,'line':'R09','input_kind':'external_stream','request':stream.model_dump(),'stream':stream.model_dump(),
@@ -56,6 +60,9 @@ def calculate(frozen):
     if frozen.tracking_provenance is not None:
         result['tracking_provenance']=frozen.tracking_provenance.model_dump()
         result['limits'].append('Recorded completed in-memory generation, not current disk/video integrity or signed custody')
+    if frozen.clock_application is not None:
+        result['clock_application']=frozen.clock_application.model_dump()
+        result['limits'].append('Application freezes verified local source IDs/hashes; source declarations remain unauthenticated physically')
     return result
 
 
@@ -118,6 +125,7 @@ def verify(folder, *, recompute=True):
         raise ValueError('Spatial conversion result/input binding mismatch')
     if frozen.stream is not None and (result.get('stream')!=frozen.stream.model_dump() or result.get('input_kind')!='external_stream'):raise ValueError('External stream result/input binding mismatch')
     if result.get('tracking_provenance') != (frozen.tracking_provenance.model_dump() if frozen.tracking_provenance else None):raise ValueError('Spatial conversion provenance binding mismatch')
+    if result.get('clock_application')!=(frozen.clock_application.model_dump() if frozen.clock_application else None):raise ValueError('Clock application provenance binding mismatch')
     if recompute:
         if manifest['environment'] != environment() or manifest['code_hashes'] != code_hashes():
             raise ValueError('Recorded conversion implementation/environment differs')

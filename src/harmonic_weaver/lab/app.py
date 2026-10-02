@@ -31,7 +31,7 @@ from .research.spatial_clock_apply import Request as SpatialClockApplyRequest, a
 from .research.spatial_clock_service import SpatialClockService, SaveRequest as SpatialClockSaveRequest
 from .research.spatial_clock_fit import Request as SpatialClockFitRequest, fit as fit_spatial_clock
 from .research.spatial_presets import SpatialViewPresets, Preset as SpatialViewPreset, SpatialComparisonPresets, ComparisonPreset
-from .research.spatial_service import SpatialService, SourceSaveRequest as SpatialSourceSaveRequest, SaveRequest as SpatialSaveRequest
+from .research.spatial_service import SpatialService, ClockSaveRequest as SpatialClockConversionSaveRequest, SourceSaveRequest as SpatialSourceSaveRequest, SaveRequest as SpatialSaveRequest
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_paired_service import RopeFlowPairedService, Selection as RopeFlowPairedSelection
 from .research.rope_flow_benchmark_service import RopeFlowBenchmarkService, Selection as RopeFlowBenchmarkSelection
@@ -459,6 +459,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
 
+    @app.post('/api/research/r09/clock-conversions')
+    def spatial_clock_conversion_save(body:SpatialClockConversionSaveRequest):return spatial_runs.from_clock(spatial_clock_runs,body)
+
     @app.post('/api/research/r09/apply-clock')
     def spatial_clock_apply(body:SpatialClockApplyRequest):return apply_spatial_clock(spatial_clock_runs,body)
 
@@ -487,6 +490,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r09/conversions')
     def spatial_run_start(body:SpatialSaveRequest):
+        if body.clock_application is not None:raise ValueError('Resolve clock application through saved IDs')
         if body.tracking_provenance is not None:raise ValueError('Resolve tracking provenance through the library source route')
         return spatial_runs.start(body)
 

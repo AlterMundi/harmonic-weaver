@@ -477,3 +477,23 @@ no precisión 3D. Servidor detenido, sin medios privados/sensores, audio intacto
 Pendientes proveedores 3D reales, calibración/sincronización medidas y conservación
 server-resolved de procedencia al persistir una aplicación de reloj (copiar JSON
 externo conserva reloj, pero no autentica el vínculo a corrida de ajuste).
+
+
+## Corte 33 · Guardado de aplicación de reloj con fuentes resueltas
+
+POST clock-conversions recibe conversion_id, fit_id, allow_extrapolation(false) e
+idempotency_key opcional. Servidor resuelve/verifica originales, congela IDs/hashes,
+original_stream y fit_input, recalcula reloj y nuevo stream; revalida fuentes antes/
+después de publicar. Conserva contrato/frames/unidades/estados y permite repetir
+transformación offline sin originales. Binding de clock_application en histórico;
+recomputación actual valida transformación, histórico sólo integridad/binding.
+Ruta declared conversions rechaza clock_application suministrada manualmente.
+Recibos permiten recuperar misma corrida sin resolver fuentes de nuevo. Cambios
+invalidan sólo carpeta nueva. Canonical previo de recibos externos/MotionFrames
+excluye nuevo campo null para conservar compatibilidad de claves.
+
+Once pruebas servicio/HTTP/runner/recibos pasaron (1,14 s), incluyendo hashes,
+frames preservados, restart/recovery sin fuente, mutación durante publicación y
+rechazo de procedencia manual. Sin medios privados/dispositivos/audio. No autentica
+mediciones físicas ni nombre del reloj. Pendiente controles web por ambos IDs,
+recuperación/Chrome y proveedores/calibración/sincronización reales.
