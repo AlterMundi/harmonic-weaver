@@ -1173,3 +1173,16 @@ Prueba servicio pasó (0,33 s): fallo inyectado después de escribir artifacts l
 Pendientes carreras de reapertura tardía vs edición de selección, contraste pareado,
 conservación de cierre y ensayos humanos. Fixtures sintéticos/audio silenciado, sin
 aceptación física/científica. Sonido/defaults intactos.
+
+
+## Corte 25 · Reapertura tardía no pisa nueva selección
+
+Abrir análisis inicia generación en panel padre y limpia vista anterior; callback
+sólo aplica si generación sigue vigente. Cambiar selección/actualizar/otro cálculo
+invalida apertura pendiente, sin bloquear exploración mientras descarga.
+
+Build y cinco Chrome pasaron (9,4 s): respuesta real del resultado guardado
+retenida, checkbox desmarcado durante carga, liberación no revive tabla ni vuelve
+a seleccionar respuesta. Recovery/guardado/playback previos pasan. Servidor
+sintético detenido; audio silenciado, sin aceptación humana. Pendientes contraste
+pareado, cierre duradero y líneas R11–R13; no defaults/sonido modificados.
