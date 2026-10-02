@@ -12,7 +12,9 @@ test('explicit mapping coverage and persisted result',async({page})=>{
  const panel=page.getByRole('region',{name:'Benchmark temporal de extremos R08'});
  await panel.getByLabel('Referencia temporal R08').selectOption(ref.id);
  await panel.getByLabel('Corrida temporal R08').selectOption(job.id);
+ await expect(panel.getByLabel('Semillas y extremos en frame inicial R08')).toBeVisible();
  const start=panel.getByRole('button',{name:'Evaluar extremos R08',exact:true});await expect(start).toBeDisabled();
+ await panel.getByLabel('Semilla para extremo a R08').fill('3');await expect(start).toBeDisabled();
  await panel.getByLabel('Semilla para extremo a R08').fill('0');await panel.getByLabel('Semilla para extremo b R08').fill('0');await expect(start).toBeDisabled();
  await panel.getByLabel('Semilla para extremo b R08').fill('');
  let first=true;const sent:any[]=[];

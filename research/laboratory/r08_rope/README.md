@@ -1023,3 +1023,19 @@ reinicio, rechazo de clave con selección distinta y publicación fallida sin
 rearranque. Build pasó. Chrome real (2,4 s) abortó la respuesta después de aceptar
 el POST, recargó, recuperó con cuerpo/clave idénticos y comprobó una sola corrida,
 además de cobertura, descarga y reapertura. Servidor aislado apagado.
+
+### Corte 64 — contexto visual para declarar el mapeo
+
+El benchmark carga snapshots originales con descarte de respuestas de selecciones
+anteriores. Muestra ventana/tiempos, tabla de semillas y esquema con proporciones
+de imagen: índices azules y etiquetas manuales amarillas sólo en el frame inicial.
+Si ese frame no está anotado, lo informa sin trasladar puntos de otro tiempo.
+No son imágenes del video ni curvas inferidas. Incompatibilidad de fuente/dimensiones
+o índice de semilla inexistente bloquean una nueva evaluación; selección y mapeo
+siguen siendo explícitos, sin correspondencia automática por cercanía.
+
+Build pasó y Chrome real con fixture sintético pasó (2,2 s): presencia del esquema,
+rechazo de índice inexistente, bloqueo de mapeo vacío/duplicado, respuesta POST
+perdida/recuperación, cobertura, descarga y reload. Servidor aislado apagado.
+Pendiente preview con imagen exacta autorizada y revisión humana de referencias;
+no se verificó calidad con video corporal ni se cambió síntesis/defaults.

@@ -407,3 +407,7 @@ persistentes e intento pendiente en sessionStorage. Nueve tests y build pasaron;
 Chrome verificó POST aceptado con respuesta perdida, reload y recuperación sin
 duplicación. No coordinación multiproceso ni GC de recibos; cierre de pestaña no
 garantiza recuperación. Síntesis y medios privados sin cambios.
+
+R08 corte 64: contexto de semillas/extremos iniciales en benchmark web, ventana y
+coordenadas, bloqueo de fuentes/dimensiones incompatibles y semillas inexistentes.
+Build y Chrome real pasaron; esquema sin imagen y calidad manual humana pendientes.
