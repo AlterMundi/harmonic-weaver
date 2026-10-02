@@ -22,13 +22,22 @@ test('lost flow start response retries exact frozen request without duplicate wo
  await expect(page.getByText('Corrida temporal R08: start_unknown',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true})).toBeDisabled();
  await expect(page.getByLabel('Configuración temporal portable R08')).toBeDisabled();
+ await page.reload();
+ await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
+ await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
+ await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
+ await expect(page.getByText('Corrida temporal R08: start_unknown',{exact:true})).toBeVisible();
+ expect(bodies).toHaveLength(1); // Remount does not start work automatically.
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
  await page.getByRole('button',{name:'Reintentar mismo inicio temporal R08',exact:true}).click();
  await expect(page.getByText(new RegExp(`Corrida temporal R08: complete.*${originalId}`))).toBeVisible();
  expect(bodies).toHaveLength(2);expect(bodies[1]).toEqual(bodies[0]);
  expect(bodies[0].idempotency_key).toMatch(/^[a-f0-9]{32}$/);
  const jobs=await(await page.request.get(`${origin}/api/research/r08/flow`)).json();
  expect(jobs).toHaveLength(1);expect(jobs[0].id).toBe(originalId);
+ expect(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('r08-flow-pending-v1:')))).toHaveLength(0);
  await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
+ await page.getByLabel('Configuración temporal portable R08').fill('{"frames":3,"settings":{}}');
  await page.getByLabel('Seeds temporales R08').fill('[]');
  await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
  await expect(page.getByText('Corrida temporal R08: failed',{exact:true})).toBeVisible();

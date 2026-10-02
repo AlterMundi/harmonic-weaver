@@ -707,3 +707,24 @@ desconocido al cerrar/recargar panel (request en RAM), cancelación web viva,
 presets/recálculo/decoder secuencial y benchmark humano. Recibos del servidor
 evitan relanzar una clave conocida; no recuperan por sí solos una clave perdida
 por el navegador. Sin cambios de audio/defaults ni datos privados publicados.
+
+### Corte 50: intento pendiente recuperable tras reload de pestaña
+
+Antes de enviar POST, UI guarda recibo v1 (request+clave) en sessionStorage,
+acotado a 1 MB y separado por media_id/hash. Al recibir ID actualiza recibo;
+al completar/cancelar/fallar confirmado o rechazar 4xx lo elimina. Remount de
+esa fuente valida envelope/fuente/clave/ID y ofrece retomar explícitamente
+start_unknown o consulta de ID conocido, sin enviar trabajo automáticamente.
+Seeds del editor no se restauran: permanecen sólo en request congelado privado,
+no dentro de configuración portable/preset. Recibo local de pestaña no copia
+medios ni sale a GitHub; sessionStorage no garantiza recuperación tras cerrar
+pestaña/browser y no coordina otras pestañas. Preservar almacenamiento local
+es requisito para iniciar; fallos no se silencian lanzando sin recibo.
+
+Chrome pasó respuesta POST perdida tras aceptación, reload/preparación de misma
+fuente sin POST automático, reintento exacto/mismo ID, una sola corrida, recibo
+eliminado al completar, seeds vacíos y borrador intacto; rechazo seeds vacíos
+permite editar. Una prueba pasó (1.4 s; suite 2.2 s); build pasó y servidor
+detenido. Recuperación de ID conocido tiene implementación pero requiere caso
+browser propio; cancelación viva, presets/recálculo, rendimiento y benchmark
+humano siguen pendientes. No cambios de audio/defaults ni aceptación humana.
