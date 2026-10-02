@@ -336,3 +336,8 @@ otro POST (1 prueba, 2.4 s); cancelación web de PID confirmado vivo deja invent
 vacío y permite nuevo cálculo real (1 prueba, 2.2 s). README corte 51 distingue
 worker lento inyectado de decode/flow reales. Servidores detenidos, código de
 producción intacto. Presets/recálculo/rendimiento/benchmark y otros fallos pendientes.
+
+R08 contrato temporal reforzado: estados/puntos/causas, continuidad sin revival,
+seeds, thresholds y resets/clock/bounds verificados offline; exactitud numérica
+sigue requiriendo video. Siete tests contrato/corrida/servicio/API pasaron.
+README corte 52 conserva alcance y pendientes; no evidencia browser nueva.

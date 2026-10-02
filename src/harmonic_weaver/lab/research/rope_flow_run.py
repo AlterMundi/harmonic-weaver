@@ -13,6 +13,7 @@ from .rope_annotations import Point
 from .rope_flow import RopeFlow,Settings
 from .rope_reader import RopeReader
 from .rope_process import DecodeCancelled
+from .rope_flow_contract import validate_frames
 
 
 class Request(Contract):
@@ -38,7 +39,7 @@ def environment():
 
 def code():
     return {name:sha256_file(Path(__file__).parent/name) for name in
-            ('rope_flow.py','rope_flow_run.py','rope_annotations.py','rope_reader.py','rope_media.py','rope_process.py','../contracts.py')}
+            ('rope_flow.py','rope_flow_contract.py','rope_flow_run.py','rope_annotations.py','rope_reader.py','rope_media.py','rope_process.py','../contracts.py')}
 
 
 def check_cancel(cancel):
@@ -96,11 +97,8 @@ def verify(folder,*,path=None,reader=None,cancel=None):
     if not isinstance(manifest.get('environment'),dict) or not manifest['environment']:raise ValueError('Recorded flow environment required')
     request=Request.model_validate_json((folder/'request.json').read_text())
     result=json.loads((folder/'result.json').read_text());Contract.finite_tree(result)
-    if result.get('schema_version')!=1 or result.get('line')!='R08' or result.get('request')!=request.model_dump():raise ValueError('Flow request/result binding mismatch')
-    frames=result.get('frames')
-    if not isinstance(frames,list) or len(frames)!=len(request.frame_times_s):raise ValueError('Flow frame inventory mismatch')
-    for offset,frame in enumerate(frames):
-        if frame.get('frame_index')!=request.start_frame_index+offset or frame.get('time_s')!=request.frame_times_s[offset] or frame.get('settings')!=request.settings.model_dump():raise ValueError('Flow frame clock/settings mismatch')
+    if not isinstance(result,dict) or result.get('schema_version')!=1 or result.get('line')!='R08' or result.get('request')!=request.model_dump():raise ValueError('Flow request/result binding mismatch')
+    validate_frames(result.get('frames'),request)
     if path is not None:
         if manifest.get('environment')!=environment() or manifest.get('code_hashes')!=code():raise ValueError('Flow code/environment differs')
         if result!=calculate(request,path,reader,cancel=cancel):raise ValueError('Flow recomputation differs')

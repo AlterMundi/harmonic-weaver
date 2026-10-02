@@ -27,7 +27,7 @@ def test_actual_decode_repeat_integrity_and_source_recompute(tmp_path):
     assert [f['frame_index'] for f in result['frames']]==[1,2,3]
     assert [f['time_s'] for f in result['frames']]==request['frame_times_s']
     assert result['frames'][0]['status']=='seeded'
-    result['frames'][0]['rows'][0]['point']['x']=.4
+    result['frames'][1]['rows'][0]['displacement_px']+=.01
     (a/'result.json').write_text(json.dumps(result))
     manifest=json.loads((a/'manifest.json').read_text());manifest['output']['sha256']=sha256_file(a/'result.json')
     (a/'manifest.json').write_text(json.dumps(manifest))

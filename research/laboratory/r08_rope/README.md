@@ -747,3 +747,23 @@ recuperación sí usan MP4 sintético/decoder/flow reales. Pendientes recálculo
 presets nombrados, decoder secuencial, benchmark humano/uncertainty y otros
 fallos de almacenamiento/red/reinicio durante cálculo. Sin cambios de código
 de producción en este corte; no repetir build anterior como evidencia nueva.
+
+### Corte 52: contrato estructural de soporte temporal
+
+Offline verify valida ahora cada frame/row mediante contrato estricto:
+estado/causa/presencia de punto, diagnósticos no negativos y umbrales de
+candidatos, IDs únicos y continuidad sin reactivación, seeds sólo iniciales
+con posición declarada, resets exactamente cuando source-time supera gap y
+bounds del píxel decodificado (tolerancia normalizada 1e-7 por float32).
+Campos desconocidos/bools donde corresponde int/estados incoherentes se
+rechazan; inventario/clock/config siguen ligados al request. Archivo de
+contrato incluido en código registrado para nuevas corridas.
+
+Siete tests contrato/corrida/servicio/API pasaron: nueve mutaciones
+estructurales, decode real, repeat/recompute, idempotencia/cancelación/restart.
+Test de tamper numérico modifica diagnóstico dentro del contrato: integridad
+puede pasar con checksum reescrito, recálculo contra video debe rechazar.
+Así no se confunde consistencia estructural con exactitud óptica ni custodia.
+No nuevos tests browser/build en este corte backend; referencias previas no
+son verificación de este head. Presets/recálculo UI/decoder secuencial/benchmark
+humano y otras líneas del roadmap siguen pendientes. Audio/defaults intactos.
