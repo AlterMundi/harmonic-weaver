@@ -462,3 +462,7 @@ biblioteca pendiente; no verificación de bytes del cache/video actual.
 R09 corte 7: Chrome real de fuente de biblioteca pasó contra generación sintética:
 slot explícito, rango inclusivo, procedencia, missing y rechazo inválido, sin iniciar
 tracking. No prueba tracking real/calidad corporal; persistencia/presets pendientes.
+
+R09 corte 8: runner de conversiones congeladas con recálculo/binding/hash y lectura
+histórica explícita. Seis tests pasaron. Servicio/API/UI/procedencia de biblioteca
+persistida pendientes; no validación de calibración ni profundidad física.

@@ -105,3 +105,16 @@ inventario, elección de fuente/slot obligatoria, rango inclusivo [0,.2] con ín
 34 missing, rango fuera de duración rechazado y cero POST a inicio de tracking.
 Servidor aislado detenido. Confirma funcionamiento UI/HTTP, no integridad de cache
 real, precisión corporal ni calibración. Persistencia/presets siguen pendientes.
+
+## Corte 8 · Conversiones congeladas reproducibles
+
+`spatial_run` guarda Input {conversion: Request}, resultado y manifest en directorio
+nuevo; hashes/binding, código y versión Python, archivos regulares y estabilidad
+durante lectura. Recálculo actual exige igualdad de conversión; histórico de otras
+versiones sólo acredita integridad. No sobrescribe ni requiere generación live.
+No autentica observaciones ni prueba profundidad/calibración/sincronización.
+
+Seis tests persistencia/adaptador/contrato pasaron (0,17 s): inputs independientes,
+resultado alterado con hash reescrito rechazado, binding histórico, versiones,
+symlinks y sobrescritura. Pendiente servicio/API/UI y procedencia de biblioteca
+congelada; por ahora runner conserva inputs declarados, sin afirmar origen verificado.
