@@ -441,3 +441,8 @@ ni modelos nuevos instalados; ninguna inferencia física/científica verificada.
 R09 corte 2: adaptador MotionFrame→stream espacial conserva unidades isotrópicas
 frame_height, held, gaps y slots faltantes; rechaza streams/geometrías/relojes
 mezclados. Cuatro tests pasaron. API/UI/persistencia y medición real pendientes.
+
+R09 corte 3: API stateless de conversión MotionFrames y validación de streams;
+cobertura y tiempos comunes declarados. Cinco tests hasta HTTP pasaron. UI,
+persistencia y resolución por fuente autorizada pendientes; contract_only no
+verifica hardware/calibración/sincronización ni identidad humana.

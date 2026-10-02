@@ -36,3 +36,18 @@ Cuatro tests contrato/adaptador pasaron (0,14 s): unidades reales, held/missing,
 slot ausente, gaps, repetición sin mutación y rechazo de fuentes/geometrías/relojes
 mezclados o 3D. Fixtures sintéticos del contrato, no tracking privado nuevo.
 Pendiente API/UI/importación/persistencia y validación de clocks/cámaras reales.
+
+## Corte 3 · API de conversión/validación
+
+POST `/api/research/r09/convert` recibe el Request del adaptador y devuelve inputs,
+stream espacial, cobertura por observed/held/inferred/missing y tiempos comunes
+calculados con el reloj declarado. Verifica resultado finito. POST
+`/api/research/r09/validate` valida un Stream externo y devuelve
+`validation: contract_only`: no autentica source, calibración ni sincronización.
+Ambas rutas son stateless y no crean un archivo de datos corporales ni cambian live.
+
+Cinco tests contrato/adaptador/HTTP pasaron (0,75 s): cobertura exacta, clocks,
+roundtrip y rechazo de slot booleano, reloj inválido, paths extras y metros
+incompatibles. Pendiente UI/importación por fuente autorizada, persistencia
+reproducible y medición real de calibraciones/relojes. Validación de esquema no
+presenta observaciones monoculares como reconstrucción 3D verificada.

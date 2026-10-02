@@ -36,7 +36,9 @@ def convert(request):
     stream=Stream.model_validate({'source_id':first.source_id,'subject_slot':request.person_id,
         'provider':'image_pose','dimensions':2,'coordinate_frame':first.coordinate_frame,
         'units':'frame_height','clock':request.clock.model_dump(),'frames':frames})
-    return {'schema_version':1,'line':'R09','request':request.model_dump(),'stream':stream.model_dump(),
+    result={'schema_version':1,'line':'R09','request':request.model_dump(),'stream':stream.model_dump(),
+        'common_times_s':[request.clock.common_time(f.source_time_s) for f in request.frames],
+        'coverage':{state:sum(p.state==state for f in stream.frames for p in f.points) for state in ('observed','held','inferred','missing')},
         'timestamp_origin':first.timestamp_origin,'source_stream_id':first.stream_id,
         'image_geometry':{'width':first.width,'height':first.height},
         'limits':['Preserves camera-isotropic frame-height coordinates; not metres or inferred depth',
@@ -44,3 +46,6 @@ def convert(request):
                   'Absent joints/person remain missing; held is preserved, never upgraded to observed',
                   'Affine clock mapping is caller-declared; adapter does not measure synchronization',
                   'Sequence gaps are retained; no interpolation, calibration transfer or source switching']}
+
+    Contract.finite_tree(result)
+    return result

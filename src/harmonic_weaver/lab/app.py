@@ -23,6 +23,8 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial
+from .research.spatial_observations import Stream as SpatialStream
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_paired_service import RopeFlowPairedService, Selection as RopeFlowPairedSelection
 from .research.rope_flow_benchmark_service import RopeFlowBenchmarkService, Selection as RopeFlowBenchmarkSelection
@@ -418,6 +420,15 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return rope_comparisons.start({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
                         'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
                         'samples_per_segment':body.samples_per_segment})
+
+    @app.post('/api/research/r09/convert')
+    def spatial_convert(body:SpatialAdapterRequest):return convert_spatial(body)
+
+    @app.post('/api/research/r09/validate')
+    def spatial_validate(body:SpatialStream):
+        return {'schema_version':1,'line':'R09','stream':body.model_dump(),
+                'validation':'contract_only',
+                'limits':['Contract validation does not authenticate source, calibration or clock evidence']}
 
     @app.post('/api/research/r08/flow-paired')
     def rope_flow_paired_start(body:RopeFlowPairedSelection):return rope_flow_paired.start(body)
