@@ -325,3 +325,20 @@ recorrido declarado/exportación/reload y selección de dos conversiones persist
 error cero conocido y binding de ambos IDs + hash. Datos sintéticos, sin dispositivos
 ni medios privados; servidor de prueba detenido. Pendientes presets e idempotencia
 para comparación y validación física de las fuentes.
+
+
+## Corte 25 · Presets portables de comparación
+
+API comparison-presets y panel permiten guardar, listar, aplicar, exportar e
+importar parámetros/etiquetas. No incluyen streams, IDs de conversión, persona,
+reloj ni calibración. Aplicar sólo cambia controles, sin seleccionar fuentes o
+publicar corridas. Importar valida en servidor (archivo web máximo 64 KiB).
+Validación de etiquetas únicas/no vacías ahora pertenece a Settings compartido,
+para rechazar presets inválidos antes de comparar. Almacenamiento append-only,
+reapertura tras reinicio y exportación sin ID local.
+
+Nueve pruebas backend pasaron (1,19 s), build completo pasó y dos pruebas Chrome
+contra API aislada pasaron (2,0 s), incluyendo guardar/aplicar conservando fuentes,
+descarga/importación nativa y procedencia de comparación. Sin medios privados ni
+dispositivos; servidor detenido. Defaults/síntesis sin cambios. Pendiente
+idempotencia de comparación y validación física de relojes/calibración.

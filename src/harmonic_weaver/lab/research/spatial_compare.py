@@ -13,6 +13,11 @@ class Settings(Contract):
     allow_inferred:bool=False
     allow_held:bool=False
 
+    @model_validator(mode='after')
+    def labels_valid(self):
+        if len(set(self.labels))!=len(self.labels) or any(not label or len(label)>80 for label in self.labels):raise ValueError('Unique explicit point labels required')
+        return self
+
 class Request(Settings):
     reference:Stream
     candidate:Stream
@@ -23,7 +28,6 @@ class Request(Settings):
         if (a.dimensions,a.units,a.coordinate_frame)!=(b.dimensions,b.units,b.coordinate_frame):
             raise ValueError('Compare only equal dimensions, units and coordinate frame')
         if a.clock.common_clock!=b.clock.common_clock:raise ValueError('Streams require the same declared common clock')
-        if len(set(self.labels))!=len(self.labels) or any(not label or len(label)>80 for label in self.labels):raise ValueError('Unique explicit point labels required')
         return self
 
 

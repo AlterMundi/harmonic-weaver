@@ -20,6 +20,13 @@ test('saved conversion selection preserves provenance',async({page})=>{
  await panel.getByLabel('Origen de comparación R09').selectOption('saved');await panel.getByRole('button',{name:'Actualizar conversiones para comparar R09'}).click();
  await panel.getByLabel('Referencia guardado R09').selectOption(ids[0]);await panel.getByLabel('Candidato guardado R09').selectOption(ids[1]);await panel.getByRole('button',{name:'Guardar comparación espacial R09'}).click();
  await expect(panel.getByText(/Error medio sobre soporte: 0;/)).toBeVisible();await expect(panel.getByText(/Conversiones comparadas:/)).toContainText(ids[0]);
+ await panel.getByRole('button',{name:'Guardar preset comparación R09'}).click();
+ await panel.getByLabel('Edad máxima de candidato R09').fill('1');await panel.getByLabel('Etiquetas de comparación R09').fill('["other"]');
+ await panel.getByRole('button',{name:'Aplicar preset comparación R09'}).click();
+ await expect(panel.getByLabel('Edad máxima de candidato R09')).toHaveValue('0.05');await expect(panel.getByLabel('Etiquetas de comparación R09')).toHaveValue('["joint-0"]');await expect(panel.getByLabel('Referencia guardado R09')).toHaveValue(ids[0]);
+ const download=page.waitForEvent('download');await panel.getByRole('link',{name:'Exportar preset comparación R09'}).click();const file=await download;expect(file.suggestedFilename()).toMatch(/^r09-comparison-/);
+ await panel.getByLabel('Importar preset comparación R09').setInputFiles((await file.path())!);await expect(panel.getByRole('button',{name:'Aplicar preset comparación R09'})).toHaveCount(2);
  const rows=await(await page.request.get(url+'/api/research/r09/comparisons')).json();const results=await Promise.all(rows.map(async(r:any)=>(await page.request.get(url+'/api/research/r09/comparisons/'+r.id+'/artifacts/result.json')).json()));
+ expect(rows).toHaveLength(2);
  const result=results.find((r:any)=>r.sources?.reference.id===ids[0]);expect(result.sources.candidate.id).toBe(ids[1]);expect(result.sources.reference.manifest_sha256).toMatch(/^[a-f0-9]{64}$/);
 });

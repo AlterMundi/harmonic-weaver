@@ -27,7 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection
 from .research.spatial_compare_run import Input as SpatialComparisonInput
-from .research.spatial_presets import SpatialViewPresets, Preset as SpatialViewPreset
+from .research.spatial_presets import SpatialViewPresets, Preset as SpatialViewPreset, SpatialComparisonPresets, ComparisonPreset
 from .research.spatial_service import SpatialService, SourceSaveRequest as SpatialSourceSaveRequest, SaveRequest as SpatialSaveRequest
 from .research.rope_compare_service import RopeCompareService
 from .research.rope_flow_paired_service import RopeFlowPairedService, Selection as RopeFlowPairedSelection
@@ -272,6 +272,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
     spatial_presets = SpatialViewPresets(data_dir)
+    spatial_comparison_presets = SpatialComparisonPresets(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -443,6 +444,16 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/comparisons/{ident}/artifacts/{name}')
     def spatial_comparison_artifact(ident:str,name:str):
         return FileResponse(spatial_comparisons.artifact(ident,name),filename=name)
+
+    @app.get('/api/research/r09/comparison-presets')
+    def spatial_comparison_preset_list():return spatial_comparison_presets.list()
+
+    @app.post('/api/research/r09/comparison-presets')
+    def spatial_comparison_preset_save(body:ComparisonPreset):return spatial_comparison_presets.save(body)
+
+    @app.get('/api/research/r09/comparison-presets/{ident}')
+    def spatial_comparison_preset_export(ident:str):
+        return JSONResponse(spatial_comparison_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="r09-comparison-{ident}.json"'})
 
     @app.get('/api/research/r09/view-presets')
     def spatial_preset_list():return spatial_presets.list()
