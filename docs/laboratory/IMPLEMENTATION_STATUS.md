@@ -869,3 +869,35 @@ Range44bytes RIFF con gain1, ensayo desconocido404. Fixtures PCM reales con pose
 sintética/video bytes b'a'; NO reproducción Chrome ni medición física. Pendientes
 player por condiciones/seek/pause/gaps/offset, eventos de exposición y aceptación.
 Sin medios privados/hardware/audio ni cambios de defaults del instrumento.
+
+
+## Corte 7 · Player web por condición
+
+Abrir protocolo congelado con fuentes habilita player por trial. Preparar revalida
+media-info y carga sólo medios habilitados, sin autoplay; video siempre muted
+(excluye sonido original de cámara). Botones reproducir/pausar y seek nominal en
+pausa acotan ventana, sin loop ni avance automático a siguiente ensayo. Clock de
+transporte usa performance.now; followers corrigen drift suavemente, no seeks en
+cada tick. Audio sólo reproduce dentro de support_elapsed; offset negativo espera
+inicio disponible, agotamiento cercano al soporte no reinicia audio. Buffering/error
+pausan y requieren reanudación explícita. Tiempo nominal no demuestra exposición.
+
+Cambiar trial/preparar/abrir otro protocolo/unmount detiene medios y descarta
+metadata obsoleta. Follower común acepta HTMLMediaElement y pausa un play pendiente
+al resolver después de dispose; no toca síntesis Shaper, ratios o fases del instrumento.
+Abrir otro protocolo limpia player anterior antes de esperar respuesta. Resultado
+histórico sigue identificado por integridad y fuente revalidada al preparar.
+
+Build pasó. Cuatro controles follower pasaron (0,9s); uno de decoder del instrumento
+original quedó skipped por falta de fixture específica, no se presenta como ejecutado.
+Nuevo Chrome contra API/R05/evaluación/H264 sintéticos pasó (4,4s, repetido tras
+limpieza de apertura): cuatro condiciones, sin autoplay, video avanza, seek pausado
+.7→video1.0, sound-only sin video, audiovisual, audio espera soporte por offset-.5,
+pausa y reload sin player activo. Audio silenciado por test, NO escucha humana,
+latencia física o aceptación. Primera corrida falló por formato .7 del slider en test;
+corregido a0.7 sin cambiar comportamiento. Servidores detenidos, medios privados
+intactos, sin dispositivo audio abierto por backend.
+
+Pendientes eventos persistentes de exposición observada (buffering/seeks/gaps/
+completitud), inyección Chrome de fallos/cargas tardías/agotamiento positivo,
+respuestas persistentes/análisis y pruebas humanas con niveles/sincronía medidos.

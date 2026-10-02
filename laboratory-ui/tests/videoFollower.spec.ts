@@ -102,3 +102,11 @@ test('asynchronous seek consumes its epoch before the server clock advances', ()
   expect(el.playbackRate).toBeGreaterThan(1);
   follower.dispose();
 });
+
+test('pending media play is paused when it resolves after disposal',async()=>{
+ const el=new EventTarget() as HTMLMediaElement;let finish!:()=>void;
+ Object.assign(el,{readyState:4,seeking:false,paused:true,currentTime:0,pause(){this.paused=true;},play(){return new Promise<void>(resolve=>{finish=()=>{this.paused=false;resolve();};});}});
+ const follower=new VideoFollower(el,()=>({position:0,playing:true,epoch:1}),()=>{});
+ follower.sync();follower.dispose();finish();await Promise.resolve();await Promise.resolve();await Promise.resolve();
+ expect(el.paused).toBe(true);
+});

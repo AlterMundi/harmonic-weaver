@@ -6,7 +6,7 @@ export class VideoFollower {
   private disposed = false;
   private epoch: number | null = null;
   private lastCorrection = -Infinity;
-  constructor(private el: HTMLVideoElement, private state: () => Playback,
+  constructor(private el: HTMLMediaElement, private state: () => Playback,
     private error: (message: string) => void,
     private now: () => number = () => performance.now()) {
     el.addEventListener("loadedmetadata", this.sync);
@@ -38,7 +38,7 @@ export class VideoFollower {
       void this.el.play().catch(e => {
         if (!this.disposed && e?.name !== "AbortError") this.error(String(e));
       }).finally(() => { this.pending = false;
-        if (!this.disposed && !this.state().playing) this.el.pause();
+        if (this.disposed || !this.state().playing) this.el.pause();
       });
     }
   };
