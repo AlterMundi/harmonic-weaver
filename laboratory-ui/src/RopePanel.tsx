@@ -5,6 +5,7 @@ export function RopePanel({api}:Data){
  const [assets,setAssets]=useState<Data[]>([]),[jobs,setJobs]=useState<Data[]>([]),[source,setSource]=useState(''),[text,setText]=useState(''),[parent,setParent]=useState(''),[error,setError]=useState(''),[actionBusy,setBusy]=useState(false);
  const [frameBusy,setFrameBusy]=useState(false);
  const busy=actionBusy||frameBusy;
+ const [reference,setReference]=useState(''),[candidate,setCandidate]=useState(''),[samples,setSamples]=useState(32),[comparison,setComparison]=useState<Data|null>(null);
  const [media,setMedia]=useState<Data|null>(null);
  const alive=useRef(true),readId=useRef('');
  const [read,setRead]=useState<Data|null>(null);
@@ -33,6 +34,7 @@ export function RopePanel({api}:Data){
  <label>Anotación R08 JSON<textarea rows={18} value={text} onChange={e=>setText(e.target.value)}/></label>
  <p>Revisión previa: {parent||'ninguna'}</p>
  <button disabled={busy||!source||!text} onClick={()=>void act(async()=>{const j=await api('research/r08',{media_id:source,annotation:JSON.parse(text),parent_id:parent||null});setParent(j.id);setJobs(await api('research/r08'));})}>Guardar revisión R08</button>
+ <h3>Comparar curvas R08</h3><label>Referencia R08<select value={reference} onChange={e=>setReference(e.target.value)}><option value="">Elegir revisión</option>{jobs.map(j=><option key={j.id}>{j.id}</option>)}</select></label><label>Candidata R08<select value={candidate} onChange={e=>setCandidate(e.target.value)}><option value="">Elegir revisión</option>{jobs.map(j=><option key={j.id}>{j.id}</option>)}</select></label><label>Muestras por tramo R08<input type="number" min={2} max={64} value={samples} onChange={e=>setSamples(Number(e.target.value))}/></label><button disabled={busy||!reference||!candidate} onClick={()=>void act(async()=>setComparison(await api('research/r08/compare',{reference_id:reference,candidate_id:candidate,samples_per_segment:samples})))}>Comparar revisiones R08</button>{comparison&&<><p>Soporte: {comparison.coverage.supported_frames}/{comparison.coverage.reference_frames} frames de referencia. Sin soporte: {comparison.coverage.unsupported_reference_frames}.</p><details><summary>Comparación R08 con anotaciones congeladas</summary><pre>{JSON.stringify(comparison,null,2)}</pre></details></>}
  {jobs.map(j=><div key={j.id}>{j.id}<button disabled={busy} onClick={()=>void act(async()=>{setText(JSON.stringify(await api(`research/r08/${j.id}/artifacts/annotation.json`),null,2));setParent(j.id);setMedia(null);})}>Abrir revisión R08</button><button disabled={busy||!source} onClick={()=>void act(async()=>{setMedia(await api(`research/r08/${j.id}/rebind`,{media_id:source}));})}>Verificar video R08</button>{['annotation.json','media.json','result.json','manifest.json'].map(n=><a key={n} href={`/api/research/r08/${j.id}/artifacts/${n}`} download>{n} </a>)}</div>)}
  </section>;
 }

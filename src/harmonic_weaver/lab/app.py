@@ -156,6 +156,12 @@ class RopeSave(Contract):
     parent_id: str | None = None
 
 
+class RopeCompare(Contract):
+    reference_id: str
+    candidate_id: str
+    samples_per_segment: int = Field(default=32,ge=2,le=64)
+
+
 class RopeRead(Contract):
     media_id: str
     frame_index: int | None = Field(default=None,ge=0)
@@ -300,6 +306,13 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r08')
     def rope_revisions():return rope.list()
+
+    @app.post('/api/research/r08/compare')
+    def rope_compare(body:RopeCompare):
+        from .research.rope_compare import compare
+        return compare({'reference':RopeAnnotation.model_validate_json(rope.artifact(body.reference_id,'annotation.json').read_text()),
+                        'candidate':RopeAnnotation.model_validate_json(rope.artifact(body.candidate_id,'annotation.json').read_text()),
+                        'samples_per_segment':body.samples_per_segment})
 
     @app.post('/api/research/r08/reads')
     def rope_read_start(body:RopeRead):

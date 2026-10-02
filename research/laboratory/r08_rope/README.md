@@ -275,3 +275,19 @@ verificó bloqueo, cancelación de proceso vivo, desbloqueo y reintento (1.2 s,
 suite 2 s); build pasó, servidor detenido. No hay cola de trabajos ni cambio
 instantáneo con lectura activa: requiere cancelar primero. No altera audio.
 Pendientes extracción asistida/benchmark anotado y mejora de acceso inicial.
+
+### Corte 22: comparador inicial de curvas declaradas
+
+API `/r08/compare` selecciona referencia/candidata por revisiones verificadas;
+UI elige ambas y 2–64 muestras por tramo. Fuente/dimensiones deben coincidir,
+igual índice requiere igual PTS. Inventario de referencia define filas;
+candidata ausente/ilegible conserva fila sin score, nunca error cero. Reporta
+cobertura y distancias simétrica media/Hausdorff **muestreadas**, en píxeles.
+Cada tramo se remuestrea por longitud de arco sin unir oclusiones. Presupuesto
+total 16 millones de distancias y bloques de 128 puntos limitan trabajo/memoria.
+Resultado contiene ambas anotaciones y parámetros congelados para reproducir;
+no hay ranking agregado ni comparación física automática. Curvas parciales
+pueden tener distinto soporte visible y requieren interpretación explícita.
+Tres tests numéricos/API y build pasaron; test adicional de presupuesto pasó.
+Pendiente recorrido Chrome y persistir corrida/manifest; resultado actual
+se muestra en web y se pierde al recargar, revisiones sí se conservan.
