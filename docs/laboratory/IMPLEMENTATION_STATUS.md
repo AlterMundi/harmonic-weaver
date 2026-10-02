@@ -946,3 +946,20 @@ Cinco pruebas de transporte y runner pasaron (0,34 s), incluyendo reapertura del
 servicio, rechazo de hash/trial/duración/gates contradictorios y artefacto alterado.
 Pendientes persistencia con recibos, API, captura de eventos en player y exportación
 web. Defaults y experiencia sonora intactos.
+
+
+## Corte 11 · Registros de transporte persistentes
+
+TransportService guarda trace/binding/manifest locales inmutables en r10-transports,
+con ID derivado de contenido, hashes e implementación. Reintentos idénticos después
+de restart recuperan el mismo registro sin exigir medios/protocolo originales;
+registros nuevos exigen bind_protocol verificado. Lectura valida hashes, identidad
+de contenido y trial/gates/duración; resumen se recalcula sólo con código coincidente,
+histórico se marca integridad solamente. Exporta tres artefactos; listado omite
+registros incompletos/alterados. Publicación incompleta no se relanza silenciosamente.
+
+Cuatro pruebas pasaron (0,32 s inicial; repetidas tras verificación de identidad):
+retry/restart, exportación, lectura sin protocolo original, registro nuevo rechazado
+sin protocolo, corrupción omitida y traversal rechazado, junto a contrato/binding.
+Pendientes API/UI/captura de eventos; sin cambios de sonido/defaults. Hashes no
+son custodia firmada; snapshots declarados no prueban exposición humana.
