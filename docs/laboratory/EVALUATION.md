@@ -243,3 +243,28 @@ worker, evitando diferencias accidentales int/float (0 frente a 0.0). Para
 históricos, el manifest debe verificar su propio digest y tener el mismo
 contenido del request; equivalencia numérica int/float no acepta bool/número,
 valores distintos, campos agregados ni presets alterados.
+
+
+## Alternar presets sin volver al comienzo
+
+Abrir Ver video, sonido y figura en una corrida con PCM. Si la comparación incluye
+varios presets para ese mismo segmento, el selector **Preset del mismo segmento**
+permite cambiarlos manteniendo el instante y si estaba en pausa o reproduciendo.
+Carga WAV y estado de osciladores antes de reanudar; el video permanece ligado al
+mismo segmento/persona. Las otras fuentes/segmentos no se mezclan en ese selector.
+**Pausar comparación** detiene ambos medios y cancela una reanudación pendiente
+si se pulsa durante la carga. Cerrar detiene la reproducción.
+
+Esto permite contrastar un gesto específico sin reiniciar cada preset. Conserva
+niveles y artefactos originales: no ajusta loudness, no hace crossfade y el cambio
+puede tener una interrupción audible. No modifica el instrumento live ni sus
+fases. Probar a1×, ajuste visual0 y nivel explícito; velocidades/offsets siguen
+siendo controles de escucha, no cambios al experimento congelado.
+
+Validado automáticamente con tres renders del minuto corporal local existente y
+medios/API reales; reproducción Chrome muted y posición preservada a15s. Aceptación
+auditiva/sincronización física pendientes. Datos/resultados privados permanecen
+locales. La prueba reproducible de software es comparisonRealNetwork.spec.ts y
+requiere LAB_AB_API_URL, LAB_AB_JOB (corrida completa ≥2 presets del mismo segmento)
+y LAB_COMPONENT_TEST_URL con proxy /api hacia esa API aislada; no apunta por
+defecto a sesiones compartidas ni inicia hardware.

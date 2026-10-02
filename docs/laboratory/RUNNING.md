@@ -470,3 +470,27 @@ cuerpo o calibración. Exportar resultado conserva config, componentes originale
 soporte y métricas. Descarga local solamente; manifest/verificador de servidor
 pendiente. Importación config ≤1MiB, máximo20000 muestras por corrida; no ventana
 continua ni adquisición física. Config inválida se rechaza al calcular.
+
+
+### Comparar el mismo gesto con distintas configuraciones
+
+En Comparar, seleccionar ≥2 presets guardados y un mismo segmento/persona, activar
+Generar WAV y estado de osciladores y correr Comparar presets. Al terminar, Ver
+comparación → Ver video, sonido y figura. Mover el WAV al gesto que interesa y
+alternar **Preset del mismo segmento**: mantiene instante y pausa/reproducción.
+**Pausar comparación** también funciona mientras carga otra versión. No cambia
+los presets live ni el tracking; el cambio de archivo no es un crossfade.
+
+En Legion hay una comparación local de60s y tres variantes para probar este
+recorrido. Su ID y variantes están en
+~/.local/share/harmonic-weaver/laboratory-dev/ab-playback-validation.json;
+abrir la comparación con ese directorio. Sólo es evidencia de software, no
+aceptación auditiva. Arrancar el desarrollo como se documenta arriba:
+
+```sh
+cd ~/Projects/harmonic-weaver-dev
+./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+Web de desarrollo http://127.0.0.1:8875; instalación cotidiana harmonic-weaver-lab
+permanece separada y no contiene automáticamente esta rama.

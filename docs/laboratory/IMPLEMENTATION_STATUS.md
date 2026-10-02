@@ -1411,3 +1411,39 @@ tabla anterior. Servidor de prueba detenido. Datos sintéticos, sin escucha huma
 Pendientes manifests/verificación de corridas SNR, controles adicionales, datos
 reales/adaptador, inventario hardware, protocolo/estimador sobre señal física y sync.
 Roadmap R01–R13 abierto; sin resultados sobre estados mentales o fisiología.
+
+
+## Alternancia de presets sobre el mismo instante (2026-10-02)
+
+ComparisonPlayer permite elegir entre todos los presets con PCM del mismo
+source_index (segmento/persona/crop congelados), conservando posición del WAV y
+pausa/reproducción. No incluye otros segmentos aunque provengan del mismo video.
+Al cambiar, pausa ambos medios y espera metadata del WAV + sus voice-frames antes
+de restaurar el instante y reanudar si estaba reproduciendo. Carga tardía de una
+selección anterior se descarta; cambios rápidos mantienen intención/posición
+pendientes. Pausar comparación cancela reanudación pendiente, incluso durante
+carga. Error de carga deja medios pausados y diagnóstico visible.
+
+La figura suma todas las voces guardadas para el preset elegido; no vuelve a
+analizar movimiento ni altera presets/calibración/audio live. Nivel/afinación/fase
+provienen del render congelado. No normaliza loudness ni agrega crossfade: cambio
+de archivo puede tener interrupción/transiente audible. No confundir alternancia
+browser con reproducción física continua o prueba de superioridad de un preset.
+
+Evidencia: build TypeScript/Vite; cuatro pruebas Playwright pasaron (5,2 s): reloj
+recortado/todas las voces, controls/render, switching con pause/resume y carga
+obsoleta, más recorrido de red real. Para esta última se renderizaron localmente
+3 presets × minuto corporal real existente: referencia sostenida, contraste×10 y
+contraste×10 con transient_mix0.5. Cada render tiene3600ticks/2880000samples@48kHz,
+manifest y artefactos congelados; tracking reutilizado sin copiar video ni cambiar
+presets guardados. Slot seleccionado conserva procedencia previa de posición a la
+derecha, no identidad biométrica. Chrome usa API real, video/WAV/voice-frames
+locales, cambia las tres variantes en pausa a15s y reanuda otra conservando tiempo;
+figura WebGL activa. Audio muted: no escucha/aceptación humana ni sincronía física.
+Datos/IDs/resultados corporales quedan locales; no se publican como fixtures.
+
+El recorrido de prueba inicialmente falló con relay Playwright de grandes cuerpos;
+se verificó usando proxy HTTP local Vite→API y medios originales sin ese relay.
+No se cambió el media/render ni se relajaron los checks de posición/pausa/reanudar.
+Estos resultados no acreditan rendimiento para cualquier duración/dispositivo.
+Carga completa de voice-frames y cambio sin crossfade siguen límites de esta entrega.

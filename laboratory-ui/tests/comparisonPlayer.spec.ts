@@ -111,7 +111,12 @@ test("audio clock keeps synthetic video and six-voice figure together across pla
     const root=ReactDOM.createRoot(document.getElementById('test-root'));
     const report={job_id:'mock',manifest:{request:{sources:[{start_s:.5,end_s:2.5}],
       presets:[{name:'Six voices',fundamental_hz:40.4,visual:{persistence:0,scale:1,auto_scale:true,
-        color:'ice',brightness:1,samples:512,window_periods:2,line_width:2,components:true}}]}}};
+        color:'ice',brightness:1,samples:512,window_periods:2,line_width:2,components:true}},
+        {name:'Contrast alternative',fundamental_hz:40.4,visual:{persistence:0,scale:1,auto_scale:true,
+        color:'ice',brightness:1,samples:512,window_periods:2,line_width:2,components:true}}]},
+        runs:[{source_index:0,preset_index:0,pcm:{file:'signal.wav',voice_frames:'signal.jsonl',segment_source_start_s:.5}},
+        {source_index:0,preset_index:1,pcm:{file:'alternative.wav',voice_frames:'alternative.jsonl',segment_source_start_s:.5}},
+        {source_index:1,preset_index:0,pcm:{file:'other-source.wav',voice_frames:'other-source.jsonl',segment_source_start_s:0}}]}};
     window.mountPlayer=()=>root.render(React.createElement(ComparisonPlayer,{report,run:{source_index:0,preset_index:0,
       pcm:{file:'signal.wav',voice_frames:'signal.jsonl',segment_source_start_s:.5}},onClose:()=>root.render(null)}));
     window.mountPlayer();
@@ -160,6 +165,70 @@ test("audio clock keeps synthetic video and six-voice figure together across pla
       return pixels.some((n, i) => i % 4 === 2 && n > 80);
     }),
   ).toBe(true);
+  const selector = page.getByLabel("Preset del mismo segmento");
+  await expect(selector.locator("option")).toHaveCount(2);
+  await selector.selectOption("alternative.wav");
+  await expect(page.locator("audio")).toHaveAttribute(
+    "src",
+    "/api/evaluations/mock/artifacts/alternative.wav",
+  );
+  await expect(page.locator("audio")).toHaveAttribute("controls", "");
+  await expect
+    .poll(() => page.locator("audio").evaluate((a) => a.currentTime))
+    .toBeCloseTo(0.8, 1);
+  expect(await page.locator("audio").evaluate((a) => a.paused)).toBe(true);
+  await expect
+    .poll(() => page.locator("video").evaluate((v) => v.currentTime))
+    .toBeCloseTo(1.3, 1);
+  await page.getByLabel("Velocidad de reproducción").selectOption("0.25");
+  await page.locator("audio").evaluate(async (a) => {
+    a.muted = true;
+    await a.play();
+  });
+  const beforeSwitch = await page
+    .locator("audio")
+    .evaluate((a) => a.currentTime);
+  await selector.selectOption("signal.wav");
+  await expect
+    .poll(() => page.locator("audio").evaluate((a) => a.paused))
+    .toBe(false);
+  const afterSwitch = await page
+    .locator("audio")
+    .evaluate((a) => a.currentTime);
+  expect(afterSwitch).toBeGreaterThanOrEqual(beforeSwitch - 0.05);
+  expect(afterSwitch).toBeLessThan(beforeSwitch + 0.5);
+  await page.locator("audio").evaluate((a) => a.pause());
+  let release: () => void = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(
+    "**/api/evaluations/mock/artifacts/alternative.jsonl",
+    async (route) => {
+      await held;
+      try {
+        await route.fulfill({
+          contentType: "application/x-ndjson",
+          body: blocks.map((x) => JSON.stringify(x)).join("\n"),
+        });
+      } catch {}
+    },
+  );
+  await page.locator("audio").evaluate(async (a) => {
+    a.muted = true;
+    await a.play();
+  });
+  await selector.selectOption("alternative.wav");
+  await expect(page.getByRole("status")).toBeVisible();
+  await page.getByRole("button", { name: "Pausar comparación" }).click();
+  await selector.selectOption("signal.wav");
+  release();
+  await expect(page.getByRole("status")).toHaveCount(0);
+  await expect(page.locator("audio")).toHaveAttribute(
+    "src",
+    "/api/evaluations/mock/artifacts/signal.wav",
+  );
+  expect(await page.locator("audio").evaluate((a) => a.paused)).toBe(true);
   await page.getByRole("button", { name: "Cerrar reproducción" }).click();
   expect(await page.evaluate(() => (window as any).playerAudio.paused)).toBe(
     true,
