@@ -306,3 +306,9 @@ hash/dimensiones/índice/PTS y ready. Chrome verificó desaparición por reset,
 regreso al cuadro seed y borrador intacto (1 prueba, 2.9 s); build pasó.
 README corte 46. Pendientes recálculo UI, presets nombrados, cancelación web/
 fallos de red, rendimiento y benchmark humano; no validación física de soga.
+
+R08 recuperación de consulta: tras pérdida de GET, UI conserva ID, bloquea otro
+inicio y retoma mismo job; Chrome verificó un único POST y resultado/borrador
+intacto (1 prueba, 2.8 s), build pasó. README corte 47. Pendiente respuesta
+perdida del POST inicial sin ID (idempotencia), cancelación web viva y otros
+casos de red, además de presets/benchmark/recálculo y rendimiento.

@@ -650,3 +650,24 @@ sintético con decoder/flow real, servidor propio detenido. No benchmark humano
 ni identificación de soga/material. Pendientes presets nombrados/export,
 recálculo UI, cancelación/fallos de red, decoder secuencial y comparación sobre
 anotaciones humanas en soporte común; no cierre científico de R08.
+
+### Corte 47: retomar consulta tras interrupción de red
+
+Panel conserva ID conocido del job si falla polling o lectura de resultado/
+inventario. Estado `connection_lost` no equivale a fracaso de cálculo ni
+terminación del worker. Otro inicio permanece bloqueado; botón Retomar consulta
+consulta ese mismo ID y recupera resultado cuando completa. Cancelar permanece
+disponible y, sin observador activo, retoma consulta del estado devuelto. Un solo
+observador por panel evita polling duplicado; desmontaje conserva cancelación.
+
+Chrome real abortó deliberadamente un GET de estado de job ya iniciado y
+verificó ID preservado, otro inicio deshabilitado, cancelación disponible,
+retomar mismo ID hasta complete y exactamente un POST de inicio. Conserva
+overlay/reset, borrador intacto y reload/config del recorrido anterior. Una
+prueba pasó (1.9 s; suite 2.8 s); build pasó, servidor detenido.
+
+Pendiente explícito: respuesta perdida del **POST inicial** antes de conocer
+ID; requiere clave idempotente/recuperación de inicio, no resuelta por este
+cambio. Cancelación web de worker vivo y pérdidas de artefacto/inventario aún
+requieren casos propios. Presets nombrados, recálculo UI, decoder secuencial
+y benchmark humano continúan pendientes; audio/defaults intactos.

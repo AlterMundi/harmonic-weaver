@@ -6,8 +6,21 @@ test('temporal flow config and recovery preserve manual annotations',async({page
  await prepare();const draft=page.getByLabel('Anotación R08 JSON'),before=await draft.inputValue();
  await page.getByLabel('Configuración temporal portable R08').fill(JSON.stringify({frames:3,settings:{max_gap_s:.05}}));
  await page.getByLabel('Seeds temporales R08').fill('[{"x":0.5,"y":0.5}]');
+ let starts=0,interrupted=false;
+ page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/api/research/r08/flow'))starts++;});
+ await page.route(/\/api\/research\/r08\/flow\/[a-f0-9]{32}$/,route=>{
+  if(route.request().method()==='GET'&&!interrupted){interrupted=true;return route.abort();}
+  return route.continue();
+ });
  await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
- await expect(page.getByText('Corrida temporal R08: complete',{exact:true})).toBeVisible();
+ await expect(page.getByText(/Corrida temporal R08: connection_lost/)).toBeVisible();
+ const lost=await page.getByText(/Corrida temporal R08: connection_lost/).textContent();
+ const id=lost!.match(/[a-f0-9]{32}/)![0];
+ await expect(page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Cancelar corrida temporal R08',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Retomar consulta temporal R08',exact:true}).click();
+ await expect(page.getByText(new RegExp(`Corrida temporal R08: complete.*${id}`))).toBeVisible();
+ expect(starts).toBe(1);
  await expect(page.locator('svg[aria-label="Candidatos temporales R08"] circle')).toHaveCount(1);
  await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(1);
  await expect(page.getByTestId('rope-flow-overlay').locator('circle')).toHaveAttribute('cx','0.5');
