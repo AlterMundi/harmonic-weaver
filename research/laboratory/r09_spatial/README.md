@@ -219,3 +219,12 @@ frames 0/.2 oculta puntos, play avanza hasta .2 y se detiene; recorrido previo d
 missing, recuperación de guardado y procedencia intacto. Loop/velocidad están
 implementados, validación específica aún pendiente, igual presets de vista.
 Servidor aislado detenido; no aceptación física ni audio modificado.
+
+## Corte 17 · Reloj controlado para playback
+
+Chrome real con page.clock y API real pasó (1,6 s): velocidad x2 avanza dentro
+rango esperado, pausa mantiene tiempo tras avance del reloj, seek .9 + loop vuelve
+al inicio sin detenerse, sin loop termina exactamente en 1 s. Fixture 3D monocular
+sintético declarado, sin video/audio asociado. Servidor aislado detenido.
+Evidencia del inspector, no sincronización audiovisual ni reconstrucción física.
+Presets de vista siguen pendientes; no defaults de síntesis cambiados.

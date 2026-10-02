@@ -498,3 +498,7 @@ pasaron. Presets/reproducción y validación de reconstrucción física pendient
 R09 corte 16: reproducción por timestamps con pausa/seek/loop/velocidad y gap máximo
 visible configurable; sin interpolación/autoplay. Build y Chrome de gap/play/final
 pasaron. Loop/velocidad específicos y presets pendientes; no sync audiovisual.
+
+R09 corte 17: Chrome con reloj controlado verificó velocidad x2, pausa, seek/loop y
+parada exacta del inspector (1,6 s). No evidencia de sync audiovisual/reconstrucción;
+presets pendientes.
