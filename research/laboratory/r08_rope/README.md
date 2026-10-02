@@ -227,3 +227,13 @@ corporal largo ni cancelación bajo I/O físico bloqueado. El primer intento
 falló porque el mount estático ocultaba la ruta de prueba; corregido sólo
 en fixture, sin cambios de rutas productivas. Pendientes frame cancel y
 concurrencia de fuentes; fuente privada/aceptación humana siguen aparte.
+
+### Corte 18: cancelación web de imagen y reintento
+
+Fixture `--slow-frame-first` permite comprobar un proceso real vivo antes
+del botón cancelar imagen. Chrome verificó estado cancelled, PID terminado,
+borrador byte por byte intacto, aplicar bloqueado y reintento con PNG real
+que habilita aplicar sin crear revisiones. Pasó 1.2 s (suite 1.9 s), servidor
+propio detenido. Misma limitación del corte 17: proceso lento sintético por
+capturador real, no una medición de video corporal/disco bloqueado. Pendiente
+concurrencia al cambiar fuente/repreparar y medición privada de rendimiento.
