@@ -417,3 +417,16 @@ calcular. Tres tests núcleo/API pasaron: línea conocida, ruptura, budgets,
 determinismo y binding frame/PTS. No implica centerline real ni seguimiento;
 un blob ancho/cruce puede producir camino arbitrario. Pendientes controles
 web, persistencia/protocolo y benchmark humano; nada se acepta en borrador.
+
+### Corte 33: curva guiada configurable y uso explícito en web
+
+Editor controla componente/seeds/budgets vía JSON; botón explícito copia
+extremos a/b como seeds. Cada propuesta guardada puede producir curva tras
+reverify. Overlay magenta y parámetros efectivos, sin cambiar borrador;
+`Usar curva candidata como tramo` modifica editor, luego `Aplicar frame`
+actualiza borrador y guardar crea revisión. Seeds inválidos bloquean uso.
+Chrome real verificó fuera de región, camino de 49 puntos y estos tres pasos
+sin aceptación silenciosa (1.3 s; suite 2.2 s). Build pasó, servidor detenido.
+Test automático no es aceptación humana de soga. Pendientes persistir
+procedencia específica de curva asistida, tracker temporal/benchmark humano
+y protocolos de incertidumbre/propagación; shortest path no prueba centerline.

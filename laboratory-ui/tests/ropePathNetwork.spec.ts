@@ -1,0 +1,27 @@
+import {test,expect} from '@playwright/test';
+test('R08 guided candidate requires explicit incorporation and frame application',async({page})=>{
+ test.skip(!process.env.LAB_R08_PATH_URL,'isolated HTTP fixture required');
+ const origin=process.env.LAB_R08_PATH_URL!;
+ const m=await(await page.request.post(`${origin}/api/research/r08/probe`,{data:{media_id:'synthetic'}})).json();
+ await page.request.post(`${origin}/api/research/r08/masks`,{data:{media_id:'synthetic',request:{media_sha256:m.media_sha256,width_px:m.width_px,height_px:m.height_px,frame_index:0,time_s:0,settings:{distance_rgb:442,min_component_px:1,roi:[0,0,.5,1]}}}});
+ await page.goto(origin);
+ await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
+ await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
+ await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
+ const draft=page.getByLabel('Anotación R08 JSON');const before=await draft.inputValue();
+ await page.getByRole('button',{name:'Proponer curva guiada R08',exact:true}).click();
+ await expect(page.getByText(/Curva candidata R08: seed_outside_selected_component/)).toBeVisible();
+ await expect(page.getByRole('button',{name:'Usar curva candidata como tramo R08',exact:true})).toBeDisabled();
+ await page.getByLabel('Configuración de curva guiada R08').fill(JSON.stringify({component_id:1,start:{x:.1,y:.5},stop:{x:.4,y:.5},max_visited:100000,max_points:4096}));
+ await page.getByRole('button',{name:'Proponer curva guiada R08',exact:true}).click();
+ await expect(page.getByTestId('rope-candidate-path')).toHaveCount(1);
+ await expect(draft).toHaveValue(before);
+ await page.getByRole('button',{name:'Usar curva candidata como tramo R08',exact:true}).click();
+ await expect(page.getByTestId('rope-candidate-path')).toHaveCount(0);
+ await expect(draft).toHaveValue(before);
+ await page.getByRole('button',{name:'Aplicar frame al borrador',exact:true}).click();
+ const annotation=JSON.parse(await draft.inputValue());expect(annotation.frames).toHaveLength(1);
+ expect(annotation.frames[0].visible_segments[0]).toHaveLength(49);
+ await page.getByRole('button',{name:'Guardar revisión R08',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Abrir revisión R08',exact:true})).toHaveCount(1);
+});
