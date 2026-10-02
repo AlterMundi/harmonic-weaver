@@ -30,3 +30,11 @@ test('metadata resolved after player unmount cannot revive media',async({page})=
  await page.route('**/trials/*/media-info',async route=>{const result=await route.fetch();captured();await gate;await route.fulfill({response:result});});
  const panel=page.getByRole('region',{name:'Player de ensayo R10',exact:true});await panel.getByRole('button',{name:'Preparar reproducción R10'}).click();await seen;await page.getByLabel('Protocolo JSON R10').fill('{}');await expect(panel).toHaveCount(0);release();await page.waitForTimeout(100);await expect(page.locator('video')).toHaveCount(0);await expect(page.locator('audio')).toHaveCount(0);
 });
+
+test('invalid transport pending can be exported unchanged and explicitly discarded',async({page})=>{
+ test.skip(!process.env.LAB_R10_PLAYER_URL,'fixture required');const url=process.env.LAB_R10_PLAYER_URL!;
+ await page.goto(url);await page.evaluate(()=>sessionStorage.setItem('weaver.r10.transport.pending.v1','{broken-json'));await page.reload();
+ const panel=page.getByRole('region',{name:'Registros de transporte R10',exact:true});await expect(panel.getByRole('alert')).toBeVisible();await expect(panel.getByRole('button',{name:'Recuperar envío de transporte R10'})).toHaveCount(0);
+ const downloaded=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar envío pendiente R10'}).click();const download=await downloaded;const stream=await download.createReadStream();let contents='';for await(const chunk of stream!)contents+=chunk.toString();expect(contents).toBe('{broken-json');
+ await panel.getByRole('button',{name:'Descartar envío pendiente R10'}).click();await expect(panel.getByRole('button',{name:'Exportar envío pendiente R10'})).toHaveCount(0);expect(await page.evaluate(()=>sessionStorage.getItem('weaver.r10.transport.pending.v1'))).toBeNull();await page.reload();await expect(panel.getByRole('alert')).toHaveCount(0);
+});

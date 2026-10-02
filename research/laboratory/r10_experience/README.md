@@ -312,3 +312,16 @@ diagnóstico), conservar cierres/unmount posteriores al snapshot, respuestas
 persistentes/análisis y ensayo humano. sessionStorage no garantiza recuperación
 al cerrar pestaña ni si almacenamiento falla; fallo visible evita enviar sin copia.
 No cambios del instrumento/sonido/defaults ni medios privados.
+
+
+## Corte 15 · Pendientes inválidos recuperables
+
+Panel permite exportar bytes originales del envío pendiente, incluso JSON inválido,
+y descartar explícitamente sólo la copia de esa pestaña. No elimina registro ya
+aceptado por servidor. Pendiente rechazado sigue disponible para diagnóstico/retry;
+no queda bloqueo sin salida. Sin autoenvío ni autodiscard.
+
+Build y cuatro Chrome pasaron (8,3 s): exportación exacta '{broken-json', ausencia
+de retry inválido, descarte explícito y reload sin pendiente, más suite del player y
+recovery aceptado-respuesta perdida. Medios sintéticos/audio silenciado, sin escucha
+humana. Pendientes conservación de cierre y respuestas/análisis; defaults intactos.
