@@ -97,3 +97,21 @@ Backend y compilación comprobados, interacción en navegador pendiente.
 Extracción/probe siguen síncronos y bounded por timeout, con lectura
 completa por solicitud: falta worker observable/cache de imágenes para
 interacción eficiente. No afirmar que está listo para clips largos.
+
+### Corte 8: navegador con API real
+
+Harness aislado `tests/r08_http_fixture.py` crea únicamente un MP4 sintético
+y una VideoLibrary persistida sin trabajos de pose ni dispositivos de audio.
+El test Chrome `laboratory-ui/tests/ropeNetwork.spec.ts` verificó clicks y
+coordenadas sobre PNG real, dos frames con tiempos reales, estado ilegible
+por oclusión sin curva inventada, guardado, recarga de página, recuperación,
+rebind al video y revisión derivada con linaje. Pasó en 1.9 s (suite 2.6 s).
+El primer intento falló por leer el textarea antes de la respuesta HTTP;
+se corrigió la espera de la prueba. Esto no equivale a aceptación humana ni
+a validación de tracking automático de soga. Servidor de prueba detenido.
+
+Ejemplo de ejecución (directorios temporales nuevos para cada corrida):
+compilar `tests/r08_harness` con Vite; iniciar fixture con `--root`, `--ui`
+y `--port`; ejecutar Playwright con `PLAYWRIGHT_CHANNEL=chrome` y
+`LAB_R08_NETWORK_URL=http://127.0.0.1:<port>`. El test requiere inventario
+vacío inicial; nunca apuntarlo al laboratorio cotidiano con datos propios.
