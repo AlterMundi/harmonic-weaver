@@ -486,3 +486,7 @@ Idempotencia/presets y validación física siguen pendientes.
 R09 corte 13: servicio/API con recibos idempotentes de ambos guardados; recuperación
 sin generación activa y rechazo de request distinto/fallo sin relanzar. Cinco tests
 pasaron. Uso de claves/recuperación en UI y Chrome pendientes; sin GC/multiproceso.
+
+R09 corte 14: ambos guardados web recuperables con claves/pendientes en sessionStorage.
+Build y dos recorridos Chrome con POST aceptado/respuesta perdida/reload pasaron,
+una corrida/cuerpo-clave idénticos. Cuota/cierre de pestaña y coordinación limitados.

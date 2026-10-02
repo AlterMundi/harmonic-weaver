@@ -178,3 +178,17 @@ Cinco tests servicio/HTTP pasaron (0,99 s): declarado recuperado tras reinicio,
 request incompatible, fallo sin relanzar y fuente recuperada tras eliminar job.
 Pendiente envío/recuperación de claves desde web y Chrome de respuesta perdida;
 las claves opcionales no corrigen aún reintentos de botones web actuales.
+
+## Corte 14 · Recuperación de guardado en web
+
+Ambos botones envían clave de intento y conservan route/body en sessionStorage
+antes del POST. Respuesta perdida conserva pendiente y bloquea otro guardado;
+reload ofrece recuperación explícita, nunca autoinicio. 4xx libera pendiente.
+Si storage falla, no envía POST; JSON grandes pueden exceder cuota del navegador.
+Cierre de pestaña no garantiza retención; sin coordinación multipestaña/GC.
+
+Build pasó; Chrome real en fixtures independientes verificó guardado declarado
+(1,8 s) y source (2,0 s), abortando respuesta después de aceptación en servidor,
+reload y reenvío con cuerpo/clave idénticos, una corrida y reapertura. Conserva
+cobertura/procedencia/exportación y ausencia de nueva inferencia. Servidores
+aislados detenidos. Tracking sintético, no aceptación/calibración física.

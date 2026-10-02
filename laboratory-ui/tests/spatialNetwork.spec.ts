@@ -11,7 +11,11 @@ test('spatial import clock configuration conversion and export',async({page})=>{
  const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar resultado R09'}).click();expect((await download).suggestedFilename()).toBe('r09-spatial-result.json');
  await panel.getByText('Resultado espacial R09',{exact:true}).click();
  const raw=await panel.locator('pre').textContent();const result=JSON.parse(raw!);expect(result.common_times_s).toEqual([.2]);
+ let firstSave=true;const saveBodies:any[]=[];
+ await page.route('**/api/research/r09/conversions',async r=>{if(r.request().method()!=='POST'){await r.continue();return;}saveBodies.push(r.request().postDataJSON());if(firstSave){firstSave=false;await r.fetch();await r.abort('failed');}else await r.continue();});
  await panel.getByRole('button',{name:'Guardar conversión declarada R09'}).click();
+ await expect(panel.getByRole('button',{name:'Recuperar guardado R09'})).toBeVisible();await page.reload();await panel.getByRole('button',{name:'Recuperar guardado R09'}).click();expect(saveBodies).toHaveLength(2);expect(saveBodies[1]).toEqual(saveBodies[0]);
+
  await expect(panel.getByRole('button',{name:'Abrir conversión R09'})).toBeVisible();
  const saved=await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions`)).json();expect(saved).toHaveLength(1);
  const before=await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).body();

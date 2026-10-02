@@ -10,7 +10,11 @@ test('explicit completed generation and inclusive segment',async({page})=>{
  await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 33/)).toBeVisible();
  await panel.getByText('Resultado espacial R09',{exact:true}).click();const result=JSON.parse((await panel.locator('pre').textContent())!);
  expect(result.stream.frames.map((f:any)=>f.index)).toEqual([0,2]);expect(result.tracking_provenance.generation).toBe('fixture-generation');expect(result.tracking_provenance).not.toHaveProperty('path');
+ let firstSave=true;const saveBodies:any[]=[];
+ await page.route('**/api/research/r09/source-conversions',async r=>{if(r.request().method()!=='POST'){await r.continue();return;}saveBodies.push(r.request().postDataJSON());if(firstSave){firstSave=false;await r.fetch();await r.abort('failed');}else await r.continue();});
  await panel.getByRole('button',{name:'Guardar desde generación R09'}).click();
+ await expect(panel.getByRole('button',{name:'Recuperar guardado R09'})).toBeVisible();await page.reload();await panel.getByRole('button',{name:'Recuperar guardado R09'}).click();expect(saveBodies).toHaveLength(2);expect(saveBodies[1]).toEqual(saveBodies[0]);
+
  await expect(panel.getByRole('button',{name:'Abrir conversión R09'})).toBeVisible();
  const saved=await(await page.request.get(`${process.env.LAB_R09_SOURCE_URL}/api/research/r09/conversions`)).json();expect(saved).toHaveLength(1);
  const frozen=await(await page.request.get(`${process.env.LAB_R09_SOURCE_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).json();
