@@ -458,3 +458,7 @@ pasaron; source HTTP/UI y verificación de disco pendientes. Procedencia in-memo
 R09 corte 6: inventario HTTP de generaciones completas y controles web para fuente,
 rango/slot/reloj. Siete tests hasta source HTTP y build pasaron. Recorrido Chrome
 biblioteca pendiente; no verificación de bytes del cache/video actual.
+
+R09 corte 7: Chrome real de fuente de biblioteca pasó contra generación sintética:
+slot explícito, rango inclusivo, procedencia, missing y rechazo inválido, sin iniciar
+tracking. No prueba tracking real/calidad corporal; persistencia/presets pendientes.

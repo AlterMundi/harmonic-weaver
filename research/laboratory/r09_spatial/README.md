@@ -95,3 +95,13 @@ slot ausente→34 missing, job inexistente→404, tracking incompleto fuera de i
 y solicitud rechazada. Build pasó; este recorrido de biblioteca en Chrome está
 pendiente (importación JSON del corte 4 sí verificada). Datos in-memory no acreditan
 integridad actual de cache/video. No inicia tracking ni abre medios por esta ruta.
+
+## Corte 7 · Recorrido de biblioteca en Chrome
+
+Fixture opcional `--spatial-generation` inyecta una generación sintética explícita
+(no backend de pose real) sin dispositivos. Chrome real contra API pasó (1,5 s):
+inventario, elección de fuente/slot obligatoria, rango inclusivo [0,.2] con índices
+0/2, generación ligada y sin paths, cobertura 1 observed/33 missing, slot ausente
+34 missing, rango fuera de duración rechazado y cero POST a inicio de tracking.
+Servidor aislado detenido. Confirma funcionamiento UI/HTTP, no integridad de cache
+real, precisión corporal ni calibración. Persistencia/presets siguen pendientes.

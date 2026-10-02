@@ -13,12 +13,23 @@ parser.add_argument('--slow-probe-first',action='store_true')
 parser.add_argument('--slow-frame-first',action='store_true')
 parser.add_argument('--historical-artifacts',action='store_true')
 parser.add_argument('--slow-flow-first',action='store_true')
+parser.add_argument('--spatial-generation',action='store_true')
 args=parser.parse_args();args.root.mkdir(parents=True,exist_ok=False)
 video=args.root/'synthetic.mp4'
 subprocess.run(['ffmpeg','-v','error','-f','lavfi','-i','testsrc2=size=160x120:rate=10:duration=0.5','-c:v','libx264',str(video)],check=True)
 library=VideoLibrary(args.root/'library')
 library.index.write_text(json.dumps({'synthetic':{'id':'synthetic','name':'synthetic.mp4','path':str(video)}}))
 library=VideoLibrary(args.root/'library')
+if args.spatial_generation:
+    from harmonic_weaver.lab.media import VideoJob
+    from harmonic_weaver.lab.contracts import MotionFrame,PerceptionSettings
+    frames=[MotionFrame.model_validate({'source_id':'synthetic','stream_id':'synthetic-spatial','sequence':i,
+        'source_time_s':i*.1,'available_monotonic_s':1.+i,'timestamp_origin':'synthetic','width':160,'height':120,
+        'persons':[{'person_id':'slot-1-generation-1','joints':[{'index':0,'position':[.5,.2],
+            'confidence':.9,'state':'observed'}]}] if i==0 else []}) for i in (0,2)]
+    library.jobs['synthetic-spatial']=VideoJob('synthetic-spatial',video,PerceptionSettings(checkpoint='fixture-only.pt'),
+        status='ready',media_id='synthetic',cache_key='a'*64,generation='fixture-generation',
+        person_ids=['slot-1-generation-1'],frames=frames,times=[0.,.2],duration_s=.5)
 runtime=SimpleNamespace(library=library,start=lambda:None,close=lambda:None)
 pidfile=args.root/'decode.pid'
 if args.slow_probe_first or args.slow_frame_first:
