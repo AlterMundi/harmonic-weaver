@@ -213,3 +213,17 @@ pasó 2.4 s (suite 3.1 s), build pasó; servidor propio detenido. Faltan prueba
 de cancelación con lectura larga real y concurrencia al cambiar fuente/
 repreparar; rebind y guardado siguen síncronos. No declarar esa cobertura
 por extrapolar el recorrido exitoso de imágenes pequeñas sintéticas.
+
+### Corte 17: cancelación web con proceso vivo comprobado
+
+Fixture opcional `--slow-probe-first` inicia un proceso Python real que
+deliberadamente espera 30 s mediante el mismo capturador cancelable. Una
+ruta exclusiva del fixture comprueba PID vivo antes/después; no existe en
+producción. Chrome confirma proceso vivo, botón cancelar, job cancelled,
+proceso terminado, borrador sin cambios, cero revisiones y reintento que
+completa probe/imagen reales. Pasó 871 ms (suite 1.6 s); servidor detenido.
+Esto verifica UI→API→evento→kill/wait, no rendimiento de FFmpeg sobre video
+corporal largo ni cancelación bajo I/O físico bloqueado. El primer intento
+falló porque el mount estático ocultaba la ruta de prueba; corregido sólo
+en fixture, sin cambios de rutas productivas. Pendientes frame cancel y
+concurrencia de fuentes; fuente privada/aceptación humana siguen aparte.
