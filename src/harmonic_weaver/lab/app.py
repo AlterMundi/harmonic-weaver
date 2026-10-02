@@ -24,6 +24,8 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.rope_compare_service import RopeCompareService
+from .research.rope_mask_service import RopeMaskService
+from .research.rope_mask_run import Request as RopeMaskRunRequest
 from .research.rope_mask import Settings as RopeMaskSettings
 from .research.rope_jobs import RopeJobs
 from .research.rope_reader import RopeReader
@@ -158,6 +160,11 @@ class RopeSave(Contract):
     parent_id: str | None = None
 
 
+class RopeMaskSave(Contract):
+    media_id: str
+    request: RopeMaskRunRequest
+
+
 class RopeMask(Contract):
     media_id: str
     read_id: str
@@ -242,6 +249,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_reader = RopeReader()
     rope_jobs = RopeJobs(rope_reader)
     rope_comparisons = RopeCompareService(data_dir)
+    rope_masks = RopeMaskService(data_dir,rope_reader)
     evaluation = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
@@ -315,6 +323,18 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r08')
     def rope_revisions():return rope.list()
+
+    @app.get('/api/research/r08/masks')
+    def rope_mask_list():return rope_masks.list()
+
+    @app.post('/api/research/r08/masks')
+    def rope_mask_save(body:RopeMaskSave):return rope_masks.start(body.request,rope_media_path(body.media_id))
+
+    @app.post('/api/research/r08/masks/{ident}/reverify')
+    def rope_mask_reverify(ident:str,body:RopeBinding):return rope_masks.reverify(ident,rope_media_path(body.media_id))
+
+    @app.get('/api/research/r08/masks/{ident}/artifacts/{name}')
+    def rope_mask_artifact(ident:str,name:str):return FileResponse(rope_masks.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r08/mask')
     def rope_mask(body:RopeMask):

@@ -31,6 +31,13 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
         assert candidates.status_code==200
         assert candidates.json()['frame_index']==2 and candidates.json()['time_s']==.2
         assert candidates.json()['candidate_components'][0]['area_px']==160*120
+        request={k:candidates.json()[k] for k in ('media_sha256','width_px','height_px','frame_index','time_s','settings')}
+        saved=client.post('/api/research/r08/masks',json={'media_id':'local-video','request':request})
+        assert saved.status_code==200
+        mask_id=saved.json()['id']
+        assert client.post(f'/api/research/r08/masks/{mask_id}/reverify',json={'media_id':'local-video'}).json()==candidates.json()
+        assert client.get(f'/api/research/r08/masks/{mask_id}/artifacts/frame.png').status_code==422
+
         assert client.get('/api/research/r08').json()==[]
 
         assert client.post('/api/research/r08/reads',json={'media_id':'local-video','frame_index':0}).status_code==422
@@ -58,6 +65,7 @@ def test_rope_api_library_binding_revisions_restore_and_reject(tmp_path):
     with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
         assert len(client.get('/api/research/r08').json())==2
         assert len(client.get('/api/research/r08/comparisons').json())==1
+        assert len(client.get('/api/research/r08/masks').json())==1
         assert client.get(f"/api/research/r08/comparisons/{comparison.json()['id']}/artifacts/worker.log").status_code==422
         assert client.get(f'/api/research/r08/{ident}/artifacts/annotation.json').json()['frames']==[]
         assert client.post(f'/api/research/r08/{ident}/rebind',json={'media_id':'local-video'}).status_code==200

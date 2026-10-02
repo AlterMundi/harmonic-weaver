@@ -368,3 +368,15 @@ persistida sigue sin ser curva aceptada. Test real MP4 sintético pasó:
 repeat bytes, sólo JSON, rebind, alteración numérica y cambio de fuente.
 Pendiente servicio/API/UI y control semántico más exhaustivo sin fuente;
 metadatos de versiones no prueban mismo build FFmpeg ni custodia firmada.
+
+### Corte 29: guardar, recuperar y revalidar propuestas desde web
+
+Servicio research/r08-masks, API lista/guardar/reverify/artifacts y editor:
+guardar congela **settings efectivos**, no textarea modificado sin cálculo;
+recalcula desde fuente actual. Propuestas de misma fuente muestran índice/PTS;
+mostrar habilitado sólo en frame correspondiente y exige recomputación antes
+de superponer. Descargas sólo tres JSON; no PNG/video. Inventario sobrevive
+reinicio; integridad offline distinta de reverify con fuente. Dos tests
+persistencia/API pasaron guardado, recálculo idéntico, whitelist y restauración;
+TypeScript/Vite pasó tras agregar guard explícito de máscara nullable.
+Pendiente Chrome de guardado/recuperación; datos/etiquetas humanas no inferidos.
