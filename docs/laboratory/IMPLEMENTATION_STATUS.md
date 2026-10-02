@@ -208,3 +208,21 @@ configuración coincidente y SHA-256 de traces, cache por fingerprint, Range/206
 rechazo de cambios. 17 tests research/API/collective, Chrome enlaces y build.
 Resultados locales sintéticos, sin publicación automática ni cambio sonoro. R01
 permanece abierto para entrada corporal/HIT específicos y protocolo ampliado.
+
+### R08: anotación y lectura de soga (PR #75)
+
+Implementado en rama de desarrollo: curvas manuales por tramos, estados y
+causas de invalidez; hash/dimensiones/reloj decodificado; revisiones con
+linaje y artefactos verificados; resolución de assets persistidos sin jobs;
+API/editor por imagen exacta, cache LRU en memoria (32 MB, cuatro inventarios),
+etiquetas de extremos a/b y velocidades px/s sólo en frames consecutivos.
+Contratos/API/persistencia/cache probados con videos sintéticos. Recorrido
+Chrome con HTTP real verificó dibujo, extremos, oclusión, guardar, recuperar,
+rebind y revisión derivada. Ninguna aceptación humana o evidencia física se
+infiere de estas pruebas; no modifica síntesis ni defaults del instrumento.
+
+Pendiente: extracción inicial observable/cancelable (aún síncrona), medición
+de rendimiento con clips privados, asistencia de segmentación/tracking,
+benchmark anotado de blur/oclusiones/cruces y experimento de propagación con
+correspondencia/calibración explícita. Ver `research/laboratory/r08_rope/README.md`.
+R08 y el roadmap permanecen abiertos; R09 no se cierra por geometría 2D.

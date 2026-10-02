@@ -141,3 +141,13 @@ No constituye velocidad física ni propagación de tensión en la cuerda.
 Campos vacíos se omiten para conservar compatibilidad de revisiones previas.
 Seis tests de contratos/persistencia/API pasaron en 2.11 s; build web pasó.
 Interacción de extremos en navegador aún pendiente; curva ya fue verificada.
+
+### Corte 11: extremos verificados en Chrome
+
+Recorrido HTTP real ampliado: extremos a en frames 0 y 1 se conservan al
+guardar/recuperar; reporte produce ~160 px/s horizontal para desplazamiento
+0.1 de ancho en 0.1 s, sin velocidad inicial. Frame 2 ilegible no inventa
+extremos. La tolerancia refleja cuantización de clicks del navegador;
+contratos numéricos ya prueban valores exactos por separado. Chrome pasó
+1.6 s (suite 2.3 s), servidor propio detenido. Sólo video sintético;
+correspondencias corporales humanas y velocidad física siguen pendientes.
