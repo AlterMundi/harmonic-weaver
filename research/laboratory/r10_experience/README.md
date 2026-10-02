@@ -71,3 +71,25 @@ sintética/rechazo fuera de escala. Servidor apagado; no exposición/participaci
 humanas ni niveles físicos verificados. Defaults del instrumento/audio intactos.
 Pendientes protocolos congelados/manifests, resolución de estímulos, player,
 exposición observada, respuestas persistentes y análisis sobre soporte común.
+
+
+## Corte 3 · Protocolos congelados reproducibles
+
+API protocols guarda request/result/manifest con hashes, código/env y binding.
+Recomputación actual repite calendario; histórico se identifica sólo integridad.
+Recibos persistentes antes de run recuperan misma ID tras restart; otra entrada
+con clave igual se rechaza y fallo reservado no relanza. Status complete describe
+publicación del artefacto, nunca exposición ni ensayos completados.
+Web guarda desde preview validada, persistiendo pedido antes de POST en
+sessionStorage; reload restaura pendiente sin envío automático y reintento explícito
+usa la misma entrada. Reabre calendario/preguntas/rol/slot/estímulos, inicializa
+respuestas null y permite descargar tres artefactos. No guarda respuestas al abrir.
+
+Siete pruebas núcleo/runner/servicio/API pasaron (1,06 s): repetición/no overwrite,
+recomputation con hashes reescritos, binding histórico, restart/conflictos/fallo
+sin relanzamiento/exportación. Build pasó. Chrome API aislada pasó (1,5 s): cuatro
+condiciones/ciclo24 declarado, respuesta aceptada perdida/reload/reintento idéntico,
+una copia/reapertura y descarga con orden5/rol/estímulo originales. Servidor apagado.
+Sin exposición humana/medios privados/hardware, audio intacto. Pendientes resolver
+estímulos por IDs, player/exposición, respuestas persistentes y análisis. No GC,
+coordinación multiproceso/tab ni retención garantizada al cerrar pestaña.

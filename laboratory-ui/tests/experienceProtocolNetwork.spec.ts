@@ -1,0 +1,12 @@
+import {test,expect} from '@playwright/test';
+import {readFile} from 'node:fs/promises';
+test('frozen declared protocol survives accepted response loss and reload',async({page})=>{
+ test.skip(!process.env.LAB_R10_PROTOCOL_URL,'isolated fixture required');const url=process.env.LAB_R10_PROTOCOL_URL!;await page.goto(url);const panel=page.getByRole('region',{name:'Protocolo de experiencia R10',exact:true});
+ const protocol={config:{conditions:['video_only','sound_only','audiovisual','desynchronized'],desynchronization_s:.5},participant_slot:'synthetic-slot',role:'practitioner',order_index:5,stimuli:[{id:'synthetic',reference:'declared-synthetic',start_s:0,end_s:60}]};
+ await panel.getByLabel('Protocolo JSON R10').fill(JSON.stringify(protocol));await panel.getByRole('button',{name:'Preparar protocolo R10'}).click();await expect(panel.getByText(/4 ensayos planificados · ciclo de órdenes: 24/)).toBeVisible();
+ const attempts:any[]=[];let first=true;await page.route('**/api/research/r10/protocols',async route=>{if(route.request().method()!=='POST'){await route.continue();return;}attempts.push(route.request().postDataJSON());if(first){first=false;await route.fetch();await route.abort('failed');}else await route.continue();});
+ await panel.getByRole('button',{name:'Guardar protocolo congelado R10'}).click();await expect(panel.getByRole('button',{name:'Recuperar protocolo R10'})).toBeVisible();await page.reload();await panel.getByRole('button',{name:'Recuperar protocolo R10'}).click();expect(attempts).toHaveLength(2);expect(attempts[1]).toEqual(attempts[0]);await expect(panel.getByRole('button',{name:'Abrir protocolo congelado R10'})).toHaveCount(1);await panel.getByRole('button',{name:'Abrir protocolo congelado R10'}).click();await expect(panel.getByRole('table',{name:'Orden de ensayos R10'}).locator('tbody tr')).toHaveCount(4);
+ const reopened=JSON.parse(await panel.getByLabel('Protocolo JSON R10').inputValue());expect(reopened.role).toBe('practitioner');expect(reopened.order_index).toBe(5);expect(reopened.stimuli[0].id).toBe('synthetic');
+ const download=page.waitForEvent('download');await panel.getByRole('link',{name:'result.json',exact:true}).click();const result=JSON.parse(await readFile((await(await download).path())!,'utf8'));expect(result.request).toEqual(reopened);expect(result.trials).toHaveLength(4);
+ const rows=await(await page.request.get(url+'/api/research/r10/protocols')).json();expect(rows).toHaveLength(1);expect(rows[0].read_verification).toBe('recomputed');
+});

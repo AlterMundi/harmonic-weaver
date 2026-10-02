@@ -26,3 +26,16 @@ def test_experience_presets_portable_strict_and_restart(tmp_path):
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert client.get(url).json()[0]['config']==exported.json()['config']
         assert client.get(f'{url}/{ident}').content==exported.content
+
+
+def test_frozen_protocol_http_export_restart_and_receipt(tmp_path):
+    url='/api/research/r10/protocols';body={'protocol':data(),'idempotency_key':'c'*32}
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        response=client.post(url,json=body);assert response.status_code==200
+        ident=response.json()['id'];exported=client.get(f'{url}/{ident}/artifacts/result.json')
+        assert 'attachment' in exported.headers['content-disposition'] and len(exported.json()['trials'])==3
+        assert client.post(url,json=body).json()['id']==ident
+        assert client.get(f'{url}/{ident}/artifacts/audio.wav').status_code==422
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert client.get(url).json()[0]['read_verification']=='recomputed'
+        assert client.get(f'{url}/{ident}/artifacts/result.json').content==exported.content
