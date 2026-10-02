@@ -1353,3 +1353,23 @@ Cinco pruebas núcleo/runner/API pasaron (1,08 s): retry/restart/export idéntic
 histórico y rawbinding, traversal/artefacto desconocido. Warning AnyIO sin fallo.
 Pendientes guardar/recovery/reabrir web, presupuestos de tamaño/latencia, estimadores
 SNR, adaptador/hardware real y sync física. Fixtures sintéticas; sonido intacto.
+
+
+## R11 · Corte 4: guardado y recuperación web
+
+Investigación → R11 permite guardar el Stream inspeccionado, listar registros y
+reabrir inventario/raw, con enlaces a request/result/manifest. Antes del POST se
+congela el envío en sessionStorage; si falla la respuesta, un reintento explícito
+tras recargar conserva el contenido y reutiliza la identidad del servidor. No se
+reenvía automáticamente. El pendiente puede exportarse o descartarse sin borrar
+registros del servidor. Si el navegador no puede guardar el pendiente, no envía.
+SessionStorage no sustituye un archivo duradero y no garantiza recuperación al
+cerrar la pestaña; datos grandes y latencia requieren una evaluación posterior.
+
+Chrome contra API sintética: 1 prueba pasó (2,0 s total, 1,2 s ejecución), incluyendo
+POST aceptado con respuesta perdida, recarga, reintento idéntico, registro único,
+reapertura y request original con cero/null/unidades/clock/gaps intactos. Cinco
+pruebas Python de contrato/runner/API pasaron (1,50 s; deprecación AnyIO sin fallo).
+Build TypeScript/Vite pasó. Servidor de prueba detenido, sin hardware ni audio.
+Pendientes estimadores/controles SNR, export real, presupuestos de datos, hardware,
+adquisición y sincronización física. No cambia sonido, presets ni defaults.

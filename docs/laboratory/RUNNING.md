@@ -439,5 +439,18 @@ En Investigación → R11, importar un JSON Stream de neuro_observations con
 unidades/referencia/clock y samples explícitos, o editar Observaciones JSON R11.
 Inspeccionar contrato muestra cobertura/gaps y permite exportar inventario+raw.
 No conecta hardware ni interpreta exports Cyton automáticamente: deben adaptarse
-con procedencia explícita. No calcula SNR ni filtra; no hay guardado de servidor
-en este corte. Fixture Chrome sintética verificada; adquisición humana pendiente.
+con procedencia explícita. No calcula SNR ni filtra.
+
+Después de inspeccionar, usar Guardar observaciones R11. Actualizar registros
+muestra el estado de verificación; Abrir observaciones guardadas recupera raw y
+cobertura. Descargar request.json/result.json/manifest.json conserva el registro
+fuera de la sesión. Un registro completo significa artefactos publicados, no una
+adquisición física validada.
+
+Si se interrumpe el envío, recargar y elegir Recuperar envío de observaciones R11:
+se reintenta el contenido congelado, sin duplicarlo. También puede exportarse o
+descartarse el pendiente local. No se reenvía automáticamente ni se adquieren datos.
+El pendiente usa sessionStorage: no confiar en cerrar la pestaña para conservarlo;
+exportarlo o completar el guardado del servidor. Si el almacenamiento local falla,
+no se envía. Importación nativa limitada a 16 MiB; rendimiento de sesiones grandes
+pendiente. Fixture Chrome sintética verificada; adquisición humana pendiente.
