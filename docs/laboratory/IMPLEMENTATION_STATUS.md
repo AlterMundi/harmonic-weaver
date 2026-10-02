@@ -226,3 +226,13 @@ de rendimiento con clips privados, asistencia de segmentación/tracking,
 benchmark anotado de blur/oclusiones/cruces y experimento de propagación con
 correspondencia/calibración explícita. Ver `research/laboratory/r08_rope/README.md`.
 R08 y el roadmap permanecen abiertos; R09 no se cierra por geometría 2D.
+
+R08, avance posterior: preparación y frames web usan jobs temporales con
+estado/cancelar/reintentar; hash cooperativo y subprocesos con límite durante
+streaming. Chrome verificó cancelación de preparación e imagen con proceso
+sintético confirmado vivo/terminado, borrador intacto y reintento. Medición
+local de lectura del clip corporal de 60 s: probe 15.8 s, imágenes nuevas
+1.2–4.6 s, hits ~0.7 s, sin copias/imágenes persistidas y fuente intacta.
+Pendientes: concurrencia UI de fuentes, mejora de latencia inicial,
+segmentación asistida y benchmark anotado/aceptación humana. Medir lectura
+no valida calidad de pose, extremos, profundidad ni propagación física.

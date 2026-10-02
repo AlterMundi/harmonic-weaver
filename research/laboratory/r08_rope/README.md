@@ -237,3 +237,16 @@ que habilita aplicar sin crear revisiones. Pasó 1.2 s (suite 1.9 s), servidor
 propio detenido. Misma limitación del corte 17: proceso lento sintético por
 capturador real, no una medición de video corporal/disco bloqueado. Pendiente
 concurrencia al cambiar fuente/repreparar y medición privada de rendimiento.
+
+### Corte 19: medición local con fragmento corporal privado
+
+Lectura real del fragmento existente de 60 s, sin copiar original/fragmento
+ni guardar PNG. Este host, una corrida, 1800 frames 1920×1080: preparación
+15.764 s; primer frame 1.221 s; frame 900 (30 s) 2.936 s; frame 1799
+(59.966667 s) 4.618 s. Reconsultas cacheadas 900/1799: 0.692/0.693 s;
+14,137,901 bytes en cache. Hash de fuente confirmado intacto al final.
+No se publican ruta, hash, contenido corporal ni curvas/personas. Esto es
+medición de lectura, no calidad de tracking ni aceptación humana. La primera
+preparación aún es lenta; cache mejora repetición pero rehash completo tiene
+coste. Próxima mejora debe conservar binding y límites, sin sustituir el hash
+por confianza silenciosa en mtime. Concurrencia web sigue pendiente.
