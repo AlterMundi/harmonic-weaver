@@ -306,3 +306,15 @@ Cuatro tests métrica/artifact/API y build pasaron, incluyendo repeat bytes,
 no sobrescritura, manipulación numérica, entorno y restauración/whitelist.
 Chrome del comparador pendiente. Hashes locales no son custodia firmada,
 calidad de anotación humana ni rebind actual a video: requerirlo aparte.
+
+### Corte 24: comparador persistido verificado en Chrome
+
+Test HTTP real con dos revisiones sintéticas: referencia dos frames,
+candidata uno desplazado 0.2 de altura sobre imagen 120 px. UI configura
+16 muestras/tramo; reporte 24 px de Hausdorff muestreada, soporte 1/2 y
+frame faltante sin score. Recargar recupera corrida y resultado byte idéntico;
+descarga nativa manifest.json verificada. Pasó 950 ms (suite 1.9 s); servidor
+propio detenido. Primer intento usaba selector de texto del label que
+incluía opciones; corregido test a rol/nombre accesible. No validación humana
+ni benchmark automático/real de cuerda: falta aportar predicciones/etiquetas
+con incertidumbre y soporte comparable. Hash/código/entorno no custodias.

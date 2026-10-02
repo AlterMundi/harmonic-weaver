@@ -236,3 +236,11 @@ local de lectura del clip corporal de 60 s: probe 15.8 s, imágenes nuevas
 Pendientes: concurrencia UI de fuentes, mejora de latencia inicial,
 segmentación asistida y benchmark anotado/aceptación humana. Medir lectura
 no valida calidad de pose, extremos, profundidad ni propagación física.
+
+R08 comparador: revisiones congeladas y mismo hash/dimensiones/PTS, cobertura
+explícita, distancias muestreadas en píxeles por tramos desconectados;
+corridas request/result/manifest persistidas con código/entorno y recálculo.
+Pruebas numéricas/API/restauración/tamper y Chrome real de crear/configurar,
+24 px conocidos, soporte faltante sin score, reload y descarga de manifest
+pasaron. No constituye benchmark corporal ni validación científica de
+cuerda; faltan extracción asistida, etiquetas humanas/uncertainty y protocolo.
