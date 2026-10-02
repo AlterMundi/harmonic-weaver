@@ -29,3 +29,23 @@ def test_selected_summary_null_zero_versions_and_question_separation(tmp_path):
     d,_=save({**data(),'config':{'scale_max':200}},100)
     e,_=save({**data(),'role':'practitioner'},75)
     assert len(analyze(responses,{'response_ids':[a,d,e]})['groups'])==3
+
+
+def test_frozen_calculation_without_originals_rejects_source_and_trial_mismatch(tmp_path):
+    import copy
+    from harmonic_weaver.lab.research.experience_analysis import calculate
+    protocols=ExperienceService(tmp_path);transports=TransportService(tmp_path);responses=ResponseService(tmp_path)
+    p=protocols.start({'protocol':data()});pid=p['id']
+    body={'protocol_id':pid,'protocol_manifest_sha256':sha256_file(protocols.artifact(pid,'manifest.json')),
+        'response':{'trial_id':'trial-0001','ratings':{i['id']:None for i in schedule(data())['request']['config']['items']}}}
+    saved=responses.start(protocols,transports,body)
+    live=analyze(responses,{'response_ids':[saved['id']]})
+    frozen={k:live[k] for k in ('selection','sources')}
+    responses.artifact(saved['id'],'result.json').unlink()
+    assert calculate(frozen)==live
+    for mutate in ('selection','trial','rating'):
+        broken=copy.deepcopy(frozen)
+        if mutate=='selection':broken['selection']['response_ids']=['f'*32]
+        elif mutate=='trial':broken['sources'][0]['result']['trial']['condition']='sound_only'
+        else:broken['sources'][0]['result']['validated']['response']['ratings']['pleasure']=100
+        with pytest.raises(ValueError):calculate(broken)

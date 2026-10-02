@@ -1110,3 +1110,17 @@ null como —, descarga real con ID de fuente/null, deselección limpia tabla y
 deshabilita análisis; suite player/recovery previa también pasa. Sin aceptación
 humana/escucha. Pendientes manifest y publicación/recovery de análisis congelados,
 contraste pareado y cierres duraderos. Sin cambios de sonido/defaults.
+
+
+## Corte 21 · Cálculo puro sobre fuentes congeladas
+
+FrozenInput valida selección/sources ordenados e IDs/hash; calculate trabaja sin
+servicio, usando snapshots, identidad de contenido y trial recalculado desde
+protocolo. analyze sólo resuelve/verifica fuentes y llama ese mismo núcleo.
+Permite recomputar después de eliminar respuestas originales sin inventar fuentes
+actuales; hash manifest de fuente sigue referencia, no custodia firmada.
+
+Ocho pruebas núcleo/API pasaron (2,63 s), más dos del núcleo repetidas tras validar
+identidad: cálculo idéntico sin original, selección/trial/ratings contradictorios
+rechazados. API preservada. Pendientes runner/manifest y guardado/recovery web del
+análisis; contraste pareado y aceptación humana siguen abiertos. Defaults intactos.
