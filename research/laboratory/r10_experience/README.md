@@ -93,3 +93,27 @@ una copia/reapertura y descarga con orden5/rol/estímulo originales. Servidor ap
 Sin exposición humana/medios privados/hardware, audio intacto. Pendientes resolver
 estímulos por IDs, player/exposición, respuestas persistentes y análisis. No GC,
 coordinación multiproceso/tab ni retención garantizada al cerrar pestaña.
+
+
+## Corte 4 · Estímulos resueltos por IDs R05
+
+POST r05-protocols recibe config/slot/rol/order y stimuli {id,r05_id,arm}, hasta8,
+con recibo opcional. Resuelve PCM mono single/excited/mapped por verificador R05 y
+original video vía source_binding de evaluación congelada. Congela IDs/hashes de
+manifest/input/PCM/medio, evaluación/run/source/person slot, crop fuente y sr/frames.
+Calendario toma ventana original seleccionada, excluye tail posterior del ensayo y
+usa offset nominal0 (no sincronización física medida). Requiere PCM al menos del
+largo del crop; no copia ni decodifica video, no tracking nuevo.
+
+Comprueba fuentes antes/después de publicación; cambios eliminan sólo nuevo
+protocolo. Recibo recupera sin resolver otra vez. Inputs y result sources ligados
+al protocolo también en lectura histórica; recomputación del calendario no
+revalida originales actuales. Ruta declarada protocols rechaza sources manuales.
+Nombres/identidad/níveles físicos siguen sin autenticar. No hay exposición humana.
+
+Diez pruebas núcleo/runner/servicio/API pasaron (3,75 s): R05 render real8kHz con
+pose sintética, vínculo evaluación/media hashes, selección crop.3–1.5, recuperación
+sin fuentes, mutación de PCM durante publicación, API/recibo y procedencia manual
+rechazada. Medio original de fixture son bytes b'a', NO video decodificable/Chrome
+ni prueba audiovisual. Sin medios privados/hardware/audio device. Pendientes UI/
+Chrome de selección por IDs, fixture video real, player/exposición y registros.

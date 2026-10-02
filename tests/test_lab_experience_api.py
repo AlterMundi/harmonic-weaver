@@ -39,3 +39,26 @@ def test_frozen_protocol_http_export_restart_and_receipt(tmp_path):
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert client.get(url).json()[0]['read_verification']=='recomputed'
         assert client.get(f'{url}/{ident}/artifacts/result.json').content==exported.content
+
+
+from test_lab_source_binding import bound
+
+def test_resolved_r05_protocol_http_and_manual_provenance_rejected(bound):
+    from types import SimpleNamespace
+    from harmonic_weaver.lab.research.resonator_run import run as render
+    from harmonic_weaver.lab.research.resonator_service import ResonatorService
+    evaluation,document,_,_=bound;root=evaluation.root.parent
+    resonators=ResonatorService(root);ident='f'*32
+    try:
+        render(document,{'resonators':{'sample_rate':8000},'render':{'tail_s':.1}},resonators.root/ident)
+        runtime=SimpleNamespace(library=None,start=lambda:None,close=lambda:None)
+        with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
+            selection={'config':{},'participant_slot':'synthetic','role':'observer','order_index':0,
+                'stimuli':[{'id':'clip','r05_id':ident,'arm':'single'}],'idempotency_key':'f'*32}
+            saved=client.post('/api/research/r10/r05-protocols',json=selection);assert saved.status_code==200,saved.text
+            protocol_id=saved.json()['id']
+            result=client.get(f'/api/research/r10/protocols/{protocol_id}/artifacts/result.json').json()
+            assert result['sources'][0]['r05_id']==ident and result['sources'][0]['person_id']=='one'
+            assert client.post('/api/research/r10/r05-protocols',json=selection).json()['id']==protocol_id
+            assert client.post('/api/research/r10/protocols',json={'protocol':result['request'],'sources':result['sources']}).status_code==422
+    finally:resonators.close()

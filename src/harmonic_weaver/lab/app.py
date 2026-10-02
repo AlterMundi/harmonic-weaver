@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_sources import Selection as ExperienceSourceSelection
 from .research.experience_service import ExperienceService, SaveRequest as ExperienceSaveRequest
 from .research.experience_presets import ExperiencePresets, Preset as ExperiencePreset
 from .research.experience_protocol import Request as ExperienceRequest, ResponseRequest as ExperienceResponseRequest, schedule as experience_schedule, validate_response as validate_experience_response
@@ -463,6 +464,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r10/r05-protocols')
+    def experience_source_protocol_save(body:ExperienceSourceSelection):return experience_protocols.from_r05(resonators,evaluation,body)
 
     @app.post('/api/research/r10/protocols')
     def experience_protocol_save(body:ExperienceSaveRequest):return experience_protocols.start(body)

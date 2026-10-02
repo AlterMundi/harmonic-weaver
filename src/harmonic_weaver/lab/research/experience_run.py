@@ -4,23 +4,34 @@ import platform
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field,model_validator
 
 from ..cache import atomic_json, sha256_file
 from ..contracts import Contract
 from .experience_protocol import Request, schedule as evaluate
+from .experience_sources import Source
 
 Digest = Annotated[str, Field(pattern=r'^[a-f0-9]{64}$')]
 FILES = ('request.json', 'result.json', 'manifest.json')
-CODE = ('experience_run.py', 'experience_protocol.py', '../contracts.py')
+CODE = ('experience_run.py', 'experience_protocol.py', 'experience_sources.py', '../contracts.py')
 
 
 class Input(Contract):
     protocol:Request
+    sources:list[Source]|None=Field(default=None,min_length=1,max_length=8)
+
+    @model_validator(mode='after')
+    def bound(self):
+        if self.sources is not None and [s.stimulus().model_dump() for s in self.sources]!=[s.model_dump() for s in self.protocol.stimuli]:raise ValueError('Resolved stimuli differ from protocol')
+        return self
 
 
 def calculate(frozen):
-    return evaluate(frozen.protocol)
+    result=evaluate(frozen.protocol)
+    if frozen.sources is not None:
+        result['sources']=[s.model_dump() for s in frozen.sources]
+        result['limits'].append('R05 PCM and original evaluation/video artifacts verified at publication; physical levels/synchronization and participant identity remain unverified')
+    return result
 
 
 class Manifest(Contract):
@@ -80,6 +91,7 @@ def verify(folder, *, recompute=True):
     Contract.finite_tree(result)
     if not isinstance(result, dict) or result.get('schema_version') != 1 or result.get('line') != 'R10' or result.get('request') != frozen.protocol.model_dump():
         raise ValueError('Spatial experience protocol result/input binding mismatch')
+    if result.get('sources')!=([s.model_dump() for s in frozen.sources] if frozen.sources else None):raise ValueError('Experience source provenance binding mismatch')
     if recompute:
         if manifest['environment'] != environment() or manifest['code_hashes'] != code_hashes():
             raise ValueError('Recorded experience protocol implementation/environment differs')
