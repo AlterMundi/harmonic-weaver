@@ -240,3 +240,13 @@ No autoinicio ni cambio de síntesis. Cada guardado crea un ID nuevo.
 Prueba HTTP pasó (0,79 s): roundtrip/exportación sin ID, exclusión de datos de
 observación/calibración, valores inválidos y recuperación tras reinicio. Build
 pasó; recorrido de presets en Chrome pendiente. No acredita comparación física.
+
+## Corte 19 · Presets de vista verificados en Chrome
+
+Chrome real contra API pasó (1,6 s): guardar preset XZ/centro/escala, descarga
+nativa, importar archivo exportado y aplicar restaurando ejes/escala modificados.
+Al cambiar a otra fuente 2D, aplicar XZ muestra rechazo y conserva XY, sin fallback
+silencioso ni traslado de observaciones. Conserva prueba de proyección/clipping.
+Servidor aislado detenido. Fixtures 2D/3D declarados, no reconstrucción física ni
+aceptación humana; preset no verifica calibración, relojes ni interpretación entre
+fuentes. Medición física y líneas restantes siguen abiertas.

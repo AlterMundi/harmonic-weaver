@@ -506,3 +506,7 @@ presets pendientes.
 R09 corte 18: presets portables de vista/playback por API/web, excluyen observaciones,
 reloj, fuente/calibración; aplican sin autoplay y rechazan ejes 3D sobre 2D. HTTP y
 build pasaron; recorrido Chrome pendiente, junto con validación física.
+
+R09 corte 19: Chrome verificó guardar/exportar/importar/aplicar presets de vista y
+rechazo XZ sobre fuente 2D sin fallback (1,6 s). No validación física ni transferencia
+de calibración; hardware/experimentos y roadmap siguen pendientes.
