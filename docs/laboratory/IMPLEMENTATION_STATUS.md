@@ -901,3 +901,19 @@ intactos, sin dispositivo audio abierto por backend.
 Pendientes eventos persistentes de exposición observada (buffering/seeks/gaps/
 completitud), inyección Chrome de fallos/cargas tardías/agotamiento positivo,
 respuestas persistentes/análisis y pruebas humanas con niveles/sincronía medidos.
+
+
+## Corte 8 · Fallos y agotamiento del player
+
+Tres pruebas Chrome del player pasaron juntas (7,5 s), contra API y medios
+sintéticos: condiciones y seeks del corte 7; offset positivo +.5 con agotamiento
+de audio sin reinicio y fin nominal en 1.2 s; pausa del reloj y ambos medios ante
+waiting, sin reanudación automática por canplay; respuesta real de media-info
+retenida y liberada después de desmontar el player sin revivir medios.
+
+El evento waiting fue inyectado: verifica su manejo, no una congestión de red real.
+Audio silenciado por las pruebas; no acredita escucha, exposición humana, latencia
+física o sincronización medida. No se requirieron cambios de producción ni defaults.
+El servidor sintético terminó con exit 0; medios corporales y servicios cotidianos
+intactos. Pendientes registro persistente de transporte/observaciones, respuestas
+y análisis, y ensayos humanos con niveles y sincronización medidos.
