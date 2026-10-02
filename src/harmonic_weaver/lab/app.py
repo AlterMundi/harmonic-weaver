@@ -29,6 +29,7 @@ from .research.spatial_compare_service import SpatialCompareService, Selection a
 from .research.spatial_compare_run import Input as SpatialComparisonInput
 from .research.neuro_service import NeuroService
 from .research.neuro_observations import Stream as NeuroStream, inspect as inspect_neuro
+from .research.neuro_snr import Config as NeuroSNRConfig, calculate as calculate_neuro_snr
 from .research.experience_pair_design import Request as ExperiencePairDesignRequest, preview as preview_pair_design
 from .research.experience_pair_design_presets import PairDesignPresets, Preset as PairDesignPreset
 from .research.experience_pairs_service import PairService, SaveRequest as ExperiencePairSaveRequest
@@ -493,6 +494,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r11/observations/{ident}/artifacts/{name}')
     def neuro_observation_artifact(ident:str,name:str):
         return FileResponse(neuro_observations.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r11/synthetic-snr')
+    def neuro_synthetic_snr(body:NeuroSNRConfig):return calculate_neuro_snr(body)
 
     @app.post('/api/research/r11/inspect')
     def neuro_inspect(body:NeuroStream):return inspect_neuro(body)

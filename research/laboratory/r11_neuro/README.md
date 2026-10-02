@@ -103,3 +103,41 @@ pruebas Python de contrato/runner/API pasaron (1,50 s; deprecación AnyIO sin fa
 Build TypeScript/Vite pasó. Servidor de prueba detenido, sin hardware ni audio.
 Pendientes estimadores/controles SNR, export real, presupuestos de datos, hardware,
 adquisición y sincronización física. No cambia sonido, presets ni defaults.
+
+
+## R11 · Corte 5: control sintético de señal/ruido conocido
+
+neuro_snr y POST /api/research/r11/synthetic-snr generan dos tonos dimensionless
+independientes y su suma. La designación señal/ruido es parte del control: no se
+estima separación desde EEG ni se interpreta ruido fisiológico. Config estricto
+con amplitud/frecuencia/fase/offset por componente, rate/count (2–20000), ventana
+[start,stop), gaps y exclusiones explícitos; frecuencias estrictamente bajo Nyquist.
+No dispositivos ni cambios de sonido/defaults.
+
+Métrica known_component_mean_square_v1: media cuadrática de cada componente
+sobre idénticos índices retenidos, con retiro opcional de media independiente sobre
+ese mismo soporte. No ponderación temporal, interpolación, filtro o inferencia de
+banda. Cociente en dB = 10(log10(Pseñal)−log10(Pruido)). Conserva componentes,
+suma, timestamps, soporte exacto y config. Potencias numéricas cero producen
+noise_zero/signal_zero/both_zero y dB null, nunca Infinity; menos de dos muestras
+produce insufficient_support. Magnitudes son dimensionless², no watts físicos.
+Esta definición con componentes conocidos coincide con el caso documentado en
+[referencia SNR MathWorks](https://www.mathworks.com/help/signal/ref/snr.html);
+no adopta sus estimadores espectrales ni los aplica al registro de un cuerpo.
+
+NeuroSNRPanel ofrece controles para todos los parámetros, import/export de config
+portable y export del resultado completo. Editar invalida resultado; validación
+API explícita rechaza configuración inválida. Cambiar el control no cambia las
+observaciones crudas ni adquiere hardware. El resultado se descarga localmente;
+aún no tiene archivo/manifest de servidor ni verificador de código histórico.
+
+Evidencia: 12 pruebas Python pasaron (1,36 s; AnyIO deprecación sin fallo), build
+TypeScript/Vite, dos recorridos Chrome contra API sintética (2,4 s total). Control
+analítico amplitudes2:1 da6,0206dB; DC3 cambia potencia2→11 y retiro media devuelve2;
+soporte común [10,12,14,16] tras ventana/gaps/exclusiones; ceros/support insuficiente,
+frecuencia Nyquist, índices inválidos y NaN rechazados. Chrome verifica export de
+resultado, import/export de configuración, ventana/gaps, ruido cero e invalidez sin
+tabla anterior. Servidor de prueba detenido. Datos sintéticos, sin escucha humana.
+Pendientes manifests/verificación de corridas SNR, controles adicionales, datos
+reales/adaptador, inventario hardware, protocolo/estimador sobre señal física y sync.
+Roadmap R01–R13 abierto; sin resultados sobre estados mentales o fisiología.

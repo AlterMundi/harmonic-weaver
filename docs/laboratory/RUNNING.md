@@ -454,3 +454,19 @@ El pendiente usa sessionStorage: no confiar en cerrar la pestaña para conservar
 exportarlo o completar el guardado del servidor. Si el almacenamiento local falla,
 no se envía. Importación nativa limitada a 16 MiB; rendimiento de sesiones grandes
 pendiente. Fixture Chrome sintética verificada; adquisición humana pendiente.
+
+
+### Control sintético SNR R11
+
+En Investigación → Control de señal/ruido conocido, ajustar cada tono (amplitud,
+frecuencia, fase y DC), rate/count, ventana [inicio,fin), índices faltantes/excluidos
+como arrays JSON y retiro de media. Calcular control SNR muestra potencias sobre
+soporte común y dB/status. El ejemplo inicial amplitudes2:1 da aproximadamente
+6,02dB; poner amplitud de ruido en0 muestra noise_zero y dB no definido. Un offset
+DC cuenta como potencia salvo que se elija retirar media. No es un estimador EEG.
+
+Exportar configuración SNR permite reimportar el control sin depender de un video,
+cuerpo o calibración. Exportar resultado conserva config, componentes originales,
+soporte y métricas. Descarga local solamente; manifest/verificador de servidor
+pendiente. Importación config ≤1MiB, máximo20000 muestras por corrida; no ventana
+continua ni adquisición física. Config inválida se rechaza al calcular.
