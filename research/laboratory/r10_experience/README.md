@@ -451,3 +451,20 @@ fuente eliminada y paridad preview/resultado guardado. Warning AnyIO sin fallo.
 No inyección de fallo durante publicación en este corte; caso queda pendiente
 para verificación específica. Pendientes guardar/recovery/reabrir web, pareados y
 ensayos humanos. Sonido/defaults y datos privados intactos.
+
+
+## Corte 24 · Guardar/reabrir análisis en web y fallo de publicación
+
+Panel de análisis frozen guarda selección/hashes de preview, congela pending en
+sessionStorage y ofrece retry tras reload sin cambiar contenido. Listado/reapertura
+actualizan tablas desde resultado guardado, con etiqueta explícita y attachments.
+Pendiente exportable/descartable localmente; no autoenvío/autoanálisis.
+
+Build y cinco Chrome pasaron (9,2 s): POST de análisis aceptado con respuesta perdida,
+reload/retry idéntico, único registro, reapertura tabla75/null y suite previa.
+Prueba servicio pasó (0,33 s): fallo inyectado después de escribir artifacts limpia
+únicamente intento nuevo y preserva bytes del análisis anterior.
+
+Pendientes carreras de reapertura tardía vs edición de selección, contraste pareado,
+conservación de cierre y ensayos humanos. Fixtures sintéticos/audio silenciado, sin
+aceptación física/científica. Sonido/defaults intactos.
