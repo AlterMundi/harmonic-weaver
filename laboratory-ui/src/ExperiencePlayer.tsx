@@ -1,4 +1,4 @@
-import {transportPendingKey,notifyTransports} from './ExperienceTransportsPanel';
+import {transportPendingKey,transportDraftKey,transportDraftChanged,notifyTransports} from './ExperienceTransportsPanel';
 import {useEffect,useRef,useState} from 'react';
 import {VideoFollower} from './videoFollower';
 type Clock={position:number,playing:boolean,epoch:number,anchor:number,started:number};
@@ -8,11 +8,11 @@ export function ExperiencePlayer({api,protocolId,trials}:{api:any,protocolId:str
  const trace=useRef<any>(null),traceStart=useRef(0),lastSnapshot=useRef(0);
  const [recordCount,setRecordCount]=useState(0),[savedRecord,setSavedRecord]=useState(''),[saving,setSaving]=useState(false);
  const mediaState=(m:HTMLMediaElement|null)=>m?{current_time_s:m.currentTime,paused:m.paused,muted:m.muted,volume:m.volume,ready_state:m.readyState,seeking:m.seeking,ended:m.ended,playback_rate:m.playbackRate}:null;
- const record=(kind:string)=>{const t=trace.current;if(!t)return;if(t.events.length>=20000){setError('Registro de transporte lleno; exportalo antes de preparar otro ensayo');return;}t.events.push({sequence:t.events.length,monotonic_s:Math.max(0,(performance.now()-traceStart.current)/1000),elapsed_s:clock.current.position,epoch:clock.current.epoch,kind,video:mediaState(video.current),audio:mediaState(audio.current)});setRecordCount(t.events.length);};
+ const record=(kind:string)=>{const t=trace.current;if(!t)return;if(t.events.length>=20000){setError('Registro de transporte lleno; exportalo antes de preparar otro ensayo');return;}t.events.push({sequence:t.events.length,monotonic_s:Math.max(0,(performance.now()-traceStart.current)/1000),elapsed_s:clock.current.position,epoch:clock.current.epoch,kind,video:mediaState(video.current),audio:mediaState(audio.current)});setRecordCount(t.events.length);try{const body=JSON.stringify(t);if(body.length>4*1024*1024)throw Error('Borrador de transporte excede 4 MiB; exportá memoria local');sessionStorage.setItem(transportDraftKey,body);window.dispatchEvent(new Event(transportDraftChanged));}catch(e){setError(String(e));}};
  const exportTrace=()=>{if(!trace.current)return;const url=URL.createObjectURL(new Blob([JSON.stringify(trace.current,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='r10-declared-transport.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  const saveTrace=async()=>{if(!trace.current)return;if(sessionStorage.getItem(transportPendingKey)){setError('Recuperá el envío pendiente antes de guardar otro registro');return;}record('snapshot');const frozen=JSON.parse(JSON.stringify(trace.current));setSaving(true);setError('');try{sessionStorage.setItem(transportPendingKey,JSON.stringify(frozen));notifyTransports();const saved=await api('research/r10/transports',frozen);sessionStorage.removeItem(transportPendingKey);notifyTransports();setSavedRecord(saved.id);}catch(e){setError(String(e));}finally{setSaving(false);}};
  const stop=(reason:string)=>{const c=clock.current;c.playing=false;c.anchor=c.position;video.current?.pause();audio.current?.pause();setPlaying(false);setStatus(reason);record(reason==='Fin del transporte nominal'?'nominal_end':reason.includes('buffering')?'waiting':reason.startsWith('Error')?'media_error':'pause');};
- useEffect(()=>()=>{record('closed');generation.current++;clock.current.playing=false;video.current?.pause();audio.current?.pause();},[]);
+ useEffect(()=>()=>{generation.current++;clock.current.playing=false;video.current?.pause();audio.current?.pause();record('closed');},[]);
  useEffect(()=>{
   if(!info)return;let frame=0;const v=video.current,a=audio.current,c=clock.current;let exhausted=false,lastSupport=false;
   const support=()=>{const s=info.audio_support_elapsed_s;return !!s&&c.position>=s[0]&&c.position<s[1]&&!exhausted;};

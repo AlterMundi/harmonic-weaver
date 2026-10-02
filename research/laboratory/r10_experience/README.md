@@ -588,3 +588,22 @@ wrapped/raw conserva checkbox,1 par+1faltante y aplicación escribe un par; suit
 previa completa pasa. Sin respuestas humanas ni sincronía medida. Pendientes cierre
 durable, sesiones largas/aceptación física y R11–R13; roadmap sigue abierto.
 Servidor sintético detenido, defaults/sonido intactos.
+
+
+## Corte 33 · Borrador de transporte y cierre recuperable
+
+Cada evento/snapshot conserva borrador sessionStorage acotado a4MiB. Unmount
+pausa medios y agrega closed; panel independiente permite guardar/exportar/descartar
+borrador sin player ni autoplay/autoPOST. Envío usa pending separado congelado,
+no modifica borrador si llegan eventos nuevos; fallo storage visible, memoria sigue.
+Preparar nuevo ensayo reemplaza borrador (advertido). Notificación draft sólo lee
+storage, no genera GET de inventario en cada snapshot.
+
+Build y ocho Chrome pasaron (12,7 s): player cerrado por editar protocolo, evento
+closed conservado, reload sin player, POST explícito idéntico al borrador y artifact
+recuperado, sin audio/video revividos. Suite previa pasa. No medición física/humana.
+
+sessionStorage no sobrevive garantía de cerrar pestaña ni crash/quota; reload puede
+conservar último snapshot sin closed (cleanup React no garantiza cierre de página).
+Para durabilidad, guardar en servidor local o exportar. Pendientes sesiones largas/
+latencia/storage, acceptance humana y R11–R13. Sonido/defaults intactos.

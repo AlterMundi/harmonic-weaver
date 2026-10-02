@@ -425,3 +425,9 @@ guardar o importar/exportar sin IDs. Seleccionar respuestas explícitamente, pre
 y revisar pares disponibles y faltantes. Usar pares del diseño sólo escribe Pares
 JSON; Calcular pares y Guardar pares congelados siguen siendo acciones separadas.
 Importar/aplicar preset conserva respuestas seleccionadas y descarta preview viejo.
+
+El último transporte conserva un borrador en la sesión de pestaña, incluyendo
+closed cuando se desmonta el player. Registros de transporte permite guardarlo o
+exportarlo después de cerrar player/recargar, sin reproducir. Preparar otro ensayo
+lo reemplaza. Cerrar pestaña/crash no garantiza conservación ni evento closed: para
+copia durable guardar en servidor local o exportar antes.
