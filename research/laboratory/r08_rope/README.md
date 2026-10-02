@@ -354,3 +354,17 @@ settings efectivos/frame/PTS/limits de máscara calculada por separado del
 textarea editable, para no atribuir overlay a ajustes todavía no calculados.
 Build pasó. Pendiente persistencia de propuestas/manifest y benchmark
 corporal humano; este test no demuestra discriminación de soga frente a fondo.
+
+### Corte 28: persistencia de propuestas sin imagen copiada
+
+`rope_mask_run.run` recibe request de hash/dimensiones/frame/PTS/settings,
+resuelve y recalcula contra fuente local exacta, revalida antes de publicar
+manifest. Guarda sólo tres JSON request/result/manifest; no PNG/video ni ruta.
+Código (incluido lector/decoder), entorno Python/NumPy/SciPy/OpenCV y hashes
+registrados. `verify(folder)` comprueba integridad y bindings, **no recálculo**;
+`verify(folder,path=video)` requiere código/entorno actuales y recalcula para
+rechazar modificación numérica aun con checksum reescrito. Una propuesta
+persistida sigue sin ser curva aceptada. Test real MP4 sintético pasó:
+repeat bytes, sólo JSON, rebind, alteración numérica y cambio de fuente.
+Pendiente servicio/API/UI y control semántico más exhaustivo sin fuente;
+metadatos de versiones no prueban mismo build FFmpeg ni custodia firmada.
