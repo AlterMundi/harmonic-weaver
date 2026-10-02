@@ -514,3 +514,7 @@ de calibración; hardware/experimentos y roadmap siguen pendientes.
 R09 corte 20: núcleo de comparación causal de streams con unidades/marco/reloj
 comunes, edad/incertidumbre y opt-in inferred/held, cobertura/causas explícitas.
 Dos tests pasaron; persistencia/API/UI y calibración/reference físicas pendientes.
+
+R09 corte 21: runner/servicio/API de comparaciones congeladas con recálculo,
+inventario/descargas y recuperación. Cinco tests pasaron; web, procedencia resuelta,
+idempotencia y referencia física pendientes. Inputs importados declarados.

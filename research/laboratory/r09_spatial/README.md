@@ -265,3 +265,17 @@ de marcos/unidades/relojes/labels incompatibles. Causalidad es respecto a tiempo
 declarados, no garantía ante clock incorrecto. Igual nombre de marco no autentica
 extrínsecos. Pendientes persistencia/API/UI, procedencia de comparación, matrices
 calibradas verificadas y referencia física independiente; no benchmark 3D real.
+
+## Corte 21 · Comparaciones congeladas por API
+
+`spatial_compare_run/service` conserva ambos streams y settings en request,
+resultado y manifest. Recálculo exacto actual, binding/hash/archivos regulares y
+estabilidad; lectura histórica explícita. POST/GET `/api/research/r09/comparisons`
+y GET `/{id}/artifacts/{name}` permiten guardar/listar/exportar/reabrir sin fuentes
+live. Importados son declarados, no origen autenticado; no ajuste de calibración.
+
+Cinco tests núcleo/runner/HTTP pasaron (0,90 s): métrica conocida, entradas
+congeladas, resultado alterado con hash reescrito rechazado, binding histórico,
+symlink/sobrescritura, exportación/reinicio e incompatibilidad de marco.
+Pendientes web, resolución de IDs de conversiones/procedencia, idempotencia y
+comparación física independiente. No medios privados ni audio modificados.
