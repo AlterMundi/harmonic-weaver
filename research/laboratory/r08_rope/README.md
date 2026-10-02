@@ -815,3 +815,28 @@ cancelación/red específica de recálculo e inicio perdido (verificación es s�
 lectura), decoder secuencial/rendimiento y benchmark humano. Cambios de código/
 entorno en históricos se rechazan: recálculo actual no migra resultados viejos
 ni falsea verificación. Audio/defaults y demás roadmap intactos.
+
+### Corte 55: evidencia de recálculo persistida y descargable
+
+Coincidencias completas guardan directorio UUID nuevo en
+research/r08-flow-verifications con report/manifest JSON: ID original, hash de
+su manifest, UTC de comprobación, código/entorno del cálculo y código del
+productor de evidencia. Canceladas/fallidas no reciben marca recomputed.
+Lectura exige archivos regulares <=64 KiB, hashes y contrato estricto de
+reporte con timestamp UTC/IDs/código válidos; devuelve registro histórico,
+no recalcula ni prueba exactitud/custodia por hashes.
+
+GET `/api/research/r08/flow-verifications?source_run_id=...` lista evidencia
+histórica por corrida; GET `/{id}/artifacts/{name}` descarga report/manifest.
+Report por ID puede recuperarse tras restart. Web lista historial y descargas,
+separado del estado del recálculo actual; reload conserva registro histórico
+sin marca de comprobación actual de fuente. Originales intactos.
+
+Dos tests backend pasaron (1.37 s): persistencia/restart, source alterada,
+cancelación viva y rechazo de UTC malformado con checksum reescrito. Chrome
+pasó recálculo real sintético, descarga nativa de report, bytes originales,
+borrador/reload e historial sin marca actual (2 s; suite 2.7 s); build pasó y
+servidores detenidos. Un checksum reescrito con reporte semánticamente válido
+no es detectable como falsificación: no hay firma/custodia externa. Pendientes
+browser cancel/red específicos de recálculo, decoder secuencial/rendimiento,
+benchmark humano y demás líneas abiertas. Audio/defaults intactos.

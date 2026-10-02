@@ -17,10 +17,15 @@ test('explicit web recomputation reports source match without rewriting artifact
  await expect(page.getByText(/Recálculo temporal R08: complete.*Coincidió contra la fuente/)).toBeVisible();
  await page.getByText('Evidencia del recálculo temporal R08',{exact:true}).click();
  await expect(page.getByText(/Manifest ligado al recálculo/)).toBeVisible();
+ await expect(page.getByText(/Evidencia histórica de recálculo:/)).toBeVisible();
+ const download=page.waitForEvent('download');
+ await page.getByRole('link',{name:'Descargar evidencia temporal report.json',exact:true}).click();
+ expect((await download).suggestedFilename()).toBe('report.json');
  for(const [i,url] of urls.entries())expect(await(await page.request.get(url)).body()).toEqual(before[i]);
  await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(draft);
  await page.reload();await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
  await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
  await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
  await expect(page.getByText(/Coincidió contra la fuente en este recálculo/)).toHaveCount(0);
+ await expect(page.getByText(/Evidencia histórica de recálculo:/)).toBeVisible();
 });

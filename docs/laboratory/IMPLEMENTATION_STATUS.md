@@ -353,3 +353,9 @@ marca recomputed ligada al manifest original sin reescribir artifacts. Dos
 tests backend (1.36 s) y Chrome (1 prueba, 2.6 s) pasaron, build pasó. README
 corte 54: evidencia efímera, persistencia/export y browser cancel/red del
 recálculo pendientes; decoder secuencial y benchmark humanos siguen abiertos.
+
+R08 evidencia persistida/exportable de recálculos coincidentes: report/manifest
+con UTC/código/entorno y vínculo a manifest original, API/historial/descargas web.
+Dos tests backend (1.37 s), Chrome (1 prueba, 2.7 s) y build pasaron. README
+corte 55: lectura histórica por integridad, sin verificación actual ni custodia
+firmada. Browser cancel/red del recálculo, rendimiento y benchmark pendientes.

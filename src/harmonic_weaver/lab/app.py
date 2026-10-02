@@ -442,6 +442,13 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def rope_flow_reverify(ident:str,body:RopeBinding):
         return rope_flow_verification.start(ident,rope_media_path(body.media_id))
 
+    @app.get('/api/research/r08/flow-verifications')
+    def rope_flow_verification_list(source_run_id:str|None=None):return rope_flow_verification.list(source_run_id)
+
+    @app.get('/api/research/r08/flow-verifications/{ident}/artifacts/{name}')
+    def rope_flow_verification_artifact(ident:str,name:str):
+        return FileResponse(rope_flow_verification.artifact(ident,name),filename=name)
+
     @app.get('/api/research/r08/flow-verifications/{ident}')
     def rope_flow_verification_report(ident:str):return rope_flow_verification.report(ident)
 
