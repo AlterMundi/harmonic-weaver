@@ -59,10 +59,31 @@ Every source frame has a synthetic source time and a later logical availability
 time. `read_models` resets on stream/person discontinuities through the
 production facade. Prediction rows record origin, latest feature, availability,
 and target start. The held-out units are whole synthetic sessions, not random
-frames. Comparisons over missing features use identical observed timestamps and
-units. Values in the JSON retain IEEE-754 precision; interpret near-zero and
+frames. Comparisons require matching observation identities, observed validity,
+and measurement units. Values in the JSON retain IEEE-754 precision; interpret near-zero and
 cross-platform differences with numerical tolerances (typically `1e-6`), not
 bitwise equality. The digest verifies repeats in the **same pinned environment**.
+
+## Epoch identity in the research adapter
+
+`read_models` preserves `source_id`, `stream_id`, `person_id`, `sequence`, and
+source time in every output record. A loop or backward seek within one source
+needs a distinct `stream_id`; reusing an earlier epoch with a repeated or
+backward time is rejected even if other epochs intervene. Source changes also
+reset the adapter's model history when different sessions reuse a stream name.
+
+`common_observed` aligns by the exact tuple
+`(source_id, stream_id, person_id, source_time_s)` and returns
+`(identity_tuple, left_value, right_value)` for each common observed signal.
+`sequence` is retained for inspection; timestamps identify observations within
+their declared epoch. Both inputs are checked for duplicate identities before
+filtering missing signals. Ambiguous duplicates and legacy records lacking
+identity raise `ValueError`. There is no fallback to time alone or epoch order.
+
+Compared conditions must preserve shared observation identities. For separately
+named sessions, the caller must establish correspondence explicitly before
+comparison. These IDs describe a source and its epoch, not an algorithm or
+condition label. Reordered or omitted epochs therefore cannot cross-match.
 
 ## Scope and next interface questions
 
