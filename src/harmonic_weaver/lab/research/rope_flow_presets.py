@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Literal
 import re
-from pydantic import Field
+from pydantic import Field,model_serializer
 from ..contracts import Contract
 from ..cache import atomic_json
 from .rope_flow import Settings
@@ -12,6 +12,13 @@ from .rope_flow import Settings
 class Configuration(Contract):
     frames:int=Field(default=10,ge=2,le=120)
     settings:Settings=Field(default_factory=Settings)
+    decoder:Literal['individual_png','sequential_png']='individual_png'
+
+    @model_serializer(mode='wrap')
+    def serialize(self,handler):
+        data=handler(self)
+        if self.decoder=='individual_png':data.pop('decoder',None)
+        return data
 
 
 class Preset(Contract):

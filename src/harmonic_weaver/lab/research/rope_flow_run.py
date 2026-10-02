@@ -6,7 +6,8 @@ import re
 from pathlib import Path
 import cv2
 import numpy as np
-from pydantic import Field,model_validator
+from pydantic import Field,model_validator,model_serializer
+from typing import Literal
 from ..contracts import Contract,Number
 from ..cache import atomic_json,sha256_file
 from .rope_annotations import Point
@@ -14,6 +15,7 @@ from .rope_flow import RopeFlow,Settings
 from .rope_reader import RopeReader
 from .rope_process import DecodeCancelled
 from .rope_flow_contract import validate_frames
+from .rope_sequence import sequence
 
 
 class Request(Contract):
@@ -24,6 +26,13 @@ class Request(Contract):
     frame_times_s:list[Number]=Field(min_length=2,max_length=120)
     seeds:list[Point]=Field(min_length=1,max_length=4096)
     settings:Settings=Field(default_factory=Settings)
+    decoder:Literal['individual_png','sequential_png']='individual_png'
+
+    @model_serializer(mode='wrap')
+    def serialize(self,handler):
+        data=handler(self)
+        if self.decoder=='individual_png':data.pop('decoder',None)
+        return data
 
     @model_validator(mode='after')
     def valid(self):
@@ -39,7 +48,7 @@ def environment():
 
 def code():
     return {name:sha256_file(Path(__file__).parent/name) for name in
-            ('rope_flow.py','rope_flow_contract.py','rope_flow_run.py','rope_annotations.py','rope_reader.py','rope_media.py','rope_process.py','../contracts.py')}
+            ('rope_flow.py','rope_flow_contract.py','rope_flow_run.py','rope_sequence.py','rope_annotations.py','rope_reader.py','rope_media.py','rope_process.py','../contracts.py')}
 
 
 def check_cancel(cancel):
@@ -53,13 +62,16 @@ def calculate(request,path,reader=None,*,cancel=None):
     times=media['frame_times_s'][request.start_frame_index:request.start_frame_index+len(request.frame_times_s)]
     if times!=request.frame_times_s:raise ValueError('Flow source clock mismatch; use exact probe timestamps')
     flow=RopeFlow(request.settings.model_dump());frames=[]
-    for offset,time_s in enumerate(request.frame_times_s):
-        check_cancel(cancel);index=request.start_frame_index+offset
-        png=reader.frame(path,index,request.media_sha256,cancel=cancel)
-        gray=cv2.imdecode(np.frombuffer(png,dtype=np.uint8),cv2.IMREAD_GRAYSCALE)
-        if gray is None or gray.shape!=(request.height_px,request.width_px):raise ValueError('Flow decoded dimensions mismatch')
-        check_cancel(cancel)
-        frames.append(flow.feed(gray,index,time_s,seeds=[p.model_dump() for p in request.seeds] if offset==0 else None))
+    pngs=sequence(path,request.start_frame_index,len(times),request.media_sha256,media,cancel=cancel) if request.decoder=='sequential_png' else (
+        reader.frame(path,request.start_frame_index+offset,request.media_sha256,cancel=cancel) for offset in range(len(times)))
+    try:
+        for offset,png in enumerate(pngs):
+            check_cancel(cancel);index=request.start_frame_index+offset;time_s=request.frame_times_s[offset]
+            gray=cv2.imdecode(np.frombuffer(png,dtype=np.uint8),cv2.IMREAD_GRAYSCALE)
+            if gray is None or gray.shape!=(request.height_px,request.width_px):raise ValueError('Flow decoded dimensions mismatch')
+            check_cancel(cancel)
+            frames.append(flow.feed(gray,index,time_s,seeds=[p.model_dump() for p in request.seeds] if offset==0 else None))
+    finally:pngs.close()
     if reader.probe(path,cancel=cancel)['media_sha256']!=request.media_sha256:raise ValueError('Flow source changed during calculation')
     return {'schema_version':1,'line':'R08','request':request.model_dump(),'frames':frames,
             'limits':frames[0]['limits']+['Exact decoded frame indices and source timestamps; no video/image copies persisted',

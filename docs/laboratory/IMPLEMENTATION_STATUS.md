@@ -366,3 +366,9 @@ Cinco cuadros privados autorizados: 11.123 s individual vs 2.699 s secuencia,
 igualdad exacta, sin archivos/copias; probe aparte 15.747 s. README corte 56:
 una medición local, no realtime. Integración en flow/UI/presets todavía pendiente;
 defaults/audio intactos, benchmark humano y demás roadmap abierto.
+
+R08 decoder integrado/configurable: individual_png default, sequential_png
+opt-in congelado en request y presets, selector web/JSON; consumo cerrado en
+finally y paridad de features. Once tests backend (5.02 s), preset API (0.78 s),
+dos recorridos Chrome (4.2 s) y build pasaron. README corte 57 preserva alcance:
+medición integrada/VFR/benchmark humanos y demás roadmap pendientes; audio intacto.

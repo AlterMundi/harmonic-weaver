@@ -5,6 +5,7 @@ test('named temporal presets export import and apply parameters only',async({pag
  const prepare=async()=>{await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();await expect(page.getByText(/Imagen decodificada/)).toBeVisible();};
  await prepare();const before=await page.getByLabel('Anotación R08 JSON').inputValue();
  await page.getByLabel('Configuración temporal portable R08').fill('{"frames":3,"settings":{"max_gap_s":0.08}}');
+ await page.getByLabel('Decoder temporal R08').selectOption('sequential_png');
  const seeds='[{"x":0.5,"y":0.5}]';await page.getByLabel('Seeds temporales R08').fill(seeds);
  await page.getByLabel('Nombre de preset temporal R08').fill('Prueba portable');
  await page.getByRole('button',{name:'Guardar preset temporal R08',exact:true}).click();
@@ -14,6 +15,7 @@ test('named temporal presets export import and apply parameters only',async({pag
  expect(download.suggestedFilename()).toMatch(/^rope-flow-[a-f0-9]{32}\.json$/);
  const exported=await(await page.request.get(origin+await link.getAttribute('href'))).json();
  expect(exported.config.frames).toBe(3);expect(exported.config.settings.max_gap_s).toBe(.08);
+ expect(exported.config.decoder).toBe('sequential_png');
  expect(exported.seeds).toBeUndefined();expect(exported.config.media_id).toBeUndefined();
  await page.getByLabel('Importar preset temporal R08').setInputFiles((await download.path())!);
  await expect(apply).toHaveCount(2);

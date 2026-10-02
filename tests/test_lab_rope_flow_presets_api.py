@@ -3,7 +3,7 @@ from harmonic_weaver.lab.app import create_app
 
 
 def test_portable_flow_presets_strict_export_import_and_restart(tmp_path):
-    body={'name':'Contraste temporal','config':{'frames':12,'settings':{'max_gap_s':.08}}}
+    body={'name':'Contraste temporal','config':{'frames':12,'decoder':'sequential_png','settings':{'max_gap_s':.08}}}
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         response=client.post('/api/research/r08/flow-presets',json=body)
         assert response.status_code==200;ident=response.json()['id']
@@ -11,6 +11,7 @@ def test_portable_flow_presets_strict_export_import_and_restart(tmp_path):
         assert exported.status_code==200 and 'attachment' in exported.headers['content-disposition']
         portable=exported.json();assert 'id' not in portable
         assert portable['config']['settings']['max_gap_s']==.08
+        assert portable['config']['decoder']=='sequential_png'
         for forbidden in ('seeds','media_id','calibration','request'):
             assert client.post('/api/research/r08/flow-presets',json={**body,forbidden:[]}).status_code==422
             assert client.post('/api/research/r08/flow-presets',json={**body,'config':{**body['config'],forbidden:[]}}).status_code==422

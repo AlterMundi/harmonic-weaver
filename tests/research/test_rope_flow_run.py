@@ -66,3 +66,31 @@ def test_request_budgets_and_gap_reset(tmp_path):
     result=calculate({**request,'settings':{'max_gap_s':.05}},video,reader)
     assert [f['status'] for f in result['frames']]==['seeded','reset','reset']
     assert all(row['point'] is None for f in result['frames'][1:] for row in f['rows'])
+
+
+def test_decoder_feature_parity_repeat_and_frozen_selection(tmp_path):
+    video,reader,request=source(tmp_path)
+    individual=calculate(request,video,reader)
+    sequential=calculate({**request,'decoder':'sequential_png'},video,reader)
+    assert sequential['frames']==individual['frames']
+    assert 'decoder' not in individual['request'] # Historical/default shape preserved.
+    assert sequential['request']['decoder']=='sequential_png'
+    a=tmp_path/'seq-a';b=tmp_path/'seq-b'
+    run({**request,'decoder':'sequential_png'},video,a,reader)
+    run({**request,'decoder':'sequential_png'},video,b,reader)
+    assert (a/'result.json').read_bytes()==(b/'result.json').read_bytes()
+    assert verify(a,path=video,reader=reader)['status']=='complete'
+    with pytest.raises(ValueError):Request.model_validate({**request,'decoder':'unknown'})
+
+
+def test_sequential_generator_closed_on_tracking_cancellation(tmp_path,monkeypatch):
+    import harmonic_weaver.lab.research.rope_flow_run as module
+    video,reader,request=source(tmp_path);event=threading.Event();closed=[]
+    def interrupted(*args,**kwargs):
+        try:
+            png=reader.frame(video,request['start_frame_index'],request['media_sha256'])
+            event.set();yield png
+        finally:closed.append(True)
+    monkeypatch.setattr(module,'sequence',interrupted)
+    with pytest.raises(DecodeCancelled):run({**request,'decoder':'sequential_png'},video,tmp_path/'cancelled',reader,cancel=event)
+    assert closed==[True] and not (tmp_path/'cancelled').exists()

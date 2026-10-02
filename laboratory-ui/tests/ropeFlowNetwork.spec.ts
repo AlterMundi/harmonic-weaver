@@ -6,6 +6,7 @@ test('temporal flow config and recovery preserve manual annotations',async({page
  await prepare();const draft=page.getByLabel('Anotación R08 JSON'),before=await draft.inputValue();
  await page.getByLabel('Configuración temporal portable R08').fill(JSON.stringify({frames:3,settings:{max_gap_s:.05}}));
  await page.getByLabel('Seeds temporales R08').fill('[{"x":0.5,"y":0.5}]');
+ await page.getByLabel('Decoder temporal R08').selectOption('sequential_png');
  let starts=0,interrupted=false;
  page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/api/research/r08/flow'))starts++;});
  await page.route(/\/api\/research\/r08\/flow\/[a-f0-9]{32}$/,route=>{
@@ -34,12 +35,14 @@ test('temporal flow config and recovery preserve manual annotations',async({page
  const jobs=await(await page.request.get(`${origin}/api/research/r08/flow`)).json();expect(jobs).toHaveLength(1);
  const result=await(await page.request.get(`${origin}/api/research/r08/flow/${jobs[0].id}/artifacts/result.json`)).json();
  expect(result.frames.map((f:any)=>f.status)).toEqual(['seeded','reset','reset']);
+ expect(result.request.decoder).toBe('sequential_png');
  await page.reload();await prepare();
  await page.getByRole('button',{name:'Ver corrida temporal R08',exact:true}).click();
  await expect(page.getByText(/Resultado temporal R08: 3 cuadros/)).toBeVisible();
  await page.getByRole('button',{name:'Recuperar sólo configuración temporal R08',exact:true}).click();
  const config=JSON.parse(await page.getByLabel('Configuración temporal portable R08').inputValue());
  expect(config.frames).toBe(3);expect(config.settings.max_gap_s).toBe(.05);expect(config.seeds).toBeUndefined();
+ expect(config.decoder).toBe('sequential_png');
  expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
  await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
 });

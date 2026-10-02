@@ -869,3 +869,28 @@ ni promesa realtime. Coste de probe aparte; ventana corta incluye preroll.
 configurable/congelada y presets, pruebas de paridad de features/manifest y
 cancelación integrada. No cambiar default hasta evidenciar esa integración.
 Benchmark humano, cruces/uncertainty y resto de roadmap pendientes.
+
+### Corte 57: decoder configurable e integrado a flow y presets
+
+Request y config portable admiten decoder individual_png (default existente) o
+sequential_png. Default se omite en serialización conservando shape de requests
+y presets históricos; secuencial queda explícito en request/result/preset.
+Flow consume stream PNG exacto por mismo núcleo grayscale/clock/Settings; finally
+cierra generador ante cancelación/fallo de tracking y fuente se comprueba al
+agotar stream y después del cálculo. Código de sequence incluido en manifest.
+Selector web y JSON controlan modalidad; recuperar configuración y export/import
+de preset conservan decoder sin seeds/fuente/calibración. No auto-migración de
+artifacts de otra versión ni cambio del default/audio.
+
+Once tests backend pasaron (5.02 s): pixel/feature parity, repeat secuencial,
+verificación fuente, contratos/cancel/close/timeout e integración/API anteriores.
+Preset con modalidad secuencial pasó prueba API propia (0.78 s). Chrome pasó
+dos recorridos (suite 4.2 s): seq real sintético, interrupción de polling/mismo
+job, recuperación de configuración, overlay/reset y preset descargado/importado
+con decoder, seeds/borrador intactos. Build pasó; servidor propio detenido.
+Cancelación de tracking prueba cierre del stream con generador instrumentado;
+terminación de decoder real pertenece a tests de sequence, no confundir ambos.
+
+Mejora de tiempos anterior no se generaliza a toda corrida ni realtime. Pendientes
+medición integrada sobre segmentos locales, datos VFR y modalidades difíciles,
+benchmark humano contra anotaciones, incertidumbre/cruces y demás roadmap.
