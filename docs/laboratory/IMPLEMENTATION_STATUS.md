@@ -1215,3 +1215,19 @@ dirección/IDs en descarga, edición limpia preview; suite previa pasa. Núcleo 
 (0,40 s), ahora incluye estímulo/repetición diferentes rechazados. Pendientes
 manifest/guardar/recovery de pares, presets de contrastes y cierre duradero.
 Fixtures sintéticos/audio silenciado, no aceptación humana. Defaults intactos.
+
+
+## Corte 28 · Manifest/servicio/API de pares congelados
+
+experience_pairs_run guarda input/result/manifest, hashes/código/entorno y
+verificación por recálculo; histórico verifica binding de input sin afirmar cálculo
+actual. PairService publica sólo fuentes con hashes coincidentes al preview, revalida
+al terminar y limpia carpeta nueva ante fallo. ID por pares+fuentes recupera retry
+tras restart sin originales. API POST/GET pairs y GET pairs/{id}/artifacts/{name}.
+
+Ocho pruebas núcleo/runner/servicio/API pasaron (3,24 s): paridad preview, sin
+originales, retry/export/listado tras restart, delta alterado con hash actualizado
+rechazado, histórico explícito e input distinto rechazado. Warning AnyIO sin fallo.
+Pendientes guardar/recovery/reabrir pares desde web, inyección de fallo específica
+de PairService, presets de contrastes y cierre duradero. Sin cambios de sonido,
+defaults ni datos humanos nuevos; no causalidad/aceptación científica acreditadas.

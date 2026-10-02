@@ -27,6 +27,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.experience_pairs_service import PairService, SaveRequest as ExperiencePairSaveRequest
 from .research.experience_pairs import Selection as ExperiencePairSelection, preview as preview_experience_pairs
 from .research.experience_analysis_service import AnalysisService, SaveRequest as ExperienceAnalysisSaveRequest
 from .research.experience_analysis import Selection as ExperienceAnalysisSelection, analyze as analyze_experience
@@ -294,6 +295,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     experience_transports = TransportService(data_dir)
     experience_responses = ResponseService(data_dir)
     experience_analyses = AnalysisService(data_dir)
+    experience_pairs = PairService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -475,6 +477,17 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r10/pairs')
+    def experience_pair_save(body:ExperiencePairSaveRequest):
+        return experience_pairs.start(experience_responses,body)
+
+    @app.get('/api/research/r10/pairs')
+    def experience_pair_list():return experience_pairs.list()
+
+    @app.get('/api/research/r10/pairs/{ident}/artifacts/{name}')
+    def experience_pair_artifact(ident:str,name:str):
+        return FileResponse(experience_pairs.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r10/pairs-preview')
     def experience_pairs_preview(body:ExperiencePairSelection):
