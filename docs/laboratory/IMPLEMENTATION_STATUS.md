@@ -1124,3 +1124,19 @@ Ocho pruebas núcleo/API pasaron (2,63 s), más dos del núcleo repetidas tras v
 identidad: cálculo idéntico sin original, selección/trial/ratings contradictorios
 rechazados. API preservada. Pendientes runner/manifest y guardado/recovery web del
 análisis; contraste pareado y aceptación humana siguen abiertos. Defaults intactos.
+
+
+## Corte 22 · Runner y manifest de análisis congelado
+
+experience_analysis_run publica request/result/manifest en directorio nuevo,
+sha256 de entrada/salida, código y entorno Python/metric. Verificador chequea
+inventario, regularidad/tamaño, binding selection/sources aun histórico y recálculo
+completo sólo si código/entorno coinciden. Histórico dice integridad solamente;
+status complete describe artefactos, no roadmap/exposición/validez científica.
+
+Tres pruebas runner/núcleo pasaron (0,40 s), runner repetido tras limpieza import:
+resultado igual a preview, recálculo sin original, overwrite prohibido, mediana
+alterada con hash actualizado rechazada por recálculo, lectura histórica explícita
+y fuentes distintas rechazadas aun con hashes rehechos. Hashes no custodia firmada.
+Pendientes servicio/recibos, API y guardar/reabrir web del análisis; pareados y
+aceptación humana. Sin defaults/sonido ni datos privados nuevos.
