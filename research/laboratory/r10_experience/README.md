@@ -227,3 +227,17 @@ Dos pruebas pasaron (0,12 s): retroceso/epoch, secuencia/reloj/posición, NaN y 
 deshabilitado; resumen repetible sin métrica de exposición inventada. Es un contrato
 aún no conectado al player ni persistido/API/UI. Esos entregables siguen pendientes.
 Sin cambios de defaults, sonido, hardware ni medios corporales.
+
+
+## Corte 10 · Vinculación de transporte al protocolo
+
+bind_protocol verifica artefactos R10 y hash manifest declarado, trial existente,
+duración y gates exactos; revalida manifest al terminar. Recupera role/slot, trial
+y fuentes congelados, sin tomar identidad ni condición del cliente como evidencia.
+No revalida disponibilidad actual de medios ni demuestra exposición. Acepta planes
+declarados sin fuentes, identificados por lista vacía, sin inventar media.
+
+Cinco pruebas de transporte y runner pasaron (0,34 s), incluyendo reapertura del
+servicio, rechazo de hash/trial/duración/gates contradictorios y artefacto alterado.
+Pendientes persistencia con recibos, API, captura de eventos en player y exportación
+web. Defaults y experiencia sonora intactos.

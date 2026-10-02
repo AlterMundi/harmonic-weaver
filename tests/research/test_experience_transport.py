@@ -31,3 +31,26 @@ def test_gaps_clock_nonfinite_and_disabled_media_rejected():
     data=trace();data['events'][0]['audio']=dict(current_time_s=0,paused=True,
         muted=True,volume=1,ready_state=2,seeking=False,ended=False,playback_rate=1)
     with pytest.raises(ValueError): Trace.model_validate(data)
+
+
+def test_binding_uses_verified_protocol_and_rejects_mismatched_trial(tmp_path):
+    from harmonic_weaver.lab.research.experience_service import ExperienceService
+    from harmonic_weaver.lab.research.experience_transport import bind_protocol
+    from harmonic_weaver.lab.cache import sha256_file
+    from test_experience_protocol import data
+    service=ExperienceService(tmp_path)
+    saved=service.start({'protocol':data()})
+    body=trace()
+    body.update(protocol_id=saved['id'],
+        protocol_manifest_sha256=sha256_file(service.artifact(saved['id'],'manifest.json')),
+        duration_s=60)
+    bound=bind_protocol(service,body)
+    assert bound['participant_slot']=='anonymous-slot'
+    assert bound['role']=='observer' and bound['sources']==[]
+    assert bound==bind_protocol(ExperienceService(tmp_path),body)
+    for change in [dict(protocol_manifest_sha256='f'*64),dict(trial_id='unknown'),
+                   dict(duration_s=2),dict(video_enabled=False),dict(audio_enabled=True)]:
+        with pytest.raises(ValueError):bind_protocol(service,{**body,**change})
+    artifact=service.artifact(saved['id'],'result.json')
+    artifact.write_text('{}')
+    with pytest.raises(ValueError):bind_protocol(service,body)

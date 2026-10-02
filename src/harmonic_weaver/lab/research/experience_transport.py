@@ -72,3 +72,33 @@ def summarize(trace):
                        'Nominal end does not establish complete or uninterrupted exposure',
                        'No exposure duration inferred between sparse events',
                        'Muted/volume state does not establish physical level or human hearing']}
+
+
+def bind_protocol(protocols, trace):
+    """Bind declared telemetry to verified frozen artifacts, not current media availability."""
+    import json
+    from ..cache import sha256_file
+    trace = Trace.model_validate(trace)
+    manifest = protocols.artifact(trace.protocol_id, 'manifest.json')
+    digest = sha256_file(manifest)
+    if digest != trace.protocol_manifest_sha256:
+        raise ValueError('Transport protocol manifest differs from frozen declaration')
+    result = json.loads(protocols.artifact(trace.protocol_id, 'result.json').read_text())
+    trial = next((t for t in result['trials'] if t['trial_id'] == trace.trial_id), None)
+    if trial is None:
+        raise ValueError('Transport references unknown trial')
+    if (trace.duration_s != trial['end_s'] - trial['start_s'] or
+            trace.video_enabled != trial['video_enabled'] or
+            trace.audio_enabled != trial['audio_enabled']):
+        raise ValueError('Transport duration or media gates differ from frozen trial')
+    if sha256_file(protocols.artifact(trace.protocol_id, 'manifest.json')) != digest:
+        raise ValueError('Protocol changed during transport binding')
+    return {'protocol_manifest_sha256': digest, 'trial': trial,
+            'participant_slot': result['request']['participant_slot'],
+            'role': result['request']['role'],
+            'sources': [s for s in result.get('sources', [])
+                        if s['stimulus_id'] == trial['stimulus_id']],
+            'summary': summarize(trace),
+            'limits': ['Frozen protocol verified; referenced media are not revalidated here',
+                       'Participant slot and role are declarations, not verified identity',
+                       'Browser events remain declared; binding does not prove exposure']}
