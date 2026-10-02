@@ -1,6 +1,6 @@
 """R08 manual image-plane rope evidence, explicitly incomplete under occlusion."""
 from typing import Literal
-from pydantic import Field,model_validator
+from pydantic import Field,model_validator,model_serializer
 import numpy as np
 from ..contracts import Contract,Number
 
@@ -17,9 +17,17 @@ class Frame(Contract):
     visible_segments:list[list[Point]]=Field(default_factory=list,max_length=64)
     causes:list[Literal['blur','occlusion','crossing_ambiguity','out_of_frame']]=Field(default_factory=list,max_length=4)
     note:str=Field(default='',max_length=2000)
+    endpoints:dict[Literal['a','b'],Point]=Field(default_factory=dict,max_length=2)
+
+    @model_serializer(mode='wrap')
+    def serialize(self,handler):
+        data=handler(self)
+        if not self.endpoints:data.pop('endpoints',None)
+        return data
 
     @model_validator(mode='after')
     def valid(self):
+        if self.state in ('absent','unidentifiable') and self.endpoints:raise ValueError('No invented endpoints for absent/unidentifiable rope')
         if any(len(s)<2 or len(s)>4096 for s in self.visible_segments):raise ValueError('Each visible polyline requires 2–4096 points')
         if self.state in ('absent','unidentifiable') and self.visible_segments:raise ValueError('No invented curve for absent/unidentifiable rope')
         if self.state in ('observed','partial') and not self.visible_segments:raise ValueError('Observed/partial rope requires visible segments')
@@ -57,9 +65,32 @@ def report(annotation):
         rows.append({'frame_index':frame.frame_index,'time_s':frame.time_s,'state':frame.state,
                      'visible_projected_length_px':length if frame.visible_segments else None,
                      'causes':frame.causes})
-    return {'schema_version':1,'line':'R08','annotation':annotation.model_dump(),'rows':rows,
+    result={'schema_version':1,'line':'R08','annotation':annotation.model_dump(),'rows':rows,
             'limits':['Manual annotations, not automatically verified tracking or participant identity',
                       'Image-plane projected visible length, not physical rope length',
                       'Disconnected segments are never joined through occlusion',
                       'A 2D crossing does not identify depth order, knot or 3D topology',
                       'Source hash and clocks declared; media binding verification remains separate']}
+
+    if any(f.endpoints for f in annotation.frames):
+        endpoint_rows=[];previous={}
+        for frame in annotation.frames:
+            current={}
+            for label,point in frame.endpoints.items():
+                xy=np.array([point.x*annotation.width_px,point.y*annotation.height_px])
+                old=previous.get(label)
+                valid=old is not None and old[0]==frame.frame_index-1
+                delta=(xy-old[2])/(frame.time_s-old[1]) if valid else None
+                endpoint_rows.append({'frame_index':frame.frame_index,'time_s':frame.time_s,'label':label,
+                    'x_px':float(xy[0]),'y_px':float(xy[1]),
+                    'velocity_x_px_s':float(delta[0]) if valid else None,
+                    'velocity_y_px_s':float(delta[1]) if valid else None,
+                    'speed_px_s':float(np.linalg.norm(delta)) if valid else None,
+                    'velocity_valid':valid,'cause':None if valid else 'no_consecutive_labeled_endpoint'})
+                current[label]=(frame.frame_index,frame.time_s,xy)
+            previous=current
+        result['endpoints']={'rows':endpoint_rows,'limits':[
+            'Endpoint a/b correspondence is declared manually, never inferred from position',
+            'Only consecutive decoded frame indices with the same visible label yield velocity',
+            'Gaps or missing labels reset support; image-plane px/s, not physical propagation speed']}
+    return result

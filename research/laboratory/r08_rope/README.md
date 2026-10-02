@@ -128,3 +128,16 @@ verificación independiente. Tres tests reader/API/media pasaron en 2.05 s,
 incluyendo conteos de probe/decode, presupuesto, copia e invalidación.
 Pendientes: trabajos observables/cancelables y medición con clips corporales;
 rehash completo sigue costando I/O y el primer decode continúa síncrono.
+
+### Corte 10: extremos explícitos y velocidad proyectada
+
+Cada frame visible admite `endpoints: {a?: {x,y}, b?: {x,y}}`; el editor
+permite elegir curva/extremo a/extremo b y borrar etiquetas. Correspondencia
+manual, no identidad inferida por posición. Frames absent/unidentifiable
+rechazan extremos inventados. El reporte calcula velocidad vectorial y
+módulo px/s sólo para la misma etiqueta en índices decodificados consecutivos;
+frames saltados, etiquetas ausentes o estado inválido reinician soporte.
+No constituye velocidad física ni propagación de tensión en la cuerda.
+Campos vacíos se omiten para conservar compatibilidad de revisiones previas.
+Seis tests de contratos/persistencia/API pasaron en 2.11 s; build web pasó.
+Interacción de extremos en navegador aún pendiente; curva ya fue verificada.
