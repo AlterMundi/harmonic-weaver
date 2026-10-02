@@ -250,3 +250,18 @@ silencioso ni traslado de observaciones. Conserva prueba de proyección/clipping
 Servidor aislado detenido. Fixtures 2D/3D declarados, no reconstrucción física ni
 aceptación humana; preset no verifica calibración, relojes ni interpretación entre
 fuentes. Medición física y líneas restantes siguen abiertas.
+
+## Corte 20 · Comparación causal en reloj común
+
+`spatial_compare` exige mismas dimensiones/unidades/marco y reloj común declarado.
+En cada tiempo de referencia toma último candidato <=t, limita edad e incertidumbre
+combinada; nunca busca mejor desfase, escala/rotación ni reasigna labels. Selección
+de labels explícita y opt-in para inferred/held. Devuelve causas, estados, edad,
+coverage, errores en unidades originales y nulos sin soporte.
+
+Dos tests pasaron (0,13 s): frame futuro excluido, gap candidato viejo, error conocido
+.5, cobertura 1/3, incertidumbre excesiva→sin soporte, opt-in de inferred y rechazo
+de marcos/unidades/relojes/labels incompatibles. Causalidad es respecto a tiempos
+declarados, no garantía ante clock incorrecto. Igual nombre de marco no autentica
+extrínsecos. Pendientes persistencia/API/UI, procedencia de comparación, matrices
+calibradas verificadas y referencia física independiente; no benchmark 3D real.

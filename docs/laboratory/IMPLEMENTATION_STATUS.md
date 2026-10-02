@@ -510,3 +510,7 @@ build pasaron; recorrido Chrome pendiente, junto con validación física.
 R09 corte 19: Chrome verificó guardar/exportar/importar/aplicar presets de vista y
 rechazo XZ sobre fuente 2D sin fallback (1,6 s). No validación física ni transferencia
 de calibración; hardware/experimentos y roadmap siguen pendientes.
+
+R09 corte 20: núcleo de comparación causal de streams con unidades/marco/reloj
+comunes, edad/incertidumbre y opt-in inferred/held, cobertura/causas explícitas.
+Dos tests pasaron; persistencia/API/UI y calibración/reference físicas pendientes.
