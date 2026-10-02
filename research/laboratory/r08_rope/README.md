@@ -894,3 +894,29 @@ terminación de decoder real pertenece a tests de sequence, no confundir ambos.
 Mejora de tiempos anterior no se generaliza a toda corrida ni realtime. Pendientes
 medición integrada sobre segmentos locales, datos VFR y modalidades difíciles,
 benchmark humano contra anotaciones, incertidumbre/cruces y demás roadmap.
+
+### Corte 58: VFR y medición integrada local
+
+Tres tests VFR pasaron (3.86 s): FFV1/Matroska, H264/MP4 con mux default y
+H264/MP4 sin edit list. Fixtures presentan intervalos .1/.3 s; un caso tiene
+origen PTS .2 s, normalizado por probe sin reconstruir clock a fps nominal.
+Pixel arrays entre individual/secuencia, frames de flujo y PTS coinciden
+exactamente; gap .3 s corta soporte y siguiente frame no reactiva seeds.
+Corrida congelada/recompute secuencial coincide.
+
+El primer fixture MP4 esperaba seis cuadros pero probe reportó cinco.
+Inspección independiente con FFmpeg rawvideo confirmó cinco decodificados,
+aunque metadata nb_frames declara seis. Sin edit list el fixture presenta
+seis, origen distinto; ambos casos se conservan. No cambiamos decoder para
+inventar cuadro/timestamp ausente ni inferimos comportamiento general de MP4
+a partir de este caso. Validación utiliza inventario real decodificado.
+
+Medición integrada privada autorizada, mismo fragmento/ventana de cinco cuadros:
+RopeReader.probe 16.146 s separado; calculate individual 15.515 s vs secuencial
+3.830 s, frames/features completos idénticos. Reader/metadata compartidos,
+individual sin cache inicial de imágenes, secuencial no usa esa cache; cache
+del sistema no controlada. Seeds diagnósticos arbitrarios, no etiqueta de soga,
+mano/persona ni calidad de tracking. Sin persistir resultados/imágenes/video.
+Sólo tiempos/paridad agregados publicados. Una corrida de este equipo no es
+promesa realtime ni experimento científico de cuerpo/HIT. No cambios de
+producción/defaults en este corte; benchmark humano y roadmap siguen abiertos.

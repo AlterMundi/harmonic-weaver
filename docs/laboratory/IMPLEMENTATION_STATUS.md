@@ -372,3 +372,11 @@ opt-in congelado en request y presets, selector web/JSON; consumo cerrado en
 finally y paridad de features. Once tests backend (5.02 s), preset API (0.78 s),
 dos recorridos Chrome (4.2 s) y build pasaron. README corte 57 preserva alcance:
 medición integrada/VFR/benchmark humanos y demás roadmap pendientes; audio intacto.
+
+R08 VFR/medición integrada: tres tests (3.86 s) verifican relojes variables,
+origen no cero, gap/reset y paridad pixel/features/recompute. MP4 de fixture
+presenta menos cuadros decodificados que nb_frames; rawvideo independiente
+confirma inventario, sin fabricar timestamps. Medición local cinco cuadros:
+individual 15.515 s vs secuencia 3.830 s, features idénticos; probe 16.146 s aparte.
+README corte 58 preserva controles/limitaciones y privacidad. Sin default nuevo;
+benchmark humano, más modalidades y demás roadmap pendientes.
