@@ -396,3 +396,8 @@ R08 corte 61: servicio/API de benchmark resuelve revisiones y flujos verificados
 congela hashes y rechaza cambios durante publicación. Nueve tests incluyendo video
 sintético, HTTP, reinicio y conservación de originales pasaron. UI pendiente;
 resolución local no equivale a revalidar el video ni la referencia humana.
+
+R08 corte 62: benchmark temporal integrado a web con mapeo explícito, cobertura,
+exclusiones, errores, inventario y descargas. Build y Chrome contra API/video
+sintético pasaron; calidad de referencias humanas no evaluada. Recuperación de
+respuesta POST perdida e idempotencia aún pendientes para este benchmark.

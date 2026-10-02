@@ -988,3 +988,20 @@ La resolución verifica artefactos locales al crear; no es firma/custodia ni
 revalidación del tracking contra el video actual. La referencia sigue siendo
 manual y no aceptada científicamente por esta prueba. Pendiente UI para elegir
 revisión y flujo, declarar el mapeo y mostrar error junto con cobertura/exclusiones.
+
+### Corte 62 — benchmark temporal en la web
+
+El panel R08 permite seleccionar revisión/corrida, actualizar inventario y declarar
+índices a/b (vacío excluye; duplicados bloqueados). No selecciona ni optimiza el
+mapeo automáticamente. Muestra soporte/elegibles, candidatos faltantes, exclusiones
+por ventana/semillas/etiqueta y media/máximo sobre soporte; nulos dicen sin soporte.
+Incluye JSON congelado, inventario histórico y descarga de los tres artefactos.
+Cambiar corrida limpia el mapeo; evaluar no modifica el borrador manual ni síntesis.
+
+Validación: build TypeScript/Vite pasó; Chrome con API y video sintético reales
+pasó selección explícita, bloqueo de mapeo vacío/duplicado, cobertura/exclusión,
+descarga nativa y recuperación tras reload sin crear otra corrida (1,7 s).
+Servidor aislado apagado. No hubo revisión de calidad manual ni aceptación humana.
+Pendiente recuperación de respuesta POST perdida/idempotencia del benchmark y
+selección asistida más legible con previews; no confundir métricas de imágenes
+observadas con forecasting, profundidad o identidad física.

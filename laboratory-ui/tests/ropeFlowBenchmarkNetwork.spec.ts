@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+test('explicit mapping coverage and persisted result',async({page})=>{
+ test.skip(!process.env.LAB_R08_BENCHMARK_URL,'isolated fixture required');
+ const origin=process.env.LAB_R08_BENCHMARK_URL!;
+ const post=async(path:string,data:any)=>(await page.request.post(`${origin}/api/research/r08${path?'/'+path:''}`,{data})).json();
+ const media=await post('probe',{media_id:'synthetic'});
+ const annotation={media_sha256:media.media_sha256,width_px:media.width_px,height_px:media.height_px,frames:[0,1,2].map(i=>({frame_index:i,time_s:media.frame_times_s[i],state:'observed',visible_segments:[[{x:.2,y:.2},{x:.5,y:.5}]],endpoints:{a:{x:.5,y:.5}}}))};
+ const ref=await post('',{media_id:'synthetic',annotation});
+ const job=await post('flow',{media_id:'synthetic',request:{media_sha256:media.media_sha256,width_px:media.width_px,height_px:media.height_px,start_frame_index:0,frame_times_s:media.frame_times_s.slice(0,3),seeds:[{x:.5,y:.5}]}});
+ await expect.poll(async()=>(await(await page.request.get(`${origin}/api/research/r08/flow/${job.id}`)).json()).status).toBe('complete');
+ await page.goto(origin);
+ const panel=page.getByRole('region',{name:'Benchmark temporal de extremos R08'});
+ await panel.getByLabel('Referencia temporal R08').selectOption(ref.id);
+ await panel.getByLabel('Corrida temporal R08').selectOption(job.id);
+ const start=panel.getByRole('button',{name:'Evaluar extremos R08',exact:true});await expect(start).toBeDisabled();
+ await panel.getByLabel('Semilla para extremo a R08').fill('0');await panel.getByLabel('Semilla para extremo b R08').fill('0');await expect(start).toBeDisabled();
+ await panel.getByLabel('Semilla para extremo b R08').fill('');await start.click();
+ await expect(panel.getByText(/entrada de semillas 1/)).toBeVisible();await expect(panel.getByText(/Soporte: .*\/2 extremos elegibles/)).toBeVisible();
+ const download=page.waitForEvent('download');await panel.getByRole('link',{name:'result.json',exact:true}).click();expect((await download).suggestedFilename()).toBe('result.json');
+ await page.reload();await expect(page.getByText(/Métrica recalculada sobre entradas congeladas/)).toBeVisible();
+ await page.getByRole('button',{name:'Ver benchmark R08',exact:true}).click();await expect(page.getByText(/entrada de semillas 1/)).toBeVisible();
+ expect((await(await page.request.get(`${origin}/api/research/r08/flow-benchmarks`)).json())).toHaveLength(1);
+});
