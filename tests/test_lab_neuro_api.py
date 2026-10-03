@@ -57,3 +57,18 @@ def test_snr_archive_api_repeat_restart_and_artifact_allowlist(tmp_path):
     with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
         assert len(client.get(url).json())==1
         assert client.get(f'{url}/{ident}/artifacts/result.json').content==result.content
+
+
+def test_explicit_csv_api_convert_then_archive_preserves_raw_digest(tmp_path):
+    from research.test_neuro_csv import request
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        body=request();converted=client.post('/api/research/r11/import-csv',json=body)
+        assert converted.status_code==200,converted.text
+        native=converted.json()['stream']
+        saved=client.post('/api/research/r11/observations',json=native)
+        assert saved.status_code==200,saved.text
+        ident=saved.json()['id']
+        reopened=client.get(f'/api/research/r11/observations/{ident}/artifacts/request.json').json()
+        assert reopened==native and reopened['raw_source_sha256']
+        body['csv_text']='index,time_ms,channel\n0,0,"unfinished'
+        assert client.post('/api/research/r11/import-csv',json=body).status_code==422

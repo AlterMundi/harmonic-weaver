@@ -2031,3 +2031,19 @@ Chrome UI/API real: POST aceptado/respuesta perdida, reload/retry idéntico, reg
 TypeScript/Vite pasa. Fixture aislado8898 detenido; laboratorio cotidiano intacto.
 Sólo componentes sintéticos conocidos, no EEG, SNR físico ni escucha humana.
 Dependencias de hardware/formatos reales/sync física permanecen en README R11/#25.
+
+## R11: importación CSV declarada — 2026-10-02
+
+Contrato/API/UI con metadata y mapeo explícitos, selección de columnas/delimitador/
+preamble/unidad temporal/tokens faltantes; export de mapping/procedencia y entrega
+al guardado nativo. Conserva amplitudes/unidades/cero/null/gaps y digest UTF-8;
+no unwrapping de contadores, inferencia de placa, filtrado ni escala automática.
+Archivo original y mapeo no se archivan con Stream; límite documentado en README.
+
+17 tests import/API pasan (1.48 s; warning AnyIO sin fallo) tras limitar expansión
+a16MiB; 13 controles importer pasan (0.24 s) incluyendo prueba adicional de
+expansión por64 canales faltantes. Build TypeScript/Vite pasa. Chrome UI/API real
+(1 test,2.1 s) verifica BOM+CRLF→hash exacto,0/null/.008, export de mapping en
+procedencia, convertir→guardar→reabrir y rechazo NaN sin resultado viejo. Fixture
+aislado8899 detenido; datos sintéticos, sin audio/hardware ni cambios cotidianos.
+No se certifica un formato OpenBCI real, acquisition clock físico ni EEG/SNR.
