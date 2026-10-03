@@ -1150,6 +1150,7 @@ function App() {
                     ? `Escala fija: ${state.calibration.torso_scale.toFixed(4)} · ${state.calibration.provenance}`
                     : "Sin calibración. El baseline conserva su escala adaptativa; los otros modelos requieren calibrar."}
                 </p>
+                {state.calibration_notice&&<p role="status">{state.calibration_notice}</p>}
                 <details>
                   <summary>Reutilizar calibración explícitamente</summary>
                   <select
