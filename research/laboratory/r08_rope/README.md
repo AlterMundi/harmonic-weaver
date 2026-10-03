@@ -1121,3 +1121,27 @@ abortó respuesta después del POST pareado aceptado, recargó y recuperó cuerp
 idénticos; confirmó un único banco, descarga y reapertura. Conserva recorrido del
 benchmark individual. Servidor aislado detenido. No cambios de audio/defaults ni
 medios privados; aceptación/calidad manual y ciencia siguen pendientes.
+
+### Corte 70 — frame original en contexto del benchmark
+
+El esquema inicial puede superponerse al PNG exacto del video original, opt-in.
+Elegir y preparar video en biblioteca R08; fuente/dimensiones y toda la ventana
+de timestamps deben coincidir con referencia/corrida antes de habilitar Mostrar.
+Reutiliza reads cancelables y lector con hash, índice decodificado y no-store;
+no seek aproximado, tracking nuevo ni copia persistida del video/imagen.
+
+Cambiar referencia/corrida/fuente recrea el contexto oculto y cancela sólo su
+lectura; respuesta aceptada demorada de otro contexto también se cancela cuando
+llega su ID. Ocultar retira imagen/cancela lectura; error deja esquema disponible.
+Las etiquetas se superponen sólo si la referencia anota el mismo frame inicial,
+sin trasladarlas desde otro tiempo ni inferir correspondencia por cercanía.
+
+Build pasó; Chrome con API/RopePanel/video sintético reales pasó (3.9 s):
+fuente sin preparar bloqueada, elección/preparación explícitas, request con
+frame/sha correctos, PNG cargado, ocultar, respuesta aceptada demorada/cambio
+de corrida/cancelación y no reaparece imagen. Conserva benchmark individual/
+pareado, cobertura, descargas y recuperación/reload. Cinco controles backend
+de benchmark/reader/jobs pasan (2.43 s). Servidores propios detenidos.
+Sin medios privados/audio/feedback humano; referencias de cuerda y calidad
+manual corporal siguen pendientes. La superposición ayuda a revisarlas, no
+las convierte en ground truth ni prueba topología/identidad físicas.

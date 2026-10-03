@@ -840,3 +840,14 @@ y mapear la columna temporal real. Inspeccionar antes de guardar/aplicar.
 La numeración no detecta muestras perdidas del dispositivo; tiempos y faltantes
 permanecen declarados. Default sigue columna del archivo. Formatos/versiones y
 presets portables en [SENSOR_CSV_TIME.md](SENSOR_CSV_TIME.md).
+
+### R08 · Verificar el mapeo sobre el frame original
+
+En Soga visible, elegir video de biblioteca y Preparar anotación. En Evaluar
+tracking de extremos elegir referencia/corrida compatibles. Mostrar frame
+original habilita el PNG exacto bajo semillas/etiquetas del frame inicial;
+Ocultar vuelve al esquema. Cambiar selección limpia/cancela la vista. Si el
+video preparado no coincide en hash/dimensiones/reloj, el botón queda bloqueado.
+No cambia borrador, correspondencias, métricas ni sonido; ayuda a revisar
+visualmente antes de declarar semilla→extremo. Referencia sin anotación inicial
+se informa sin trasladar extremos de otro tiempo. Imágenes sólo locales.

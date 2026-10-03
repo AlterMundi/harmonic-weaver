@@ -2656,3 +2656,18 @@ R12 CSV pasan (3.3 s). Build TypeScript/Vite pasa (1.21 s). Sólo fixtures
 sintéticos, sin hardware/datos corporales/audio. No acredita ausencia de muestras
 perdidas físicas; procedencia dice device_counter_observed=false. Defaults de
 import/audio conservados. Servidores propios detenidos tras estas comprobaciones.
+
+### R08 · Preview original del mapeo de extremos — 2026-10-03
+
+Chrome real sobre RopePanel/API y video sintético: 1 recorrido pasa (3.9 s).
+Botón bloqueado sin fuente preparada; lectura opt-in pide media/frame/hash
+correctos, imagen PNG cargada y overlay visible. Ocultar retira imagen; retener
+respuesta REAL del start mientras se cambia corrida provoca cancelación del
+job aceptado al recuperar ID, no muestra imagen obsoleta. Mantiene recorrido
+individual/pareado, POST perdidas, coverage, descarga y reapertura sin recálculo.
+
+Build pasa (1.23 s); cinco pruebas existentes de benchmark HTTP/lector/jobs
+pasan (2.43 s). Reutiliza decoder/servicios verificados; no nueva inferencia
+ni copia de video. Servidores aislados detenidos. Fixtures sintéticos, sin
+medios corporales/audio/dispositivos. Falta revisión manual corporal; esto
+verifica UI y contratos, no calidad de tracking/ground truth ni escucha.

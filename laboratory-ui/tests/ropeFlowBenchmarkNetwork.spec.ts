@@ -1,7 +1,11 @@
 import {test,expect} from '@playwright/test';
 test('explicit mapping coverage and persisted result',async({page})=>{
- test.skip(!process.env.LAB_R08_BENCHMARK_URL,'isolated fixture required');
- const origin=process.env.LAB_R08_BENCHMARK_URL!;
+ test.skip(!process.env.LAB_R08_BENCHMARK_URL&&!process.env.LAB_COMPONENT_TEST_URL,'isolated fixture required');
+ const origin=process.env.LAB_COMPONENT_TEST_URL||process.env.LAB_R08_BENCHMARK_URL!;
+ if(process.env.LAB_COMPONENT_TEST_URL)await page.route(origin+'/',route=>route.fulfill({contentType:'text/html',body:`<div id="test-root"></div><script type="module">
+ import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';import {RopePanel} from '/src/RopePanel.tsx';
+ const api=async(path,body)=>{const r=await fetch('/api/'+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await r.json();if(!r.ok){const e=new Error(JSON.stringify(value));e.status=r.status;throw e}return value};
+ ReactDOM.createRoot(document.getElementById('test-root')).render(React.createElement(RopePanel,{api}));</script>`}));
  const post=async(path:string,data:any)=>(await page.request.post(`${origin}/api/research/r08${path?'/'+path:''}`,{data})).json();
  const media=await post('probe',{media_id:'synthetic'});
  const annotation={media_sha256:media.media_sha256,width_px:media.width_px,height_px:media.height_px,frames:[0,1,2].map(i=>({frame_index:i,time_s:media.frame_times_s[i],state:'observed',visible_segments:[[{x:.2,y:.2},{x:.5,y:.5}]],endpoints:{a:{x:.5,y:.5}}}))};
@@ -13,6 +17,29 @@ test('explicit mapping coverage and persisted result',async({page})=>{
  await panel.getByLabel('Referencia temporal R08').selectOption(ref.id);
  await panel.getByLabel('Corrida temporal R08').selectOption(job.id);
  await expect(panel.getByLabel('Semillas y extremos en frame inicial R08')).toBeVisible();
+ const show=panel.getByRole('button',{name:'Mostrar frame original R08',exact:true});await expect(show).toBeDisabled();
+ await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
+ await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
+ await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
+ const frameRequest=page.waitForRequest(r=>r.url().endsWith('/api/research/r08/reads')&&r.method()==='POST');
+ await show.click();const requested=await frameRequest;
+ expect(requested.postDataJSON()).toEqual({media_id:'synthetic',frame_index:0,sha256:media.media_sha256});
+ await expect(panel.getByText(/^Frame original R08 0 verificado/)).toBeVisible();
+ await expect(panel.locator('svg image')).toHaveAttribute('href',/\/api\/research\/r08\/reads\/[a-f0-9]{32}\/result/);
+ await panel.getByRole('button',{name:'Ocultar frame original R08',exact:true}).click();await expect(panel.locator('svg image')).toHaveCount(0);
+ let release:()=>void=()=>{},accepted:()=>void=()=>{};
+ const held=new Promise<void>(resolve=>release=resolve),serverAccepted=new Promise<void>(resolve=>accepted=resolve);
+ await page.route('**/api/research/r08/reads',async route=>{
+  if(route.request().method()!=='POST'||route.request().postDataJSON().frame_index!==0){await route.continue();return}
+  const response=await route.fetch();accepted();await held;await route.fulfill({response});
+ });
+ await show.click();await serverAccepted;
+ await panel.getByLabel('Corrida temporal R08').selectOption('');
+ const cancelled=page.waitForRequest(r=>/\/api\/research\/r08\/reads\/[a-f0-9]{32}\/cancel$/.test(r.url()));release();await cancelled;
+ await page.unroute('**/api/research/r08/reads');
+ await panel.getByLabel('Corrida temporal R08').selectOption(job.id);
+ await expect(show).toBeVisible();await expect(panel.locator('svg image')).toHaveCount(0);
+
  const start=panel.getByRole('button',{name:'Evaluar extremos R08',exact:true});await expect(start).toBeDisabled();
  await panel.getByLabel('Semilla para extremo a R08').fill('3');await expect(start).toBeDisabled();
  await panel.getByLabel('Semilla para extremo a R08').fill('0');await panel.getByLabel('Semilla para extremo b R08').fill('0');await expect(start).toBeDisabled();
