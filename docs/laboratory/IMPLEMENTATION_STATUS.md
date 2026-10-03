@@ -1582,5 +1582,5 @@ por no alcanzar el mínimo y su máximo, respetando límites de identidad/grid.
 UI y servicio verificados con fixtures; backend además ejecutado sobre tracking
 corporal privado ya cacheado, con selección/escala explícitas y repetición local
 idéntica. No se cambiaron defaults, bridge de Oliva ni servicios cotidianos.
-Ver VALIDATION.md para evidencia y límites: recorrido web real y aceptación
-humana siguen pendientes; el banco no valida HIT ni causalidad corporal.
+Ver VALIDATION.md para evidencia y límites: recorrido web de producción con cache real verificado (audio desconectado);
+aceptación humana pendiente; el banco no valida HIT ni causalidad corporal.
