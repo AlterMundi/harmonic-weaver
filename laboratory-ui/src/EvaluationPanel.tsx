@@ -31,7 +31,11 @@ export function EvaluationPanel({
   const [report, setReport] = useState<Data | null>(null);
   const [playRun, setPlayRun] = useState<Data | null>(null);
   const edit = (id: string, key: string, value: any) =>
-    setSegments((s) => ({ ...s, [id]: { ...s[id], [key]: value } }));
+    setSegments((s) => ({ ...s, [id]: {
+      ...s[id], [key]: value,
+      ...(key === "person_id" && value !== s[id].person_id
+        ? { calibration_id: null } : {}),
+    } }));
   const download = () => {
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }),
@@ -173,6 +177,7 @@ export function EvaluationPanel({
                         ))}
                     </select>
                   </label>
+                  <small>Al cambiar de cuerpo se descarta la escala seleccionada; elegí una calibración de ese cuerpo para modelos no baseline.</small>
                 </div>
               )}
             </div>
