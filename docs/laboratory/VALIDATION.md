@@ -1889,3 +1889,43 @@ r13-body-validation.json. No transferencia entre sujetos/tareas ni beneficio/HIT
 verificados. No copia/retracking de original ni medios/tracking publicados.
 Build TypeScript/Vite pasa; split~292kB inicial/~215kB investigación sin aumentar
 límite de warning. UI/node fixtures propios aislados, sin cambios audio live/defaults.
+## Seek asíncrono del video — 2026-10-01
+
+El seguidor consume el epoch cuando solicita el seek, sin esperar que el decoder
+lo termine. Antes, con `seeking=true` y reloj de tracking avanzando, `seeked`
+podía volver a buscar otra posición del mismo epoch y repetir el ciclo. El nuevo
+test simula ese comportamiento asíncrono y verifica un único seek seguido de
+corrección suave de velocidad. No modifica selección de persona ni tracking.
+
+Tres pruebas Playwright del seguidor y build TypeScript/Vite pasan. Interfaz local
+recompilada; servicios de Nicolás no reiniciados. La reproducción con el video
+corporal y la aceptación visual siguen pendientes: estos tests usan un elemento
+simulado, no prueban por sí solos el recorrido completo ni la causa única del
+problema reportado.
+
+
+### Integración de las entregas publicadas en main — 2026-10-02
+
+Se integraron las 50 PRs publicadas de este desarrollo (#28–#30, #37–#76,
+#78–#84), las cinco de Shaper (#2–#6) y el baseline HarMoCAP #1.
+La reconciliación del follow-up #39 conserva todos los tests y añade su evidencia
+a la bitácora; el código final del seguidor ya coincidía con el acumulado.
+
+598 pruebas Python del laboratorio y research pasan (114,44 s); 19 de Shaper
+(laboratorio, offline y recuperación) pasan (1,79 s). Build TypeScript/Vite pasa.
+Se preservaron originales, datos locales, configuraciones y cachés; antes del
+arranque se respaldó la base SQLite cotidiana. Weaver/Shaper cotidianos tienen
+venvs propios con versiones de sus dependencias fijadas a las de los entornos
+verificados de desarrollo. No se copió ningún video.
+
+Arranque cotidiano confirmado en 8765/8085: Shaper 48 kHz/256 samples, R24
+Analog Stereo vía JACK/PipeWire; enlaces efectivos de ambos canales a R24
+verificados con pw-link. Video de archivo reabierto con cache_hit=true y selección
+local restaurada. El preset recuperado requiere calibración, indicada en el
+diagnóstico: no se reemplaza silenciosamente. Estas comprobaciones no acreditan
+escucha, calidad perceptual ni aceptación de Nicolás/Annie.
+
+El follow-up de Oliva #36 (2767df1) pasa 18 tests en su base y 18 al importar
+Weaver actual; revisión publicada en la PR con observaciones de trazabilidad y
+digest histórico no reproducido. Su código permanece separado, al igual que el
+prototipo OSC todavía no publicado (#77).
