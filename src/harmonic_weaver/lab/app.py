@@ -19,6 +19,7 @@ from .evaluation.pcm import PCMSettings
 from .evaluation.video_export import Settings as ComparisonExportSettings
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
+from .capture_profiles import CaptureProfile
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
@@ -906,6 +907,20 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/state")
     def state():
         return snapshot()
+
+    @app.get('/api/capture-profiles')
+    def capture_profile_list():return session.list_capture_profiles()
+
+    @app.post('/api/capture-profiles/validate')
+    def capture_profile_validate(body:CaptureProfile):return body.model_dump()
+
+    @app.post('/api/capture-profiles')
+    def capture_profile_save(body:CaptureProfile):return session.save_capture_profile(body)
+
+    @app.get('/api/capture-profiles/{ident}')
+    def capture_profile_load(ident:str):
+        return JSONResponse(session.load_capture_profile(ident).model_dump(),headers={
+            'Content-Disposition':'attachment; filename="capture-profile.json"'})
 
     @app.get("/api/captures")
     def captures():

@@ -2306,3 +2306,16 @@ figura, estilo JSON y frecuencia de ventana llegan a exportación de prefijo.
 Sin dispositivo R24 ni servicios cotidianos modificados. Sin aceptación humana
 ni medición de sincronía física. El resultado es una figura pre-shape/limiter,
 no un cymatic observado ni una prueba de HIT.
+
+## LAB-09: ajustes portables sin acciones implícitas — 2026-10-03
+
+10 pruebas capture-profiles pasan (1.13 s): restart SQLite, import entre
+bibliotecas, instrumento/revisiones/eventos intactos, validate sin persistencia,
+HTTP descarga/404 y rechazo atómico de versión, campos de fuente/calibración,
+recovered_prefix, geometría impar y NaN. Seis pruebas existentes de contratos y
+SessionStore pasan (.18 s). Sin dispositivos ni datos corporales.
+
+Chrome: guardar/recargar/aplicar JSON, rechazo sin cambio de controles y acciones
+limitadas a perfiles; payloads de esqueleto/figura conservados. Red simulada: no
+demuestra adquisición. Build TypeScript/Vite pasa. No nuevos defaults del
+instrumento ni aceptación humana; la configuración no inicia grabación.

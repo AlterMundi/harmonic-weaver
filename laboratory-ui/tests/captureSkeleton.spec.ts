@@ -5,7 +5,7 @@ test('skeleton controls reach complete and recovered exports without starting ca
   const path=new URL(route.request().url()).pathname;
   let value:any={status:'idle'};
   if(path==='/api/captures')value={current:{status:'idle'},jobs:[{id:'complete',status:'complete'},{id:'partial',status:'interrupted',shaper:{id:'driver'},recovery:{status:'recovered',result:{},journal:{status:'partial'}}}]};
-  if(path==='/api/capture-exports/jobs')value=[];
+  if(path==='/api/capture-exports/jobs'||path==='/api/capture-profiles')value=[];
   if(route.request().method()==='POST'){posted.push({path,body:route.request().postDataJSON()});value={status:'complete'};}
   await route.fulfill({json:value});
  });
