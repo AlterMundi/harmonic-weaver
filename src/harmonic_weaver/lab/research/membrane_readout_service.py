@@ -12,10 +12,11 @@ from .membrane_readout_run import run, verify
 class ReadoutService:
     artifacts = ("dataset.json", "result.json", "manifest.json")
 
-    def __init__(self, data_dir, projections):
+    def __init__(self, data_dir, projections, evaluation=None):
         self.root = Path(data_dir) / "research/r07-readout"
         self.root.mkdir(mode=0o700, parents=True, exist_ok=True)
         self.projections = projections
+        self.evaluation = evaluation
         self.lock = threading.RLock()
 
     def folder(self, ident):
@@ -29,7 +30,7 @@ class ReadoutService:
     def start(self, request):
         request = Request.model_validate(request)
         with self.lock:
-            dataset = snapshot(request, self.projections)
+            dataset = snapshot(request, self.projections, self.evaluation)
             ident = uuid4().hex
             stage = self.root / ("." + ident + ".staging")
             run(dataset, stage)

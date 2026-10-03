@@ -665,3 +665,12 @@ reabrirse y recalcularse sin los PCM originales. No aplica cambios a live.
 [Recorrido, contratos y control sintético](../../research/laboratory/r07_membrane/README.md#recuperación-de-atributos-en-casos-reservados).
 Los IDs y atributos son declaraciones; falta validación con tomas independientes
 y mediciones humanas. No se modificaron el launcher ni los defaults de R24.
+
+Si la figura está ligada a EVAL, **Cargar señales para etiquetas R07** ofrece
+la corrida/ventana exactas. Agregar señales, editar el perfil de mean/rms/std/
+peak_abs y límites de cobertura/gap, y **Calcular atributos desde EVAL R07**.
+El preset conserva `label_settings`; **Cargar perfil de etiquetas desde preset
+R07** lo restaura. Agregar casos recalcula/verifica sus etiquetas al congelar el
+dataset; editar targets manualmente retira la etiqueta de procedencia calculada.
+Una cola de audio no se convierte en datos corporales. Esta operación es opcional
+y conserva el juego live; no cambia selección corporal ni calibración.

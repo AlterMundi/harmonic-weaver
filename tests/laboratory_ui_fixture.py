@@ -32,10 +32,14 @@ parser.add_argument('--root',type=Path,required=True)
 parser.add_argument('--ui',type=Path,required=True)
 parser.add_argument('--checkpoint',type=Path,required=True)
 parser.add_argument('--port',type=int,default=8879)
+parser.add_argument('--seed-r07-labels',action='store_true',help='Create synthetic EVAL/PCM/figures before services restore their inventory')
 args=parser.parse_args()
 if not (args.ui/'index.html').is_file() or not args.checkpoint.is_file():
     parser.error('Built production UI and existing checkpoint required')
 args.root.mkdir(parents=True,exist_ok=False)
+if args.seed_r07_labels:
+    from membrane_labels_fixture import seed
+    seed(args.root)
 store=SessionStore(args.root,prepare=PreparedRoutes);seed_presets(store)
 reference=next(p for p in initial_presets() if p.id=='lab-v2-reference-sustained')
 store.edit(reference,store.state.desired_revision)

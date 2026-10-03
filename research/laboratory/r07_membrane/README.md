@@ -364,11 +364,41 @@ es de una ganancia codificada explícitamente: prueba el canal configurado y
 su confusión con magnitud, no HIT ni información corporal. No aporta significancia
 ni independencia humana. Shuffle tampoco conserva autocorrelación temporal.
 
+## Etiquetas desde features corporales congeladas
+
+Para una figura procedente de R05 ligado a EVAL, **Cargar señales para etiquetas
+R07** muestra las señales/unidades de la corrida exacta y la ventana de fuente
+correspondiente. No acepta otra evaluación arbitraria: verifica la vinculación
+PCM→input→trace. El origen R05 se suma a los índices de muestras de la figura;
+una ventana en la cola del sonido no recibe una etiqueta corporal contemporánea.
+
+Agregar señales al **Perfil portable de etiquetas R07** y editar su JSON:
+`method=mean|rms|std|peak_abs`, `min_observations`, `min_observed_fraction` y
+`max_gap_s`. Las señales deben compartir unidad; se usan observaciones únicas
+y soporte observado común. Son estadísticas de muestras, sin interpolación ni
+ponderación temporal (`std` usa ddof=0). Fracción de observaciones válidas no es cobertura en
+segundos ni exactitud de pose. El máximo gap incluye los bordes de la ventana.
+
+**Calcular atributos desde EVAL R07** completa targets, nombres `method:signal`
+y unidades, y guarda el perfil como `label_settings` dentro del preset portable.
+Muestra cobertura, gaps y duplicados excluidos. Agregar el caso conserva el perfil
+de cálculo; al congelar el banco, el servidor recalcula esa etiqueta contra las
+fuentes verificadas y rechaza valores/nombres/unidades que hayan cambiado.
+Editar a mano el target retira la declaración de etiqueta calculada.
+Los IDs de grabación/grupo siguen siendo declaraciones humanas; no se completan
+como identidad corporal inferida. Las etiquetas no entran al renderer.
+
+Dataset archivado conserva resumen, cobertura/causas, digest, módulo agregador
+importado/NumPy y procedencia EVAL. Recálculo del decoder usa esos targets congelados;
+no revalida automáticamente el cálculo corporal si ya no existen las fuentes.
+Cambiar el código de etiquetas no reescribe un archivo histórico. Las pruebas
+con tracking sintético verifican este recorrido; no son observaciones humanas.
+
 ## Pendientes de entrega e investigación
 
 El adaptador PCM R05, campos/RMS, workers, recuperación, API/UI y controles
 transientes están implementados; sus cortes y pruebas se registran arriba.
-- Usar el banco de recuperación con atributos del movimiento declarados y tomas
+- Ejecutar el banco con features corporales reales o anotaciones humanas y tomas
   independientes; ampliar controles de espectro/temporalidad y probar estabilidad
   frente al medio/resolución. IDs declarados no certifican identidad ni ceguera
   prospectiva. Ajustar mirando la prueba convierte la comparación en exploratoria.

@@ -13,6 +13,7 @@ from pydantic import Field, model_validator, model_serializer
 from ..cache import sha256_file
 from ..contracts import Contract, Number
 from ..evaluation.runner import digest
+from .membrane_labels import Settings as LabelSettings, calculate as calculate_label
 
 
 class Settings(Contract):
@@ -36,12 +37,15 @@ class Case(Contract):
     stop_sample_exclusive: int = Field(gt=0)
     sample_rate: int = Field(ge=8000, le=96000)
     rms: list[Number] = Field(min_length=4, max_length=1024)
+    computed_label: dict | None = None
 
     @model_serializer(mode="wrap")
     def serialize(self, handler):
         value = handler(self)
         if self.source_origin_s is None:
             value.pop("source_origin_s", None)
+        if self.computed_label is None:
+            value.pop("computed_label", None)
         return value
 
     @model_validator(mode="after")
@@ -50,6 +54,19 @@ class Case(Contract):
             v < 0 for v in self.rms
         ):
             raise ValueError("Nonempty sample window and nonnegative RMS required")
+        if self.computed_label is not None:
+            label = self.computed_label
+            if (
+                label.get("targets") != self.targets
+                or label.get("projection_sha256") != self.projection_sha256
+                or label.get("request", {}).get("projection_run_id")
+                != self.projection_run_id
+                or label.get("content_sha256")
+                != digest({k: v for k, v in label.items() if k != "content_sha256"})
+            ):
+                raise ValueError(
+                    "Frozen computed label differs from case/projection binding"
+                )
         return self
 
 
@@ -73,7 +90,7 @@ class Dataset(Contract):
                 "Unique attributes and one explicit unit per attribute required"
             )
         if any(
-            not v.strip() or len(v) > 80
+            not v.strip() or len(v) > 240
             for v in self.attribute_ids + self.attribute_units
         ):
             raise ValueError("Nonempty bounded attribute IDs and units required")
@@ -142,6 +159,7 @@ class Selection(Contract):
     recording_id: str = Field(min_length=1, max_length=160)
     subject_group: str = Field(min_length=1, max_length=80)
     targets: list[Number] = Field(min_length=1, max_length=8)
+    computed_label: LabelSettings | None = None
 
 
 class Config(Contract):
@@ -154,6 +172,14 @@ class Config(Contract):
         default_factory=lambda: ["dimensionless"], min_length=1, max_length=8
     )
     settings: Settings = Field(default_factory=Settings)
+    label_settings: LabelSettings | None = None
+
+    @model_serializer(mode="wrap")
+    def serialize(self, handler):
+        value = handler(self)
+        if self.label_settings is None:
+            value.pop("label_settings", None)
+        return value
 
     @model_validator(mode="after")
     def attributes(self):
@@ -162,7 +188,7 @@ class Config(Contract):
         ) != len(self.attribute_ids):
             raise ValueError("Unique attributes and one unit per attribute required")
         if any(
-            not v.strip() or len(v) > 80
+            not v.strip() or len(v) > 240
             for v in self.attribute_ids + self.attribute_units
         ):
             raise ValueError("Nonempty bounded attribute IDs and units required")
@@ -173,7 +199,7 @@ class Request(Config):
     cases: list[Selection] = Field(min_length=5, max_length=64)
 
 
-def snapshot(request, service):
+def snapshot(request, service, evaluation=None):
     """Read verified local R07 artifacts; labels never influence figure creation.
 
     The service resolves IDs, checks complete jobs and verifies their artifacts.
@@ -197,6 +223,29 @@ def snapshot(request, service):
             )
         inventory = current
         field = report["window"]
+        label = None
+        if selection.computed_label is not None:
+            if evaluation is None:
+                raise ValueError(
+                    "Computed body labels require the local evaluation service"
+                )
+            label = calculate_label(
+                service,
+                evaluation,
+                {
+                    **selection.computed_label.model_dump(),
+                    "projection_run_id": selection.projection_run_id,
+                },
+            )
+            if (
+                label["projection_sha256"] != before
+                or label["attribute_ids"] != request.attribute_ids
+                or label["attribute_units"] != request.attribute_units
+                or label["targets"] != selection.targets
+            ):
+                raise ValueError(
+                    "Computed label/attributes differ from current verified selection; calculate again"
+                )
         origin = None
         if hasattr(service, "audio_source"):
             try:
@@ -204,7 +253,9 @@ def snapshot(request, service):
                 manifest_path = audio.with_name("manifest.json")
                 manifest = json.loads(manifest_path.read_text())
                 if sha256_file(manifest_path) != report["source_manifest_sha256"]:
-                    raise ValueError("Source-clock metadata differs from frozen projection")
+                    raise ValueError(
+                        "Source-clock metadata differs from frozen projection"
+                    )
                 preparation = manifest["preparation"]
                 clock = preparation.get(
                     "selection", preparation.get("excitation", {}).get("selection", {})
@@ -216,7 +267,8 @@ def snapshot(request, service):
                 origin = None
         cases.append(
             Case(
-                **selection.model_dump(exclude={"projection_run_id"}),
+                **selection.model_dump(exclude={"projection_run_id", "computed_label"}),
+                computed_label=label,
                 projection_run_id=selection.projection_run_id,
                 source_origin_s=origin,
                 pcm_sha256=report["source_component_sha256"],
