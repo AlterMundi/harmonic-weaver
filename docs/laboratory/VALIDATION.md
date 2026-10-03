@@ -2166,6 +2166,13 @@ autoría en una rama sobre #96; sin cambios al runtime/UI/modelos productivos.
 34 tests del bridge pasan contra Weaver actual (18.90s): espectros individuales,
 espectro cruzado complejo compartido, soporte común de tres condiciones,
 contraejemplos, carácter offline y procedencia de módulos realmente importados.
+El comando completo `PYTHONPATH=src:. .venv/bin/python -m
+research.laboratory.sai_bridge.run` termina correctamente. Los tres ejemplos
+acoplados reproducen las cifras redondeadas del informe: residuo independiente
+.549/.533/.316, soporte común 471/466/471; MAE de I compartido respecto al
+original .427/.394/.408. Los seis módulos declarados provienen del `src/` actual.
+JSON sintético local: `/tmp/weaver-sai-fourier-integrated-20261003.json`.
+Integración publicada en #98, apilada sobre #96; sin merge automático.
 
 El I implementado normaliza direcciones y usa historia temporal acotada;
 preservar estadísticas Fourier globales de segundo orden no exige preservar esa
