@@ -4,6 +4,13 @@ Status: software/methodology result on **constructed data only**. No video,
 human judgments, physiological measurements, or HIT validation. This report
 records a negative result and several counterexamples as first-class outcomes.
 
+The 2026-10-03 Fourier extension is documented separately in
+[FOURIER_REPORT](FOURIER_REPORT.md). It adds offline spectral controls and fixes
+effective module provenance. Historical hashes below record earlier local runs;
+their equality with Nico's reported digest has **not** been established and is
+not required across environments. The current report digest includes metadata,
+runtime and resolved source paths, not numerical results alone.
+
 ## Provenance and reproduction
 
 The bridge starts from Weaver PR #30 `6bdb47af935e58bb3a4e0cfe22f967a134de6464`.
