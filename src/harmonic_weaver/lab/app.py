@@ -29,6 +29,7 @@ from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
 from .research.neuro_csv import Request as NeuroCSVRequest, convert as convert_neuro_csv
+from .research.neuro_csv_archive import CSVService
 from .research.neuro_service import NeuroService
 from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
@@ -314,6 +315,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     pair_design_presets = PairDesignPresets(data_dir)
     neuro_observations = NeuroService(data_dir)
     neuro_snr_records = SNRService(data_dir)
+    neuro_csv_records = CSVService(data_dir)
     physiology_measurements = PhysiologyService(data_dir)
     heldout = HeldoutService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
@@ -595,6 +597,22 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post('/api/research/r11/import-csv')
     def neuro_csv_import(body: NeuroCSVRequest):
         return convert_neuro_csv(body)
+
+    @app.post('/api/research/r11/csv-imports')
+    def neuro_csv_save(body: NeuroCSVRequest):
+        return neuro_csv_records.start(body)
+
+    @app.get('/api/research/r11/csv-imports')
+    def neuro_csv_list():
+        return neuro_csv_records.list()
+
+    @app.get('/api/research/r11/csv-imports/{ident}/verification')
+    def neuro_csv_verify(ident: str, recompute: bool = False):
+        return neuro_csv_records.read(ident, recompute=recompute)
+
+    @app.get('/api/research/r11/csv-imports/{ident}/artifacts/{name}')
+    def neuro_csv_artifact(ident: str, name: str):
+        return FileResponse(neuro_csv_records.artifact(ident, name), filename=name)
 
     @app.post('/api/research/r11/inspect')
     def neuro_inspect(body:NeuroStream):return inspect_neuro(body)

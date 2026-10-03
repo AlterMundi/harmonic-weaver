@@ -196,8 +196,8 @@ BOM al enviar, sin inferir otro encoding. Editar texto puede cambiar el digest.
 Ignorados y mapping quedan en import_provenance del resultado exportable.
 
 Guardar observaciones conserva Stream y raw_source_sha256; **no archiva el CSV ni
-el mapeo** en el registro nativo. Conservar original + mapping/conversión exportados
-permite repetir importación; no atribuir al registro una procedencia que no guarda.
+el mapeo** en el registro nativo. El archivo separado de importación descrito abajo
+conserva ambos; no atribuir al registro Stream una procedencia que no guarda.
 Raw CSV hasta16MiB, samples decodificados hasta16MiB y120000 filas; se rechaza
 expansión excesiva de etiquetas de faltantes antes de construir un registro enorme.
 
@@ -205,3 +205,26 @@ Evidencia: 13 controles importer (incluida expansión bounded), integración API
 convertir→guardar→reabrir y Chrome UI/API real con BOM/CRLF, digest exacto, null/
 cero/tiempo, descarga de procedencia y recuperación desde archivo R11. No CSV de
 hardware ni medición humana verificados; hardware/clocks físicos siguen pendientes.
+
+## Archivo local de importaciones CSV — 2026-10-03
+
+Después de convertir, **Guardar importación CSV R11** conserva en
+`research/r11-csv-imports/` del data root: `source.csv` (bytes UTF-8 completos,
+incluyendo BOM/CRLF), `request.json` (original, metadatos y mapeo normalizado),
+`result.json` y `manifest.json`. No se archiva automáticamente al convertir.
+Contenido idéntico recupera el mismo registro; editar el CSV o su mapeo crea otro.
+Una publicación interrumpida queda oculta y no impide un reintento nuevo.
+
+Actualizar/Abrir importación restaura texto, metadatos, mapeo y conversión desde
+el servidor después de recargar. Descargas de los cuatro artefactos disponibles.
+Recalcular importación compara conversión actual con la archivada sin sobrescribir
+ni exigir igualdad del entorno o hashes de código. Lecturas ordinarias verifican
+integridad y binding del original; no ejecutan conversión implícita.
+Si se pierde la respuesta del guardado, actualizar el listado o repetir la misma
+entrada recupera el registro publicado. No depende de guardar un CSV grande en
+sessionStorage; el servidor es local y el navegador no reenvía al recargar.
+
+API: POST/GET `/api/research/r11/csv-imports`, GET `/{id}/artifacts/{name}` y
+`/{id}/verification` (integridad), `?recompute=true` (conversión explícita).
+El registro Stream existente sigue compatible y separado. Esto conserva la
+fuente declarada; no autentica adquisición, hardware, sujetos o sincronización.

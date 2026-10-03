@@ -2180,3 +2180,21 @@ traza no lineal. El residuo distingue el ejemplo acoplado y no se promueve a
 objetivo universal. El informe conserva resultados sin distinción y límites.
 No se exige equivalencia de hashes con el entorno de Oliva; el digest contiene
 metadatos. No se valida HIT, eficiencia corporal ni aceptación perceptual.
+
+## R11: original CSV y mapeo archivados — 2026-10-03
+
+Archivo separado del Stream nativo: source.csv byte-exacto, Request con texto/
+metadata/map, resultado y manifest. ID por contenido, staging oculto, recuperación
+idempotente y lecturas de integridad sin conversión implícita. Recálculo explícito
+compara resultado sin sobrescribir ni bloquear por diferencias del entorno.
+UI guardar/listar/abrir/descargar/recalcular; no autoenvío al recargar ni copia
+grande en sessionStorage. Native Stream y audio/defaults permanecen compatibles.
+
+26 pruebas importer/archive/API pasan (2.19s): BOM/CRLF/bytes exactos, unidades,
+null/cero/gaps, restart/retry, integridad, binding, código histórico y guardado
+interrumpido oculto con reintento válido. Comando:
+`PYTHONPATH=src:tests .venv/bin/python -m pytest -q tests/research/test_neuro_csv.py tests/research/test_neuro_csv_archive.py tests/test_lab_neuro_api.py`.
+Build TypeScript/Vite pasa. Chrome real (3.5s), HTTP en fixture8905: conversión,
+publicación seguida de 503 simulado, listado/reintento sin duplicado, reload,
+reapertura, descarga original byte-exacta y recálculo. Fixture detenido después.
+Sólo CSV sintético; no adquisición real, hardware ni sincronización física.

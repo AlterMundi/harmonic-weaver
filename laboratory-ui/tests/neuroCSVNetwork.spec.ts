@@ -22,6 +22,28 @@ test('explicit CSV import preserves raw digest and archives converted observatio
  expect(converted.stream.samples[1].source_time_s).toBe(.008);
  expect(converted.stream.samples[0].values.ch1).toBe(0);
  expect(converted.stream.samples[1].values.ch1).toBeNull();
+ await page.route('**/api/research/r11/csv-imports',async route=>{
+  if(route.request().method()!=='POST'){await route.continue();return;}
+  await route.fetch();await route.fulfill({status:503,contentType:'application/json',body:'{"detail":"simulated lost publication response"}'});
+ });
+ await panel.getByRole('button',{name:'Guardar importación CSV R11',exact:true}).click();
+ await expect(panel.getByRole('alert')).toContainText('Si se perdió la respuesta');
+ await page.unroute('**/api/research/r11/csv-imports');
+ await panel.getByRole('button',{name:'Actualizar importaciones CSV R11',exact:true}).click();
+ await expect(panel.getByRole('button',{name:'Abrir importación CSV R11',exact:true})).toHaveCount(1);
+ await panel.getByRole('button',{name:'Guardar importación CSV R11',exact:true}).click();
+ await expect(panel.getByRole('button',{name:'Abrir importación CSV R11',exact:true})).toHaveCount(1);
+ await page.reload();await page.getByRole('button',{name:'Investigación',exact:true}).click();
+ await panel.getByRole('button',{name:'Abrir importación CSV R11',exact:true}).click();
+ await expect(panel).toContainText('CSV convertido: 2 muestras · 1 saltos');
+ const savedMetadata=JSON.parse(await panel.getByLabel('Metadatos de observación CSV R11 (JSON)').inputValue());
+ expect(savedMetadata.source_id).toBe(metadata.source_id);
+ const originalDownload=page.waitForEvent('download');await panel.getByRole('link',{name:'source.csv',exact:true}).click();
+ const originalStream=await(await originalDownload).createReadStream();const chunks:Buffer[]=[];
+ for await(const chunk of originalStream!)chunks.push(Buffer.from(chunk));
+ expect(Buffer.concat(chunks).equals(Buffer.from(raw))).toBeTruthy();
+ await panel.getByRole('button',{name:'Recalcular importación CSV R11',exact:true}).click();
+ await expect(panel).toContainText('Verificación CSV: recomputed');
  await panel.getByRole('button',{name:'Usar observaciones CSV en R11'}).click();
  const native=page.getByRole('region',{name:'Observaciones crudas R11',exact:true});
  await expect(native.getByRole('table')).toContainText('adc_counts');
