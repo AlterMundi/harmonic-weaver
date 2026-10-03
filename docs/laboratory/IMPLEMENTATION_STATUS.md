@@ -1787,3 +1787,8 @@ referencias/joints y peso de ruteo mientras el video avanza. Peso cero silencia
 sólo la voz elegida; recuperación, preset portable y cambio de cuerpo/loop pasan.
 Chrome11.3s; fixture no sintetiza ni abre dispositivos y prohíbe retracking.
 Cache original intacto, datos privados locales; sonido/aceptación siguen pendientes.
+
+Web: respuesta demorada de aplicar preset ya no reemplaza draft/revisión tras una
+edición posterior ni ante una revisión más nueva confirmada. Regresión reproducida;
+tres escenarios Chrome con API real/WS retenido pasan, más recorrido corporal
+completo11.6s con bundle nuevo. Sin defaults/audio/backend modificados.

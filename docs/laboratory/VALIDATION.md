@@ -3011,3 +3011,25 @@ recorrido permanecen locales. Fixture detenido y puerto cerrado. No producción/
 defaults musicales modificados ni rebuild necesario (sólo pruebas/documentos).
 No se afirma audio efectivo, fase del DAC, latencia física, precisión anatómica ni
 aceptación perceptual. Evidencia de escucha01c previa se conserva separadamente.
+
+### Web · respuesta vieja de preset no reemplaza ediciones nuevas — 2026-10-03
+
+Regresión reproducida con API real: preset aplicado en servidor, HTTP demorado,
+Master editado y confirmado después; al liberar respuesta antigua el campo volvía
+al valor del preset y revision.current retrocedía. Nuevo guard descarta la respuesta
+si generation de ediciones cambió o si trae revisión anterior a la confirmada.
+No altera controles/defaults, grafo/runtime, audio ni conflictos de otros clientes.
+
+`presetResponseNetwork.spec.ts`: **3 Chrome passed (3.4s)** en producción real con
+API/SQLite, reteniendo respuestas HTTP y suspendiendo snapshots WS posteriores
+para que no oculten el bug. Casos: edición confirmada, edición con respuesta pendiente,
+segundo preset confirmado. El campo conserva el valor correcto y otra edición
+PUT usa revisión válida (+1), sin errores JS. Datos sintéticos, sin dispositivos.
+El test compara valor numérico para no confundir `.173` con `0.173`; segundo preset
+de control tiene master distinto declarado para distinguir ambas respuestas.
+
+Recorrido corporal fullLaboratoryNetwork con bundle nuevo: **1 passed (11.6s)**,
+cuatro modelos/seis targets/calibración/componentes/referencias/ruteos/presets/
+cambio de cuerpo/loop; cache hit sin retracking, manifest/frames originales intactos.
+Build TypeScript/Vite94 módulos **1.31s**. Ambas fixtures detenidas, puerto cerrado.
+Sin datos corporales publicados, R24/escucha nueva ni aceptación humana inferida.

@@ -80,6 +80,12 @@ en SOURCES. La cámara y el audio live no se graban automáticamente.
 
 ## Recorrido breve
 
+Si llega tarde la respuesta de aplicar un preset, la web conserva las ediciones
+posteriores y las revisiones más nuevas ya confirmadas. Esto permite seguir
+explorando mientras llega la respuesta sin que vuelva un valor anterior por HTTP.
+Los conflictos de revisión continúan visibles; recuperar estado aplicado toma el
+estado vigente en vez de reintentar una escritura sobre otra ventana silenciosamente.
+
 1. Fuente: ingresar la ruta de un video y abrirlo; esperar el tracking o explorar
    el prefijo procesado. Reproducir y activar Loop. Reabrir el mismo archivo debe
    mostrar «cache reutilizado»; «Forzar tracking» genera una extracción nueva.

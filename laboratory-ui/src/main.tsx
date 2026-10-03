@@ -1358,9 +1358,14 @@ function App() {
                       disabled={pending}
                       onClick={() =>
                         run(async () => {
+                          const editGeneration = generation.current;
                           const next = await api(`presets/${p.id}/apply`, {
                             expected_revision: revision.current,
                           });
+                          // The backend can confirm newer edits while this HTTP
+                          // response is delayed. Never roll their draft/revision back.
+                          if (editGeneration !== generation.current ||
+                              next.session.desired_revision < revision.current) return;
                           revision.current = next.session.desired_revision;
                           dirty.current = false;
                           current.current = next.preset;
