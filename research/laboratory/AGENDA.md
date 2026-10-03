@@ -929,3 +929,12 @@ Dentro de toma real: validación de pipeline, no transferencia independiente.
 Intervención, aprendizaje, persona–prótesis y beneficio requieren diseños/datos
 propios y dependencias explícitas; Anni P3–P6 no se sustituyen por un score ni se
 cierra #27. Direcciones compartidas con Oliva siguen reservadas/intactas.
+
+R13 — 2026-10-03: contraste local entre dos recordings corporales congelados,
+seis zone-speed del mismo baseline, dos segmentos train y otro archivo reservado.
+Prefijo0/60, pesos/scalers/bases train-only, shuffle/control cuadrático y scores
+sobre soporte común entre condiciones; outputs repetidos/recomputados. Import/repeat
+web/API/worker verificado con dos Chrome y sin cambiar preset/revisión live.
+Evidencia numérica/poses/IDs/hashes sólo local; VALIDATION describe alcance sin
+publicarla. No infiere identidad entre videos, equivalencia anatómica de escala,
+transferencia entre sujetos/tareas, causalidad/eficiencia/HIT ni aceptación.
