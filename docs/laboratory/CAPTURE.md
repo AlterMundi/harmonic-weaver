@@ -440,3 +440,33 @@ La preview de prefijos ya tiene integración API/export/reinicio/rangos; las
 menciones históricas a ese pendiente arriba están superadas. Pendientes: figura
 armónica exportada desde estado efectivo de síntesis, medición física y feedback
 humano de cámara. No se declara que el esqueleto esté sincronizado acústicamente.
+
+### Figura de osciladores efectivos en exportación — 2026-10-03
+
+**Incluir figura de todos los osciladores grabados**, apagado por defecto,
+añade un panel a la derecha del video dentro del tamaño de salida elegido.
+Conserva el letterbox a la izquierda y es compatible con el esqueleto, las
+capturas completas, los prefijos recuperados y la preview MP4. No cambia el audio.
+
+Usa voices del blocks.jsonl que acompaña al PCM; ninguna voz se reconstruye desde
+targets ni se limita a dos señales o al número de componentes del análisis.
+La muestra de salida selecciona el bloque y desplaza sus fases con frecuencia
+y reloj de muestras, incluyendo gain_end/phase_offset_delta_rad cuando existen.
+La rampa conserva la longitud original del callback aunque el final de captura
+lo trunque. Silencio confirmado y telemetría ausente se distinguen: la ausencia
+o invalidez limpia el panel y deja una causa en frames.jsonl/manifest.
+
+**Frecuencia de referencia de la ventana** (40.4 Hz) determina la duración de
+la curva, no la frecuencia de las voces. **Estilo de figura exportada (JSON)**
+acepta VisualSettings; {} utiliza defaults. Por ejemplo
+`{"color":"gold","components":true,"persistence":0.3,"window_periods":3.0}`.
+Permite samples, line_width, brightness, scale y auto_scale además de los campos
+del ejemplo. Se congela en settings del manifest para recuperar la configuración.
+
+Reutiliza RasterFigure/voices_at del comparador: suma fasorial de todos los
+osciladores antes de waveshaping/limiter, no reproducción de la forma de onda
+post-limiter ni simulación de membrana. offset_s afecta sólo la selección de
+video/pose; la figura permanece ligada al PCM. Persistencia depende de FPS de
+exportación y no pretende reproducir cada refresco WebGL de una sesión anterior.
+Siguen pendientes medición física de sincronía, feedback humano e instalación
+de estas PRs; el software no valida por sí mismo HIT ni cymatics físico.
