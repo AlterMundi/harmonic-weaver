@@ -2472,3 +2472,28 @@ Presupuesto limita corridas enteras, no costo de una corrida. Sin recuperación 
 estado a mitad de modelo/PCM ni claim de checkpoint físico. No prueba escucha,
 latencia audiovisual física, aceptación humana ni conclusiones científicas.
 Defaults sonoros, R24 y servicios cotidianos intactos.
+
+
+## EVAL · paquetes seleccionados y revisión de contenidos — 2026-10-03
+
+Seis pruebas pertinentes de paquetes/PCM pasan (6.73 s, sin skips): eliminación
+de labels/IDs/rutas/persona/calibración del resumen, proyección de medias sobre
+soporte original, Request por corrida seleccionada, worker real/repetición ZIP
+byte-idéntica, restore/checksum/traversal, preview obsoleta, cambio de trace durante
+writer sin ZIP publicado, presupuesto de payload y API con descarga real. PCM incluye WAV/estados
+sólo por opción explícita, sin nuevos renders. Dos pruebas Chrome aisladas pasan
+(2.5 s): selección/preview/generación/link, preferencias portables sin indices,
+respuesta tardía descartada tras edición y regresión de controles/artefactos PCM.
+Build TypeScript/Vite pasa; formato posterior de fuente/tests no cambia semántica.
+
+Comprobación adicional del preset con labels/IDs reemplazados: replay de fixture
+produce señales y targets idénticos al preset original. No afirma igualdad de
+routing diagnostics con IDs reemplazados ni identidad de hashes de traces.
+
+Verificación local adicional con comparación corporal privada completa ya existente:
+dos corridas elegidas, ZIP sólo resumen y ZIP con PCM. No incluyen pedidos/traces
+cuando no se seleccionan; resumen omite campos privados de fuente/calibración.
+Ningún paquete se publicó ni abrió dispositivos; no se copiaron video/tracking.
+Los ZIP y resultados permanecen locales. No se certifica anonimato de métricas ni
+consentimiento de difusión; escucha/aceptación humana y sincronía física pendientes.
+Servicios cotidianos, bridge de Oliva y defaults sonoros intactos.

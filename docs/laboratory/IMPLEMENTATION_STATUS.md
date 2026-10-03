@@ -1599,3 +1599,17 @@ Pruebas de API/workers/UI/PCM y contraste local corporal contra ejecución fresc
 pasan; evidencia y límites en VALIDATION.md. Contrato y recorrido en EVALUATION.md
 y RUNNING.md. No instala/mergea la pila ni acredita escucha/sincronía física,
 publicación segura de paquetes seleccionados o resultados científicos.
+
+
+## EVAL #18 · paquete seleccionable para revisar
+
+UI/API y writer propio permiten resumen sin rutas/nombres/identidad/calibración,
+con presets de parámetros conservados y soporte original explícito. Pedidos por
+corrida, traces y PCM opt-in; fuentes ajenas, video/tracking y inputs/job metadata
+externos no se agregan al ZIP. Preview congelada, presupuesto, cancelación, checksum
+al descargar e inventario hasheado; preferencias JSON portables sin selección.
+
+Pruebas backend/workers/API/UI/PCM y exportación corporal local pasan; ver
+VALIDATION.md. EVALUATION/RUNNING documentan límites. Resultado listo para revisión
+local; compartir externamente no fue realizado ni autorizado por este paquete.
+No certifica anonimato, datos públicos reproducibles ni conclusiones científicas.

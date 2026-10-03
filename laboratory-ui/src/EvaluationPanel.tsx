@@ -1,3 +1,4 @@
+import { EvaluationPackages } from "./EvaluationPackages";
 import { ComparisonPlayer } from "./ComparisonPlayer";
 import { useEffect, useState } from "react";
 type Data = Record<string, any>;
@@ -385,6 +386,7 @@ export function EvaluationPanel({
               ))}
             </tbody>
           </table>
+          <EvaluationPackages key={report.job_id} report={report} api={api} run={run}/>
           <button onClick={download}>Descargar informe y manifest</button>
           {report.manifest.runs.some((r:Data)=>r.pcm) && <details>
             <summary>Entorno del render PCM</summary>

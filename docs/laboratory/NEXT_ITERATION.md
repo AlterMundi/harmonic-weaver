@@ -279,3 +279,16 @@ Presupuesto mide corridas, no tiempo/recursos internos; cambios de método/entra
 requieren corrida nueva. Publicación seleccionada con revisión de privacidad,
 sincronía física y feedback humano siguen pendientes concretos. Los datos
 corporales permanecen locales; no afecta el bridge reservado ni los defaults.
+
+
+### EVAL #18 · paquete seleccionable — 2026-10-03
+
+Implementados selector de corridas/contenidos, resumen sin nombres/rutas/identidad,
+preferencias portables, preview y writer ZIP propio. Ver EVALUATION/VALIDATION:
+pruebas y contraste local con resultados corporales guardados. Conserva soporte
+común original; no infiere nueva intersección desde los presets exportados.
+
+La preparación de archivo local está cubierta; publicación externa, corpus con
+inputs públicos/consentidos, protocolos/feedback humanos y medición física siguen
+pendientes. Un resumen sin IDs sigue pudiendo contener resultados sensibles.
+Ningún video/tracking se copia al paquete ni se publica automáticamente.

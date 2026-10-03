@@ -16,6 +16,7 @@ from pydantic import Field
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
+from .evaluation.packages import PackageService, Selection as PackageSelection, CreateRequest as PackageCreateRequest, preview as package_preview
 from .evaluation.video_export import Settings as ComparisonExportSettings
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
@@ -310,6 +311,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     activation = ActivationService(data_dir)
     sai_fourier = FourierService(data_dir)
     sai_body_fourier = BodyFourierService(data_dir)
+    evaluation_packages = PackageService(data_dir)
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
@@ -363,6 +365,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             activation.close()
             sai_fourier.close()
             sai_body_fourier.close()
+            evaluation_packages.close()
             membrane.close()
             controls.close()
             resonators.close()
@@ -1336,6 +1339,24 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return {"ok": True}
 
     if runtime is not None:
+        @app.post('/api/evaluations/{ident}/package-preview')
+        def evaluation_package_preview(ident: str, body: PackageSelection):
+            return package_preview(evaluation,ident,body)
+
+        @app.post('/api/evaluations/{ident}/packages')
+        def evaluation_package_start(ident: str, body: PackageCreateRequest):
+            return evaluation_packages.start(evaluation,ident,body)
+
+        @app.get('/api/evaluation-packages')
+        def evaluation_package_list():return evaluation_packages.list()
+
+        @app.post('/api/evaluation-packages/{ident}/cancel')
+        def evaluation_package_cancel(ident: str):return evaluation_packages.cancel(ident)
+
+        @app.get('/api/evaluation-packages/{ident}/artifacts/{name}')
+        def evaluation_package_artifact(ident: str, name: str):
+            return FileResponse(evaluation_packages.artifact(ident,name),filename=name)
+
         @app.post("/api/evaluations/{ident}/exports/{run_index}")
         def export_comparison(ident: str, run_index: int, body: ComparisonExportSettings):
             return comparison_exports.start(ident, run_index, body)

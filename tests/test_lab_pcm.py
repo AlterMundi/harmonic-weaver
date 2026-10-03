@@ -184,3 +184,26 @@ def test_pcm_resume_preserves_completed_audio_and_matches_fresh_reset_render(tmp
     with pytest.raises(ValueError,match='artifact changed'):
         run(Request.model_validate_json((tmp_path/'tampered/request.json').read_text()),tmp_path/'tampered',resume=True)
     assert (tmp_path/'tampered/manifest.json').read_bytes()==original
+
+
+def test_selected_package_includes_verified_pcm_only_after_explicit_selection(tmp_path):
+    from uuid import uuid4
+    import zipfile
+    from harmonic_weaver.lab.cache import atomic_json
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    from harmonic_weaver.lab.evaluation.packages import Selection,CreateRequest,preview,PackageService
+    source,_,_=source_fixture(tmp_path);source.end_s=.5
+    root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident;folder.mkdir(parents=True)
+    request=Request(presets=[Preset()],sources=[source],pcm=PCMSettings(enabled=True))
+    atomic_json(folder/'request.json',request.model_dump());run(request,folder/'result')
+    evaluation=EvaluationService(root,None,None);service=PackageService(root)
+    try:
+        assert len(preview(evaluation,ident,Selection(run_indices=[0]))['files'])==1
+        selection=Selection(run_indices=[0],include_pcm=True);pre=preview(evaluation,ident,selection)
+        assert pre['private_context']
+        job=service.start(evaluation,ident,CreateRequest(selection=selection,preview_sha256=pre['preview_sha256']))
+        assert service.processes[job['id']].wait(timeout=30)==0
+        with zipfile.ZipFile(service.artifact(job['id'],'package.zip')) as archive:
+            assert set(archive.namelist())=={'summary.json','package-manifest.json','pcm/run-0000.wav','pcm/run-0000.voice-frames.jsonl'}
+            assert archive.read('pcm/run-0000.wav')[:4]==b'RIFF'
+    finally:service.close();evaluation.close()
