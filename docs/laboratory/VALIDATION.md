@@ -2581,3 +2581,21 @@ Es error del reloj de features, no medición de latencia física. Suite de famil
 ampliada: 17 pasan (1.14 s), incluyendo inventarios exhaustivos y ausencia de score
 con alias temporal; reloj irregular da error explícito. Chrome del resultado pasa
 (2.5 s) y build pasa (1.21 s). Vite propio detenido. Defaults/audio conservados.
+
+### R11/R12 · Timestamps ISO explícitos y origen portable — 2026-10-03
+
+30 tests previos de CSV/archivos R11/R12 pasan (1.11 s). 12 nuevos de sensor_csv_iso
+pasan (1.02 s): offset equivalente, microsegundos, cambio de día/leap day, origen
+posterior rechazado, ausencia de zona/fechas inválidas/leap second/precisión extra
+rechazadas, versión explícita/no autodetección, archive/restore/raw bytes y API
+real. Valores/unidades y Clock de metadatos permanecen declarados.
+
+Chrome R12 ISO + regresión nativa pasan (2.8 s); R12 ampliado pasa (1.9 s) verificando
+export/import portable sin transportar origen. Chrome R11 numérico/API/nativo pasa
+con montaje aislado de NeuroPanel: incluye pérdida de respuesta, archivo/restauración,
+recompute y uso nativo; selector cambia ISO→numérico conservando mapeo anterior.
+El intento inicial de usar shell completo con runtime mínimo no llegó a la pantalla
+Investigación; no se atribuye ese intento a evidencia del recorrido live. El panel
+real y servicios HTTP fueron verificados sin dispositivos; build pasa (1.31 s).
+Servidores API/Vite de prueba detenidos, sólo fixtures sintéticos. No nuevas mediciones
+humanas, reloj físico sincronizado ni aceptación perceptual; no cambios de síntesis.

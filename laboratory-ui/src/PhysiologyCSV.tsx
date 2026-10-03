@@ -1,3 +1,4 @@
+import {CSVTimeControls,portableCSVMapping} from './CSVTimeControls';
 import {useEffect,useState,useRef} from 'react';
 type Data=Record<string,any>;
 const initial={delimiter:',',skip_rows:0,index_column:'index',time_column:'time_s',time_units:'seconds',channel_columns:{},missing_tokens:[''],missing_cause:'declared_csv_missing'};
@@ -14,10 +15,11 @@ export function PhysiologyCSV({api,protocol,onApply}:{api:any,protocol:Data|null
  <p>Usa el proveedor, slot, reloj, canales, tarea e intentos del protocolo JSON actual; reemplaza sus muestras por las de la tabla. Declarar primero esos metadatos. La plantilla sigue siendo sintética hasta que declares una importación real. Valores ya en bpm, W o dimensionless según el canal; no convierte amplitudes ni infiere calibración. Datos locales.</p>
  <label>Archivo CSV R12<input type="file" accept=".csv,.tsv,text/csv" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void act(async()=>{if(file.size>16*1024*1024)throw Error('Máximo 16 MiB UTF-8');setCSV(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(await file.arrayBuffer()))})}}/></label>
  <label>Tabla CSV R12<textarea aria-label="Tabla CSV R12" rows={5} value={csv} disabled={busy} onChange={e=>setCSV(e.target.value)}/></label>
+ <CSVTimeControls text={mapping} onChange={setMapping} disabled={busy} scope="R12"/>
  <label>Mapeo CSV R12 JSON<textarea aria-label="Mapeo CSV R12 JSON" rows={8} value={mapping} disabled={busy} onChange={e=>setMapping(e.target.value)}/></label>
  <p>Declarar separador, preámbulo, columnas de índice/tiempo, unidades temporales (seconds/milliseconds/microseconds), channel_columns y tokens faltantes. No genera índices ni rellena gaps. Hasta 20.000 muestras.</p>
- <button disabled={busy} onClick={()=>void act(async()=>download(JSON.parse(mapping)))}>Exportar mapeo CSV R12</button>
- <label>Importar mapeo CSV R12<input type="file" accept=".json,application/json" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void act(async()=>{if(file.size>65536)throw Error('Máximo 64 KiB');setMapping(JSON.stringify(JSON.parse(await file.text()),null,2))})}}/></label>
+ <button disabled={busy} onClick={()=>void act(async()=>download(portableCSVMapping(JSON.parse(mapping))))}>Exportar mapeo CSV R12</button>
+ <label>Importar mapeo CSV R12<input type="file" accept=".json,application/json" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void act(async()=>{if(file.size>65536)throw Error('Máximo 64 KiB');setMapping(JSON.stringify(portableCSVMapping(JSON.parse(await file.text())),null,2))})}}/></label>
  <p>Mapeo portable no incluye cuerpo, reloj, calibración, ventanas ni datos de la tabla.</p>
  <button disabled={busy||!protocol||!csv} onClick={()=>void act(async()=>{setPreview(null);setFrozen(null);const context=current.current;const metadata=Object.fromEntries(metadataKeys.filter(k=>protocol![k]!==undefined).map(k=>[k,protocol![k]]));const body={csv_text:csv,mapping:JSON.parse(mapping),metadata};const value=await api('research/r12/csv/inspect',body);if(context!==current.current)throw Error('El contexto CSV cambió durante la inspección; inspeccionar de nuevo');setFrozen(body);setPreview(value)})}>Inspeccionar CSV R12</button>
  {preview&&<><p>CSV R12: {preview.request.samples.length} muestras · columnas ignoradas: {preview.import_provenance.ignored_columns.join(', ')||'ninguna'} · proveedor {preview.request.provider}</p>

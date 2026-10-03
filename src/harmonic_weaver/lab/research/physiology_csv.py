@@ -2,7 +2,7 @@
 from typing import Literal
 from pydantic import Field
 from ..contracts import Contract
-from .csv_table import Mapping, decode
+from .csv_table import MappingConfig, decode
 from .physiology import Request as Measurements, Channel, Trial, EvaluationBinding, calculate
 from .spatial_observations import Clock
 
@@ -25,7 +25,7 @@ class Request(Contract):
     schema_version: Literal[1] = 1
     csv_text: str = Field(min_length=1, max_length=16 * 1024 * 1024)
     metadata: Metadata
-    mapping: Mapping
+    mapping: MappingConfig
 
 
 def convert(request):

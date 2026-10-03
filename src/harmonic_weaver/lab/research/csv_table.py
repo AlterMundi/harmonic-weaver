@@ -4,6 +4,8 @@ import hashlib
 import io
 import json
 import math
+import re
+from datetime import datetime
 from typing import Literal
 from pydantic import Field, model_validator
 from ..contracts import Contract
@@ -34,6 +36,30 @@ class Mapping(Contract):
         return self
 
 
+def iso_timestamp(text):
+    # Explicit timezone and bounded fractional precision: never truncate ns silently.
+    if not isinstance(text,str) or not re.fullmatch(
+        r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})',text):
+        raise ValueError('ISO time requires YYYY-MM-DDTHH:MM:SS, explicit Z/offset and at most 6 fractional digits')
+    result=datetime.fromisoformat(text)
+    if result.tzinfo is None:raise ValueError('ISO timezone must be explicit')
+    return result
+
+
+class ISOTimeMapping(Mapping):
+    schema_version: Literal[2]
+    time_units: Literal['iso8601']
+    time_origin: str = Field(min_length=1,max_length=64)
+
+    @model_validator(mode='after')
+    def origin(self):
+        iso_timestamp(self.time_origin)
+        return self
+
+
+MappingConfig = Mapping | ISOTimeMapping
+
+
 def _rows(reader):
     try:
         yield from reader
@@ -42,7 +68,8 @@ def _rows(reader):
 
 
 def decode(csv_text, mapping, *, max_samples=120000):
-    mapping = Mapping.model_validate(mapping)
+    if not isinstance(mapping,(Mapping,ISOTimeMapping)):
+        mapping=(ISOTimeMapping if mapping.get('schema_version')==2 else Mapping).model_validate(mapping)
     raw = csv_text.encode("utf-8")
     if len(raw) > 16 * 1024 * 1024:
         raise ValueError("CSV exceeds 16 MiB UTF-8 budget")
@@ -70,9 +97,8 @@ def decode(csv_text, mapping, *, max_samples=120000):
     if not set(required) <= set(header):
         raise ValueError("CSV mapped column missing from header")
     positions = {name: header.index(name) for name in required}
-    scale = {"seconds": 1.0, "milliseconds": 0.001, "microseconds": 0.000001}[
-        mapping.time_units
-    ]
+    origin=iso_timestamp(mapping.time_origin) if isinstance(mapping,ISOTimeMapping) else None
+    scale = None if origin is not None else {"seconds": 1.0, "milliseconds": 0.001, "microseconds": 0.000001}[mapping.time_units]
     samples = []
     decoded_bytes = 0
     for row in rows:
@@ -84,7 +110,8 @@ def decode(csv_text, mapping, *, max_samples=120000):
                 f"CSV row {reader.line_num}: nonnegative integer index required"
             )
         try:
-            time = float(row[positions[mapping.time_column]]) * scale
+            cell_time=row[positions[mapping.time_column]]
+            time=(iso_timestamp(cell_time)-origin).total_seconds() if origin is not None else float(cell_time)*scale
             if not math.isfinite(time) or time < 0:
                 raise ValueError("nonfinite or negative source time")
             values, causes = {}, {}
@@ -110,9 +137,15 @@ def decode(csv_text, mapping, *, max_samples=120000):
         samples.append(sample)
         if len(samples) > max_samples:
             raise ValueError(f"CSV exceeds {max_samples} sample budget")
-    return samples, {
+    provenance = {
         "raw_utf8_sha256": hashlib.sha256(raw).hexdigest(),
         "mapping": mapping.model_dump(), "header": header,
         "ignored_columns": [name for name in header if name not in required],
         "time_conversion_to_seconds": scale,
     }
+    if origin is not None:
+        provenance['time_conversion']={
+            'kind':'iso8601_relative_seconds','origin':mapping.time_origin,
+            'maximum_fractional_digits':6,
+            'clock_order':'subtract declared ISO origin, then apply metadata Clock'}
+    return samples, provenance

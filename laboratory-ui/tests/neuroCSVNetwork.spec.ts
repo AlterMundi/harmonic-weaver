@@ -1,9 +1,21 @@
 import {test,expect} from '@playwright/test';
 
 test('explicit CSV import preserves raw digest and archives converted observations',async({page})=>{
- test.skip(!process.env.LAB_R11_CSV_URL,'isolated production UI required');
- const url=process.env.LAB_R11_CSV_URL!;
- await page.goto(url);await page.getByRole('button',{name:'Investigación',exact:true}).click();
+ test.skip(!process.env.LAB_R11_CSV_URL&&!process.env.LAB_COMPONENT_TEST_URL,'isolated API/production UI required');
+ const component=process.env.LAB_COMPONENT_TEST_URL;
+ const url=component||process.env.LAB_R11_CSV_URL!;
+ const mount=async()=>{
+  if(!component){await page.goto(url);await page.getByRole('button',{name:'Investigación',exact:true}).click();return}
+  await page.route(`${url}/r11-csv-test`,r=>r.fulfill({contentType:'text/html',body:'<div id="test-root"></div>'}));
+  await page.goto(`${url}/r11-csv-test`);
+  await page.addScriptTag({type:'module',content:`
+   import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
+   import {NeuroPanel} from '/src/NeuroPanel.tsx';
+   const api=async(path,body)=>{const r=await fetch('/api/'+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await r.json();if(!r.ok)throw Error(JSON.stringify(value));return value};
+   ReactDOM.createRoot(document.getElementById('test-root')).render(React.createElement(NeuroPanel,{api}));
+  `});
+ };
+ await mount();
  const panel=page.getByRole('region',{name:'Importación CSV R11',exact:true});
  const raw='\ufeffindex,time_ms,channel\r\n0,0,0\r\n2,8,NA\r\n';
  const metadata={source_id:'synthetic-csv',subject_slot:'declared-slot',provider:'synthetic',hardware_description:'No hardware: CSV fixture',nominal_sample_rate_hz:250,clock:{source_clock:'synthetic',common_clock:'declared',offset_s:0,rate:1,uncertainty_s:.01,method:'declared_assumption'},channels:[{id:'ch1',kind:'eeg',units:'adc_counts',reference:'declared-reference'}]};
@@ -12,6 +24,11 @@ test('explicit CSV import preserves raw digest and archives converted observatio
  await expect(panel.getByLabel('Texto CSV R11')).toHaveValue(raw.replace(/\r\n/g,'\n'));
  await panel.getByLabel('Metadatos de observación CSV R11 (JSON)').fill(JSON.stringify(metadata));
  await panel.getByLabel('Mapeo de columnas CSV R11 (JSON)').fill(JSON.stringify(mapping));
+ await expect(panel.getByLabel('Formato temporal CSV R11')).toHaveValue('milliseconds');
+ await panel.getByLabel('Formato temporal CSV R11').selectOption('iso8601');
+ await panel.getByLabel('Origen ISO CSV R11').fill('2026-10-03T12:00:00Z');
+ await panel.getByLabel('Formato temporal CSV R11').selectOption('milliseconds');
+ expect(JSON.parse(await panel.getByLabel('Mapeo de columnas CSV R11 (JSON)').inputValue())).toEqual(mapping);
  await panel.getByRole('button',{name:'Convertir CSV R11'}).click();
  await expect(panel).toContainText('CSV convertido: 2 muestras · 1 saltos');
  const exported=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar conversión y procedencia CSV R11'}).click();
@@ -33,7 +50,7 @@ test('explicit CSV import preserves raw digest and archives converted observatio
  await expect(panel.getByRole('button',{name:'Abrir importación CSV R11',exact:true})).toHaveCount(1);
  await panel.getByRole('button',{name:'Guardar importación CSV R11',exact:true}).click();
  await expect(panel.getByRole('button',{name:'Abrir importación CSV R11',exact:true})).toHaveCount(1);
- await page.reload();await page.getByRole('button',{name:'Investigación',exact:true}).click();
+ await mount();
  await panel.getByRole('button',{name:'Abrir importación CSV R11',exact:true}).click();
  await expect(panel).toContainText('CSV convertido: 2 muestras · 1 saltos');
  const savedMetadata=JSON.parse(await panel.getByLabel('Metadatos de observación CSV R11 (JSON)').inputValue());
