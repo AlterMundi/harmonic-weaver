@@ -1811,3 +1811,9 @@ la siguiente. Ediciones posteriores descartan elección pendiente; errores visib
 sin retry. Seis pruebas Chrome reales y build pasan; sin defaults/audio modificados.
 No representa una cola universal para todas las escrituras ni elimina conflictos
 con otras ventanas o controles anteriores a una confirmación de revisión.
+
+R13: comparador web/API read-only de2–6 corridas, mismo input/contexto y settings
+variables, sobre pares origen/objetivo idénticos; MSE/deltas/exclusiones/soporte y
+JSON local con procedencia.23 pruebas backend y4 Chrome pasan, controles sintéticos
+publicados; coincidencia con cálculo corporal privado de #145. Sin datos privados,
+refit/defaults/audio/aceptación modificados; reservas independientes siguen pendientes.

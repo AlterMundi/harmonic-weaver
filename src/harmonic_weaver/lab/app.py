@@ -38,6 +38,7 @@ from .research.neuro_csv_archive import CSVService
 from .research.neuro_service import NeuroService
 from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
+from .research.heldout_compare import ComparisonRequest as HeldoutComparisonRequest
 from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic, nonlinear_synthetic as heldout_nonlinear
 from .research.physiology_sensitivity import Request as PhysiologySensitivityRequest, calculate as calculate_physiology_sensitivity
 from .research.physiology_sensitivity_service import SensitivityService as PhysiologySensitivityService
@@ -565,6 +566,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r13')
     def heldout_list():return heldout.list()
+
+    @app.post('/api/research/r13/compare')
+    def heldout_compare(body: HeldoutComparisonRequest):return heldout.compare(body)
 
     @app.post('/api/research/r13/{ident}/cancel')
     def heldout_cancel(ident: str):return heldout.cancel(ident)

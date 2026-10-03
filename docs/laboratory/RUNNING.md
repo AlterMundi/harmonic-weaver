@@ -1019,3 +1019,13 @@ desde laboratory-ui. Segmento configurable por LAB_R04_BODY_START/END; defaults
 usan la fuente completa hasta120s. Para probar bloqueo de otra EVAL sin escala,
 levantarla en fixture separado y añadir LAB_R04_UNSCALED_BODY_URL. Tests necesitan
 inputs explícitos y no calibran cuerpos ni transfieren escala entre evaluaciones.
+
+### Comparar corridas R13 guardadas
+
+Investigación → R13 → **Comparar corridas R13 sobre soporte común**. Elegir2–6
+corridas de las mismas secuencias congeladas; primera seleccionada es referencia.
+Pueden variar parámetros/prefijo, pero no observaciones, unidades, grupos o tarea.
+**Comparar soporte común R13** muestra pares compartidos, exclusiones y MSE/deltas
+sobre esos pares; no compara promedios de tiempos distintos. Sin pares idénticos
+no hay puntuación. **Guardar comparación R13** descarga soporte/procedencia/settings
+localmente; no recalcula tracking, ajusta modelos ni modifica el instrumento.

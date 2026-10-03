@@ -3141,3 +3141,31 @@ puerto cerrado. Sin modificación productiva/build nuevo necesarios: bundle
 verificado de #144 reutilizado. Sin R24, escucha, aceptación ni captura física.
 Esta reserva contrasta recordings; no demuestra generalización entre sujetos,
 eficiencia/causalidad/HIT, equivalencia de escalas o mejora perceptual.
+
+### R13 · comparador de corridas guardadas sobre soporte común — 2026-10-03
+
+Nuevo núcleo/API/web read-only intersecta pares (secuencia,origen,objetivo) entre
+2–6 corridas con iguales inputs/contexto/reserva y settings variables. MSE calculado
+desde predicción/target; delta pareado frente a primera para métodos compartidos.
+Muestra elegibles/excluidos, soporte explícito, settings y procedencia; descarga
+JSON. Sin soporte null, métodos ausentes sin delta. No matching aproximado, refit,
+imputación ni transferencia de cuerpo/escala. Hashes verificados antes/después;
+comparación registra código/entorno actual separado de inputs históricos.
+
+**23 R13 tests passed (3.52s)**: prefijo con deriva de amplitud revela diferencia
+entre media individual/pareada;149 pares,29 excluidos de178. Horizontes1/2 sin
+pares; unidades/features/contextos/objetivos diferentes rechazados; IDs acotados,
+artefacto alterado rechazado y regresiones originales de train-only/adaptación/
+shuffle/workers. Shaper-dev seleccionado explícitamente para la integración PCM;
+la deriva de amplitud del control evita una media constante trivial.
+
+**4 Chrome passed (8.6s)** con producción/API/workers reales: comparación prefijos,
+soporte vacío, contextos incompatibles (HTTP422 visible, sin tabla), descarga,
+cambio de selección invalida tabla; preset/revisión live intactos. Incluye recorrido
+R13 productivo anterior. Bundle94 módulos TypeScript/Vite **1.22s**.
+
+Receta pública sintética ejecutada, lectura repetida idéntica, evidencia publicada
+sin datos corporales. Nuevo núcleo también reproduce, con tolerancia numérica
+1e-12, soporte/scores pareados calculados localmente en #145; ese informe queda
+privado. Fixture detenida, puerto cerrado. Sin defaults/audio, dispositivos físicos,
+escucha/aceptación nueva ni conclusión de generalización/HIT.

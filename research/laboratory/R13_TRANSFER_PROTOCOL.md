@@ -203,3 +203,36 @@ los valores y modelos numéricos coincidan; comprobar binding/integridad dentro
 de cada archivo y comparar resultados por separado. No trasladar datos privados
 al repo como requisito de reproducibilidad. Reserva de recording por hash no
 certifica adquisición independiente, homología corporal ni escala física.
+
+## Comparación web sobre soporte común
+
+En R13, seleccionar 2–6 corridas completas en **Comparar corridas R13 sobre soporte
+común**. El orden de selección fija la primera como referencia. Los requests deben
+conservar las mismas secuencias (observaciones, roles, grabación, grupos, tarea y
+procedencia), features/unidades/reserva/equivalencias; sólo settings pueden variar.
+No remapea cuerpos ni secuencias por posición o nombre parecido.
+
+**Comparar soporte común R13** intersecta exactamente (secuencia, origen, objetivo).
+Recalcula MSE desde predictions/actual sobre esa intersección y diferencias MSE
+pareadas frente a la primera, sólo para métodos presentes en ambas. Mantiene pares
+elegibles/excluidos por condición y los promedios originales de cada corrida aparte.
+Prefijos distintos pueden compartir objetivos posteriores; horizontes distintos
+pueden no compartir ningún par. Sin soporte devuelve null, no cero ni éxito.
+
+**Guardar comparación R13** descarga JSON local con soporte, settings, hashes de
+artefactos, código/entorno de cada input y del comparador. Lee y verifica integridad
+antes/después; no refit ni recomputación de modelos históricos. No exige igualdad
+de entornos, no estima significancia ni transforma diferencias en ranking corporal.
+Cambiar selección descarta la comparación mostrada. No cambia fuente/audio/preset.
+API POST `/api/research/r13/compare`: `{"run_ids":["…","…"]}`.
+
+Controles públicos reales/repetidos en `r13-common-support-evidence-2026-10-03.json`:
+prefijo30 conserva149 pares, excluye29 de la condición sin prefijo; con deriva de
+amplitud el promedio individual difiere del pareado. Horizonte1/2 no comparte
+pares y queda sin score. Receta independiente de los datos corporales:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/r13_common_support_controls.py \
+  --output /tmp/r13-common-support-nueva > /tmp/r13-common-support-evidence.json
+```

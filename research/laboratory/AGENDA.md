@@ -938,3 +938,10 @@ web/API/worker verificado con dos Chrome y sin cambiar preset/revisión live.
 Evidencia numérica/poses/IDs/hashes sólo local; VALIDATION describe alcance sin
 publicarla. No infiere identidad entre videos, equivalencia anatómica de escala,
 transferencia entre sujetos/tareas, causalidad/eficiencia/HIT ni aceptación.
+
+R13 — comparador de corridas guardadas: web/API sobre pares comunes de origen y
+objetivo, MSE/deltas pareados/exclusiones/JSON con procedencia, mismos inputs y
+settings variables. Controles sintéticos de prefijo/soporte vacío publicados en
+r13-common-support-evidence-2026-10-03.json y receta r13_common_support_controls.py.
+23 pruebas backend y4 Chrome; contraste corporal privado anterior coincide.
+No reentrena ni resuelve generalización entre sujetos/tareas o hipótesis HIT.
