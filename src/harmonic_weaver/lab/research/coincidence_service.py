@@ -29,11 +29,13 @@ class CoincidenceService:
     def start(self,request,marks,features):
         return self._start({'request.json':request,'marks.json':marks,'features.json':features})
 
-    def _start(self,inputs):
+    def _start(self,inputs,*,ident=None):
         with self.lock:
             if self.closed:raise ValueError(f'{self.line} service is closed')
             if any(p.poll() is None for p in self.processes.values()):raise ValueError(f'An {self.line} worker is already active')
-            ident=uuid4().hex;folder=self.root/ident;folder.mkdir(mode=0o700)
+            ident=uuid4().hex if ident is None else ident
+            if not isinstance(ident,str) or not re.fullmatch(r'[a-f0-9]{32}',ident):raise ValueError('Invalid preallocated research job id')
+            folder=self.root/ident;folder.mkdir(mode=0o700)
             for name,value in inputs.items():
                 atomic_json(folder/name,value)
             job={'schema_version':1,'status':'queued','line':self.line,
