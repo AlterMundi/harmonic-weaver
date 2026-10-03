@@ -2882,3 +2882,24 @@ editados durante la carga. Instrumento/source/calibración intactos; cero POST a
 evaluación y errores JS. Build93 módulos pasa (1.31s). Servicios propios detenidos;
 sin hardware/tracking/datos corporales. Contrato de ejecución/worker/PCM/defaults
 intactos; no escucha/aceptación humana añadida.
+
+### Selección automática · límite corporal de calibración — 2026-10-03
+
+Regresión reproducida antes de corregir: calibrar el cuerpo provisional del prefijo
+y finalizar con otro cuerpo automático conservaba la calibración/escala previa.
+Ahora limpia calibración, reinicia rutas/historia y reemplaza el modelo escalado
+con uno sin escala; diagnóstico calibration_required y targets vacíos al estar
+pausado. Control positivo: cuerpo explícito estable conserva calibración/modelo
+al finalizar y guarda elección por generación. Medición previa no se borra.
+
+10 tests runtime finales pasan (1.16s); 20 evaluación/paridad/continuación pasan
+(12.70s) con Shaper explícito. Modelos/contratos/media también pasaron en el recorrido
+de regresión (23 tests,4.11s). UI no cambia, evidencia previa de diagnóstico válida.
+
+Auditoría local privada: medio/cache verificados, slot derecho coincidente con
+fuentes congeladas en cinco instantes soportados. Se registra esa elección sólo
+en desarrollo para medio/cache/generación coincidentes; perfil cotidiano conserva
+su propia selección. Preset/calibraciones/última fuente no cambiaron. Sin copiar
+video, recalcular tracking ni iniciar servicios. Sólo evidencia de selección
+espacial/missingness; no identidad biométrica, precisión de pose, continuidad
+anatomía completa, escucha ni aceptación. Hashes/IDs/posiciones quedan locales.

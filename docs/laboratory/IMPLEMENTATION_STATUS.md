@@ -1741,3 +1741,10 @@ calibración e identidad renderer. Cargar no inicia ni modifica requests congela
 carga demorada no sobrescribe ediciones posteriores. 30 tests backend y Chrome
 producción/API pasan. Instrumento/defaults intactos; instalación cotidiana/escucha
 y reservas científicas pendientes.
+
+LAB-00–08: corregido traspaso de escala al cambiar automáticamente de persona
+entre prefijo y tracking completo. Calibración histórica conservada; nuevo cuerpo
+requiere escala propia, mientras cuerpo explícito estable mantiene su medición.
+Runtime10/evaluación20 tests pasan. Elección derecha del clip local verificada y
+registrada sólo en desarrollo, sin tocar preferencia cotidiana/calibraciones ni
+copiar/retrackear medios. Sigue pendiente precisión/escucha/aceptación física.

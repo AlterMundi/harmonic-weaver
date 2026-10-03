@@ -222,6 +222,41 @@ def test_explicit_prefix_selection_is_pinned_when_generation_finishes(tmp_path):
     store.close()
 
 
+def test_automatic_final_body_selection_cannot_inherit_prefix_calibration(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    store.edit(Preset(algorithm={'id':'local'}),0)
+    library=TwoPeopleLibrary(status='building')
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.kind,runtime.job_id='video','test'
+    runtime.tick()
+    assert runtime.person_id=='one'
+    runtime.calibrate();runtime.tick()
+    previous=runtime.model;calibration=runtime.calibration
+    assert calibration is not None
+    library.status='ready';runtime.tick()
+    assert runtime.person_id=='two' and runtime.selection_status=='automatic'
+    assert runtime.calibration is None
+    assert runtime.model is not previous
+    assert runtime.model.scale is None and runtime.model.kinematics.scale is None
+    assert runtime.diagnostic['code']=='calibration_required'
+    assert runtime.audio.targets==[]
+    assert store.calibrations()[0]['id']==calibration.id  # preserve historical explicit measurement
+    store.close()
+
+
+def test_explicit_same_prefix_body_keeps_its_calibration_when_tracking_finishes(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    library=TwoPeopleLibrary(status='building')
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.kind,runtime.job_id='video','test';runtime.tick();runtime.select_person('two');runtime.calibrate();runtime.tick()
+    previous,calibration=runtime.model,runtime.calibration
+    library.status='ready';runtime.tick()
+    assert runtime.person_id=='two' and runtime.selection_status=='explicit'
+    assert runtime.calibration is calibration and runtime.model is previous
+    assert store.source_selection('media-a')['person_id']=='two'
+    store.close()
+
+
 def test_default_first_autoplay_waits_for_cache_and_manual_pause_wins(tmp_path):
     from harmonic_weaver.lab.contracts import PerceptionSettings
     store=SessionStore(tmp_path,prepare=PreparedRoutes)

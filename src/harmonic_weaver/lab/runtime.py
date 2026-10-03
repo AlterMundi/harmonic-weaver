@@ -273,7 +273,11 @@ class LaboratoryRuntime:
             previous_person = self.person_id
             self._resolve_selection(metadata, current)
             if previous_person != self.person_id:
+                self.calibration = None
                 self._reset()
+                # reset() preserves scale; a different body needs a fresh model.
+                if self.model.scale is not None:
+                    self.model = MotionModel(preset, None)
             valid = current is not None and any(p.person_id == self.person_id for p in current.persons)
             if self.kind == "video" and current:
                 valid &= position-current.source_time_s <= preset.algorithm.max_gap_s
