@@ -58,6 +58,12 @@ las definiciones y baselines importan. No transfiere resultados a rope-flow.
 
 ## Semántica implementada
 
+Sensibilidad de reloj disponible en web/API/CLI:
+[banco y receta reproducible](r12_clock/README.md). Deltas declarados cambian sólo
+offset; compara cobertura original y soporte común entre todos los offsets/canales,
+sin elegir sincronización automáticamente. Conserva casos sin soporte y manifests
+locales. No sustituye mediciones/sincronía físicas ni convierte HR a eficiencia.
+
 Request versionado: provider synthetic/declared_import, source_id, subject_slot,
 task/constraints, clock original→común, canales, samples indexados, trials, gap y
 common_channel_ids. Cada null tiene causa. Exclusiones conservan valor raw y causa.

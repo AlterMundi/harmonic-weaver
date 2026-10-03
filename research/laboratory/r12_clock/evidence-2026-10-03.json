@@ -1,0 +1,30 @@
+{
+  "synthetic_only": true,
+  "cases": [
+    {
+      "case": "linear",
+      "exact_repeat": true,
+      "common_support_intervals_s": [
+        [
+          0.5,
+          3.5
+        ]
+      ],
+      "paired_hr_means": [
+        85.0,
+        80.0,
+        75.0
+      ]
+    },
+    {
+      "case": "gap",
+      "exact_repeat": true,
+      "common_support_intervals_s": [],
+      "paired_hr_means": [
+        null,
+        null,
+        null
+      ]
+    }
+  ]
+}

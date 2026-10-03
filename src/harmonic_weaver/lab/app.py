@@ -39,6 +39,8 @@ from .research.neuro_service import NeuroService
 from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
 from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic, nonlinear_synthetic as heldout_nonlinear
+from .research.physiology_sensitivity import Request as PhysiologySensitivityRequest, calculate as calculate_physiology_sensitivity
+from .research.physiology_sensitivity_service import SensitivityService as PhysiologySensitivityService
 from .research.physiology_service import PhysiologyService
 from .research.physiology_csv import Request as PhysiologyCSVRequest, convert as convert_physiology_csv
 from .research.physiology_csv_archive import CSVService as PhysiologyCSVService
@@ -336,6 +338,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     neuro_observations = NeuroService(data_dir)
     neuro_snr_records = SNRService(data_dir)
     neuro_csv_records = CSVService(data_dir)
+    physiology_sensitivity = PhysiologySensitivityService(data_dir)
     physiology_measurements = PhysiologyService(data_dir)
     physiology_csv = PhysiologyCSVService(data_dir)
     heldout = HeldoutService(data_dir)
@@ -596,6 +599,23 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r12/csv/imports/{ident}/artifacts/{name}')
     def physiology_csv_artifact(ident: str, name: str):
         return FileResponse(physiology_csv.artifact(ident, name), filename=name)
+
+    @app.post('/api/research/r12/clock-sensitivity/inspect')
+    def physiology_sensitivity_inspect(body: PhysiologySensitivityRequest):
+        validate_physiology_binding(body.measurements)
+        return calculate_physiology_sensitivity(body)
+
+    @app.post('/api/research/r12/clock-sensitivity')
+    def physiology_sensitivity_save(body: PhysiologySensitivityRequest):
+        validate_physiology_binding(body.measurements)
+        return physiology_sensitivity.start(body)
+
+    @app.get('/api/research/r12/clock-sensitivity')
+    def physiology_sensitivity_list():return physiology_sensitivity.list()
+
+    @app.get('/api/research/r12/clock-sensitivity/{ident}/artifacts/{name}')
+    def physiology_sensitivity_artifact(ident: str,name: str):
+        return FileResponse(physiology_sensitivity.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r12/inspect')
     def physiology_inspect(body: PhysiologyRequest):

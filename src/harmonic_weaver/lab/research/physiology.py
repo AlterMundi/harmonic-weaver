@@ -1,4 +1,5 @@
 """R12 declared measurements and task intervals, never physiological inference from pose."""
+from bisect import bisect_right
 import hashlib
 import json
 from typing import Literal
@@ -116,8 +117,8 @@ class Request(Contract):
         return self
 
 
-def calculate(request):
-    request = Request.model_validate(request)
+def observation_intervals(request):
+    """Adjacent raw pairs with the same validity rules used by the estimator."""
     intervals = []
     for a, b in zip(request.samples, request.samples[1:]):
         start, end = request.clock.common_time(a.source_time_s), request.clock.common_time(b.source_time_s)
@@ -130,28 +131,65 @@ def calculate(request):
             elif b.source_time_s - a.source_time_s > request.max_gap_s: cause = 'time_gap'
             available[key] = {'cause': cause, 'a': a.values[key], 'b': b.values[key]}
         intervals.append((start, end, available))
+    return intervals
+
+
+def calculate(request, *, support=None):
+    request = Request.model_validate(request)
+    intervals = observation_intervals(request)
+    # Internal explicit mask: sorted disjoint common-clock intervals, never inferred coverage.
+    if support is not None:
+        previous = float("-inf")
+        for start, end in support:
+            Contract.finite_tree([start,end])
+            if start >= end or start < previous:
+                raise ValueError("Support intervals must be positive, sorted and disjoint")
+            previous = end
+        support_ends = [end for _,end in support]
     trials = []
     for trial in request.trials:
         rows = {c.id:{'duration_s':0., 'integral':0., 'support_hash':hashlib.sha256(), 'supported_pairs':0, 'excluded_duration_s':{}} for c in request.channels}
         common = {c.id: {'duration_s':0.,'integral':0.,'support_hash':hashlib.sha256()} for c in request.channels}
+        masked_support = {c.id: {"own":[],"common":[]} for c in request.channels}
         for start, end, available in intervals:
             left, right = max(start, trial.start_s), min(end, trial.end_s)
             if right <= left: continue
-            dt = right-left
-            shared = all(available[key]['cause'] is None for key in request.common_channel_ids)
-            for key, values in available.items():
-                row = rows[key]
-                if values['cause']:
-                    causes=row['excluded_duration_s'];cause=values['cause'];causes[cause]=causes.get(cause,0.)+dt
-                    continue
-                # Explicit offline linear/trapezoidal estimator inside supported adjacent pairs only.
-                x, y = (left-start)/(end-start), (right-start)/(end-start)
-                vl=values['a']+(values['b']-values['a'])*x
-                vr=values['a']+(values['b']-values['a'])*y
-                integral=(vl+vr)/2*dt
-                row['duration_s']+=dt;row['integral']+=integral;row['support_hash'].update(json.dumps([left,right],separators=(',',':')).encode());row['supported_pairs']+=1
-                if shared:
-                    common[key]['duration_s']+=dt;common[key]['integral']+=integral;common[key]['support_hash'].update(json.dumps([left,right],separators=(',',':')).encode())
+            pieces = [(left,right)]
+            if support is not None:
+                pieces = []
+                i = bisect_right(support_ends,left)
+                while i < len(support) and support[i][0] < right:
+                    pieces.append((max(left,support[i][0]),min(right,support[i][1])))
+                    i += 1
+            for left,right in pieces:
+                dt = right-left
+                shared = all(available[key]['cause'] is None for key in request.common_channel_ids)
+                for key, values in available.items():
+                    row = rows[key]
+                    if values['cause']:
+                        causes=row['excluded_duration_s'];cause=values['cause'];causes[cause]=causes.get(cause,0.)+dt
+                        continue
+                    # Explicit offline linear/trapezoidal estimator inside supported adjacent pairs only.
+                    x, y = (left-start)/(end-start), (right-start)/(end-start)
+                    vl=values['a']+(values['b']-values['a'])*x
+                    vr=values['a']+(values['b']-values['a'])*y
+                    integral=(vl+vr)/2*dt
+                    if support is not None:
+                        bands=masked_support[key]['own']
+                        if bands and bands[-1][1]==left:bands[-1][1]=right
+                        else:bands.append([left,right])
+                    row['duration_s']+=dt;row['integral']+=integral;row['support_hash'].update(json.dumps([left,right],separators=(',',':')).encode());row['supported_pairs']+=1
+                    if shared:
+                        if support is not None:
+                            bands=masked_support[key]['common']
+                            if bands and bands[-1][1]==left:bands[-1][1]=right
+                            else:bands.append([left,right])
+                        common[key]['duration_s']+=dt;common[key]['integral']+=integral;common[key]['support_hash'].update(json.dumps([left,right],separators=(',',':')).encode())
+        if support is not None:
+            for key,bands in masked_support.items():
+                for target,kind in ((rows,"own"),(common,"common")):
+                    target[key]["support_hash"]=hashlib.sha256()
+                    for pair in bands[kind]:target[key]["support_hash"].update(json.dumps(pair,separators=(",",":")).encode())
         summaries=[]
         for channel in request.channels:
             row, paired=rows[channel.id], common[channel.id]
@@ -176,5 +214,7 @@ def calculate(request):
             'Clock uncertainty remains declared; shifting clocks can change summaries; no physical synchronization inferred',
             'Synthetic fixtures are software controls, not human physiological observations']}
 
+    if support is not None:
+        result["support_intervals_s"] = [list(pair) for pair in support]
     Contract.finite_tree(result)
     return result
