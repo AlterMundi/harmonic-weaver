@@ -26,6 +26,7 @@ from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
 from .research.sai_fourier import FourierService, Settings as FourierSettings
+from .research.sai_body_fourier import BodyFourierService, SourceRequest as BodyFourierRequest, Settings as BodyFourierSettings, freeze as freeze_body_fourier
 from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial, SourceRequest as SpatialSourceRequest, from_library as spatial_from_library
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
@@ -303,6 +304,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     resonators = ResonatorService(data_dir)
     activation = ActivationService(data_dir)
     sai_fourier = FourierService(data_dir)
+    sai_body_fourier = BodyFourierService(data_dir)
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
@@ -355,6 +357,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             rope_jobs.close()
             activation.close()
             sai_fourier.close()
+            sai_body_fourier.close()
             membrane.close()
             controls.close()
             resonators.close()
@@ -1138,6 +1141,29 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def activation_configuration(body:ActivationConfig):
         activation_schedules(body.settings)
         return body.model_dump()
+
+    @app.get('/api/research/sai-body-fourier')
+    def sai_body_jobs():return sai_body_fourier.list()
+
+    @app.post('/api/research/sai-body-fourier/settings')
+    def sai_body_settings(body:BodyFourierSettings):return body.model_dump()
+
+    @app.post('/api/research/sai-body-fourier/prepare')
+    def sai_body_prepare(body:BodyFourierRequest):
+        if runtime is None:raise ValueError('Tracking library required')
+        request,document,support=freeze_body_fourier(runtime.library,body)
+        return {'request':request.model_dump(),'provenance':document['provenance'],'preparation':support}
+
+    @app.post('/api/research/sai-body-fourier')
+    def sai_body_start(body:BodyFourierRequest):
+        if runtime is None:raise ValueError('Tracking library required')
+        return sai_body_fourier.start(runtime.library,body)
+
+    @app.post('/api/research/sai-body-fourier/{ident}/cancel')
+    def sai_body_cancel(ident:str):return sai_body_fourier.cancel(ident)
+
+    @app.get('/api/research/sai-body-fourier/{ident}/artifacts/{name}')
+    def sai_body_artifact(ident:str,name:str):return FileResponse(sai_body_fourier.artifact(ident,name),filename=name)
 
     @app.get('/api/research/sai-fourier')
     def sai_fourier_jobs(): return sai_fourier.list()
