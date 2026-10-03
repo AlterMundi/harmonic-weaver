@@ -3169,3 +3169,22 @@ sin datos corporales. Nuevo núcleo también reproduce, con tolerancia numérica
 1e-12, soporte/scores pareados calculados localmente en #145; ese informe queda
 privado. Fixture detenida, puerto cerrado. Sin defaults/audio, dispositivos físicos,
 escucha/aceptación nueva ni conclusión de generalización/HIT.
+
+### LAB-09 · sincronía del estímulo en MKV decodificado — 2026-10-03
+
+Se añade la comprobación explícita de sincronía digital pedida por #17: flash en
+video y pulso PCM conocidos, medidos tras codificación/mux, no sólo duraciones.
+Callbacks con salto10→12s, archivo PCM continuo, timeline/epoch explícitos. Tres
+offsets0/+0.1/−0.1: flash0.5/0.4/0.6s y pulso0.5s constante, según PTS FFprobe y
+PCM FFmpeg. Source/timeline/PCM originales intactos; PCM exportado idéntico.
+
+**33 capture/export/timeline tests passed (5.03s)**, incluidos tres estímulos,
+API/integridad/rangos/cancelación/publicación interrumpida existentes. Sólo warning
+de deprecación Starlette/AnyIO. Receta pública ejecutada dos veces por offset,
+mediciones iguales; evidencia sintética publicada. Sin cambios de producción,
+build/UI/defaults/audio ni servicios/hardware iniciados. Bundle anterior válido.
+
+El control usa20fps (50ms por frame) y PCM48000Hz; posiciones digitales exactas no
+miden error de cámara/pose/DAC/pantalla/acústica. No verifica AAC preview, sensación
+humana ni identidad con sonido escuchado; la evidencia previa del tap post-limiter
+permanece separada. Sin medios/resultados privados ni nuevas inferencias de HIT.

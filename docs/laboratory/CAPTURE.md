@@ -513,3 +513,29 @@ Chrome contra bundle de producción/API real, con 503 y demoras introducidos
 explícitamente en las consultas de prueba: inventario inicial pendiente, tres
 alertas, estado anterior conservado, una consulta por grupo, recuperación y cero
 POST/errores JS. No se grabó audio/cámara ni se usaron medios corporales.
+
+### Estímulo audiovisual digital decodificado (2026-10-03)
+
+Control sintético de flash de un frame y pulso PCM de32 muestras, ambos a0.5s.
+El sample-clock del archivo es continuo; entre bloques el reloj de callbacks salta
+10→12s y el timeline cambia de época. Tras exportar y decodificar el MKV, FFprobe
+mide PTS del flash y FFmpeg extrae PCM float. Offset0 conserva ambos onsets0.5s;
+offset+0.1 selecciona fuente posterior y adelanta flash a0.4s; offset−0.1 lo retrasa
+a0.6s. Audio permanece en0.5s, bit-idéntico al input. No se infiere sincronía de
+igualar duraciones; se mide el evento dentro del archivo. Resolución visual50ms
+(20fps); los timestamps exactos del control no implican precisión física equivalente.
+
+Receta pública, ejecutada dos veces por condición, y evidencia sin imágenes humanas:
+
+```bash
+PYTHONPATH=src:tests OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/capture_stimulus_control.py \
+  --output /tmp/capture-stimulus-nueva > /tmp/capture-stimulus-evidence.json
+```
+
+`research/laboratory/capture-stimulus-evidence-2026-10-03.json` conserva mediciones,
+código/entorno y límites. `tests/test_lab_capture_stimulus.py` verifica salida
+codificada, salto de reloj/época, signos del offset, PCM y originales intactos.
+No abre dispositivos, no valida AAC de preview ni cámara/DAC/display/acústica.
+Para esa validación todavía se necesita un estímulo físicamente observable y
+medición externa del recorrido real; no reemplazarla por este control digital.
