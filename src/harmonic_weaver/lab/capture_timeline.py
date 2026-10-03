@@ -59,6 +59,7 @@ def frame_plan(blocks, observations, *, fps=30, offset_s=0., max_gap_s=.25,
         if observed<0: row['reason']='unobserved';yield row;continue
         observation=observations[observed];state=observation['state']
         age=target-times[observed];row['observation_age_s']=age
+        row['observation_index']=observed
         if age>max_gap_s: row['reason']='stale';yield row;continue
         source=state.get('source') or {};job=source.get('job') or {}
         if source.get('kind')=='camera':
