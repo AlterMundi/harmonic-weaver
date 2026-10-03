@@ -2798,3 +2798,27 @@ real en Legion resuelve Weaver-dev, Shaper-dev516ebde, HarMoCAP-lab27b8fc2 y ent
 modelo existentes sin iniciarlos. No import/readiness de dependencias, R24/cámara,
 CUDA, escucha ni aceptación física verificadas por este comando. No build/UI/backend
 modificados; evidencia anterior conservada. No instalación/merge/migración cotidiana.
+
+### Arranque real · diagnóstico sin audio y perfil único — 2026-10-03
+
+La pila de desarrollo completa (Weaver, Shaper propio y bundle de producción)
+arrancó en puertos/datos temporales explícitos. UI, /api/state y presets respondieron
+200. En --no-audio Shaper mantiene 503 para voces efectivas; Weaver conserva los
+ACK de control sin consultar esa telemetría ni afirmar revisión aplicada al audio.
+La web muestra un aviso específico, sin error 503 ni botón de recuperación engañoso;
+voice_frame=null, telemetry_valid=false, applied_revision=-1, seis voces del preset
+y diagnóstico audio_status=disabled. Chrome: 1 test pasa (1.2s), cero errores JS.
+Ctrl+C terminó los dos procesos propios; listeners cerrados comprobados. No se
+abrió dispositivo, cámara, tracking ni datos corporales.
+
+23 tests de audio/runtime/parser/wrappers pasan (1.89s): modo explícito conserva
+ACK y liberación propia, no produce telemetría falsa, fallos reales de control
+siguen visibles y --no-audio + --external-shaper se rechaza antes de iniciar.
+El wrapper previo start-laboratory-dev.sh queda como único perfil; el nombre nuevo
+start-laboratory-development.sh delega en él. Misma selección/datos, puertos
+8875/8185 originales, overrides CLI prevalecen. bash -n, imports --check y resolución
+--describe pasan contra los checkouts locales. Build final: 91 módulos, 1.28s.
+
+Se conserva el modo sonoro/defaults y el estado cotidiano. Esta evidencia verifica
+readiness sin audio y UI/control; no salida R24, latencia física, inferencia HarMoCAP,
+CUDA, escucha ni aceptación humana. La pila sigue sin merge/instalación cotidiana.

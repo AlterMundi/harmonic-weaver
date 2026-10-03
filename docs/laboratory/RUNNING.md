@@ -29,31 +29,9 @@ preservados. El bridge de Oliva #36 se revisa por separado.
 
 ### Pila de desarrollo, separada de la instalación cotidiana
 
-Las PR posteriores de investigación/captura aún no están mergeadas ni instaladas
-en `harmonic-weaver-lab`. Para probar el checkout de desarrollo preparado en Legion:
-
-```sh
-cd /home/nicolas/Projects/harmonic-weaver-dev
-./scripts/start-laboratory-development.sh --describe
-./scripts/start-laboratory-development.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
-```
-
-El primer comando sólo muestra checkouts/heads/intérpretes/modelo; no construye
-web, instala dependencias ni inicia servicios/audio. El segundo construye y
-arranca desde ese checkout, usando `harmonic-shaper-dev`, código `HarMoCAP-lab`
-y el entorno/modelo de `HarMoCAP` explícitos. Datos por default:
-`~/.local/share/harmonic-weaver/laboratory-dev`, independiente del perfil cotidiano.
-`WEAVER_LAB_DATA_DIR` o `--data-dir` eligen otro directorio. No copia/migra sesiones,
-presets, calibraciones ni videos desde el perfil cotidiano. Puertos siguen8765/8085:
-conflictos se informan, no se mata una sesión existente. Ctrl+C termina esta sesión.
-
-Ambos wrappers muestran las rutas/heads efectivos antes de arrancar. `--describe`
-también existe en start-laboratory.sh. Selecciones explícitas por env o
-`--shaper-dir`/`--shaper-python`/`--checkpoint` se conservan; ruta/intérprete/modelo
-inexistente falla en vez de caer silenciosamente en otro workspace/modelo. Defaults
-sin override mantienen el fallback cotidiano anterior. SHAPER_DIR exportado coincide
-con el checkout resuelto. Esto identifica selección; no prueba dependencias Python,
-R24, CUDA, escucha o sincronía. Esos checks físicos se hacen al probar el instrumento.
+Las PR posteriores aún no están mergeadas ni instaladas en `harmonic-weaver-lab`.
+Usar el [arranque explícito de desarrollo](#arranque-explícito-de-desarrollo):
+un único perfil con datos y puertos separados de la sesión cotidiana.
 
 Entorno Weaver: dependencias del proyecto y extra `lab`. Entorno HarMoCAP:
 dependencias propias + `av>=12,<17` y modelo pose local. Entorno Shaper:
@@ -214,8 +192,12 @@ la generación válida. Si la extracción falla, esa elección parcial no reempl
 la preferencia de la generación anterior. Si el cuerpo elegido deja de verse,
 el instrumento espera sus datos y no cambia a otro cuerpo automáticamente.
 
-El modo `--no-audio` devuelve 503 en la telemetría de voces: es un arranque de
-percepción/UI sin audio. Conectar la R24 después no habilita ese proceso.
+El modo `--no-audio` muestra «Modo diagnóstico sin audio» en la web: los controles
+pueden ser aceptados, pero no hay telemetría/figura de voces efectivas ni sonido.
+La API de Shaper devuelve 503 para esa telemetría; Weaver no la consulta en este
+modo. Los errores reales del servicio de control siguen visibles. No se permite
+combinarlo con `--external-shaper`: no puede apagar un motor externo.
+Conectar la R24 después no habilita ese proceso.
 Detenerlo con Ctrl+C y volver a iniciar con el comando R24 de arriba, sin
 `--no-audio`. Recargar la web después del reinicio.
 
@@ -242,6 +224,7 @@ un nuevo manifest, no reutilizar una identidad antigua.
 ```bash
 cd ~/Projects/harmonic-weaver-dev
 ./scripts/start-laboratory-dev.sh --check
+./scripts/start-laboratory-dev.sh --describe
 ./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
 ```
 
@@ -249,6 +232,26 @@ La web de desarrollo es `http://127.0.0.1:8875`, Shaper usa `8185` y el estado
 se guarda en `~/.local/share/harmonic-weaver/laboratory-dev`. `--check` sólo
 comprueba imports y muestra destinos; no abre cámara ni audio, ni verifica la
 conexión física de la R24. Ctrl+C detiene los procesos de esa sesión.
+
+`--describe` muestra checkouts/heads, intérpretes y modelo sin construir ni iniciar.
+El código HarMoCAP se selecciona en `HarMoCAP-lab`, con entorno/modelo del original
+`HarMoCAP` explícitos y configurables por `HARMOCAP_DIR`, `HARMOCAP_VENV` y
+`HARMOCAP_CHECKPOINT`. Las rutas explícitas inválidas fallan sin sustituirse por
+otra instalación. `start-laboratory-development.sh` es un alias del mismo wrapper:
+usa los mismos puertos, entorno y datos; no es un segundo perfil.
+
+Para revisar la web y el arranque sin audio físico ni datos de la sesión habitual:
+
+```bash
+cd ~/Projects/harmonic-weaver-dev
+lab_smoke_root="$(mktemp -d /tmp/weaver-no-audio-XXXXXX)"
+./scripts/start-laboratory-dev.sh --no-audio --tracking-device cpu \
+  --port 18967 --shaper-port 18968 --data-dir "$lab_smoke_root/data"
+```
+
+Abrir `http://127.0.0.1:18967`; detener con Ctrl+C. No abre cámara ni calcula tracking
+por sí solo. Esta prueba acredita el arranque/control/UI, no la escucha ni el backend
+de tracking. Los puertos se pueden cambiar si ya hay otra sesión.
 
 La primera apertura tiene estado independiente: importar los presets portables
 que quieras probar desde la web. No se copian selecciones corporales,
@@ -260,6 +263,9 @@ sobre la R24 simultáneamente. Para cambiar puertos o datos, pasar `--port`,
 `WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON` y `LAB_DEV_DATA_DIR` permiten
 seleccionar otras instalaciones deliberadamente; el wrapper no usa un venv
 original como alternativa silenciosa para Weaver o Shaper.
+`WEAVER_LAB_DATA_DIR` se acepta como alias de datos, con prioridad de `LAB_DEV_DATA_DIR`;
+`--data-dir` tiene la última palabra. El launcher cotidiano mantiene su fallback
+cuando no se ha seleccionado explícitamente un entorno.
 
 
 ### Recorrido R05 experimental (rama de desarrollo, PR #72)

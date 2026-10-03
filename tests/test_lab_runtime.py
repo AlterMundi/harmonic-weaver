@@ -32,6 +32,21 @@ class Library:
         return [f for f in self.frames if start < f.source_time_s <= end]
 
 
+def test_audio_diagnostic_distinguishes_explicit_disabled_mode_from_connection(tmp_path):
+    store=SessionStore(tmp_path)
+    try:
+        runtime=LaboratoryRuntime(store,audio=Audio(),library=Library())
+        runtime._diagnose(Preset(),False,{"audio_disabled":True,"error":None},None)
+        assert runtime.diagnostic['audio_status']=='disabled'
+        assert runtime.diagnostic['audio_error'] is None
+        runtime._diagnose(Preset(),False,{"audio_disabled":True,"error":"control failed"},None)
+        assert runtime.diagnostic['audio_error']=='control failed'
+        runtime._diagnose(Preset(),False,{"error":"503"},None)
+        assert runtime.diagnostic['audio_status']=='unavailable'
+    finally:
+        store.close()
+
+
 def test_replay_pause_gap_loop_and_configuration_do_not_replay_old_events(tmp_path):
     now = [0.]
     store = SessionStore(tmp_path, prepare=PreparedRoutes)
