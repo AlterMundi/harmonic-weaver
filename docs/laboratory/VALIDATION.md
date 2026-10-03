@@ -2822,3 +2822,22 @@ start-laboratory-development.sh delega en él. Misma selección/datos, puertos
 Se conserva el modo sonoro/defaults y el estado cotidiano. Esta evidencia verifica
 readiness sin audio y UI/control; no salida R24, latencia física, inferencia HarMoCAP,
 CUDA, escucha ni aceptación humana. La pila sigue sin merge/instalación cotidiana.
+
+### R13 · Control no lineal cuadrático reservado — 2026-10-03
+
+16 tests pasan (2.84s) contra Shaper explícito para la fixture EVAL. Productos de
+historia train-normalizada y coeficientes/bases/medias quedan congelados: modificar
+el último objetivo test no cambia ningún modelo ni predicción previa. Prefijos pooled/
+specific y train shuffle mantienen soporte común, excluyen prefijo y no cruzan gaps.
+Budget24 coordenadas rechazado antes de worker; soporte vacío devuelve null.
+Artefactos repiten/recomputan exactamente en este entorno. Baselines anteriores
+siguen iguales cuando el control se activa o desactiva.
+
+Banco público de tres casos ejecutado/repetido/recomputado, evidencia en protocolo
+R13: ventaja sólo del positivo cuadrático construido; oscilador sin mejora relevante,
+ruido IID peor que media train. No selección de hiperparámetros ni participantes.
+Chrome de producción contra API/worker real: 1 test pasa (3.7s), opción portable
+export/desactivar/import conserva settings,239 objetivos comunes, resultado repetido
+idéntico y cero errores JS. Preset de seis voces, fuente y calibración intactos.
+Build91 módulos pasa (1.31s). Servicios propios detenidos; sin hardware/video privado,
+audio físico ni cambios al instrumento. No transferencia/HIT/aceptación acreditadas.

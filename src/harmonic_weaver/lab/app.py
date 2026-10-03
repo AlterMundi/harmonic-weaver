@@ -37,7 +37,7 @@ from .research.neuro_csv_archive import CSVService
 from .research.neuro_service import NeuroService
 from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
-from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic
+from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic, nonlinear_synthetic as heldout_nonlinear
 from .research.physiology_service import PhysiologyService
 from .research.physiology_csv import Request as PhysiologyCSVRequest, convert as convert_physiology_csv
 from .research.physiology_csv_archive import CSVService as PhysiologyCSVService
@@ -553,7 +553,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('Trial outside selected evaluation segment')
 
     @app.get('/api/research/r13/template')
-    def heldout_template():return heldout_synthetic().model_dump()
+    def heldout_template(kind: Literal['oscillator','quadratic']='oscillator'):
+        return (heldout_nonlinear() if kind=='quadratic' else heldout_synthetic()).model_dump()
 
     @app.post('/api/research/r13')
     def heldout_start(body: HeldoutRequest):return heldout.start(body)

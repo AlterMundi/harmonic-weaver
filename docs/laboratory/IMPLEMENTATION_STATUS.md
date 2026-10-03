@@ -1714,3 +1714,10 @@ Un único perfil start-laboratory-dev.sh conserva puertos 8875/8185 y datos dev;
 start-laboratory-development.sh es alias, no una instalación alternativa.
 23 pruebas backend/shell y Chrome real de producción pasan; R24, tracking físico
 y escucha siguen pendientes. VALIDATION/RUNNING contienen alcance y recorrido.
+
+R13 añade ridge cuadrático opcional (default off), train-only y soporte común con
+baselines/adaptación/shuffle; UI/settings portables y positivo sintético conocido.
+16 tests, Chrome producción/worker real y banco público de tres condiciones pasan.
+El control separa una no linealidad simple de una posible ventaja de descriptor;
+no acredita transferencia entre cuerpos/tareas ni HIT. Datos privados y sonido
+no modificados. Protocolo/evidencia R13 preservan casos sin mejora y dependencias.

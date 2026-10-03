@@ -18,6 +18,7 @@ class Settings(Contract):
     embargo_s: float = Field(default=.5, ge=0, le=60)
     adaptation_mode: Literal['pooled_prefix','prefix_only'] = 'pooled_prefix'
     shuffle_training_targets: bool = False
+    quadratic_control: bool = False
     shuffle_seed: int = Field(default=0,ge=0,le=2**31-1)
     adaptation_prefix_samples: int = Field(default=0, ge=0, le=1200)
 
@@ -67,6 +68,8 @@ class Request(Contract):
         dims=len(self.feature_ids)
         if len(set(self.feature_ids))!=dims or self.settings.components>dims:
             raise ValueError('Unique features and components within dimension required')
+        if self.settings.quadratic_control and dims*self.settings.history_steps>24:
+            raise ValueError('Quadratic control requires features × history_steps <= 24 (at most 324 regressors)')
         train=[s for s in self.sequences if s.role=='train'];test=[s for s in self.sequences if s.role=='test']
         if not train or not test or len({s.id for s in self.sequences})!=len(self.sequences):
             raise ValueError('Distinct sequence IDs and nonempty train/test required')
@@ -119,6 +122,15 @@ def pairs(sequences, settings):
     return np.asarray(histories),np.asarray(targets)
 
 
+def quadratic_inputs(values):
+    """Row-major histories, then all upper-triangle products including squares."""
+    values=np.asarray(values)
+    if values.shape[-1]>24:
+        raise ValueError('Quadratic control supports at most 24 history coordinates')
+    first,second=np.triu_indices(values.shape[-1])
+    return np.concatenate([values,values[...,first]*values[...,second]],axis=-1)
+
+
 def fit(sequences, settings, dimensions, *, shuffled=False):
     histories,targets=pairs(sequences,settings)
     # Normalization and basis see training observations only, never test targets.
@@ -140,6 +152,11 @@ def fit(sequences, settings, dimensions, *, shuffled=False):
     result={'mean':mean.tolist(),'scale':scale.tolist(),'basis':basis.tolist(),'singular_values':singular.tolist(),
         'training_pairs':len(targets),'training_targets_shuffled':shuffled,'training_sequences':[s.id for s in sequences],
         'full_ridge':regress(hx,ty),'subspace_ridge':regress(hx@basis,ty@basis)}
+    if settings.quadratic_control:
+        result['quadratic_ridge']=regress(quadratic_inputs(hx.reshape(len(hx),-1)),ty)
+        result['quadratic_features']={'order':'row_major_history_then_upper_triangle_products_including_squares',
+            'history_coordinates':dimensions*settings.history_steps,
+            'regressors':len(result['quadratic_ridge']['input_mean'])}
     Contract.finite_tree(result)
     return result
 
@@ -153,6 +170,8 @@ def predict(model, history):
     predictions={'persistence':np.asarray(history[-1]),'training_mean':mean,
         'full_ridge':mean+scale*apply('full_ridge',x),
         'subspace_ridge':mean+scale*(apply('subspace_ridge',x@basis)@basis.T)}
+    if 'quadratic_ridge' in model:
+        predictions['quadratic_ridge']=mean+scale*apply('quadratic_ridge',quadratic_inputs(x.ravel()))
     return {name:values.tolist() for name,values in predictions.items()}
 
 
@@ -180,10 +199,10 @@ def calculate(request):
                 predictions=predict(frozen,history)
                 if prefix:
                     adapted=predict(model,history)
-                    predictions.update({f'adapted_{key}':adapted[key] for key in ('training_mean','full_ridge','subspace_ridge')})
+                    predictions.update({f'adapted_{key}':value for key,value in adapted.items() if key!='persistence'})
                 if settings.shuffle_training_targets:
                     shuffled=predict(models['training_shuffle'],history)
-                    predictions.update({f'shuffled_{key}':shuffled[key] for key in ('full_ridge','subspace_ridge')})
+                    predictions.update({f'shuffled_{key}':value for key,value in shuffled.items() if key not in ('persistence','training_mean')})
                 actual=np.asarray(target.values)
                 errors={name:float(np.mean((np.asarray(value)-actual)**2)) for name,value in predictions.items()}
                 row={'sequence_id':sequence.id,'segment':number,'origin_s':piece[origin].time_s,'target_s':target.time_s,
@@ -199,8 +218,11 @@ def calculate(request):
             'contiguous_segments':len(segments(sequence,settings)),
             'mean_mse':{name:float(np.mean([row['mse'][name] for row in rows])) if rows else None for name in
                 (['persistence','training_mean','full_ridge','subspace_ridge']
+                 + (['quadratic_ridge'] if settings.quadratic_control else [])
                  + (['adapted_training_mean','adapted_full_ridge','adapted_subspace_ridge'] if prefix else [])
-                 + (['shuffled_full_ridge','shuffled_subspace_ridge'] if settings.shuffle_training_targets else []))},
+                 + (['adapted_quadratic_ridge'] if prefix and settings.quadratic_control else [])
+                 + (['shuffled_full_ridge','shuffled_subspace_ridge'] if settings.shuffle_training_targets else [])
+                 + (['shuffled_quadratic_ridge'] if settings.shuffle_training_targets and settings.quadratic_control else []))},
             'horizon_elapsed_min_s':min((row['elapsed_s'] for row in rows),default=None),
             'horizon_elapsed_max_s':max((row['elapsed_s'] for row in rows),default=None)})
         traces.extend(rows)
@@ -209,6 +231,7 @@ def calculate(request):
         'models':models,'results':results,'rows':traces,
         'limits':['Reservations, subject grouping, functional equivalence and task constraints are declarations, not verified identities',
             'Normalization, basis and ridge coefficients fit train only; optional explicit prefix refit excludes prefix from scoring',
+            'Optional quadratic control adds history products; shared ridge does not equalize model complexity or tune on held-out targets',
             'Horizon counts supported observation steps, not fixed seconds; elapsed time retained per forecast',
             'Models share forecast support; no pooled frame-weighted claim about subjects or significance',
             'Repeated recordings/presets are not independent bodies; hashes cannot detect all aliases of physical sessions',
@@ -228,3 +251,18 @@ def synthetic():
             'task_id':'oscillation','observations':[{'time_s':float(t),'values':v.tolist()} for t,v in zip(times,values)]})
     return Request(reservation='take',functional_equivalence='Same synthetic oscillator; phase differs',
         constraints='Software fixture without participants',feature_ids=['sin','cos'],unit='dimensionless',sequences=sequences)
+
+
+def nonlinear_synthetic():
+    sequences=[]
+    for name,role,initial in [('train','train',.123),('reserved','test',.413)]:
+        value=initial;rows=[]
+        for index in range(240):
+            rows.append({'time_s':index/30,'values':[value]})
+            value=1-2*value*value
+        sequences.append({'id':name,'role':role,'provider':'synthetic','recording_id':name,
+            'subject_group':name,'task_id':'quadratic_recurrence','observations':rows,
+            'provenance':{'recurrence':'x_next = 1 - 2*x*x','initial':initial}})
+    return Request(reservation='take',functional_equivalence='Same declared quadratic recurrence with different initial values',
+        constraints='Positive software control; no body, HIT claim or independent task',feature_ids=['x'],unit='dimensionless',
+        settings={'history_steps':1,'components':1,'ridge':1e-6,'quadratic_control':True},sequences=sequences)
