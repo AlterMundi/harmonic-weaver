@@ -10,6 +10,7 @@ from ..cache import atomic_json, sha256_file
 from ..contracts import Contract, Number
 from ..evaluation.runner import code_identity
 from .grassmann import Settings, evaluate, pair_controls
+from .forecast_families import Predictor, DEFAULT_PREDICTORS
 
 
 class BodyRequest(Contract):
@@ -23,6 +24,8 @@ class BodyRequest(Contract):
     window_s: Number = Field(default=2,ge=.3,le=10)
     noise_threshold: Number = Field(default=.02,ge=.0001,le=2)
     ridge: Number = Field(default=.1,ge=.00001,le=100)
+    predictors: list[Predictor] = Field(default_factory=lambda:list(DEFAULT_PREDICTORS),min_length=1,max_length=6)
+    autoregressive_lags: int = Field(default=3,ge=1,le=12)
     horizon_steps: int = Field(default=1,ge=1,le=30)
     max_gap_s: Number = Field(default=.1,ge=.01,le=.5)
     input_sha256: str | None = Field(default=None,pattern=r'^[a-f0-9]{64}$')
@@ -32,6 +35,7 @@ class BodyRequest(Contract):
         if not 0<self.end_s-self.start_s<=120:raise ValueError('Choose a segment of at most 120 seconds')
         if len(set(self.signal_ids))!=len(self.signal_ids):raise ValueError('Signals must be distinct')
         if self.components>len(self.signal_ids):raise ValueError('Components cannot exceed selected signals')
+        if len(set(self.predictors))!=len(self.predictors):raise ValueError('Predictors must be distinct')
         return self
 
 
@@ -105,7 +109,8 @@ def run(request, output):
         segment.append(row)
     if segment:segments.append(segment)
     config=Settings(dimensions=len(request.signal_ids),signal_rank=1,components=request.components,
-        window_s=request.window_s,noise_threshold=request.noise_threshold,ridge=request.ridge,horizon_steps=request.horizon_steps)
+        window_s=request.window_s,noise_threshold=request.noise_threshold,ridge=request.ridge,horizon_steps=request.horizon_steps,
+        predictors=request.predictors,autoregressive_lags=request.autoregressive_lags)
     rng=np.random.default_rng(request.seed)
     rotation=np.linalg.qr(rng.normal(size=(config.dimensions,config.dimensions)))[0]
     collected={name:[] for name in ('original','global_rotation','temporal_shuffle')}

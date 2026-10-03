@@ -18,10 +18,15 @@ test('body bench selects frozen same-unit features and sends explicit origin set
  await page.getByRole('checkbox',{name:'zone.1.acceleration',exact:false}).uncheck();
  await page.getByRole('checkbox',{name:'zone.2.speed',exact:false}).check();
  await page.getByLabel('Horizonte corporal (muestras)').fill('6');
+ await page.getByLabel('Ridge completo con retardos R01 corporal',{exact:true}).check();
+ await page.getByLabel('Retardos autorregresivos R01 corporal').fill('2');
  await page.getByRole('button',{name:'Exportar configuración corporal JSON'}).click();
  const config=JSON.parse(await page.getByLabel('Configuración corporal JSON').inputValue());
- expect(config.settings.horizon_steps).toBe(6);expect(config.evaluation_id).toBeUndefined();
+ expect(config.settings.horizon_steps).toBe(6);expect(config.settings.autoregressive_lags).toBe(2);
+ await page.getByLabel('Retardos autorregresivos R01 corporal').fill('5');
+ await page.getByRole('button',{name:'Importar configuración corporal JSON'}).click();
+ await expect(page.getByLabel('Retardos autorregresivos R01 corporal')).toHaveValue('2');expect(config.evaluation_id).toBeUndefined();
  await page.getByRole('button',{name:'Correr R01 con features'}).click();
- await expect.poll(()=>page.evaluate(()=>(window as any).request)).toEqual({evaluation_id:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',run_index:0,signal_ids:['zone.1.speed','zone.2.speed'],start_s:1,end_s:4,seed:0,components:2,window_s:2,noise_threshold:.02,ridge:.1,horizon_steps:6,max_gap_s:.1});
+ await expect.poll(()=>page.evaluate(()=>(window as any).request)).toEqual({evaluation_id:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',run_index:0,signal_ids:['zone.1.speed','zone.2.speed'],start_s:1,end_s:4,seed:0,components:2,window_s:2,noise_threshold:.02,ridge:.1,horizon_steps:6,max_gap_s:.1,predictors:['persistence','full_ridge','subspace_ridge','lagged_full_ridge'],autoregressive_lags:2});
  expect(errors).toEqual([]);
 });

@@ -200,3 +200,45 @@ verificación de exactitud de pose, identidad humana, musicalidad o hipótesis H
 Pendientes científicos: formular predicciones HIT específicas, controlar el efecto
 de señales derivadas/modelos, ampliar familias de predictores, splits reservados,
 normalización causal explícita cuando se requiera y evaluación entre cuerpos/tareas.
+
+## Familias adicionales de pronóstico — 2026-10-03
+
+Además de persistencia, ridge completo y ridge de subespacio, se pueden seleccionar
+linear_trend, lagged_full_ridge y lagged_subspace_ridge. Los defaults siguen siendo
+los tres métodos anteriores. La web ofrece selección y autoregressive_lags (3,
+configurable 1–12) tanto en banco sintético como en features EVAL congeladas;
+JSON portable conserva ambos. La tabla usa los métodos de cada resultado, no
+los controles actuales. Corridas históricas conservan sus columnas anteriores.
+
+Ridge con q retardos ajusta pares (q vectores consecutivos, vector h muestras
+después), centra usando sólo esos pares y pronostica desde el último conjunto
+de q observaciones. Con q=1 coincide numéricamente con ridge anterior. Tendencia
+lineal ajusta cada coordenada contra índice de muestra y extrapola h pasos.
+En features irregulares, h cuenta muestras, no segundos: las traces mantienen
+horizon_elapsed_s. No hay selección de hiperparámetros usando el resultado.
+
+La elegibilidad exige suficiente pasado para todos los métodos seleccionados;
+los scores dentro de cada control comparten targets, y la comparación de controles
+intersecta ese soporte. prediction_fit_support registra observaciones/pares por
+método, además del origen congelado. Gaps reinician todas las familias.
+
+Ejemplo reproducible sin datos corporales:
+
+```bash
+OPENBLAS_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python \
+  research/laboratory/r01_grassmann/reproduce_families.py \
+  --output /tmp/r01-families-reproduction
+```
+
+El script corre los tres casos congelados de evidence-families-2026-10-03.json y
+compara soporte y resúmenes numéricos (rtol 1e-8, atol 1e-11 para variaciones
+pequeñas de aritmética float64/BLAS). Hashes de módulos/entradas son procedencia,
+no el criterio de equivalencia entre entornos. El test de repetición local sí
+comprueba traces byte-idénticas bajo las mismas entradas/entorno.
+
+Con seed=17, h=6, q=4 y los restantes ajustes del ejemplo: MSE original del caso
+periódico es 0.02606 persistencia y 0.02108 lagged ridge completo; el caso sin
+memoria da 0.26641 ridge completo y 0.74338 lagged ridge completo. El segundo
+expone sobreajuste, pese al subespacio compacto. No se elige un ganador universal.
+No son resultados corporales ni validación de HIT, intención o generalización.
+Siguen pendientes predicciones específicas, otras familias y reservas independientes.

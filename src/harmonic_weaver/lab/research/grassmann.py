@@ -11,6 +11,7 @@ from pydantic import Field, model_validator
 from ..cache import atomic_json, sha256_file
 from ..collective import CausalSubspace
 from ..contracts import AlgorithmSettings, Contract, Number
+from .forecast_families import Predictor, DEFAULT_PREDICTORS, linear_trend, lagged_ridge
 
 
 class Settings(Contract):
@@ -24,6 +25,8 @@ class Settings(Contract):
     noise_std: Number = Field(default=.01,ge=0,le=1)
     noise_threshold: Number = Field(default=.02,ge=.0001,le=2)
     ridge: Number = Field(default=.1,ge=.00001,le=100)
+    predictors: list[Predictor] = Field(default_factory=lambda:list(DEFAULT_PREDICTORS),min_length=1,max_length=6)
+    autoregressive_lags: int = Field(default=3,ge=1,le=12)
     horizon_steps: int = Field(default=1,ge=1,le=30)
     scenario: Literal['fixed_span','rotating_span','stochastic_span'] = 'fixed_span'
     temporal_memory: Number = Field(default=.95,ge=0,le=.999)
@@ -33,6 +36,7 @@ class Settings(Contract):
     def valid_rank(self):
         if self.signal_rank>=self.dimensions or self.components>self.dimensions:
             raise ValueError('signal_rank must be below dimensions; components cannot exceed dimensions')
+        if len(set(self.predictors))!=len(self.predictors):raise ValueError('Predictors must be distinct')
         return self
 
 
@@ -80,16 +84,29 @@ def evaluate(settings, t, data):
             # Commit the forecast at its origin. Subsequent observations cannot
             # update its fitted basis, coefficients or predicted vectors.
             target=index+settings.horizon_steps-1
-            if len(past)-settings.horizon_steps>=2 and target<len(t):
-                predictions={'persistence':past[-1].copy(),
-                    'full_ridge':predict(past,np.eye(settings.dimensions),settings.ridge,settings.horizon_steps),
-                    'subspace_ridge':predict(past,basis,settings.ridge,settings.horizon_steps)}
+            lags=settings.autoregressive_lags if any(k.startswith('lagged_') for k in settings.predictors) else 1
+            needs_ridge=any('ridge' in key for key in settings.predictors)
+            required=max(2 if 'linear_trend' in settings.predictors else 1,
+                         settings.horizon_steps+lags+1 if needs_ridge else 1)
+            if len(past)>=required and target<len(t):
+                predictions={}
+                for key in settings.predictors:
+                    if key=='persistence':value_prediction=past[-1].copy()
+                    elif key=='linear_trend':value_prediction=linear_trend(past,settings.horizon_steps)
+                    elif key.startswith('lagged_'):
+                        selected_basis=np.eye(settings.dimensions) if key=='lagged_full_ridge' else basis
+                        value_prediction=lagged_ridge(past,selected_basis,settings.ridge,settings.horizon_steps,settings.autoregressive_lags)
+                    else:
+                        selected_basis=np.eye(settings.dimensions) if key=='full_ridge' else basis
+                        value_prediction=predict(past,selected_basis,settings.ridge,settings.horizon_steps)
+                    predictions[key]=value_prediction
                 pending[target]={'predictions':predictions,'origin_s':history[-1][0],
-                    'fit_end_s':history[-1][0],'training_pairs':len(past)-settings.horizon_steps}
+                    'fit_end_s':history[-1][0],'training_pairs':len(past)-settings.horizon_steps-lags+1 if needs_ridge else 0,
+                    'fit_support':{key:({'past_observations':len(past),'training_pairs':len(past)-settings.horizon_steps-(settings.autoregressive_lags-1 if key.startswith('lagged_') else 0)} if 'ridge' in key else {'past_observations':len(past) if key=='linear_trend' else 1,'training_pairs':0}) for key in settings.predictors}}
         forecast=pending.pop(index,None)
         if forecast is not None and state['state']=='observed':
             row.update(prediction_origin_s=forecast['origin_s'],prediction_fit_end_s=forecast['fit_end_s'],
-                prediction_training_pairs=forecast['training_pairs'],horizon_steps=settings.horizon_steps,
+                prediction_training_pairs=forecast['training_pairs'],prediction_fit_support=forecast['fit_support'],horizon_steps=settings.horizon_steps,
                 predictions={key:prediction.tolist() for key,prediction in forecast['predictions'].items()},
                 prediction_mse={key:float(np.mean((prediction-value)**2)) for key,prediction in forecast['predictions'].items()})
         else:
@@ -97,7 +114,7 @@ def evaluate(settings, t, data):
         rows.append(row);history.append((float(stamp),value.copy()))
     common=[row for row in rows if 'prediction_mse' in row]
     metrics={key:float(np.mean([row['prediction_mse'][key] for row in common])) for key in
-             ('persistence','full_ridge','subspace_ridge')} if common else {}
+             settings.predictors} if common else {}
     return {'rows':rows,'metrics':{'common_samples':len(common),'mean_prediction_mse':metrics,
         'mean_reconstruction_residual':float(np.mean([row['reconstruction_residual'] for row in common])) if common else None}}
 
@@ -106,18 +123,25 @@ def pair_controls(evaluations):
     if not evaluations:raise ValueError('No controls to pair')
     indexed={name:{row['time_s']:row for row in evaluation['rows'] if 'prediction_mse' in row}
              for name,evaluation in evaluations.items()}
+    methods=None
+    for rows in indexed.values():
+        for row in rows.values():
+            keys=list(row['prediction_mse'])
+            if methods is None:methods=keys
+            elif set(keys)!=set(methods):raise ValueError('Controls must contain the same predictor families')
+    methods=methods or []
     times=sorted(set.intersection(*(set(rows) for rows in indexed.values())))
     traces=[{'time_s':stamp,'controls':{name:rows[stamp] for name,rows in indexed.items()}} for stamp in times]
     results={}
     for name,rows in indexed.items():
         errors={key:float(np.mean([rows[stamp]['prediction_mse'][key] for stamp in times]))
-                for key in ('persistence','full_ridge','subspace_ridge')} if times else {}
+                for key in methods} if times else {}
         results[name]={'common_samples':len(times),'mean_prediction_mse':errors,
             'mean_reconstruction_residual':float(np.mean([rows[stamp]['reconstruction_residual'] for stamp in times])) if times else None}
     deltas={}
     if times and 'original' in results:
         deltas={name:{key:float(np.mean([rows[stamp]['prediction_mse'][key]-indexed['original'][stamp]['prediction_mse'][key]
-                        for stamp in times])) for key in ('persistence','full_ridge','subspace_ridge')}
+                        for stamp in times])) for key in methods}
                 for name,rows in indexed.items() if name!='original'}
     return {'common_samples':len(times),'results':results,'mean_mse_delta_vs_original':deltas,
             'eligible_by_control':{name:len(rows) for name,rows in indexed.items()},
