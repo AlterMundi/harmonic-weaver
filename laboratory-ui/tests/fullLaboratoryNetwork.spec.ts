@@ -119,56 +119,155 @@ test("full application uses cached video calibrates and explores every tuned des
   // Collective dimensions and reference edits must remain independent of voice
   // count, body selection, scale and the running source.
   await page.getByRole("button", { name: "Modelos", exact: true }).click();
-  await page.getByRole("spinbutton", { name: "Componentes", exact: true }).fill("2");
-  await expect.poll(async () => (await state()).preset.algorithm.components).toBe(2);
+  await page
+    .getByRole("spinbutton", { name: "Componentes", exact: true })
+    .fill("2");
+  await expect
+    .poll(async () => (await state()).preset.algorithm.components)
+    .toBe(2);
   const sourceTime = await video.evaluate((v) => v.currentTime);
   for (const reference of ["pelvis", "torso", "fixed", "camera"]) {
-    await page.getByRole("combobox", { name: "Referencia espacial", exact: true }).selectOption(reference);
-    await expect.poll(async () => (await state()).preset.algorithm.reference).toBe(reference);
+    await page
+      .getByRole("combobox", { name: "Referencia espacial", exact: true })
+      .selectOption(reference);
+    await expect
+      .poll(async () => (await state()).preset.algorithm.reference)
+      .toBe(reference);
     const current = await state();
     expect(current.preset.voices).toHaveLength(6);
     expect(current.calibration.id).toBe(calibration.id);
     expect(current.session.person_id).toBe(selected);
     await expect.poll(() => video.evaluate((v) => v.paused)).toBe(false);
   }
-  const joints = page.getByRole("group", { name: "Articulaciones del análisis colectivo", exact: true });
-  await joints.getByRole("checkbox", { name: "Muñeca izquierda", exact: true }).uncheck();
-  await expect.poll(async () => (await state()).preset.algorithm.joints.includes(9)).toBe(false);
-  await joints.getByRole("checkbox", { name: "Muñeca derecha", exact: true }).uncheck();
-  await expect.poll(async () => (await state()).preset.algorithm.joints.includes(10)).toBe(false);
-  await expect.poll(async () => {
-    const r = await page.request.get(origin + "/api/fixture/controls");
-    const c = await r.json();
-    return c.targets.length === 6 && c.targets.some((t: any) => t.gain > 0);
-  }, { timeout: 15000 }).toBe(true);
-  await expect.poll(() => video.evaluate((v) => v.currentTime)).toBeGreaterThan(sourceTime);
+  const joints = page.getByRole("group", {
+    name: "Articulaciones del análisis colectivo",
+    exact: true,
+  });
+  await joints
+    .getByRole("checkbox", { name: "Muñeca izquierda", exact: true })
+    .uncheck();
+  await expect
+    .poll(async () => (await state()).preset.algorithm.joints.includes(9))
+    .toBe(false);
+  await joints
+    .getByRole("checkbox", { name: "Muñeca derecha", exact: true })
+    .uncheck();
+  await expect
+    .poll(async () => (await state()).preset.algorithm.joints.includes(10))
+    .toBe(false);
+  await expect
+    .poll(
+      async () => {
+        const r = await page.request.get(origin + "/api/fixture/controls");
+        const c = await r.json();
+        return c.targets.length === 6 && c.targets.some((t: any) => t.gain > 0);
+      },
+      { timeout: 15000 },
+    )
+    .toBe(true);
+  await expect
+    .poll(() => video.evaluate((v) => v.currentTime))
+    .toBeGreaterThan(sourceTime);
+  await page.getByRole("button", { name: "Figura", exact: true }).click();
+  const geometryView = page.getByRole("combobox", {
+    name: "Geometría del movimiento",
+    exact: true,
+  });
+  await geometryView.selectOption("projector");
+  await expect
+    .poll(async () => (await state()).preset.visual.collective_view)
+    .toBe("projector");
+  await page
+    .getByRole("spinbutton", {
+      name: "Ejes visibles de la geometría",
+      exact: true,
+    })
+    .fill("8");
+  const geometry = page.getByRole("region", {
+    name: "Geometría colectiva",
+    exact: true,
+  });
+  const projector = page.getByLabel("Matriz del proyector colectivo", {
+    exact: true,
+  });
+  await expect(projector).toBeVisible();
+  await expect
+    .poll(() =>
+      projector.evaluate((canvas: HTMLCanvasElement) => {
+        const context = canvas.getContext("2d")!;
+        const observed = JSON.parse(
+          canvas.closest("section")!.querySelector("pre")!.textContent!,
+        );
+        const value = observed.projector[0][0],
+          weight = Math.min(1, Math.abs(value));
+        const color = value >= 0 ? [66, 216, 255] : [229, 129, 200];
+        const expected = color.map((v, i) =>
+          Math.round([23, 39, 56][i] * (1 - weight) + v * weight),
+        );
+        const actual = Array.from(context.getImageData(146, 146, 1, 1).data);
+        return (
+          canvas.width === 363 &&
+          actual[3] === 255 &&
+          expected.every((v, i) => v === actual[i])
+        );
+      }),
+    )
+    .toBe(true);
+  await expect(geometry).toContainText("Mostrando 8 de");
+  await geometryView.selectOption("basis");
+  const basis = page.getByLabel("Matriz de base colectiva", { exact: true });
+  await expect(basis).toBeVisible();
+  await expect
+    .poll(() => basis.evaluate((canvas: HTMLCanvasElement) => canvas.width))
+    .toBe(207);
+  await expect
+    .poll(async () => (await state()).preset.visual.collective_view)
+    .toBe("basis");
+  expect((await state()).preset.voices).toHaveLength(6);
+  expect((await state()).calibration.id).toBe(calibration.id);
+  await expect.poll(() => video.evaluate((v) => v.paused)).toBe(false);
   await page.getByRole("button", { name: "Ruteos", exact: true }).click();
-  const route = page.getByRole("group", { name: "Ruteos", exact: true })
-    .locator("details").filter({has:page.getByText("descriptor-1", {exact:true})});
+  const route = page
+    .getByRole("group", { name: "Ruteos", exact: true })
+    .locator("details")
+    .filter({ has: page.getByText("descriptor-1", { exact: true }) });
   await route.locator(":scope > summary").click();
-  await route.getByText("Entradas de la mezcla 1", {exact:true}).click();
-  const weight=route.getByRole("spinbutton", {name:"Peso",exact:true});
+  await route.getByText("Entradas de la mezcla 1", { exact: true }).click();
+  const weight = route.getByRole("spinbutton", { name: "Peso", exact: true });
   await weight.fill("0");
-  await expect.poll(async () => (await state()).preset.routes[0].terms[0].weight).toBe(0);
-  await expect.poll(async () => {
-    const c=await (await page.request.get(origin + "/api/fixture/controls")).json();
-    return c.targets.length===6 && c.targets.find((t:any)=>t.id===1)?.gain<1e-4
-      && c.targets.some((t:any)=>t.id!==1 && t.gain>0);
-  }).toBe(true);
+  await expect
+    .poll(async () => (await state()).preset.routes[0].terms[0].weight)
+    .toBe(0);
+  await expect
+    .poll(async () => {
+      const c = await (
+        await page.request.get(origin + "/api/fixture/controls")
+      ).json();
+      return (
+        c.targets.length === 6 &&
+        c.targets.find((t: any) => t.id === 1)?.gain < 1e-4 &&
+        c.targets.some((t: any) => t.id !== 1 && t.gain > 0)
+      );
+    })
+    .toBe(true);
   await weight.fill("0.75");
-  await expect.poll(async () => (await state()).preset.routes[0].terms[0].weight).toBe(.75);
-  await expect.poll(async () => {
-    const c=await (await page.request.get(origin + "/api/fixture/controls")).json();
-    return c.targets.find((t:any)=>t.id===1)?.gain>0;
-  }).toBe(true);
-  const afterRouting=await state();
+  await expect
+    .poll(async () => (await state()).preset.routes[0].terms[0].weight)
+    .toBe(0.75);
+  await expect
+    .poll(async () => {
+      const c = await (
+        await page.request.get(origin + "/api/fixture/controls")
+      ).json();
+      return c.targets.find((t: any) => t.id === 1)?.gain > 0;
+    })
+    .toBe(true);
+  const afterRouting = await state();
   expect(afterRouting.calibration.id).toBe(calibration.id);
   expect(afterRouting.session.person_id).toBe(selected);
   await expect.poll(() => video.evaluate((v) => v.paused)).toBe(false);
   await page.getByRole("button", { name: "Presets", exact: true }).click();
-  await page
-    .getByLabel("Nombre", { exact: true })
-    .fill(presetName);
+  await page.getByLabel("Nombre", { exact: true }).fill(presetName);
   await page
     .getByRole("button", { name: "Guardar como nuevo", exact: true })
     .click();
@@ -182,22 +281,32 @@ test("full application uses cached video calibrates and explores every tuned des
   expect(saved.algorithm.id).toBe("collective");
   expect(saved.voices).toHaveLength(6);
   expect(saved.algorithm.components).toBe(2);
+  expect(saved.visual.collective_view).toBe("basis");
+  expect(saved.visual.collective_max_axes).toBe(8);
   expect(saved.algorithm.reference).toBe("camera");
   expect(saved.algorithm.joints).not.toContain(9);
   expect(saved.algorithm.joints).not.toContain(10);
   expect(saved.source_id).toBeUndefined();
   expect(saved.person_id).toBeUndefined();
   expect(saved.calibration).toBeUndefined();
-  const referencePreset = page.getByRole("button", { name: /06 · Referencia 01c/ });
+  const referencePreset = page.getByRole("button", {
+    name: /06 · Referencia 01c/,
+  });
   const referenceName = await referencePreset.innerText();
   await referencePreset.click();
   // Sequential walkthrough: wait for visible confirmation before another apply.
-  await expect(page.getByLabel("Nombre", { exact: true }))
-    .toHaveAttribute("placeholder", referenceName);
-  await page
-    .getByRole("button", { name: presetName, exact: true })
-    .click();
+  await expect(page.getByLabel("Nombre", { exact: true })).toHaveAttribute(
+    "placeholder",
+    referenceName,
+  );
+  await page.getByRole("button", { name: presetName, exact: true }).click();
   await expect.poll(async () => (await state()).preset.id).toBe(saved.id);
+  await expect(
+    page.getByLabel("Matriz de base colectiva", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Figura", exact: true }).click();
+  await geometryView.selectOption("off");
+  await expect(geometry).toHaveCount(0);
   await page.getByRole("button", { name: "Pausar", exact: true }).click();
   await expect.poll(() => video.evaluate((v) => v.paused)).toBe(true);
   await page.getByRole("button", { name: "Fuente", exact: true }).click();

@@ -3224,3 +3224,27 @@ sintéticos y POST EVAL interceptado: comprueba payload/selección, no escala co
 medida ni una evaluación real. Otra copia queda intacta; selección nueva explícita
 y edición de inicio conservan nueva escala. TypeScript/Vite94 módulos **1.31s**.
 Fixture detenida; sin datos corporales, síntesis/R24/escucha ni aceptación nuevas.
+
+### R01/R02 · geometría colectiva visible durante exploración — 2026-10-03
+
+UI consume diagnostics.collective existente: base/proyector/amplitudes/residuo/
+ángulos, soporte nombrado y JSON. Colores fijos[-1,+1], recorte visual explícito;
+no nuevo cálculo ni estimación de posición3D. Dos campos visuales portables,
+default off/12 ejes. Baseline no expone geometría, falta de soporte no fabrica matriz.
+
+**44 pruebas backend passed (15.93s)**: runtime, contratos/store, colectivo y
+evaluación; edición visual en el mismo instante conserva objeto del modelo,
+historial y targets exactos. **4 casos adicionales** rechazan vistas/tamaños
+inválidos (suite contratos10 passed0.19s). Warning Starlette/AnyIO existente.
+
+**1 Chrome passed (11.4s)**, recorrido productivo completo sobre cache corporal
+privado read-only: cuatro modelos, seis targets afinados, cuerpo/calibración,
+fuente en movimiento, proyector recortado8 ejes, pixel contrastado contra valor
+observado, base2 columnas independiente de6 voces, save/apply preset conservando
+vista/límite, apagado elimina panel; continúa verificando ruteo/persona/loop.
+Fixture ControlRecorder, no síntesis ni dispositivo. TypeScript/Vite95 módulos
+**1.28s**; recompilación de formato cambia bundle pero no comportamiento.
+
+Cache original SHA verificado sin cambios; fixture detenido/puerto cerrado.
+Sin video nuevo, inferencia, datos corporales publicados, R24, escucha o aceptación
+humana nuevas. No demuestra HIT/positividad/KP ni resuelve investigación R01/R02.

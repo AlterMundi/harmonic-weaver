@@ -69,6 +69,17 @@ def test_replay_pause_gap_loop_and_configuration_do_not_replay_old_events(tmp_pa
     runtime.tick()
     assert runtime.model is model  # a gain edit must not clear motion history
     assert audio.revision == 2
+    # Display edits must not restart kinematics, subspace or articulation.
+    history = list(model.kinematics.history)
+    targets = list(audio.targets)
+    preset.visual.collective_view = "projector"
+    preset.visual.collective_max_axes = 8
+    store.edit(preset, 2)
+    runtime.tick()  # same source instant, no new observation
+    assert runtime.model is model
+    assert list(model.kinematics.history) == history
+    assert audio.targets == targets
+    assert audio.revision == 3
     runtime.control(playing=False)
     assert audio.targets == []
     runtime.tick()

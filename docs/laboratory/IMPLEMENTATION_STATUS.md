@@ -1827,3 +1827,11 @@ EVAL: cambio de cuerpo en un segmento descarta su calibration_id anterior; otras
 copias y ediciones del intervalo conservan sus escalas. Dos regresiones de payload
 web reproducidas/corregidas y build pasan. Backend conserva rechazo de calibración
 ajena; sin defaults/instrumento/medidas nuevos.
+
+R01/R02: vista live configurable de base/proyector colectivo ya producido por
+el núcleo causal. Escala de color fija, ejes/modos explícitos, amplitudes,
+residuo, ángulos y JSON observado; explica falta de soporte y baseline.
+Preset portable conserva vista/recorte, default apagada. Pruebas de runtime
+conservan modelo/historial/targets en edición visual; recorrido Chrome sobre
+cache corporal read-only verifica matrices/controles/preset y seis voces.
+Es visualización de features de velocidad, no reconstrucción3D ni prueba HIT.
