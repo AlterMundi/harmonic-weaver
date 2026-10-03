@@ -100,10 +100,18 @@ la señal seleccionada por segundo del productor, no velocidad corporal métrica
 ni una garantía de timestamp óptico. Los filtros que preceden la derivada pueden
 seguir usando su propio reloj operativo.
 
-**Pendiente:** propagación de identidad de captura por canales derivados de
-aggregators y tratamiento temporal de los otros transforms. Un input derivado
-sin metadata compatible se rechaza en este modo; no se infiere sincronía entre
-productores. El opt-in de transporte no certifica replay científico.
+Los aggregators preservan la identidad y timestamp de captura si todos sus
+inputs declarados (incluidos los canales de include_when) están observed y
+comparten cuadro, identidad y reloj. Esto cubre combinaciones, cadenas de
+aggregators y bin_2d. La reevaluación fixed_hz conserva el mismo frame: no produce
+un nuevo sample de derivada. Una combinación parcial, held, un predicado de otro
+cuadro o un mix de fuentes continúa con su valor numérico habitual, pero sin
+metadata de captura común; la derivada source_capture aplica su política invalid.
+No se atribuye sincronía a una cohorte que cambia por selección de participantes.
+
+**Pendiente:** tratamiento temporal de los otros transforms y sincronía explícita
+entre productores. Un input derivado sin metadata compatible se rechaza en este
+modo; no se infiere sincronía entre productores. El opt-in de transporte no certifica replay científico.
 
 R09 describe observaciones espaciales y procedencia en el laboratorio. Este
 evento describe transporte de canales OSC: no crea coordenadas 3D, calibración
@@ -126,3 +134,7 @@ aceptación humana requieren evidencia independiente.
 gaps/identidad, ausencia de fallback, inputs alineados y vencimiento del hold.
 `laboratory-ui/tests/captureClockStage.spec.ts` verifica guardar y recuperar los
 controles contra el Stage API real con fixture sintético aislado.
+
+`tests/test_aggregator_capture.py` verifica combinaciones encadenadas, bin_2d,
+frames/tiempos distintos, held/legacy, selección/predicados, y entrega de dos
+personas al motor seguida de ticks sin un nuevo cuadro.
