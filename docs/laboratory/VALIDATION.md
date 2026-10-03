@@ -1998,3 +1998,18 @@ apagado al terminar; no reinicio del laboratorio cotidiano ni escucha nueva.
 
 Pendientes: metadata de captura por aggregators, relojes de los demás transforms
 y evidencia de sincronía física. No se afirma velocidad métrica ni validación HIT.
+
+## OSC v2: procedencia de captura en señales derivadas — 2026-10-02
+
+Aggregators transmiten frame/identidad/timestamp del productor únicamente para
+inputs completos observed alineados, incluyendo predicados. Cadenas y bin_2d
+conservan procedencia; fixed_hz no inventa un sample nuevo para la derivada.
+Combinar frames, relojes o cohortes parciales mantiene el cálculo numérico legacy
+sin afirmar una captura común. No cambia configuración/defaults de audio.
+
+91 pruebas pasan (1.52 s), incluidas ocho nuevas de aggregators: cadena→derivada,
+repetición fixed_hz, frames/streams/timestamps distintos, held/legacy, predicados
+y subconjunto seleccionado; motor con dos personas entregadas por separado,
+alineación posterior y tick repetido. git diff --check pasa. Sin hardware/medios
+privados ni escucha nueva. Pendientes: otros transforms y sincronía entre
+productores; no se afirma equivalencia científica ni velocidad métrica.

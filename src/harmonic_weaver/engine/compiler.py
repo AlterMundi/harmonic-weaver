@@ -1145,6 +1145,38 @@ def compile_aggregators(
     return tuple(compiled), available
 
 
+def _aggregated_envelope(aggregator, envelopes, values, value, state, confidence, now_us):
+    """Preserve capture provenance only for a complete, aligned observed cohort."""
+    dependencies = list(envelopes)
+    dependencies.extend(
+        values.get(item["include_when"]["channel"], ValueEnvelope.invalid(now_us))
+        for item in aggregator.inputs if "include_when" in item
+    )
+    if not any(e.capture_clock is not None for e in dependencies):
+        return ValueEnvelope(value, state, confidence, now_us, now_us)
+    aligned = (
+        state == OBSERVED
+        and len(envelopes) == len(aggregator.inputs)
+        and all(
+            e.state == OBSERVED
+            and e.capture_clock == "producer_monotonic_us_unmapped"
+            and isinstance(e.capture_identity, tuple) and len(e.capture_identity) == 6
+            and type(e.captured_at_us) is int and e.captured_at_us >= 0
+            and e.capture_identity == dependencies[0].capture_identity
+            and e.captured_at_us == dependencies[0].captured_at_us
+            for e in dependencies
+        )
+    )
+    first = dependencies[0]
+    return ValueEnvelope(
+        value, state, confidence, now_us,
+        first.captured_at_us if aligned else None,
+        first.capture_clock if aligned else None,
+        "engine_configured_us",
+        first.capture_identity if aligned else None,
+    )
+
+
 def evaluate_aggregator(
     aggregator: CompiledAggregator,
     runtime: AggregatorRuntime,
@@ -1200,7 +1232,7 @@ def evaluate_aggregator(
                 runtime.cached_confidence = confidence
                 runtime.cached_at_us = now_us
             runtime.last_output_confidence = confidence
-            return ValueEnvelope(value, state, confidence, now_us, now_us)
+            return _aggregated_envelope(aggregator, envelopes, values, value, state, confidence, now_us)
         held_max_us = int(float(validity["held_max_ms"]) * 1000)
         if runtime.cached_value is not None and runtime.cached_at_us is not None and held_max_us > 0:
             age = now_us - runtime.cached_at_us
@@ -1242,7 +1274,7 @@ def evaluate_aggregator(
             runtime.cached_confidence = confidence
             runtime.cached_at_us = now_us
         runtime.last_output_confidence = confidence
-        return ValueEnvelope(value, state, confidence, now_us, now_us)
+        return _aggregated_envelope(aggregator, usable, values, value, state, confidence, now_us)
     held_max_us = int(float(validity["held_max_ms"]) * 1000)
     if runtime.cached_value is not None and runtime.cached_at_us is not None and held_max_us > 0:
         age = now_us - runtime.cached_at_us
