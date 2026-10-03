@@ -2337,3 +2337,32 @@ para que acciones de otros paneles no alteraran su inventario artificial.
 
 Defaults y síntesis cotidiana sin cambios; sin datos privados ni escucha nueva.
 Predicción específica de HIT y validación en tomas/cuerpos reservados pendientes.
+
+## Bridge Fourier corporal de Oliva integrado — 2026-10-03
+
+PR #107 head f424981 incorporada sobre #108 por cherry-pick con autoría
+preservada. Sin cambios a sus cinco archivos, a runtime/síntesis o a instalación
+cotidiana. 58 tests test_sai_bridge_*.py pasan en 27.68 s. Comando completo
+`PYTHONPATH=src:. .venv/bin/python -m research.laboratory.sai_bridge.body_fourier`
+ejecutado con BLAS/OMP a un thread; resultado sintético local, no publicado.
+
+Nueve productores efectivos provienen del checkout integrado. Retención
+upper_body 800/910; one_scalar 128/128. Residuo colectivo original/shared del
+ejemplo coupled cercano a cero (shared seed 7: .001911); independiente
+.357087/.377547/.435354 para seeds 7/19/41, soporte común 231/205/231.
+Esto coincide numéricamente con el informe recibido sin exigir igualdad de
+digests entre entornos. El control escalar compartido/independiente coincide.
+
+Precisión de alcance del informe: 55–94% bajo fases independientes corresponde
+al segmento 7–9 (.549585/.707677/.940500). El segmento 8–10 da
+1.060721/1.105046/1.116235 (106–112%); las fases compartidas en ambos segmentos
+dan 7.9–14.0%. No resumir el rango 55–94% como máximo de ambos antebrazos.
+Se registra aquí sin modificar el archivo reservado del aporte ni bloquear
+la incorporación; la conclusión cualitativa se conserva.
+
+Espectros conservados no implican geometría articulada conservada: el informe
+y los tests muestran desvíos en brazos rígidos y cambios de I incluso bajo
+fases compartidas. Diagnóstico es desviación de longitudes congeladas, no
+puntaje anatómico ni evidencia de intención/HIT/coupling causal/eficiencia.
+Sin datos humanos privados, escucha ni aceptación nuevas. Servicio/UI corporal
+y contraste geométrico restringido quedan pendientes concretos.

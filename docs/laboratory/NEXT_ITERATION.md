@@ -193,3 +193,31 @@ Reservados para ese aporte: `research/laboratory/sai_bridge/body_fourier.py`,
 compatibles. CompAII implementa servicio/UI en `src/` y `laboratory-ui/`, sin
 editar esos archivos reservados ni esperar la entrega para avanzar. Encomienda
 confirmada por Nicolás; no se infiere que el trabajo esté ejecutándose ni terminado.
+
+### Aporte recibido e incorporado: Fourier corporal (#107)
+
+La PR de Oliva #107, head f424981, fue revisada como consumidor e incorporada
+por cherry-pick con autoría preservada sobre la pila actual (#108). No se
+modificaron sus cinco archivos reservados; no hay merge automático ni cambios
+de runtime. 58 tests del bridge pasan y el comando completo ejecuta contra
+los imports actuales. Procedencia efectiva identifica nueve productores del
+checkout integrado, separada de la referencia histórica #98.
+
+Retiene 800/910 frames de upper_body y 128/128 del control one_scalar, con
+exclusiones explicadas. Original/shared/independent se puntúan sobre la misma
+intersección observada por descriptor. No valida poses humanas: todas las
+fixtures de esta verificación son sintéticas. Preservar el espectro cruzado
+no conserva necesariamente longitudes articuladas ni descriptores no lineales.
+
+Siguiente integración de software: servicio/UI consumidor en src/ y
+laboratory-ui/, usando prepare_blocks/control_frames/compare_blocks sobre
+MotionFrames congelados. Selección, Hz/tolerancias, unidades/escala/procedencia,
+semillas y preset descriptivo deben ser explícitos. Mostrar cobertura, causas
+de exclusión, soporte común y diagnóstico geométrico junto a spectra/resultados.
+Nunca usar FFT de bloque completo como filtro causal de la operación live.
+No inventar calibración ni aplicar controles a tracking/audio en producción.
+
+El contraste sintético de geometría restringida/espacio angular propuesto por
+Oliva queda como investigación posterior, midiendo su trade-off espectral; no
+se atribuyen cambios de descriptores únicamente a relaciones. Sin nuevo encargo
+ni mensajes a personas por esta incorporación.
