@@ -2671,3 +2671,24 @@ pasan (2.43 s). Reutiliza decoder/servicios verificados; no nueva inferencia
 ni copia de video. Servidores aislados detenidos. Fixtures sintéticos, sin
 medios corporales/audio/dispositivos. Falta revisión manual corporal; esto
 verifica UI y contratos, no calidad de tracking/ground truth ni escucha.
+
+### R09 · Triangulación pareada declarada — 2026-10-03
+
+26 core/HTTP/regresiones pasan (2.16 s): trayectoria métrica conocida/repetición,
+rotación mundo→cámara, tiempo/incertidumbre/held/ausencia/paralaje/reproyección,
+puntos al infinito/detrás de cámara, matrices/clock/orden/dimensiones/presupuesto
+inválidos, API y configuración que rechaza campos de calibración. Salida siempre
+inferred o missing, sin coordenadas cero sustitutas ni confianza 3D fabricada.
+
+CLI de control ejecuta/repite cuatro condiciones y guarda inputs/result/summary.
+Evidencia pública es sintética: known error3D~7.1e-15m; wrong_pairing obtiene
+0.484m de error pese a reproyección<0.6px. Offset/paralaje dejan missing; nulos
+no se convierten en cero. Esto no mide calibración ni exactitud física.
+
+Chrome panel/API reales pasa (1.7s): carga explícita de ejemplo, reconstrucción/
+figura/diagnóstico, exclusión por umbral, preset sin fuentes y sin cálculo al
+importar, export íntegro y uso/guardado como stream declarado R09. Build pasa
+(1.24s). Servidores propios detenidos; sin datos privados/dispositivos/audio.
+Aún sin writer/worker propios del cálculo; resultado completo se exporta localmente.
+Calibración/correspondencias/relojes físicos, undistorsión/adquisición e IMUs siguen
+pendientes; pipeline no prueba HIT, cuerpo 3D real ni aceptación humana.
