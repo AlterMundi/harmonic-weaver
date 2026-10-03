@@ -388,7 +388,8 @@ function App() {
   const [presetName, setPresetName] = useState(""),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
   const [sourcePreferences, setSourcePreferences] = useState<Data>({default_person:"best_coverage", autoplay_video:true});
-  const [quality, setQuality] = useState<Data | null>(null);
+  const [qualityResult, setQuality] = useState<{jobId:string,report:Data} | null>(null);
+  const quality = qualityResult?.jobId === state.source?.job?.id ? qualityResult?.report : null;
   const [algorithms, setAlgorithms] = useState<Data[]>([]);
   const [pending, setPending] = useState(false),
     [figureError, setFigureError] = useState("");
@@ -424,12 +425,15 @@ function App() {
         .catch((e) => setError(String(e)));
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
+    let active = true;
     setQuality(null);
     if (state.source?.job?.status === "ready") {
-      api(`media/${state.source.job.id}/quality`)
-        .then(setQuality)
-        .catch((e) => setError(String(e)));
+      const jobId = state.source.job.id;
+      api(`media/${jobId}/quality`)
+        .then((report) => { if (active) setQuality({jobId,report}); })
+        .catch((e) => { if (active) setError(String(e)); });
     }
+    return () => { active = false; };
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
     api("source-preferences").then(setSourcePreferences).catch((e) => setError(String(e)));
