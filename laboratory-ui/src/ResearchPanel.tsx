@@ -30,7 +30,7 @@ export function ResearchPanel({api,run}:Data){
   <h2>R01 · Geometría y predicción</h2>
   <p>Banco sintético independiente del instrumento. Compara subespacios del pasado, predicción a horizonte configurable y controles; no produce evidencia corporal ni prueba HIT.</p>
   <label>Dinámica sintética<select value={settings.scenario} onChange={e=>setSettings({...settings,scenario:e.target.value})}>
-   <option value="fixed_span">Subespacio fijo con oscilaciones</option><option value="rotating_span">Subespacio que rota</option><option value="stochastic_span">Subespacio fijo estocástico</option>
+   <option value="harmonic_span">Control con ratios armónicos declarados</option><option value="fixed_span">Subespacio fijo con oscilaciones</option><option value="rotating_span">Subespacio que rota</option><option value="stochastic_span">Subespacio fijo estocástico</option>
   </select></label>
   <div className="fields">{[
    ['seed','Semilla',0,2147483647,1],['samples','Muestras',60,1200,1],['control_hz','Frecuencia (Hz)',10,120,1],

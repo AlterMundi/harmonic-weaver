@@ -1,0 +1,219 @@
+{
+  "incorrect_settings": {
+    "autoregressive_lags": 3,
+    "components": 2,
+    "control_hz": 30,
+    "dimensions": 5,
+    "harmonic_fundamental_hz": 0.73,
+    "harmonic_ratios": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "horizon_steps": 6,
+    "noise_std": 0.001,
+    "noise_threshold": 0.02,
+    "predictors": [
+      "persistence",
+      "full_ridge",
+      "subspace_ridge",
+      "linear_trend",
+      "lagged_full_ridge",
+      "lagged_subspace_ridge",
+      "fixed_harmonics"
+    ],
+    "ridge": 1e-05,
+    "rotation_deg_s": 30,
+    "samples": 240,
+    "scenario": "harmonic_span",
+    "seed": 0,
+    "signal_rank": 2,
+    "temporal_memory": 0.95,
+    "window_s": 3.0
+  },
+  "limits": [
+    "Synthetic positive control intentionally supplies the generator frequencies to the predictor",
+    "Incorrect frequencies use exactly the same target data as the matched condition",
+    "White stochastic input is a separate negative control, not the same observation",
+    "No learned frequency selection, held-out tuning, human data or HIT/particle law validation"
+  ],
+  "original_data_sha256": "c772533b9f7a2788d016366d1d0ceab71b5e3ef699e410a9967ab4848968a725",
+  "paired": {
+    "common_samples": 225,
+    "eligible_by_control": {
+      "global_rotation": 225,
+      "incorrect_frequencies": 225,
+      "original": 225,
+      "temporal_shuffle": 225
+    },
+    "excluded_by_control": {
+      "global_rotation": 0,
+      "incorrect_frequencies": 0,
+      "original": 0,
+      "temporal_shuffle": 0
+    },
+    "mean_mse_delta_vs_original": {
+      "global_rotation": {
+        "fixed_harmonics": 9.178916393346026e-16,
+        "full_ridge": -9.908800631860022e-14,
+        "lagged_full_ridge": 2.0365980886204885e-15,
+        "lagged_subspace_ridge": 5.139621002224009e-16,
+        "linear_trend": 5.214289648206953e-17,
+        "persistence": 1.918218670324576e-17,
+        "subspace_ridge": 9.389094440198025e-17
+      },
+      "incorrect_frequencies": {
+        "fixed_harmonics": 0.43980600328007347,
+        "full_ridge": 0.0,
+        "lagged_full_ridge": 0.0,
+        "lagged_subspace_ridge": 0.0,
+        "linear_trend": 0.0,
+        "persistence": 0.0,
+        "subspace_ridge": 0.0
+      },
+      "temporal_shuffle": {
+        "fixed_harmonics": 15.807165744891408,
+        "full_ridge": 0.03309058888336853,
+        "lagged_full_ridge": 1.0902172691184755,
+        "lagged_subspace_ridge": 1.0790841158620461,
+        "linear_trend": -0.12288938825128148,
+        "persistence": 0.19587418015914593,
+        "subspace_ridge": 0.03154085637805185
+      }
+    },
+    "pairing": "Same logical clock slots; shuffled vectors are not the same observation",
+    "results": {
+      "global_rotation": {
+        "common_samples": 225,
+        "mean_prediction_mse": {
+          "fixed_harmonics": 0.00013952232260551516,
+          "full_ridge": 0.23568002212309927,
+          "lagged_full_ridge": 0.0015144080833193172,
+          "lagged_subspace_ridge": 0.0014624392608556058,
+          "linear_trend": 0.35894294235908786,
+          "persistence": 0.1752647467915598,
+          "subspace_ridge": 0.2310499414675903
+        },
+        "mean_reconstruction_residual": 0.0023181199092606785
+      },
+      "incorrect_frequencies": {
+        "common_samples": 225,
+        "mean_prediction_mse": {
+          "fixed_harmonics": 0.4399455256026781,
+          "full_ridge": 0.23568002212319836,
+          "lagged_full_ridge": 0.0015144080833172804,
+          "lagged_subspace_ridge": 0.0014624392608550921,
+          "linear_trend": 0.3589429423590878,
+          "persistence": 0.17526474679155976,
+          "subspace_ridge": 0.23104994146759023
+        },
+        "mean_reconstruction_residual": 0.002318119909260705
+      },
+      "original": {
+        "common_samples": 225,
+        "mean_prediction_mse": {
+          "fixed_harmonics": 0.00013952232260459725,
+          "full_ridge": 0.23568002212319836,
+          "lagged_full_ridge": 0.0015144080833172804,
+          "lagged_subspace_ridge": 0.0014624392608550921,
+          "linear_trend": 0.3589429423590878,
+          "persistence": 0.17526474679155976,
+          "subspace_ridge": 0.23104994146759023
+        },
+        "mean_reconstruction_residual": 0.002318119909260705
+      },
+      "temporal_shuffle": {
+        "common_samples": 225,
+        "mean_prediction_mse": {
+          "fixed_harmonics": 15.807305267214014,
+          "full_ridge": 0.2687706110065669,
+          "lagged_full_ridge": 1.0917316772017929,
+          "lagged_subspace_ridge": 1.0805465551229017,
+          "linear_trend": 0.23605355410780635,
+          "persistence": 0.37113892695070566,
+          "subspace_ridge": 0.26259079784564204
+        },
+        "mean_reconstruction_residual": 0.002506366016625819
+      }
+    }
+  },
+  "repeat_identical": true,
+  "schema_version": 1,
+  "settings": {
+    "autoregressive_lags": 3,
+    "components": 2,
+    "control_hz": 30,
+    "dimensions": 5,
+    "harmonic_fundamental_hz": 0.5,
+    "harmonic_ratios": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "horizon_steps": 6,
+    "noise_std": 0.001,
+    "noise_threshold": 0.02,
+    "predictors": [
+      "persistence",
+      "full_ridge",
+      "subspace_ridge",
+      "linear_trend",
+      "lagged_full_ridge",
+      "lagged_subspace_ridge",
+      "fixed_harmonics"
+    ],
+    "ridge": 1e-05,
+    "rotation_deg_s": 30,
+    "samples": 240,
+    "scenario": "harmonic_span",
+    "seed": 0,
+    "signal_rank": 2,
+    "temporal_memory": 0.95,
+    "window_s": 3.0
+  },
+  "stochastic_metrics": {
+    "common_samples": 225,
+    "mean_prediction_mse": {
+      "fixed_harmonics": 29.515002999647994,
+      "full_ridge": 0.4980420510490297,
+      "lagged_full_ridge": 2.1451948704659083,
+      "lagged_subspace_ridge": 2.8663092635697063,
+      "linear_trend": 0.5004364029193131,
+      "persistence": 0.8528630871274339,
+      "subspace_ridge": 0.4859377190573106
+    },
+    "mean_reconstruction_residual": 0.001830881579924148
+  },
+  "stochastic_settings": {
+    "autoregressive_lags": 3,
+    "components": 2,
+    "control_hz": 30,
+    "dimensions": 5,
+    "harmonic_fundamental_hz": 0.5,
+    "harmonic_ratios": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "horizon_steps": 6,
+    "noise_std": 0.001,
+    "noise_threshold": 0.02,
+    "predictors": [
+      "persistence",
+      "full_ridge",
+      "subspace_ridge",
+      "linear_trend",
+      "lagged_full_ridge",
+      "lagged_subspace_ridge",
+      "fixed_harmonics"
+    ],
+    "ridge": 1e-05,
+    "rotation_deg_s": 30,
+    "samples": 240,
+    "scenario": "stochastic_span",
+    "seed": 0,
+    "signal_rank": 2,
+    "temporal_memory": 0,
+    "window_s": 3.0
+  }
+}

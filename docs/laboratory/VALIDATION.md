@@ -2536,3 +2536,22 @@ Build TypeScript/Vite final pasa (1.27 s); sin dispositivos ni datos humanos.
 El proxy aislado declara origen de prueba; protección del servidor no se modifica.
 Servidores propios detenidos. Export real, BLE/RR, calibración/sincronía físicas
 y aceptación humana permanecen pendientes. No cambia presets/defaults de audio.
+
+### R01 · Forecast con armónicos declarados — 2026-10-03
+
+Regresión previa: 28 tests de familias/grassmann/body pasan (5.55 s). Suite de
+familias ampliada: 16 pasan (1.10 s), incluyendo siete predictores, rotación,
+artifacts repetidos, cuerpo con gaps, recuperación de sin/cos conocidos y fallo
+con frecuencias incorrectas, clocks/vectores objetivo modificados a horizontes
+1/4, y frecuencias no admitidas por muestreo. No hay interpolación de gaps ni
+optimización de frecuencias. Default evaluate comparado directamente con la
+implementación anterior: rows/metrics idénticos en fixture existente.
+
+Chrome sintético/corporal pasa (2 tests, 3.2 s), con selección de siete métodos,
+fundamental/ratios decimales, configuración/request y columna MSE del nuevo método.
+Build final pasa (1.21 s). Reproducer de armónicos repite sus condiciones y conserva
+resultados idénticos; evidencia pública estrictamente sintética en r01_grassmann.
+Con 225 slots comunes: MSE conocido 0.0001395223 e incorrecto 0.4399455 sobre mismos
+datos; shuffle 15.8073; blanco estocástico separado 29.5150. Son controles conocidos,
+no inferencia sobre HIT/cuerpo/partículas. Frecuencias corporales/ley física y tomas
+reservadas siguen pendientes. Servidor propio Vite detenido; sin audio/hardware.

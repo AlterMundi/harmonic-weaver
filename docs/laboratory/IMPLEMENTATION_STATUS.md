@@ -1624,3 +1624,10 @@ R12 ahora importa CSV con mapeo explícito y archivo local del original UTF-8,
 metadatos/conversión/manifests; controles web y mapa portable. Usa parser compartido
 con R11, cuya salida se conservó. Backend y Chrome/HTTP verificados (VALIDATION).
 No adquisición/sensor real, inferencia de escala ni transferencia de calibración.
+
+R01 suma `fixed_harmonics`, configurable en web sintética/corporal: sin/cos + DC,
+frecuencias declaradas y reloj pasado, forecast congelado y soporte común. Nuevo
+control positivo armónico y banco reproducible de frecuencias incorrectas/shuffle/
+blanco estocástico con evidencia pública sintética. Defaults de predicción/audio
+conservados. No identifica una restricción HIT física; quedan hipótesis/observables
+y tomas independientes (r01_grassmann/README, VALIDATION).
