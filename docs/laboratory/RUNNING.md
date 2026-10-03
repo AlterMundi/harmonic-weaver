@@ -691,6 +691,15 @@ ranking de cuerpos, intención, eficacia, aprendizaje, beneficio o prótesis inf
 Histórico indica code_matches_current; no se promueve silenciosamente.
 
 Protocolo completo/controles/dependencias: `research/laboratory/R13_TRANSFER_PROTOCOL.md`.
+
+El checkbox **Control no lineal: ridge cuadrático R13** añade productos/cuadrados
+de la historia, ajustados únicamente con train, también para prefijo/shuffle si están
+elegidos. Default apagado; export/import de configuración conserva la opción.
+Máximo features × historia de24, sin truncar silenciosamente. **Cargar recurrencia
+cuadrática R13** ofrece un control positivo sintético conocido; no abre video ni
+demuestra transferencia corporal. Los resultados añaden columnas cuadráticas sobre
+los mismos objetivos. Elegir parámetros mirando test es exploración; reservar otra
+toma antes de conclusiones. Mismo ridge no significa misma complejidad de modelos.
 La UI carga los bancos de investigación al abrir la pestaña: el bundle cotidiano
 queda separado. No cambia presets/defaults/R24 ni workspaces cotidianos.
 
