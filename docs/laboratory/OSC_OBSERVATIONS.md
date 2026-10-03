@@ -77,13 +77,33 @@ En el harness de ensayo, agregar `--harmocap-events v2` selecciona este callback
 tanto live como con `--replay`. El default es `legacy`, guardado en run_config.
 Es una opción de transporte del harness, no un preset del laboratorio corporal.
 
-**Límite pendiente:** los transforms temporales genéricos del engine mantienen
-su reloj operativo configurable; no se presentan como velocidades físicas por
-segundo del productor. Las derivadas de investigación por capture_time están en
-SlotObservationHistory y en los modelos causales del laboratorio. Habilitar
-transforms corporales por ese reloj requiere una opción explícita, compatibilidad
-de relojes entre inputs y resets por gaps/identidad. El opt-in de transporte no
-reinterpreta silenciosamente esos transforms ni certifica replay científico.
+## Derivada con reloj de captura
+
+El transform `derivative` permite `clock: engine` (default histórico) o
+`clock: source_capture`. Stage → Edit chain expone esa elección, `max_abs`,
+`max_gap_ms` en modo captura y `max_dt_ms` en modo engine. Guardar la escena
+conserva esos campos; cambiar de reloj no modifica los presets sonoros aceptados.
+
+El modo captura divide el cambio de señal por el delta real del productor:
+no sustituye timestamps faltantes por llegada/tick ni aplica el clamp temporal
+legacy. Exige muestras observed y metadata v2. Para múltiples inputs, todos
+requieren el mismo source/stream/contrato/calibración/frame y timestamp. Espera
+la pareja alineada antes de actualizar la historia; frames duplicados o atrasados
+no cambian su baseline. Una nueva identidad o un gap mayor a `max_gap_ms`
+(default 500 ms) inicia con derivada cero. Held/invalid interrumpen la historia.
+
+Falta de metadata o inputs desalineados siguen la política invalid existente,
+incluido hold_then_reset sin renovar su plazo. Snapshot/Patchbay explican la
+causa mediante `sample_reason`, incluyendo calentamiento por gap/identidad.
+El delta de captura no depende del jitter de recepción. Las unidades son las de
+la señal seleccionada por segundo del productor, no velocidad corporal métrica
+ni una garantía de timestamp óptico. Los filtros que preceden la derivada pueden
+seguir usando su propio reloj operativo.
+
+**Pendiente:** propagación de identidad de captura por canales derivados de
+aggregators y tratamiento temporal de los otros transforms. Un input derivado
+sin metadata compatible se rechaza en este modo; no se infiere sincronía entre
+productores. El opt-in de transporte no certifica replay científico.
 
 R09 describe observaciones espaciales y procedencia en el laboratorio. Este
 evento describe transporte de canales OSC: no crea coordenadas 3D, calibración
@@ -101,3 +121,8 @@ held/invalid/recovery, export de ambos relojes, ausencia de resampling al recibi
 otro slot o tick, y ambas modalidades del launcher con bundles OSC reales
 sintéticos. Esto prueba software; sincronía física gesto/audio, precisión de pose, HIT y
 aceptación humana requieren evidencia independiente.
+
+`tests/test_capture_derivative.py` verifica jitter de llegada, duplicados/orden,
+gaps/identidad, ausencia de fallback, inputs alineados y vencimiento del hold.
+`laboratory-ui/tests/captureClockStage.spec.ts` verifica guardar y recuperar los
+controles contra el Stage API real con fixture sintético aislado.

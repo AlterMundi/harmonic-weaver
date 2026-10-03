@@ -415,6 +415,7 @@
           <div class="route-node"><span>Destination</span><strong>${escapeHtml(target)}</strong></div>
         </div>
         <div class="transform-summary">${transforms}</div>
+        ${route.runtime?.sample_reason ? `<p class="route-status">${escapeHtml({capture_metadata_required:"Capture timing and identity are required for this derivative.",capture_inputs_not_aligned:"Waiting for observations from the same source frame.",capture_not_new:"Repeated or older capture: no new derivative sample.",capture_gap_warming:"Capture gap: derivative history is warming.",capture_epoch_warming:"New capture epoch: derivative history is warming."}[route.runtime.sample_reason] || route.runtime.sample_reason)}</p>` : ""}
         <footer class="route-actions">
           <label class="toggle"><input type="checkbox" data-action="toggle" ${route.enabled ? "checked" : ""} ${model.mutationBusy || !model.connected ? "disabled" : ""}> Enabled</label>
           <button class="button" type="button" data-action="edit" ${model.mutationBusy ? "disabled" : ""}>Edit chain</button>
@@ -476,6 +477,7 @@
   }
 
   function transformLabel(transform) {
+    if (transform.type === "derivative") return `derivative · ${transform.clock === "source_capture" ? "source capture" : "engine clock"}`;
     if (transform.type === "scale_range") return `scale ${rangeText(transform.in)} → ${rangeText(transform.out)}`;
     if (transform.type === "curve") return `curve · ${transform.kind}`;
     if (transform.type === "smoothing") return `${transform.kind} · ${fmt(transform.time_ms)}ms`;
@@ -603,6 +605,7 @@
     if (type === "scale_range") return {type, in: clone(inputRange), out: clone(outputRange), clamp: true};
     if (type === "curve") return {type, kind: "linear"};
     if (type === "smoothing") return {type, kind: "one_pole", time_ms: 35};
+    if (type === "derivative") return {type, window_ms: 40, max_abs: 10, max_dt_ms: 1000, clock: "engine", max_gap_ms: 500};
     if (type === "gate") return {type, threshold: .5, hysteresis: .05, mode: "level", closed: "suppress"};
     return {type: "combine", operator: "mean"};
   }
@@ -620,6 +623,13 @@
   }
 
   function transformFields(transform) {
+    if (transform.type === "derivative") {
+      return selectField("Derivative clock", "clock", [["engine", "Engine scheduling"], ["source_capture", "Source capture (aligned observed frames)"]], transform.clock || "engine")
+        + numberField("Maximum absolute derivative", "max_abs", transform.max_abs, 'min="0.000001"')
+        + (transform.clock === "source_capture"
+          ? numberField("Maximum capture gap (ms)", "max_gap_ms", transform.max_gap_ms ?? 500, 'min="0.000001"')
+          : numberField("Maximum engine delta (ms)", "max_dt_ms", transform.max_dt_ms, 'min="0"'));
+    }
     if (transform.type === "scale_range") {
       return `${numberField("Input min", "in.0", transform.in?.[0])}${numberField("Input max", "in.1", transform.in?.[1])}${numberField("Output min", "out.0", transform.out?.[0])}${numberField("Output max", "out.1", transform.out?.[1])}<label class="transform-field check"><input type="checkbox" data-field="clamp" ${transform.clamp ? "checked" : ""}> Clamp to input range</label>`;
     }
@@ -705,6 +715,7 @@
     }
     const value = input.type === "checkbox" ? input.checked : input.type === "number" ? Number(input.value) : input.value;
     setNested(transform, field, value);
+    if (transform.type === "derivative" && field === "clock") renderTransformEditor();
     if (transform.type === "curve" && field === "kind") {
       delete transform.gamma;
       delete transform.amount;

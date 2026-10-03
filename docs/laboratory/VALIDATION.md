@@ -1981,3 +1981,20 @@ genéricos, compatibilidad entre múltiples inputs/derivados y resets por gaps.
 Por ahora esos transforms conservan su reloj operativo; el consumidor research
 SlotObservationHistory usa el reloj productor. El opt-in no certifica velocidades
 físicas ni equivalencia científica del replay histórico. #77 permanece abierta.
+
+## OSC v2: reloj de captura para derivadas — 2026-10-02
+
+Opt-in derivative.clock=source_capture con identidad por cuadro, alineación de
+inputs, warming por gap/epoch y diagnóstico en snapshot/Stage. Engine permanece
+default; seis voces, ratios, fases y presets aceptados no se modifican.
+
+83 pruebas pasan (1.51 s): captura, ingreso parcial, registry/derived scenes,
+panic, transforms temporales/radiales y Patchbay registry. Incluyen dos slots
+del mismo cuadro, entrega parcial desalineada, posterior alineación y vencimiento
+del hold sin nuevas parejas. Chrome Stage/API real: guardar source_capture, gap
+350 ms, recargar, recuperar configuración y regresar a engine; 1 test pasa
+(1.9 s). node --check y git diff --check pasan. Fixture aislado puerto 8897
+apagado al terminar; no reinicio del laboratorio cotidiano ni escucha nueva.
+
+Pendientes: metadata de captura por aggregators, relojes de los demás transforms
+y evidencia de sincronía física. No se afirma velocidad métrica ni validación HIT.

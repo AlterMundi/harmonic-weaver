@@ -267,6 +267,8 @@ class RouteRuntime:
     slew_at_us: dict[int, int] = field(default_factory=dict)
     derivative_values: dict[int, float] = field(default_factory=dict)
     derivative_at_us: dict[int, int] = field(default_factory=dict)
+    derivative_capture_samples: dict[int, tuple] = field(default_factory=dict)
+    sample_reason: str | None = None
     beat_state: dict[int, dict] = field(default_factory=dict)
     # peak_detector per-transform: last TWO samples (prev_prev, prev) and last
     # fire timestamp (us). Three-sample window needed to detect a local max:
@@ -285,6 +287,7 @@ class RouteRuntime:
     def reset_observation_history(self) -> None:
         self.derivative_values.clear()
         self.derivative_at_us.clear()
+        self.derivative_capture_samples.clear()
         self.phase_values.clear()
         self.phase_at_us.clear()
         self.peak_history.clear()
@@ -594,6 +597,10 @@ def compile_route(
             positive(transform.get("window_ms"), f"{tpath}.window_ms")
             max_abs = positive(transform.get("max_abs"), f"{tpath}.max_abs")
             nonnegative(transform.get("max_dt_ms"), f"{tpath}.max_dt_ms")
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms", 500.0), f"{tpath}.max_gap_ms")
             current_range = (-max_abs, max_abs)
         elif kind == "beat_envelope":
             # Rising-edge trigger -> decaying gain envelope: on each edge the
@@ -668,6 +675,24 @@ def compile_route(
     return CompiledRoute(definition, tuple(inputs), destination, current_range, has_edge)
 
 
+def _invalid_route_output(policy, runtime, now_us):
+    invalid_policy = policy["invalid"]
+    if invalid_policy == "suppress":
+        return None, "suppress"
+    if invalid_policy in {"reset", "release"}:
+        if runtime.invalid_reset_sent:
+            return None, "suppress"
+        runtime.invalid_reset_sent = True
+        return None, "reset"
+    if runtime.last_usable_output is not None and runtime.last_usable_at_us is not None:
+        if now_us - runtime.last_usable_at_us < int(policy["hold_ms"] * 1000):
+            return runtime.last_usable_output, "usable"
+    if runtime.invalid_reset_sent:
+        return None, "suppress"
+    runtime.invalid_reset_sent = True
+    return None, "reset"
+
+
 def evaluate_route(
     route: CompiledRoute,
     runtime: RouteRuntime,
@@ -679,6 +704,7 @@ def evaluate_route(
     """Evaluate one route. The returned reason is usable, suppress, or reset."""
 
     envelopes = [values.get(address, ValueEnvelope.invalid(now_us)) for address in route.inputs]
+    runtime.sample_reason = None
     policy = route.definition["validity"]
     usable = all(
         envelope.state in _STATES
@@ -695,21 +721,31 @@ def evaluate_route(
         if usable:
             return (runtime.last_usable_output, "usable") if runtime.last_usable_output is not None else (None, "suppress")
     if not usable:
-        invalid_policy = policy["invalid"]
-        if invalid_policy == "suppress":
-            return None, "suppress"
-        if invalid_policy in {"reset", "release"}:
-            if runtime.invalid_reset_sent:
+        return _invalid_route_output(policy, runtime, now_us)
+    capture_sample = None
+    if any(t["type"] == "derivative" and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
+        if any(e.state != OBSERVED or type(e.captured_at_us) is not int or e.captured_at_us < 0
+               or not isinstance(e.capture_identity, tuple) or len(e.capture_identity) != 6
+               or type(e.capture_identity[-1]) is not int or e.capture_identity[-1] < 0
+               or e.capture_clock != "producer_monotonic_us_unmapped" for e in envelopes):
+            if any(e.state != OBSERVED for e in envelopes):
+                runtime.reset_observation_history()
+            runtime.sample_reason = "capture_metadata_required"
+            return _invalid_route_output(policy, runtime, now_us)
+        if any(e.capture_identity != envelopes[0].capture_identity
+               or e.captured_at_us != envelopes[0].captured_at_us for e in envelopes[1:]):
+            runtime.sample_reason = "capture_inputs_not_aligned"
+            return _invalid_route_output(policy, runtime, now_us)
+        capture_sample = (envelopes[0].capture_identity, envelopes[0].captured_at_us)
+        for index, transform in enumerate(route.definition["transforms"]):
+            if transform["type"] != "derivative" or transform.get("clock") != "source_capture":
+                continue
+            prior = runtime.derivative_capture_samples.get(index)
+            if prior and capture_sample[0][:-1] == prior[0][:-1] and (
+                capture_sample[0][-1] <= prior[0][-1] or capture_sample[1] <= prior[1]
+            ):
+                runtime.sample_reason = "capture_not_new"
                 return None, "suppress"
-            runtime.invalid_reset_sent = True
-            return None, "reset"
-        if runtime.last_usable_output is not None and runtime.last_usable_at_us is not None:
-            if now_us - runtime.last_usable_at_us < int(policy["hold_ms"] * 1000):
-                return runtime.last_usable_output, "usable"
-        if runtime.invalid_reset_sent:
-            return None, "suppress"
-        runtime.invalid_reset_sent = True
-        return None, "reset"
     runtime.invalid_reset_sent = False
     current: float | list[float]
     if len(envelopes) == 1:
@@ -844,11 +880,27 @@ def evaluate_route(
             max_dt_s = float(transform["max_dt_ms"]) / 1000.0
             previous_value = runtime.derivative_values.get(transform_index)
             previous_at_us = runtime.derivative_at_us.get(transform_index)
+            derivative_now_us = now_us
+            capture_mode = transform.get("clock") == "source_capture"
+            if capture_mode:
+                identity, derivative_now_us = capture_sample
+                prior_capture = runtime.derivative_capture_samples.get(transform_index)
+                if prior_capture and identity[:-1] == prior_capture[0][:-1]:
+                    if identity[-1] <= prior_capture[0][-1] or derivative_now_us <= prior_capture[1]:
+                        runtime.sample_reason = "capture_not_new"
+                        return None, "suppress"
+                    if derivative_now_us-prior_capture[1] > float(transform.get("max_gap_ms",500.0))*1000:
+                        previous_value = previous_at_us = None
+                        runtime.sample_reason = "capture_gap_warming"
+                else:
+                    previous_value = previous_at_us = None
+                    runtime.sample_reason = "capture_epoch_warming"
+                runtime.derivative_capture_samples[transform_index] = capture_sample
             if previous_value is None or previous_at_us is None:
                 out = 0.0
             else:
-                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
-                if dt_s > max_dt_s:
+                dt_s = max(0.0, (derivative_now_us - previous_at_us) / 1_000_000.0)
+                if not capture_mode and dt_s > max_dt_s:
                     dt_s = max_dt_s
                 if dt_s <= 0.0:
                     out = 0.0
@@ -860,7 +912,7 @@ def evaluate_route(
                         out = -max_abs
             # State stores the input sample (not the derivative) for the next step.
             runtime.derivative_values[transform_index] = current
-            runtime.derivative_at_us[transform_index] = now_us
+            runtime.derivative_at_us[transform_index] = derivative_now_us
             current = out
         elif kind == "beat_envelope":
             assert isinstance(current, float)

@@ -505,7 +505,10 @@ class WeaverEngine:
                 envelope = _normalize_channel_value(raw, f"channels.{channel_name}", now, captured_at_us)
                 if observation is not None:
                     envelope = replace(envelope, capture_clock=observation.capture_clock,
-                                       receipt_clock="engine_configured_us")
+                                       receipt_clock="engine_configured_us",
+                                       capture_identity=(observation.source_id, observation.stream_id,
+                                                         observation.contract_id, observation.calibration_generation,
+                                                         observation.calibration_hash, observation.captured_frame_id))
                 if observation is not None and (
                     envelope.state != OBSERVED or observation.event_kind != "slot_update"
                 ):
@@ -1130,7 +1133,7 @@ class WeaverEngine:
                     and (envelope.state != HELD or policy["held"] == "accept")
                     for address in route.inputs
                 )
-                if still_usable:
+                if still_usable and runtime.sample_reason not in {"capture_inputs_not_aligned", "capture_metadata_required"}:
                     # Progress output transitions without resampling motion.
                     if route.destination.key in self._transitions and runtime.last_usable_output is not None:
                         self._dispatch_route_value(route, runtime.last_usable_output, now_us, receipt_perf_ns)
@@ -1429,6 +1432,7 @@ class WeaverEngine:
                             ),
                             "instrument_ready": instrument_ready,
                             "last_output": last_output,
+                            "sample_reason": self._route_runtime[route_definition["route_id"]].sample_reason if compiled_route is not None else None,
                         }
                         route_snapshots.append(route_definition)
                 result["routes"] = route_snapshots
@@ -1462,7 +1466,8 @@ class WeaverEngine:
         }
         if envelope.capture_clock is not None:
             result.update({"capture_clock": envelope.capture_clock,
-                           "receipt_clock": envelope.receipt_clock})
+                           "receipt_clock": envelope.receipt_clock,
+                           "capture_identity": envelope.capture_identity})
         return result
 
     def _publish_derived_source_channels(self, addresses: set[str]) -> None:
