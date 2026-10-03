@@ -17,7 +17,7 @@ export function PhysiologyCSV({api,protocol,onApply}:{api:any,protocol:Data|null
  <label>Tabla CSV R12<textarea aria-label="Tabla CSV R12" rows={5} value={csv} disabled={busy} onChange={e=>setCSV(e.target.value)}/></label>
  <CSVTimeControls text={mapping} onChange={setMapping} disabled={busy} scope="R12"/>
  <label>Mapeo CSV R12 JSON<textarea aria-label="Mapeo CSV R12 JSON" rows={8} value={mapping} disabled={busy} onChange={e=>setMapping(e.target.value)}/></label>
- <p>Declarar separador, preámbulo, columnas de índice/tiempo, unidades temporales (seconds/milliseconds/microseconds), channel_columns y tokens faltantes. No genera índices ni rellena gaps. Hasta 20.000 muestras.</p>
+ <p>Declarar separador, preámbulo, columnas de índice/tiempo, unidades temporales (seconds/milliseconds/microseconds), channel_columns y tokens faltantes. Índice desde columna por defecto; numerar filas exige elegirlo explícitamente. No genera tiempos ni rellena gaps. Hasta 20.000 muestras.</p>
  <button disabled={busy} onClick={()=>void act(async()=>download(portableCSVMapping(JSON.parse(mapping))))}>Exportar mapeo CSV R12</button>
  <label>Importar mapeo CSV R12<input type="file" accept=".json,application/json" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void act(async()=>{if(file.size>65536)throw Error('Máximo 64 KiB');setMapping(JSON.stringify(portableCSVMapping(JSON.parse(await file.text())),null,2))})}}/></label>
  <p>Mapeo portable no incluye cuerpo, reloj, calibración, ventanas ni datos de la tabla.</p>

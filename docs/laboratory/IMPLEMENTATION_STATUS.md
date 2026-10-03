@@ -1637,3 +1637,9 @@ R01 fixed_harmonics verificado también en dos corridas corporales locales de
 inputs repetibles, sin volver a leer/copiar video/tracking ni abrir audio. Web
 muestra causas de soporte y discrepancia del reloj objetivo estimado/observado.
 Datos/estadísticas corporales quedan locales; no generalización ni escucha inferida.
+
+R11/R12 incorporan un modo explícito de índices por registro para CSV sin contador:
+versión 3, numérico/ISO, procedencia y presets portables. Timestamp real obligatorio,
+no descarte/interpolación; device_counter_observed=false advierte que numerar filas
+no detecta pérdidas físicas. Backend/API/web verificados (VALIDATION), formatos
+anteriores/defaults conservados. Adquisición/exports reales siguen pendientes.
