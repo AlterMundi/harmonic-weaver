@@ -1889,3 +1889,16 @@ r13-body-validation.json. No transferencia entre sujetos/tareas ni beneficio/HIT
 verificados. No copia/retracking de original ni medios/tracking publicados.
 Build TypeScript/Vite pasa; split~292kB inicial/~215kB investigación sin aumentar
 límite de warning. UI/node fixtures propios aislados, sin cambios audio live/defaults.
+## Seek asíncrono del video — 2026-10-01
+
+El seguidor consume el epoch cuando solicita el seek, sin esperar que el decoder
+lo termine. Antes, con `seeking=true` y reloj de tracking avanzando, `seeked`
+podía volver a buscar otra posición del mismo epoch y repetir el ciclo. El nuevo
+test simula ese comportamiento asíncrono y verifica un único seek seguido de
+corrección suave de velocidad. No modifica selección de persona ni tracking.
+
+Tres pruebas Playwright del seguidor y build TypeScript/Vite pasan. Interfaz local
+recompilada; servicios de Nicolás no reiniciados. La reproducción con el video
+corporal y la aceptación visual siguen pendientes: estos tests usan un elemento
+simulado, no prueban por sí solos el recorrido completo ni la causa única del
+problema reportado.
