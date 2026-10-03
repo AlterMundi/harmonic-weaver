@@ -1780,3 +1780,10 @@ request/result/manifest idempotente, reapertura/recomputación y configuración
 portable. Dos controles sintéticos repetidos (incluido soporte vacío) publicados.
 41 tests R12/CSV y dos recorridos Chrome pasan; build94 módulos. Mediciones reales,
 calibración/sincronía físicas y eficiencia/aceptación siguen pendientes.
+
+Instrumento web actual: recorrido corporal con cache existente verifica cuatro
+presets/modelos afinados, calibración, seis targets, edición de componentes/
+referencias/joints y peso de ruteo mientras el video avanza. Peso cero silencia
+sólo la voz elegida; recuperación, preset portable y cambio de cuerpo/loop pasan.
+Chrome11.3s; fixture no sintetiza ni abre dispositivos y prohíbe retracking.
+Cache original intacto, datos privados locales; sonido/aceptación siguen pendientes.
