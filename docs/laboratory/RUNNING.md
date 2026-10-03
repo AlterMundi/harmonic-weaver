@@ -797,3 +797,12 @@ su cobertura juntas: representa una hipótesis declarada de offset global, no
 latencia medida, incertidumbre por marca ni jitter independiente. Los controles
 temporales manuales existentes permanecen separados. Gaps no se interpolan;
 sin soporte/denominador se informa ausencia, no una puntuación perfecta o cero.
+
+R12 → Importar tabla CSV R12: declarar proveedor, slot, reloj, canales y tarea en
+el protocolo actual; abrir CSV UTF-8, definir mapeo de columnas/unidades temporales,
+e inspeccionar. Guardar y usar conserva primero original + mapeo + metadatos en
+`<data-dir>/research/r12-csv-imports/` y carga sus muestras en el análisis normal.
+Mapa portable exportable/importable; fuentes y calibración se declaran aparte.
+Lista y descargas permiten recuperar originales/conversiones. Ver protocolo
+`research/laboratory/R12_MEASUREMENT_PROTOCOL.md`. La plantilla permanece
+sintética hasta una declaración explícita; importar no conecta un sensor.

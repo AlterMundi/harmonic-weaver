@@ -106,3 +106,35 @@ JSON completo se importa/exporta aparte. No cambia instrumento, presets o R24.
   integrar R10/R13 sin confundir preferencia con costo/eficiencia.
 - Evaluación científica formal, sensibilidad preespecificada y métodos de
   emparejamiento entre intentos. No quedan resueltos por este corte descriptivo.
+
+## Importación CSV explícita (2026-10-03)
+
+El panel R12 ofrece `Importar tabla CSV R12`. Usa proveedor, slot, tarea,
+constraints, clock, channels, trials, max_gap y soporte común del protocolo JSON
+actual; **reemplaza samples**, nunca mezcla los del control sintético con la
+importación. No cambia provider: declarar `declared_import` y metadatos reales
+antes de importar una medición; la plantilla sigue siendo un fixture.
+
+Mapeo portable: separador (, / ; / tab), líneas de preámbulo, columnas distintas
+de índice y tiempo, time_units (seconds/milliseconds/microseconds),
+channel_columns por ID y missing_tokens/cause. Índices y tiempos deben aumentar;
+no genera índices ni unwraps de contadores. Valores ya deben estar en unidades
+del Channel: no convierte HR a potencia ni aplica escala/calibración. Potencia
+sigue exigiendo evidencia declarada. Gaps/nulls conservan la semántica anterior.
+
+Inspeccionar muestra cantidad y columnas ignoradas. Guardar original y conversión
+publica sólo un archivo local inmutable con `source.csv`, `request.json` (texto
+original, mapeo y metadatos), `result.json` y `manifest.json`. Guardar y usar archiva
+primero, luego aplica el Request nativo al panel para análisis/guardado R12 normal.
+Una respuesta tardía no aplica un protocolo antiguo sobre una edición reciente.
+Los archivos usan ID por contenido: repetir el mismo envío recupera el mismo
+registro. Listado/reapertura/descargas preservan importaciones previas. Importar
+mapeo portable no transporta cuerpo/reloj/calibración/ventanas ni la tabla.
+
+API: POST `research/r12/csv/inspect`, POST/GET `research/r12/csv/imports`, GET
+`research/r12/csv/imports/{id}/artifacts/{name}` (bajo `/api/`). UTF-8 explícito
+hasta 16 MiB, hasta 20.000 muestras; archivo conservado byte por byte, incluidos
+BOM/CRLF. No adquisición BLE/RR ni detección automática del formato del sensor.
+El parser tabular es compartido con R11, cuyas salidas/contrato se conservan.
+Verificación de integridad del archivo/mapa no valida calidad de medición,
+calibración, atribución al cuerpo ni sincronía física. Todo queda local.

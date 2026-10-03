@@ -9,15 +9,15 @@ from ..cache import atomic_json, sha256_file
 from ..contracts import Contract
 from .experience_response_service import identity
 from .experience_transport_service import TransportService
-from .neuro_csv import Request, convert
-from .neuro_observations import Stream
+from .physiology_csv import Request, convert
+from .physiology import Request as Measurements
 
 FILES = ('source.csv', 'request.json', 'result.json', 'manifest.json')
 
 
 def code_hashes():
     return {name: sha256_file(Path(__file__).parent / name) for name in
-            ('neuro_csv.py', 'neuro_csv_archive.py', 'neuro_observations.py', 'csv_table.py',
+            ('physiology_csv.py', 'physiology_csv_archive.py', 'physiology.py', 'csv_table.py',
              'spatial_observations.py', '../contracts.py')}
 
 
@@ -33,7 +33,7 @@ def verify(folder, *, recompute=False):
     hashes = {name: sha256_file(folder / name) for name in FILES}
     manifest = json.loads((folder / 'manifest.json').read_text())
     Contract.finite_tree(manifest)
-    if (not isinstance(manifest, dict) or manifest.get('schema_version') != 1 or manifest.get('line') != 'R11' or
+    if (not isinstance(manifest, dict) or manifest.get('schema_version') != 1 or manifest.get('line') != 'R12' or
             manifest.get('kind') != 'csv_import' or manifest.get('status') != 'complete'):
         raise ValueError('Invalid CSV import manifest')
     if manifest.get('hashes') != {name: hashes[name] for name in FILES[:-1]}:
@@ -46,11 +46,11 @@ def verify(folder, *, recompute=False):
         raise ValueError('CSV original bytes differ from frozen request')
     result = json.loads((folder / 'result.json').read_text())
     Contract.finite_tree(result)
-    if not isinstance(result, dict) or result.get('schema_version') != 1 or result.get('line') != 'R11':
+    if not isinstance(result, dict) or result.get('schema_version') != 1 or result.get('line') != 'R12':
         raise ValueError('Invalid CSV conversion result')
-    stream = result.get('stream', {})
+    stream = result.get('request', {})
     provenance = result.get('import_provenance', {})
-    Stream.model_validate(stream)
+    Measurements.model_validate(stream)
     if not isinstance(provenance, dict):
         raise ValueError('Invalid CSV conversion provenance')
     if (stream.get('raw_source_sha256') != hashes['source.csv'] or
@@ -69,7 +69,7 @@ def verify(folder, *, recompute=False):
 
 class CSVService(TransportService):
     def __init__(self, data_dir):
-        self.root = Path(data_dir) / 'research/r11-csv-imports'
+        self.root = Path(data_dir) / 'research/r12-csv-imports'
         self.root.mkdir(mode=0o700, parents=True, exist_ok=True)
         self.lock = threading.RLock()
 
@@ -96,11 +96,11 @@ class CSVService(TransportService):
             atomic_json(staging / 'request.json', frozen.model_dump())
             atomic_json(staging / 'result.json', result)
             atomic_json(staging / 'manifest.json', {
-                'schema_version': 1, 'line': 'R11', 'kind': 'csv_import',
+                'schema_version': 1, 'line': 'R12', 'kind': 'csv_import',
                 'status': 'complete', 'request_sha256': digest,
                 'hashes': {name: sha256_file(staging / name) for name in FILES[:-1]},
                 'code_hashes': code_hashes(), 'environment': {'python': platform.python_version()},
-                'samples': len(result['stream']['samples']),
+                'samples': len(result['request']['samples']),
                 'source_id': frozen.metadata.source_id,
                 'limits': ['Original UTF-8 bytes and declared map retained locally',
                            'Hardware, units, clock and subject slot remain declarations',

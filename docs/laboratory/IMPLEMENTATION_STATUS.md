@@ -1619,3 +1619,8 @@ controles temporales: soporte común, denominadores/rangos muestreados, configur
 portable y worker reproducible. La comparación nominal no cambia. Núcleo y
 recorrido Chrome/HTTP verificados (VALIDATION); incertidumbre por evento, latencia
 medida y marcas humanas independientes siguen pendientes.
+
+R12 ahora importa CSV con mapeo explícito y archivo local del original UTF-8,
+metadatos/conversión/manifests; controles web y mapa portable. Usa parser compartido
+con R11, cuya salida se conservó. Backend y Chrome/HTTP verificados (VALIDATION).
+No adquisición/sensor real, inferencia de escala ni transferencia de calibración.

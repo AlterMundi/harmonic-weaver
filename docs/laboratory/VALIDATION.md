@@ -2515,3 +2515,24 @@ Build TypeScript/Vite pasa (1.27 s). Servidores exclusivos de prueba detenidos.
 Todo sintético, sin dispositivos, escucha o nuevos datos humanos; defaults de
 síntesis/presets intactos y sensibilidad apagada por defecto. Falta medir latencia
 física, incertidumbre por evento y recoger marcas humanas independientes.
+
+### R12 · CSV explícito, archivo original y lector común R11 — 2026-10-03
+
+10 pruebas nuevas de physiology_csv pasan (0.97 s): units/calibración, null/gap,
+índices/tiempos, trapecios parciales, digest/BOM/CRLF, archivo/restauración/
+repetición/corrupción y API real. Regresión neuro_csv/neuro_csv_archive/physiology:
+31 pasan inicialmente; la prueba EVAL restante pasó (1.49 s) al declarar
+SHAPER_DIR explícito (sin audio). Total 42 pruebas backend aprobadas en esos grupos.
+La conversión R11 actual se comparó directamente con la implementación anterior
+sobre su fixture existente: salida idéntica, no sólo tolerancia numérica.
+
+Chrome contra API/Vite propios: CSV y recorrido R12 previo pasan (2.4 s).
+Después de ampliar el test CSV para editar protocolo durante una inspección,
+pasa de nuevo (2.3 s): descarta respuesta obsoleta, sin aplicar datos a otro
+contexto. Recorrido verifica bytes originales exactos, conversión temporal,
+missing causes, proveedor conservado y análisis nativo. Etiquetas accesibles y
+selector de descarga de regresión ajustados para coexistir con imports CSV.
+Build TypeScript/Vite final pasa (1.27 s); sin dispositivos ni datos humanos.
+El proxy aislado declara origen de prueba; protección del servidor no se modifica.
+Servidores propios detenidos. Export real, BLE/RR, calibración/sincronía físicas
+y aceptación humana permanecen pendientes. No cambia presets/defaults de audio.
