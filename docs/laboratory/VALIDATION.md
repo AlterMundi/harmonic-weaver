@@ -2581,3 +2581,62 @@ Es error del reloj de features, no medición de latencia física. Suite de famil
 ampliada: 17 pasan (1.14 s), incluyendo inventarios exhaustivos y ausencia de score
 con alias temporal; reloj irregular da error explícito. Chrome del resultado pasa
 (2.5 s) y build pasa (1.21 s). Vite propio detenido. Defaults/audio conservados.
+
+### R11/R12 · Timestamps ISO explícitos y origen portable — 2026-10-03
+
+30 tests previos de CSV/archivos R11/R12 pasan (1.11 s). 12 nuevos de sensor_csv_iso
+pasan (1.02 s): offset equivalente, microsegundos, cambio de día/leap day, origen
+posterior rechazado, ausencia de zona/fechas inválidas/leap second/precisión extra
+rechazadas, versión explícita/no autodetección, archive/restore/raw bytes y API
+real. Valores/unidades y Clock de metadatos permanecen declarados.
+
+Chrome R12 ISO + regresión nativa pasan (2.8 s); R12 ampliado pasa (1.9 s) verificando
+export/import portable sin transportar origen. Chrome R11 numérico/API/nativo pasa
+con montaje aislado de NeuroPanel: incluye pérdida de respuesta, archivo/restauración,
+recompute y uso nativo; selector cambia ISO→numérico conservando mapeo anterior.
+El intento inicial de usar shell completo con runtime mínimo no llegó a la pantalla
+Investigación; no se atribuye ese intento a evidencia del recorrido live. El panel
+real y servicios HTTP fueron verificados sin dispositivos; build pasa (1.31 s).
+Servidores API/Vite de prueba detenidos, sólo fixtures sintéticos. No nuevas mediciones
+humanas, reloj físico sincronizado ni aceptación perceptual; no cambios de síntesis.
+
+### Shell completo con video privado y cache existente — 2026-10-03
+
+Chrome sobre el build de producción, LaboratoryRuntime y VideoLibrary reales:
+video avanza durante la corrida R01 con armónicos declarados y al reseleccionar
+la misma Persona explícita; resultados y diagnósticos visibles; seis targets,
+al menos uno activo; cero errores JavaScript. Tracking existente verificado, sin
+reprocesarlo ni copiar video. Audio reemplazado por registro de controles: no
+abre dispositivos ni acredita escucha humana. Evidencia corporal sólo local.
+
+Fixture reutilizable: `tests/laboratory_ui_fixture.py` admite
+`--frozen-evaluation-request <request.json> --frozen-cache-root <data-dir>`
+y `--source-index 0`, además de `--root <directorio-nuevo> --ui laboratory-ui/dist`
+y `--checkpoint <checkpoint-local>`. Ejecutar con `PYTHONPATH=src:tests` usando
+el Python del proyecto. Conserva la persona explícita del request; no traslada
+calibración. Reproduce el medio completo desde start_s, sin recortar en end_s.
+Sirve el build y los servicios reales con controles sin audio; Ctrl+C lo detiene.
+Los paths e inventarios privados no deben publicarse.
+
+### Integración conjunta hasta #118 — 2026-10-03
+
+Suite completa `tests`: **1070 passed, 4 subtests passed**, sin skips/fallos,
+278.80 s. Weaver 5db9a3e; Shaper de desarrollo 516ebde; HarMoCAP lab 27b8fc2
+consultado sin modificarlo. Una advertencia de deprecación de Starlette/anyio.
+
+```bash
+SHAPER_DIR=/home/nicolas/Projects/harmonic-shaper-dev PYTHONPATH=src:tests:/home/nicolas/Projects/harmonic-shaper-dev/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q tests --maxfail=5
+```
+
+El primer comando con sólo PYTHONPATH=src falló al recolectar diez módulos por
+imports de fixtures. `pyproject.toml` incorpora tests en pythonpath para quitar
+esa dependencia manual; el comando básico `PYTHONPATH=src ... pytest --collect-only
+-q tests` recolecta las 1070 pruebas (1.82 s). Shaper sigue siendo una dependencia
+explícita para las pruebas PCM; no se inicia un servicio ni un dispositivo.
+
+Heads main de AlterMundi verificados: Weaver cc5fb57, Shaper f8bfe07, HarMoCAP
+25fda8d. Los origin de estos checkouts leen forks de Nicolás con otros main
+históricos (Pads v2); no se confunden con los heads de AlterMundi. Workspaces
+originales conservan sus cambios; laboratorio cotidiano permanece en cc5fb57
+y Shaper lab en f8bfe07. Sin checkout, merge, reprocess ni cambios de R24.
+No acredita escucha, calibración física, resultados HIT ni aceptación humana.

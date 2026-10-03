@@ -824,3 +824,10 @@ media/máxima diferencia entre tiempo objetivo estimado y observado ayuda a revi
 relojes irregulares; no mide latencia de tracking/audio ni sincronía física. Un
 commit es una predicción para un objetivo futuro, por lo que no sumar commits y
 objetivos puntuados como observaciones independientes.
+
+CSV R11/R12: Formato temporal permite tiempo numérico o ISO 8601 con zona horaria.
+Para ISO, completar origen de cada archivo y revisar offset/rate del protocolo:
+se aplica a segundos relativos **después** de restar ese origen. Export/import de
+mapeo portable limpia el origen; abrir el import archivado conserva la entrada
+original. [Contrato y ejemplo](SENSOR_CSV_TIME.md). Sin detección ni sincronía
+inferidas; el formato numérico existente y los defaults musicales se conservan.

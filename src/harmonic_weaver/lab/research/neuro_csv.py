@@ -6,7 +6,7 @@ from pydantic import Field
 from ..contracts import Contract
 from .neuro_observations import Channel, Stream, inspect
 from .spatial_observations import Clock
-from .csv_table import Mapping, decode
+from .csv_table import MappingConfig, decode
 
 
 class Metadata(Contract):
@@ -25,7 +25,7 @@ class Request(Contract):
     schema_version: Literal[1] = 1
     csv_text: str = Field(min_length=1, max_length=16 * 1024 * 1024)
     metadata: Metadata
-    mapping: Mapping
+    mapping: MappingConfig
 
 
 def convert(request):

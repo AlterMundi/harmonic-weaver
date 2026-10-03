@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
-test('R12 CSV explicit map, real archive, exact UTF8 bytes and native measurement analysis',async({page})=>{
+import {readFile} from 'node:fs/promises';
+test('R12 ISO CSV explicit origin, real archive, exact UTF8 bytes and native measurement analysis',async({page})=>{
  test.skip(!process.env.LAB_COMPONENT_TEST_URL,'isolated API/Vite proxy required');
  const origin=process.env.LAB_COMPONENT_TEST_URL!;
  await page.route(`${origin}/r12-csv-test`,r=>r.fulfill({contentType:'text/html',body:'<div id="test-root"></div>'}));
@@ -12,10 +13,12 @@ test('R12 CSV explicit map, real archive, exact UTF8 bytes and native measuremen
  ReactDOM.createRoot(document.getElementById('test-root')).render(React.createElement(PhysiologyPanel,{api}));
  `});
  await page.getByText('Importar tabla CSV R12',{exact:true}).click();
- const raw='\uFEFFidx;t_ms;hr;power;ignored\r\n0;0;60;2;a\r\n1;1000;;2;b\r\n2;2000;80;2;c\r\n3;3000;90;2;d\r\n';
+ const raw='\uFEFFidx;t_ms;hr;power;ignored\r\n0;2026-10-03T12:00:00Z;60;2;a\r\n1;2026-10-03T09:00:01-03:00;;2;b\r\n2;2026-10-03T12:00:02Z;80;2;c\r\n3;2026-10-03T12:00:03Z;90;2;d\r\n';
  await page.getByLabel('Archivo CSV R12',{exact:true}).setInputFiles({name:'synthetic.csv',mimeType:'text/csv',buffer:Buffer.from(raw)});
  const mapping={delimiter:';',index_column:'idx',time_column:'t_ms',time_units:'milliseconds',channel_columns:{hr:'hr',p:'power'},missing_tokens:[''],missing_cause:'declared_csv_missing'};
  await page.getByLabel('Mapeo CSV R12 JSON',{exact:true}).fill(JSON.stringify(mapping));
+ await page.getByLabel('Formato temporal CSV R12').selectOption('iso8601');
+ await page.getByLabel('Origen ISO CSV R12').fill('2026-10-03T12:00:00Z');
  await page.getByRole('button',{name:'Inspeccionar CSV R12',exact:true}).click();
  await expect(page.getByText('CSV R12: 4 muestras',{exact:false})).toBeVisible();
  const accepted=page.waitForResponse(r=>r.url().endsWith('/api/research/r12/csv/imports')&&r.request().method()==='POST');
@@ -25,6 +28,7 @@ test('R12 CSV explicit map, real archive, exact UTF8 bytes and native measuremen
  expect((await archived.body()).equals(Buffer.from(raw))).toBe(true);
  const request=JSON.parse(await page.getByLabel('Mediciones y protocolo JSON R12',{exact:true}).inputValue());
  expect(request.samples).toHaveLength(4);
+ expect(request.samples.map((row:any)=>row.source_time_s)).toEqual([0,1,2,3]);
  expect(request.samples[1].missing_causes).toEqual({hr:'declared_csv_missing'});
  expect(request.provider).toBe('synthetic');
  expect(request.clock.source_clock).toBe('synthetic');
@@ -35,7 +39,12 @@ test('R12 CSV explicit map, real archive, exact UTF8 bytes and native measuremen
  await expect(page.getByRole('button',{name:`Usar import CSV R12 ${saved.id}`})).toBeVisible();
  const settingsDownload=page.waitForEvent('download');
  await page.getByRole('button',{name:'Exportar mapeo CSV R12',exact:true}).click();
- expect((await settingsDownload).suggestedFilename()).toBe('r12-csv-mapping.json');
+ const downloaded=await settingsDownload;expect(downloaded.suggestedFilename()).toBe('r12-csv-mapping.json');
+ const portable=JSON.parse(await readFile((await downloaded.path())!,'utf8'));
+ expect(portable.schema_version).toBe(2);expect(portable.time_units).toBe('iso8601');expect(portable.time_origin).toBeUndefined();
+ await page.getByLabel('Importar mapeo CSV R12',{exact:true}).setInputFiles({name:'map.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({...portable,time_origin:'2026-10-03T12:00:00Z'}))});
+ await expect(page.getByLabel('Origen ISO CSV R12')).toHaveValue('');
+ await page.getByLabel('Origen ISO CSV R12').fill('2026-10-03T12:00:00Z');
  await expect(page.getByRole('alert')).toHaveCount(0);
  await page.route('**/api/research/r12/csv/inspect',async route=>{const response=await route.fetch();await new Promise(resolve=>setTimeout(resolve,300));await route.fulfill({response})});
  const inFlight=page.waitForRequest(r=>r.url().endsWith('/api/research/r12/csv/inspect'));
