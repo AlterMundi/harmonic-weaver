@@ -2903,3 +2903,14 @@ su propia selección. Preset/calibraciones/última fuente no cambiaron. Sin copi
 video, recalcular tracking ni iniciar servicios. Sólo evidencia de selección
 espacial/missingness; no identidad biométrica, precisión de pose, continuidad
 anatomía completa, escucha ni aceptación. Hashes/IDs/posiciones quedan locales.
+
+### Calibración · motivo de descarte visible — 2026-10-03
+
+Runtime agrega calibration_notice sólo cuando la elección automática elimina una
+calibración activa. No aparece si no había escala; cuerpo explícito estable sigue
+sin aviso. Snapshot conserva motivo hasta calibración exitosa, elección manual,
+nueva fuente o cierre. 12 tests runtime pasan (1.19s), incluyendo vida del aviso y
+la regresión corporal previa; build TypeScript/Vite93 módulos pasa (1.23s).
+Web muestra el motivo junto a escala, como estado y sin nuevo control/restricción.
+No modelos/ratios/audio/presets modificados ni nuevas pruebas físicas/escucha.
+Sin servicios, datos corporales ni cambios al perfil cotidiano.

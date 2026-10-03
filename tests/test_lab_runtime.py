@@ -241,6 +241,9 @@ def test_automatic_final_body_selection_cannot_inherit_prefix_calibration(tmp_pa
     assert runtime.diagnostic['code']=='calibration_required'
     assert runtime.audio.targets==[]
     assert store.calibrations()[0]['id']==calibration.id  # preserve historical explicit measurement
+    assert 'se descartó la escala activa' in runtime.snapshot()['calibration_notice']
+    runtime.calibrate()
+    assert runtime.snapshot()['calibration_notice'] is None
     store.close()
 
 
@@ -253,7 +256,30 @@ def test_explicit_same_prefix_body_keeps_its_calibration_when_tracking_finishes(
     library.status='ready';runtime.tick()
     assert runtime.person_id=='two' and runtime.selection_status=='explicit'
     assert runtime.calibration is calibration and runtime.model is previous
+    assert runtime.snapshot()['calibration_notice'] is None
     assert store.source_selection('media-a')['person_id']=='two'
+    store.close()
+
+
+def test_automatic_selection_without_scale_does_not_issue_a_reset_notice(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes);library=TwoPeopleLibrary(status='building')
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio());runtime.kind,runtime.job_id='video','test'
+    runtime.tick();library.status='ready';runtime.tick()
+    assert runtime.person_id=='two' and runtime.snapshot()['calibration_notice'] is None
+    store.close()
+
+
+def test_new_source_and_explicit_choice_clear_previous_calibration_notice(tmp_path):
+    from harmonic_weaver.lab.contracts import PerceptionSettings
+    store=SessionStore(tmp_path,prepare=PreparedRoutes);library=TwoPeopleLibrary()
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio());runtime.kind,runtime.job_id='video','test';runtime.tick()
+    runtime.calibration_notice='previous automatic body change'
+    runtime.select_person('one');assert runtime.snapshot()['calibration_notice'] is None
+    runtime.calibration_notice='previous automatic body change'
+    runtime.open_video('/example.mp4',PerceptionSettings(checkpoint='example.pt'));assert runtime.snapshot()['calibration_notice'] is None
+    runtime.calibration_notice='previous automatic body change'
+    library.cancel=lambda job:None
+    runtime.close_source();assert runtime.snapshot()['calibration_notice'] is None
     store.close()
 
 

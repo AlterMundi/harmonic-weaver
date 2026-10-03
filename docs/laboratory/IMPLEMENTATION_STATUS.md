@@ -1748,3 +1748,8 @@ requiere escala propia, mientras cuerpo explícito estable mantiene su medición
 Runtime10/evaluación20 tests pasan. Elección derecha del clip local verificada y
 registrada sólo en desarrollo, sin tocar preferencia cotidiana/calibraciones ni
 copiar/retrackear medios. Sigue pendiente precisión/escucha/aceptación física.
+
+El descarte automático de una escala activa ahora informa su motivo en web/state.
+Aviso temporal, sin bloquear baseline, limpio al recalibrar/seleccionar/cambiar
+fuente; selecciones sin escala no producen aviso. Runtime12 tests y build pasan.
+Defaults y comportamiento musical intactos; escucha física pendiente.

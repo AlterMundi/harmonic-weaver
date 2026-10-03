@@ -197,6 +197,9 @@ en el prefijo, descarta la calibración de ese cuerpo y reinicia historia/ruteo.
 Los modelos que requieren escala muestran «Calibrá» para el nuevo cuerpo; no
 heredan la escala anterior. Si sigue el cuerpo elegido explícitamente, conserva
 su calibración/historia. La medición anterior permanece en el inventario local.
+Cuando había una escala activa, la web explica que se descartó por ese cambio
+automático. El aviso se limpia al calibrar correctamente, elegir manualmente otra
+persona, abrir otra fuente o cerrarla. No obliga a calibrar para usar baseline.
 
 El modo `--no-audio` muestra «Modo diagnóstico sin audio» en la web: los controles
 pueden ser aceptados, pero no hay telemetría/figura de voces efectivas ni sonido.
