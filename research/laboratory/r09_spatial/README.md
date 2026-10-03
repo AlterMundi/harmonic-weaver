@@ -603,3 +603,11 @@ API: `/api/research/r09/multiview/runs`, ID, cancel, repeat, verification y arti
 cancelación de proceso real propio, freeze de inputs y corrupción. Chrome con API/
 worker reales verifica pérdida de respuesta aceptada, reload sin POST, recuperación
 sin duplicación, apertura, descarga, recálculo y repetición. No cámaras/audio reales.
+
+
+Apertura de cálculo ahora invalida respuesta tardía si la edición cambió durante
+la descarga o el panel se desmontó. Inventario ofrece seguir workers activos
+tras recarga y cancelar sólo el hijo propio del servicio. Intento IndexedDB
+inválido se puede descartar y nunca recuperar/enviar automáticamente. Prueba Chrome
+retiene respuesta real y edita, luego retoma/cancela cálculo real de 43200 pares
+sintéticos; detalles en VALIDATION. No benchmark físico ni nuevos defaults.

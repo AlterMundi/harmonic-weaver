@@ -1657,3 +1657,10 @@ Core/API/Chrome/CLI sintéticos pasan. Guarda stream como declarado y ahora tamb
 cálculos completos en workers propios cancelables, con recibos recuperables, entradas
 congeladas y descargas. Undistorsión/adquisición/calibración reales e IMUs
 siguen pendientes. No profundidad monocular ni cambios de instrumento.
+
+
+R09 multivista: abrir un resultado en tránsito no pisa inputs editados mientras
+llega; una nueva apertura explícita sí los restaura. Inventario retoma seguimiento
+de workers activos tras reload y permite cancelación propia. Intentos locales
+inválidos pueden descartarse sin envío. Chrome con worker real y build verificados
+(VALIDATION); no cambios en síntesis/defaults ni prueba física nueva.

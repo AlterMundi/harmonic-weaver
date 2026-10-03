@@ -2706,3 +2706,16 @@ recarga conservando IndexedDB sin enviar, recupera misma clave/cuerpo y un únic
 abre entradas completas, descarga resultado, verifica y repite explícitamente;
 otra recarga no calcula. Build pasa (1.23s). No dispositivos, datos corporales,
 tracking, síntesis ni escucha humana. Calibración/sincronía físicas siguen pendientes.
+
+
+### R09 · Edición durante apertura y seguimiento tras recarga — 2026-10-03
+
+Chrome panel/API/worker reales: 2 tests pasan (10.4s). Respuesta de artifact real
+retenida mientras se edita source_id: apertura se descarta y edición permanece;
+nueva apertura explícita restaura inputs. Corrida sintética de 14400 frames ×3
+puntos (43200 pares) iniciada antes de reload: inventario permite retomar seguimiento
+y cancelar el hijo vivo, terminal cancelled. Intento IndexedDB inválido conserva
+opción de descarte, recuperación deshabilitada, nuevo inicio habilitado después,
+sin POST automático. Recuperación/presets/preview anteriores pasan. Build pasa
+(1.35s). Backend no modificado; evidencia de #122 conservada. No dispositivos,
+medios corporales ni escucha/sincronización física.
