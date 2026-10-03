@@ -214,3 +214,29 @@ propios cerrados. Fixture pose sintética, no evidencia humana ni hardware.
 Actuales 30 traces sintéticas y 6 condiciones pose, con proximal/noise.
 Reproducir con fixture r03_http_fixture + harness R04 y variables
 LAB_R04_NETWORK_URL / LAB_R04_BODY_NETWORK_URL al mismo endpoint8879.
+
+
+## Verificación corporal local · 2026-10-03
+
+Chrome/bundle productivo, reader y workers reales: `relationalFrozenBodyNetwork`
+usa una evaluación corporal anterior con escala aparente de torso/procedencia
+registradas. No crea/estima calibración ni la traslada a runtime u otra EVAL.
+Fuente/persona/cache/segmento coinciden con los de la selección ya verificada;
+la evaluación sin escala sigue rechazada por UI y API. No identidad biométrica
+ni dimensión física del torso certificadas.
+
+Dos corridas del clip60s repiten resultados byte-idénticos con inputs/env iguales:
+selección explícita de COCO7→9, seis condiciones, gaussian prepared-velocity noise
+0.02/seed17 y configuración portable sin fuente/cuerpo/escala/calib/segmento.
+Timestamps idénticos entre condiciones, warmup inválido inicial y otros faltantes
+se conservan; estado relativo missing nunca reemplazado por neutral/cero. Resúmenes
+usan el mismo soporte observado de todas las condiciones y éste es no vacío.
+Afirmaciones de repeatabilidad son del contrato local congelado, no hashes iguales
+entre entornos diferentes ni conclusión de eficacia/HIT/interferencia física.
+
+Pruebas públicas genéricas no incluyen datos/IDs/rutas/estadísticas corporales;
+artefactos nuevos permanecen locales en root separado, EVAL/cache originales sólo
+lectura y video no copiado/retracking no ejecutado. Dos Chrome pasan (15.4s), con
+0 errores JS y runtime sin calibración actual: la escala sólo pertenece al input
+archivado. Defaults/sonido productivos intactos. Tarea/anotaciones independientes,
+ruido de cámara medido, escucha y otros cuerpos/tomas siguen pendientes.

@@ -2767,3 +2767,22 @@ No cambios productivos ni motivo para repetir build/suite backend ya válidos.
 Esto acredita decodificación/integración y reloj software, no escucha/aceptación,
 latencias/sincronía físicas, precisión del tracking, comparación científica de
 mecanismos ni generalización. Esas dependencias siguen pendientes.
+
+
+### R04 · Escala congelada, faltantes y repetición corporal — 2026-10-03
+
+Dos Chrome pasan (15.4s), producción/biblioteca/readers/workers reales. Evaluación
+preexistente calibrada comparte fuente/persona/cache/segmento con selección anterior;
+usa su escala aparente/procedencia archivadas sin aplicarlas al runtime. Dos corridas
+locales de60s repiten result.json exactamente bajo entradas/env congelados. UI export/
+import de parámetros+endpoints conserva selección y no inicia; ruido de velocidades
+0.02/seed17 explícito. Seis condiciones mantienen clocks, filas inválidas/warmup
+como missing, y resumen sobre soporte común observado no vacío.0 errores JS;
+API state conserva calibration=null. Fixture separado de EVAL sin escala: UI bloquea
+y API rechaza, sin nuevo job ni transferencia de calibración.
+
+Inputs/traces/resultados corporales siguen locales, EVAL/cache sólo lectura, sin
+copia del video, nuevo tracking, audio o calibración. Test reutilizable no contiene
+IDs/rutas ni estadísticas corporales. Backend/defaults sin cambios; evidencia build
+previa válida. No tarea/ground truth independientes, ruido de cámara medido,
+eficiencia/intención/HIT, exactitud corporal, escucha ni generalización acreditadas.
