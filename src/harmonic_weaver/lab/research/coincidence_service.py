@@ -82,6 +82,10 @@ class CoincidenceService:
         if not expected or sha256_file(path)!=expected:raise ValueError(f'{self.line} artifact changed')
         return path
 
+    def compare(self, request):
+        from .coincidence_compare import compare
+        return compare(self, request)
+
     def cancel(self,ident,*,shutdown=False):
         with self.lock:
             folder=self.folder(ident);process=self.processes.get(ident)

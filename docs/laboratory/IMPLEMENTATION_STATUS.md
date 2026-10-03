@@ -1844,3 +1844,11 @@ Receta sintética repetida publicada; cuatro corridas corporales históricas
 comparadas localmente sin cambios en sus archivos. Request JSON se compara
 mediante contratos para evitar rechazo0 frente a0.0. Sin refit/instrumento/
 aceptación/HIT; reservas y familias adicionales conservan su agenda.
+
+R03: comparador web/API read-only de señales/centros archivados contra idéntico
+corte de marcas y contexto, matching y cobertura declarada. Intersección de
+soporte entre condiciones; conserva métricas individuales, denominadores,
+umbrales/unidades/candidatos/procedencia. Inventario de nuevas corridas identifica
+señal/crop/conteo sin cargar todas las traces.45 pruebas backend/temporal y2 Chrome
+pasan, receta sintética repetida pública. No marcas humanas nuevas, tracking,
+sonido, offset óptimo, centro causal ni validación Jpsh/HIT.

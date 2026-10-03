@@ -1,0 +1,285 @@
+{
+  "cases": {
+    "disjoint_coverage": {
+      "common_support": [],
+      "conditions": [
+        {
+          "available": {
+            "common_support": [
+              [
+                0.0,
+                0.4
+              ]
+            ],
+            "eligible_candidates": 2,
+            "eligible_marks": 1,
+            "excluded_candidates": 0,
+            "excluded_marks": 1,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [
+              {
+                "candidate_index": 0,
+                "delta_s": 0.0,
+                "mark_index": 0
+              }
+            ],
+            "precision": 0.5,
+            "recall": 1.0,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0.4
+          },
+          "paired": {
+            "common_support": [],
+            "eligible_candidates": 0,
+            "eligible_marks": 0,
+            "excluded_candidates": 2,
+            "excluded_marks": 2,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0
+          },
+          "signal_id": "center.partial"
+        },
+        {
+          "available": {
+            "common_support": [
+              [
+                0.5,
+                1.0
+              ]
+            ],
+            "eligible_candidates": 1,
+            "eligible_marks": 1,
+            "excluded_candidates": 0,
+            "excluded_marks": 1,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [
+              {
+                "candidate_index": 0,
+                "delta_s": 0.0,
+                "mark_index": 1
+              }
+            ],
+            "precision": 1.0,
+            "recall": 1.0,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0.5
+          },
+          "paired": {
+            "common_support": [],
+            "eligible_candidates": 0,
+            "eligible_marks": 0,
+            "excluded_candidates": 1,
+            "excluded_marks": 2,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [],
+            "precision": null,
+            "recall": null,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0
+          },
+          "signal_id": "center.late"
+        }
+      ],
+      "support_duration_s": 0
+    },
+    "unequal_coverage": {
+      "common_support": [
+        [
+          0.0,
+          0.4
+        ]
+      ],
+      "conditions": [
+        {
+          "available": {
+            "common_support": [
+              [
+                0.0,
+                1.0
+              ]
+            ],
+            "eligible_candidates": 2,
+            "eligible_marks": 2,
+            "excluded_candidates": 0,
+            "excluded_marks": 0,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [
+              {
+                "candidate_index": 0,
+                "delta_s": 0.0,
+                "mark_index": 0
+              },
+              {
+                "candidate_index": 1,
+                "delta_s": 0.0,
+                "mark_index": 1
+              }
+            ],
+            "precision": 1.0,
+            "recall": 1.0,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 1.0
+          },
+          "paired": {
+            "common_support": [
+              [
+                0.0,
+                0.4
+              ]
+            ],
+            "eligible_candidates": 1,
+            "eligible_marks": 1,
+            "excluded_candidates": 1,
+            "excluded_marks": 1,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [
+              {
+                "candidate_index": 0,
+                "delta_s": 0.0,
+                "mark_index": 0
+              }
+            ],
+            "precision": 1.0,
+            "recall": 1.0,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0.4
+          },
+          "signal_id": "center.full"
+        },
+        {
+          "available": {
+            "common_support": [
+              [
+                0.0,
+                0.4
+              ]
+            ],
+            "eligible_candidates": 2,
+            "eligible_marks": 1,
+            "excluded_candidates": 0,
+            "excluded_marks": 1,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [
+              {
+                "candidate_index": 0,
+                "delta_s": 0.0,
+                "mark_index": 0
+              }
+            ],
+            "precision": 0.5,
+            "recall": 1.0,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0.4
+          },
+          "paired": {
+            "common_support": [
+              [
+                0.0,
+                0.4
+              ]
+            ],
+            "eligible_candidates": 2,
+            "eligible_marks": 1,
+            "excluded_candidates": 0,
+            "excluded_marks": 1,
+            "limits": [
+              "Maximum-cardinality monotone one-to-one matching; minimum absolute lag among ties",
+              "Metrics only on declared common support; no interpolation across gaps",
+              "Offset is declared, not estimated; button times remain human annotations",
+              "Temporal coincidence does not establish intention or causality"
+            ],
+            "matches": [
+              {
+                "candidate_index": 0,
+                "delta_s": 0.0,
+                "mark_index": 0
+              }
+            ],
+            "precision": 0.5,
+            "recall": 1.0,
+            "settings": {
+              "mark_offset_s": 0.0,
+              "tolerance_s": 0.02
+            },
+            "support_duration_s": 0.4
+          },
+          "signal_id": "center.partial"
+        }
+      ],
+      "support_duration_s": 0.4
+    }
+  },
+  "comparison_code_hashes": {
+    "coincidence_compare.py": "f5a2d6527efb5b573fde38e1d3ff24c0567adfb353b658444e8012489aa00427",
+    "temporal_match.py": "9aaed650977b81178980a7cb8e2b1dc9be2309acaf1f60fd82f356e8cc6c66e6"
+  },
+  "comparison_python": "3.12.13",
+  "kind": "r03_synthetic_candidate_comparison",
+  "limits": [
+    "Entirely synthetic annotations/signals/identity, not a bodily experiment",
+    "Support deliberately differs; no imputation or denominator hiding",
+    "No center discovery, HIT validation, human intention or perceptual acceptance"
+  ],
+  "recipe_sha256": "bf890088c94cd44aef91c557149eed0bac8dd62d406cb4452687701765e2f634",
+  "repeated_matching_identical": true
+}

@@ -1062,3 +1062,14 @@ Cambiar selección/soporte limpia la tabla anterior. **Guardar comparación R01*
 descarga JSON local con soporte/orígenes/configuraciones/procedencia. No reajusta
 modelos ni toca tracking/audio/preset. Archivos antiguos sin origen archivado
 se rechazan explícitamente; no se reconstruye un origen supuesto.
+
+### Comparar candidatos R03 de centros o señales alternativas
+
+Investigación → R03: crear corridas por señal usando el mismo corte de marcas,
+grupo/cuerpo/generación, cobertura de observación, tolerancia y offset.
+**Comparar señales o centros R03** selecciona2–6 corridas completas; muestra
+señal/unidad/umbrales, cobertura disponible, marcas/candidatos comunes, matches,
+precisión/recall y exclusiones. Todas se restringen al soporte observado común.
+Sin soporte hay ausencia de puntuación. **Guardar comparación R03** descarga
+intervalos/candidatos/procedencia localmente. No decide un centro causal ni
+recalcula pose/audio. Marcas humanas y cobertura no se fabrican.
