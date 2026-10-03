@@ -3056,3 +3056,28 @@ presets/cambios de cuerpo/loop; cero errores JS. Build94 módulos **1.22s**.
 Cache original manifest/frames intactos; sin copias ni retracking. Fixtures
 detenidas, puerto cerrado, medios/IDs/poses/resultados corporales locales. Sin
 defaults/audio modificados, R24 física, escucha ni aceptación nuevas.
+
+### Inventarios web · conservar la consulta más reciente — 2026-10-03
+
+Dos regresiones reproducidas en producción/API/SQLite reales: retener el GET
+inicial de presets, guardar uno nuevo y completar su refresh; liberar el GET viejo
+ocultaba el preset confirmado. Liberarlo como HTTP503 mostraba un error obsoleto.
+Ambos casos pasan tras proteger cada inventario por número de petición:
+**2 Chrome passed (2.2s)**. Biblioteca, presets y calibraciones usan el mismo
+mecanismo; consultas distintas no se invalidan entre sí. Errores de la petición
+vigente siguen propagándose; sólo se descartan respuestas/errores anteriores.
+Cleanup invalida lecturas pendientes al desmontar. No cambia backend ni defaults.
+Build TypeScript/Vite94 módulos **1.30s**.
+
+El primer recorrido corporal detectó una condición separada: aplicar dos presets
+sin esperar confirmación puede rechazar el segundo con conflicto de revisión.
+Un segundo recorrido sin modificación pasó; la prueba ahora espera el nombre
+confirmado en el placeholder antes de aplicar otro preset, sin sleeps ni reintentos
+que oculten el conflicto. Ese solapamiento queda pendiente; la protección de
+inventarios no pretende resolver concurrencia de escrituras.
+
+Recorrido corporal con confirmación secuencial explícita: **1 Chrome passed
+(11.9s)**; video cache hit, cuatro modelos, seis targets, calibración, componentes,
+referencias/joints, ruteos y presets portables, cambio de cuerpo/loop. Cache original
+manifest/frames intactos; fixture detenida y puerto cerrado. Sólo targets de
+control, sin síntesis/R24/escucha/aceptación nuevas; datos corporales locales.

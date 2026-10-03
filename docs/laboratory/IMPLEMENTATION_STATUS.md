@@ -1798,3 +1798,9 @@ errores demorados de jobs anteriores ignorados tras cambio/cleanup. Dos regresio
 reproducidas y corregidas; Chrome con cobertura real cacheada y captions de fault
 control pasa junto al recorrido corporal completo. Sin tracking/defaults/audio
 modificados; cache original intacto, precisión/escucha siguen pendientes.
+
+Inventarios web: lecturas demoradas de biblioteca/presets/calibraciones ya no
+reemplazan lecturas más recientes ni muestran errores obsoletos. Dos regresiones
+Chrome reproducidas y corregidas con API/SQLite reales; sin defaults/backend/audio
+modificados. Pendiente separado identificado: dos aplicaciones de preset que se
+solapan pueden producir conflicto de revisión; no se reintenta silenciosamente.

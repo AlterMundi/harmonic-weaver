@@ -188,7 +188,12 @@ test("full application uses cached video calibrates and explores every tuned des
   expect(saved.source_id).toBeUndefined();
   expect(saved.person_id).toBeUndefined();
   expect(saved.calibration).toBeUndefined();
-  await page.getByRole("button", { name: /06 · Referencia 01c/ }).click();
+  const referencePreset = page.getByRole("button", { name: /06 · Referencia 01c/ });
+  const referenceName = await referencePreset.innerText();
+  await referencePreset.click();
+  // Sequential walkthrough: wait for visible confirmation before another apply.
+  await expect(page.getByLabel("Nombre", { exact: true }))
+    .toHaveAttribute("placeholder", referenceName);
   await page
     .getByRole("button", { name: presetName, exact: true })
     .click();
