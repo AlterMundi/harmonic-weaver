@@ -239,6 +239,6 @@ comprueba traces byte-idénticas bajo las mismas entradas/entorno.
 Con seed=17, h=6, q=4 y los restantes ajustes del ejemplo: MSE original del caso
 periódico es 0.02606 persistencia y 0.02108 lagged ridge completo; el caso sin
 memoria da 0.26641 ridge completo y 0.74338 lagged ridge completo. El segundo
-expone sobreajuste, pese al subespacio compacto. No se elige un ganador universal.
+muestra empeoramiento con más parámetros, pese al subespacio compacto. No se elige un ganador universal.
 No son resultados corporales ni validación de HIT, intención o generalización.
 Siguen pendientes predicciones específicas, otras familias y reservas independientes.
