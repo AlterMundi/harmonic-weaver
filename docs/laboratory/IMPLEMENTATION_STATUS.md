@@ -1835,3 +1835,12 @@ Preset portable conserva vista/recorte, default apagada. Pruebas de runtime
 conservan modelo/historial/targets en edición visual; recorrido Chrome sobre
 cache corporal read-only verifica matrices/controles/preset y seis voces.
 Es visualización de features de velocidad, no reconstrucción3D ni prueba HIT.
+
+R01: comparación web/API de2–6 corridas guardadas sobre entradas congeladas
+idénticas, con selección explícita objetivo u origen/objetivo, soporte por
+control/familias comunes, exclusiones/MSE/deltas/JSON y procedencia. 49 pruebas
+R01/backend más regresión histórica adicional; dos Chrome nativos y build pasan.
+Receta sintética repetida publicada; cuatro corridas corporales históricas
+comparadas localmente sin cambios en sus archivos. Request JSON se compara
+mediante contratos para evitar rechazo0 frente a0.0. Sin refit/instrumento/
+aceptación/HIT; reservas y familias adicionales conservan su agenda.

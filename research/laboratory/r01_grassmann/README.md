@@ -281,3 +281,36 @@ horizonte influyen. No comparar datasets distintos como si fueran una observaci�
 pareada. No valida predicción HIT específica, ley de dispersión, intención,
 frecuencias corporales naturales ni percepción/escucha. Faltan tomas independientes
 y una hipótesis física concreta con observable y controles distinguibles.
+
+### Comparar archivos R01 sin recalcular
+
+Web: **Comparar corridas R01 guardadas**,2–6 corridas; API POST
+`/api/research/r01/compare` con `{ "run_ids": ["…", "…"], "support": "origin_target" }`.
+Soporte `origin_target` (default) requiere mismo segmento/origen/objetivo.
+`target` requiere mismo segmento/objetivo, conserva orígenes individuales y
+advierte que pueden variar. No mezcla controles ni familias ausentes: promedia
+los errores archivados por instante de la intersección, con delta contra primera
+selección y exclusiones. Sin soporte hay null, sin familias comunes no hay scores.
+
+Sintéticos requieren hashes de vectores/control, reloj y dimensiones idénticos.
+Corporales requieren mismo input.json congelado, unidades/canales, semilla y
+segmentación por gaps; no calibra ni normaliza. Request, trazas e input corporal
+se verifican antes/después; manifest/código/entorno se conservan en el informe,
+sin exigir igualdad entre entornos ni reemplazar lectura histórica por refit.
+JSON0/0.0 se compara con contratos tipados; otros valores cambiados se rechazan.
+Trazas antiguas sin origen explícito no reciben un origen inferido.
+
+[Controles sintéticos repetidos](evidence-saved-comparison-2026-10-03.json):
+ventana2/.5s y horizontes1/6, mismas muestras, diferencias de soporte explícitas.
+Cada condición se ejecutó dos veces, traces y controles numéricos idénticos
+en este entorno. Reproducción en directorio nuevo desde Weaver-dev:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/r01_grassmann/saved_comparison_controls.py \
+  --output /tmp/r01-saved-comparison-new
+```
+
+También se compararon cuatro corridas corporales históricas locales con sus
+archivos intactos; resultados corporales no se publican. No demuestra HIT,
+causalidad corporal, generalización ni significancia estadística.

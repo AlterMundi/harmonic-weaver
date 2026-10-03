@@ -1046,3 +1046,19 @@ Colores con escala fija[-1,+1], sin normalizar cada frame; amplitudes/residuo y
 del número de componentes. Guardar el preset conserva vista y límite de ejes
 para otra fuente, sin incluir escala corporal. Default **Apagada**; no cambia
 audio, fases, ruteos ni historial.
+
+### Comparar corridas R01 guardadas
+
+Investigación → **Comparar corridas R01 guardadas**: elegir2–6 corridas completas
+con las mismas entradas/reloj/unidades/transformaciones. La primera elegida
+es referencia. Default **Mismo origen y objetivo**; al variar horizonte puede
+no haber pares idénticos. **Mismo objetivo, orígenes pueden variar** permite
+contrastar esos errores, conservando orígenes individuales en el JSON. No
+interpretarlo como comparación con la misma información disponible al pronosticar.
+
+**Comparar soporte común R01** separa original/rotación/shuffle; muestra soporte,
+exclusiones, MSE y delta contra primera corrida para familias compartidas.
+Cambiar selección/soporte limpia la tabla anterior. **Guardar comparación R01**
+descarga JSON local con soporte/orígenes/configuraciones/procedencia. No reajusta
+modelos ni toca tracking/audio/preset. Archivos antiguos sin origen archivado
+se rechazan explícitamente; no se reconstruye un origen supuesto.

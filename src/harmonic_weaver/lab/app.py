@@ -24,6 +24,7 @@ from .capture_export import ExportSettings, CaptureExports
 from .capture_profiles import CaptureProfile
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
+from .research.grassmann_compare import ComparisonRequest as R01ComparisonRequest
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
@@ -1087,6 +1088,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/research/r01/{ident}/artifacts/{name}")
     def research_artifact(ident: str, name: str):
         return FileResponse(research.artifact(ident,name),filename=name)
+
+    @app.post("/api/research/r01/compare")
+    def research_compare(body: R01ComparisonRequest):return research.compare(body.model_dump())
 
     @app.post("/api/research/r01")
     def research_r01(body: GrassmannSettings):return research.start(body.model_dump())

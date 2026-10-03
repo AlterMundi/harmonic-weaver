@@ -1,3 +1,4 @@
+import {R01Comparison} from './R01Comparison';
 import {ForecastControls,predictorLabels,defaultPredictors} from './ForecastControls';
 import {HeldoutPanel} from './HeldoutPanel';
 import {SaiBodyFourierPanel} from './SaiBodyFourierPanel';
@@ -66,6 +67,7 @@ export function ResearchPanel({api,run}:Data){
   <HeldoutPanel api={api}/>
   <CoincidencePanel api={api} run={run}/>
   <BodyResearchPanel api={api} run={run} onStarted={async()=>setJobs(await api('research/r01'))}/>
+  <R01Comparison api={api} jobs={jobs}/>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>
    {j.input_kind==='evaluation_features' && <p>Features: {j.signal_ids.join(', ')} · unidad {j.unit} · {j.contiguous_segments} segmentos válidos · {j.invalid_observations} faltantes · {j.duplicate_control_holds_excluded} repeticiones excluidas</p>}
    {j.status==='running' && <button onClick={()=>run(async()=>{await api(`research/r01/${j.id}/cancel`,{});setJobs(await api('research/r01'));})}>Cancelar corrida R01</button>}
