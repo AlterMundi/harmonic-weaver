@@ -26,6 +26,73 @@ def test_trapezoid_clipped_integral_units_and_explicit_support():
     assert result['request']['provider']=='synthetic'
 
 
+@pytest.mark.parametrize('kind,units', [('heart_rate','bpm'), ('metabolic_power','W')])
+def test_invalid_negative_measurement_requires_own_explicit_exclusion(kind,units,tmp_path):
+    raw=data()
+    raw['channels'][0].update(kind=kind,units=units)
+    if units=='W':raw['channels'][0]['calibration_evidence_id']='synthetic-calibration'
+    raw['samples'][2]['values']['hr']=-999.
+    with pytest.raises(ValidationError):Request.model_validate(raw)
+    # Excluding another channel does not certify this invalid measurement.
+    raw['samples'][2]['excluded_causes']={'p':'unrelated_artifact'}
+    with pytest.raises(ValidationError):Request.model_validate(raw)
+    raw['samples'][2]['excluded_causes']={'hr':'sensor_error_code'}
+    original=copy.deepcopy(raw)
+    result=calculate(raw)
+    assert raw==original
+    measured,other=result['trials'][0]['channels']
+    assert result['request']['samples'][2]['values']['hr']==-999.
+    assert result['request']['samples'][2]['excluded_causes']=={'hr':'sensor_error_code'}
+    assert measured['duration_s']==1 and measured['mean']==80
+    assert measured['excluded_duration_s']=={'sensor_error_code':2.}
+    assert measured['energy_or_work_J']==(80 if units=='W' else None)
+    assert other['duration_s']==3 and other['energy_or_work_J']==6
+    assert measured['common_duration_s']==other['common_duration_s']==1
+    service=PhysiologyService(tmp_path)
+    saved=service.start(raw)
+    restored=PhysiologyService(tmp_path).read(saved['id'])
+    assert restored['read_verification']=='recomputed'
+    archived=json.loads(service.artifact(saved['id'],'result.json').read_text())
+    assert archived==result
+
+
+def test_signed_mechanical_power_remains_valid_without_exclusion():
+    raw=data()
+    for sample in raw['samples']:sample['values']['p']=-2.
+    row=calculate(raw)['trials'][0]['channels'][1]
+    assert row['duration_s']==3 and row['mean']==-2 and row['energy_or_work_J']==-6
+
+
+@pytest.mark.parametrize('value', [float('nan'),float('inf'),float('-inf')])
+def test_explicit_exclusion_does_not_allow_nonfinite_raw_values(value):
+    raw=data()
+    raw['samples'][2]['values']['hr']=value
+    raw['samples'][2]['excluded_causes']={'hr':'sensor_error'}
+    with pytest.raises(ValidationError):Request.model_validate(raw)
+
+
+def test_api_preserves_excluded_raw_value_without_certifying_it(tmp_path):
+    from fastapi.testclient import TestClient
+    from types import SimpleNamespace
+    from harmonic_weaver.lab.app import create_app
+    runtime=SimpleNamespace(library=None,start=lambda:None,close=lambda:None)
+    raw=data()
+    raw['samples'][2]['values']['hr']=-999.
+    with TestClient(create_app(tmp_path,runtime=runtime),base_url='http://127.0.0.1') as client:
+        assert client.post('/api/research/r12/inspect',json=raw).status_code==422
+        raw['samples'][2]['excluded_causes']={'hr':'sensor_error_code'}
+        inspected=client.post('/api/research/r12/inspect',json=raw)
+        assert inspected.status_code==200,inspected.text
+        saved=client.post('/api/research/r12/measurements',json=raw)
+        assert saved.status_code==200,saved.text
+        ident=saved.json()['id']
+        archived=client.get(f'/api/research/r12/measurements/{ident}/artifacts/result.json')
+        assert archived.status_code==200
+        assert archived.json()==inspected.json()
+        assert archived.json()['request']['samples'][2]['values']['hr']==-999.
+        assert archived.json()['trials'][0]['channels'][0]['mean']==80
+
+
 def test_missing_exclusion_gaps_tail_never_filled_and_no_support_null():
     raw=data();raw['samples'][2]['values']['p']=None;raw['samples'][2]['missing_causes']={'p':'lost_sensor'}
     raw['samples'][3]['excluded_causes']={'hr':'motion_artifact'}

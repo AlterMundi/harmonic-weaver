@@ -2914,3 +2914,18 @@ la regresión corporal previa; build TypeScript/Vite93 módulos pasa (1.23s).
 Web muestra el motivo junto a escala, como estado y sin nuevo control/restricción.
 No modelos/ratios/audio/presets modificados ni nuevas pruebas físicas/escucha.
 Sin servicios, datos corporales ni cambios al perfil cotidiano.
+
+### R12 · conservar raw excluido sin integrarlo — 2026-10-03
+
+Regresión reproducida antes del fix: HR/potencia metabólica negativos con causa
+explícita eran rechazados pese al contrato de conservar raw/exclusiones.
+Ahora el mismo canal debe declarar la exclusión; otro canal no habilita la lectura.
+Tests verifican valor/cause archivados, entrada intacta, dos intervalos adyacentes
+excluidos, media/trabajo/soporte común independientes del raw inválido, y
+reapertura/recomputación del archivo. API inspect/guardar/descargar cubiertos.
+NaN/Infinity excluidos siguen rechazados; potencia mecánica negativa sigue válida.
+
+`tests/research/test_physiology.py` y `test_physiology_csv.py`: **29 passed (1.79s)**
+con SHAPER_DIR/PYTHONPATH del checkout de desarrollo. CSV sin exclusión conserva
+su rechazo de HR negativo. No cambios UI ni nuevo recorrido Chrome requerido;
+no servicios/dispositivos, datos privados ni aceptación fisiológica/perceptual.

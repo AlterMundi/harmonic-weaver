@@ -61,6 +61,12 @@ las definiciones y baselines importan. No transfiere resultados a rope-flow.
 Request versionado: provider synthetic/declared_import, source_id, subject_slot,
 task/constraints, clock original→común, canales, samples indexados, trials, gap y
 common_channel_ids. Cada null tiene causa. Exclusiones conservan valor raw y causa.
+HR y potencia metabólica negativos sólo pueden conservarse como lecturas raw
+con `excluded_causes` explícita para ese canal/muestra: no son mediciones válidas
+y los intervalos adyacentes quedan excluidos. Sin esa declaración se rechazan;
+excluir otro canal no basta. No se detectan automáticamente códigos de error ni
+se recortan valores. NaN/Infinity siguen rechazados aun con exclusión. El import
+CSV actual no declara exclusiones por fila; para este caso usar el JSON R12.
 Potencia exige unidades W y evidencia declarada de medición/calibración. Esfuerzo
 firmado/dimensionless y trabajo mecánico firmado no se convierten a energía
 metabólica ni se recortan silenciosamente a positivo.

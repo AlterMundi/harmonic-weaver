@@ -1753,3 +1753,10 @@ El descarte automático de una escala activa ahora informa su motivo en web/stat
 Aviso temporal, sin bloquear baseline, limpio al recalibrar/seleccionar/cambiar
 fuente; selecciones sin escala no producen aviso. Runtime12 tests y build pasan.
 Defaults y comportamiento musical intactos; escucha física pendiente.
+
+R12: lecturas raw negativas de HR/potencia metabólica pueden conservarse sólo con
+exclusión explícita del mismo canal/muestra. Intervalos afectados no integrados;
+sin causa y no finitos rechazados. Potencia mecánica firmada sigue válida.
+29 tests R12/CSV pasan, incluyendo API, archivo/reapertura/recomputación y soporte
+común. JSON/web actuales permiten declarar la causa; CSV no tiene exclusiones por
+fila. Sin cambios de controles/defaults/audio ni datos humanos nuevos.
