@@ -1792,3 +1792,9 @@ Web: respuesta demorada de aplicar preset ya no reemplaza draft/revisión tras u
 edición posterior ni ante una revisión más nueva confirmada. Regresión reproducida;
 tres escenarios Chrome con API real/WS retenido pasan, más recorrido corporal
 completo11.6s con bundle nuevo. Sin defaults/audio/backend modificados.
+
+Fuente/cobertura web: cada informe queda vinculado al job activo; respuestas y
+errores demorados de jobs anteriores ignorados tras cambio/cleanup. Dos regresiones
+reproducidas y corregidas; Chrome con cobertura real cacheada y captions de fault
+control pasa junto al recorrido corporal completo. Sin tracking/defaults/audio
+modificados; cache original intacto, precisión/escucha siguen pendientes.

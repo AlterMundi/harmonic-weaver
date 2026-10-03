@@ -3033,3 +3033,26 @@ cuatro modelos/seis targets/calibración/componentes/referencias/ruteos/presets/
 cambio de cuerpo/loop; cache hit sin retracking, manifest/frames originales intactos.
 Build TypeScript/Vite94 módulos **1.31s**. Ambas fixtures detenidas, puerto cerrado.
 Sin datos corporales publicados, R24/escucha nueva ni aceptación humana inferida.
+
+### Fuente · cobertura y errores corresponden al job activo — 2026-10-03
+
+Regresiones reproducidas: GET quality del job anterior demorado podía reemplazar
+el informe actual; un HTTP503 viejo aparecía como error de la nueva fuente.
+Web ahora asocia el informe a jobId y renderiza sólo si coincide con el activo;
+cleanup ignora respuestas/errores del contexto abandonado, incluido unmount.
+No cambia porcentajes, causas, selección del cuerpo ni backend de calidad.
+
+`sourceQualityContextNetwork.spec.ts` (dos casos) y recorrido corporal completo:
+**3 Chrome passed (19.1s)** con producción/API/WS/VideoLibrary/cache reales.
+Primer informe retenido, reapertura crea nuevo job cache hit, segundo informe
+visible; liberar éxito/503 anterior conserva segundo informe sin error viejo.
+Captions agregadas por el test distinguen respuestas; números de cobertura no
+modificados y no se usan como evidencia de precisión anatómica. Fixture congelada
+ahora calcula coverage desde frames existentes al precargar job ready, igual que
+la biblioteca; evita un quality=null artificial del bootstrap previo.
+
+Bundle nuevo mantiene cuatro modelos/seis targets/controles/ruteos/calibración/
+presets/cambios de cuerpo/loop; cero errores JS. Build94 módulos **1.22s**.
+Cache original manifest/frames intactos; sin copias ni retracking. Fixtures
+detenidas, puerto cerrado, medios/IDs/poses/resultados corporales locales. Sin
+defaults/audio modificados, R24 física, escucha ni aceptación nuevas.

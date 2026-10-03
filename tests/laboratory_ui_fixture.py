@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from harmonic_weaver.lab.app import create_app
 from harmonic_weaver.lab.cache import TrackingCache,sha256_file
 from harmonic_weaver.lab.media import VideoLibrary,VideoJob
+from harmonic_weaver.lab.quality import coverage
 from harmonic_weaver.lab.evaluation.runner import Source
 from harmonic_weaver.lab.contracts import PerceptionSettings
 from harmonic_weaver.lab.presets import initial_presets,seed_presets
@@ -82,6 +83,7 @@ if args.frozen_evaluation_request:
         media_id=track.frames[0].source_id,cache_key=manifest['key'],
         cache_location=str(manifest_path),generation=manifest['generation'],
         person_ids=ids,cache_hit=True,duration_s=manifest['duration_s'],
+        quality=coverage(track.frames,end_s=manifest['duration_s']),
         frames=track.frames,times=[frame.source_time_s for frame in track.frames])
     library.jobs[job.id]=job
 runtime=LaboratoryRuntime(store,library=library,audio=audio)
