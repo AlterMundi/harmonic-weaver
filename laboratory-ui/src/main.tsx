@@ -798,6 +798,12 @@ function App() {
           {figureError && <p role="alert">{figureError}</p>}
         </section>
       </div>
+      {state.shaper?.audio_disabled && (
+        <aside role="status">
+          Modo diagnóstico sin audio (--no-audio). Reiniciá sin esa opción para
+          escuchar y ver la figura de las voces efectivas.
+        </aside>
+      )}
       {(error ||
         state.runtime?.error ||
         state.shaper?.error ||

@@ -1705,3 +1705,12 @@ muestran checkout/head/interpreter/modelo y --describe permite revisar sin servi
 Selecciones explícitas inválidas no caen en otro workspace/modelo. Scripts verificados
 con executables inertes y resolución real; R24/readiness/escucha son pendientes físicos.
 RUNNING distingue comandos/perfiles; no nueva pila instalada ni merges realizados.
+
+Arranque completo sin audio de la pila dev verificado con datos temporales: web,
+estado, presets, ACK de controles y cierre de ambos procesos. Modo --no-audio
+explícito en UI/diagnóstico, sin telemetría ficticia ni 503 esperado como fallo;
+errores reales de control conservados. No puede deshabilitar un Shaper externo.
+Un único perfil start-laboratory-dev.sh conserva puertos 8875/8185 y datos dev;
+start-laboratory-development.sh es alias, no una instalación alternativa.
+23 pruebas backend/shell y Chrome real de producción pasan; R24, tracking físico
+y escucha siguen pendientes. VALIDATION/RUNNING contienen alcance y recorrido.

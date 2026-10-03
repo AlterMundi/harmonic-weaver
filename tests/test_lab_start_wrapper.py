@@ -17,7 +17,7 @@ def executable(path,body='#!/bin/sh\nexit 0\n'):
 @pytest.fixture
 def stack(tmp_path):
     root=tmp_path/'projects'/'weaver with spaces';(root/'scripts').mkdir(parents=True)
-    for name in ('start-laboratory.sh','start-laboratory-development.sh'):
+    for name in ('start-laboratory.sh','start-laboratory-development.sh','start-laboratory-dev.sh'):
         shutil.copy2(SCRIPTS/name,root/'scripts'/name)
     (root/'laboratory-ui/node_modules').mkdir(parents=True)
     recorder='#!/usr/bin/env python3\nimport json,os,sys\nfrom pathlib import Path\nPath(os.environ["WEAVER_START_RECORD"]).write_text(json.dumps({"argv":sys.argv[1:],"path":os.environ["PYTHONPATH"],"harmocap":os.environ["HARMOCAP_DIR"],"shaper":os.environ["SHAPER_DIR"]}))\n'
@@ -26,7 +26,7 @@ def stack(tmp_path):
         executable(root.parent/repo/'.venv/bin/python')
     (root.parent/'HarMoCAP/harmocap-m-pose-ft2.pt').write_text('local synthetic model marker')
     bindir=tmp_path/'bin';executable(bindir/'npm')
-    env={k:v for k,v in os.environ.items() if k not in SELECTORS and k!='WEAVER_LAB_DATA_DIR'}
+    env={k:v for k,v in os.environ.items() if k not in SELECTORS and k not in ('WEAVER_LAB_DATA_DIR','LAB_DEV_DATA_DIR')}
     env.update(PATH=str(bindir)+os.pathsep+env['PATH'],WEAVER_START_RECORD=str(tmp_path/'record.json'),WEAVER_LAB_DATA_DIR=str(tmp_path/'private dev data'))
     return root,env
 
@@ -81,3 +81,19 @@ def test_development_uses_explicit_peer_and_separate_data(stack):
     args=json.loads(Path(env['WEAVER_START_RECORD']).read_text())['argv']
     assert args[args.index('--data-dir')+1]==env['WEAVER_LAB_DATA_DIR']
     assert args[args.index('--shaper-dir')+1]==str(root.parent/'harmonic-shaper-dev')
+    assert args[args.index('--port')+1]=='8875'
+    assert args[args.index('--shaper-port')+1]=='8185'
+
+
+def test_development_spellings_share_defaults_and_allow_cli_overrides(stack):
+    root,env=stack
+    result=subprocess.run([str(root/'scripts/start-laboratory-dev.sh'),'--describe'],env=env,capture_output=True,text=True,timeout=10)
+    alias=run(stack,'--describe',development=True)
+    assert result.returncode==alias.returncode==0
+    assert result.stdout==alias.stdout
+    result=run(stack,'--port','19001','--shaper-port','19002','--data-dir','explicit data',development=True,
+               overrides={'LAB_DEV_DATA_DIR':'canonical data'})
+    assert result.returncode==0,result.stderr
+    args=json.loads(Path(env['WEAVER_START_RECORD']).read_text())['argv']
+    assert args[args.index('--data-dir')+1]=='canonical data'
+    assert args[-6:]==['--port','19001','--shaper-port','19002','--data-dir','explicit data']

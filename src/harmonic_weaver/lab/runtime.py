@@ -324,7 +324,8 @@ class LaboratoryRuntime:
         self.diagnostic = {"code": code, "message": message, "observed_signals": observed,
                            "missing_signals": missing, "pose": current_quality(self.frame, self.person_id),
                            "audio_error": audio.get("error"),
-                           "audio_status": "unavailable" if audio.get("error") else "connected"}
+                           "audio_status": "disabled" if audio.get("audio_disabled") else
+                                           "unavailable" if audio.get("error") else "connected"}
 
     def retry_cpu(self, job_id):
         if self.kind != "video" or self.job_id != job_id:
