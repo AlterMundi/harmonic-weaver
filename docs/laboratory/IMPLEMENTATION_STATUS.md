@@ -1817,3 +1817,8 @@ variables, sobre pares origen/objetivo idénticos; MSE/deltas/exclusiones/soport
 JSON local con procedencia.23 pruebas backend y4 Chrome pasan, controles sintéticos
 publicados; coincidencia con cálculo corporal privado de #145. Sin datos privados,
 refit/defaults/audio/aceptación modificados; reservas independientes siguen pendientes.
+
+LAB-09: control digital AAC preview independiente del MKV exacto, tres bitrates y
+offsets±100ms, transiente/PTS decodificados y receta sintética repetida.38 pruebas
+capture/export/timeline y3 Chrome (audio offline, frame HTML presentado, muted)
+pasan. No equivale a sincronía física/escucha ni cambia defaults o instrumento.

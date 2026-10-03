@@ -539,3 +539,26 @@ codificada, salto de reloj/época, signos del offset, PCM y originales intactos.
 No abre dispositivos, no valida AAC de preview ni cámara/DAC/display/acústica.
 Para esa validación todavía se necesita un estímulo físicamente observable y
 medición externa del recorrido real; no reemplazarla por este control digital.
+
+### Control separado de previsualización AAC
+
+La receta `research/laboratory/capture_preview_timing_control.py` exporta el mismo
+estímulo con AAC64/192/320kbps y offsets±0.1s a192kbps, dos repeticiones por condición.
+Mide pico y centro de energía en la ventana fija[0.45,0.55]s tras decodificar MP4;
+no llama a ese centro «onset perceptual». Tolerancia del control2ms (tres anchos del
+pulso original): detecta un retardo no compensado de un frame AAC, sin reclamar
+PCM exacto ni un límite general del códec. Audio AAC/padding permanecen distintos
+del archivo principal MKV, cuyo PCM sigue idéntico. Flash/PTS conserva el offset.
+Evidencia pública: `research/laboratory/capture-preview-evidence-2026-10-03.json`.
+
+```bash
+PYTHONPATH=src:tests OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/capture_preview_timing_control.py \
+  --output /tmp/capture-preview-nueva > /tmp/capture-preview-evidence.json
+```
+
+Chrome valida AAC con OfflineAudioContext.decodeAudioData y el flash mediante
+requestVideoFrameCallback durante reproducción HTML silenciada. Usa frame.mediaTime
+presentado; evento seeked/dobleRAF no demuestra que el canvas tenga el nuevo frame.
+Es control del decodificador con una página mínima y medios sintéticos, no una
+sesión del instrumento, presentación acústica o medición física de A/V.
