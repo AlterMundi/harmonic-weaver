@@ -2962,3 +2962,26 @@ Chrome producción: nuevo banco **1 passed (2.9s)**, más regresión de contexto
 guardar/export/import, reapertura tras reload y respuesta demorada frente a edición;
 preset/source/calibration intactos, cero errores JS. Build94 módulos **1.29s**.
 Fixture detenido y puerto cerrado. Sin nuevos dispositivos/medios privados/escucha.
+
+### Integración completa tras #119–138 — 2026-10-03
+
+Cambios acumulados desde la suite en #118 afectan app, launcher, runtime/calibración,
+evaluación y bancos. Nueva suite completa `tests`: **1167 passed, 4 subtests passed**,
+sin skips/fallos, **283.12 s**. Weaver `76f4228`, Shaper-dev `516ebde`; documentación
+editada durante la corrida, sin modificaciones al código probado.
+
+```sh
+SHAPER_DIR=../harmonic-shaper-dev PYTHONPATH=src:tests:../harmonic-shaper-dev/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q tests --maxfail=5
+```
+
+Resultado incluye contratos/modelos/runtime/múltiples cuerpos/calibración/cache,
+launcher/audio-control, integración PCM/EVAL/captura y bancos research existentes.
+No es la suite de todo Shaper ni un recorrido nuevo de toda la web; recorridos
+Chrome/build pertinentes previos siguen válidos porque sólo cambiaron documentos.
+Warning de deprecación Starlette/AnyIO en TestClient, sin fallo funcional observado.
+
+Main remotos consultados: Weaver cc5fb57, Shaper f8bfe07, HarMoCAP25fda8d;
+Shaper-dev limpio516ebde y Weaver-lab limpio cc5fb57. Último aporte Ani sigue en
+#107 f424981, ya incorporado. Sin merges/instalación cotidiana ni dispositivos/
+medios privados/escucha. CONTRIBUTING actualiza base de aportes y dependencia
+Shaper vigentes; no exige repetir la suite completa para cada cambio.

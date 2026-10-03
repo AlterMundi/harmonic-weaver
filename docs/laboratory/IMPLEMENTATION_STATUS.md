@@ -10,6 +10,12 @@ La historia fechada de abajo conserva evidencia de cada corte; sus pendientes
 pueden estar resueltos por entregas posteriores. Esta tabla separa software,
 instalación cotidiana y trabajo físico/humano pendiente.
 
+Integración backend actual: **1167 tests + 4 subtests passed**, 283.12 s, sobre
+Weaver `76f4228` y Shaper-dev `516ebde`. Suite completa sin fallos/skips; evidencia
+de contratos/runtime/cache/render/bancos, no de escucha, hardware o hipótesis HIT.
+Los recorridos Chrome recientes siguen documentados por entrega en VALIDATION;
+no se atribuye esta cifra a toda la UI ni a adquisición física.
+
 | Entrega | Evidencia / alcance actual | Pendiente concreto |
 |---|---|---|
 | LAB-00–08 | Instrumento, seis voces iniciales, presets, modelos/calibración, múltiples cuerpos, biblioteca/cache y transporte en main hasta #85; experiencia baseline aceptada. #86–89 añaden observaciones parciales y derivadas con reloj de captura | Feedback de modelos/calibración/realce, calidad y latencia físicas; CUDA no se declara reparado; nueva pila aún no instalada |
@@ -26,13 +32,14 @@ instalación cotidiana y trabajo físico/humano pendiente.
 | R09 | Imports/recibos/clocks, comparación/conversiones y presets; DLT de pares declarados con workers recuperables y procedencia conservada en comparador (#121–124) | Adquisición/undistorsión, cámaras/IMUs reales y escala/calibración/sincronización/referencia independientes |
 | R10 | Protocolos/condiciones, transporte/player, respuestas/paired analysis/diseños portables; borrador/cierre recuperables y archivo local opcional entre pestañas | Participantes, niveles/sincronía/exposición medidas, sesiones largas y aceptación; datos sintéticos no son experiencia humana |
 | R11 | Stream crudo, control SNR conocido archivado (#90), import CSV explícito (#91); #99 conserva original/mapeo/conversión y recuperación web; CSV ISO con origen explícito compartido con R12 | Export/hardware OpenBCI reales, adquisición y sincronía físicas; no índice de placer/estado mental |
-| R12 | Mediciones/tarea declaradas, soporte/gaps, integral parcial W→J, vínculo EVAL, archivos, CSV numérico/ISO y configuración portable; protocolo documentado | Export sensor real y clocks, BLE/RR/adquisición, fuerzas/escala o metabolismo apropiados; no calorías desde HR/pose |
-| R13 | Banco nativo/EVAL, splits y normalización train-only, baselines/shuffle y adaptación de prefijo; worker/API/UI y protocolo | Nuevas tomas/participantes/tareas, mapeos funcionales, más modelos/validación externa y diseños de intervención/retención |
+| R12 | Mediciones/tarea declaradas, soporte/gaps, integral parcial W→J, vínculo EVAL, archivos, CSV numérico/ISO y configuración portable; #136–138 conservan raw excluido, contexto de cargas y sensibilidad de reloj sobre soporte común con receta pública | Export sensor real y clocks, BLE/RR/adquisición, fuerzas/escala o metabolismo apropiados; no calorías desde HR/pose |
+| R13 | Banco nativo/EVAL, splits y normalización train-only, baselines/shuffle y adaptación de prefijo; #130 añade control cuadrático opcional con positivos y negativos sintéticos; worker/API/UI y protocolo | Nuevas tomas/participantes/tareas, mapeos funcionales, validación externa y diseños de intervención/retención |
 
 GitHub main Weaver sigue en `cc5fb57`, Shaper en `f8bfe07` y HarMoCAP en
-`25fda8d` (heads remotos consultados en esta auditoría). La pila Weaver #86–96,
-#98–106 y #108–118 permanece abierta; #36/#97 están incorporadas conservando autoría en #98
-sin mergear sus ramas históricas. La rama de integración hereda todos esos cortes.
+`25fda8d` (heads remotos consultados nuevamente el 2026-10-03). La pila posterior
+a #85 permanece abierta y llega a #138 (`feat/r12-clock-sensitivity`, `76f4228`).
+#36/#97 están incorporadas conservando autoría en #98 y #107 en #109, sin mergear
+sus ramas históricas. La rama de integración hereda todos esos cortes.
 El laboratorio cotidiano `harmonic-weaver-lab` sigue en `cc5fb57`; desarrollo
 permanece en `harmonic-weaver-dev`. No se sustituyó el entorno de prueba habitual
 ni se publicaron datos privados. Workspaces originales, incluido HarMoCAP con
