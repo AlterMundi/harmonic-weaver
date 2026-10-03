@@ -48,9 +48,10 @@ test('late first preset cannot replace a newer applied preset',async({page})=>{
  await page.getByRole('button',{name:'Presets',exact:true}).click();await page.getByRole('button',{name:first.name,exact:true}).click();await expect.poll(()=>reached).toBe(true);
  await page.getByRole('button',{name:'Instrumento',exact:true}).click();const master=page.getByRole('spinbutton',{name:'Master',exact:true});await expect(master).toHaveValue(String(first.master));
  pauseSnapshots=true;await page.getByRole('button',{name:'Presets',exact:true}).click();
- const confirmed=page.waitForResponse(r=>r.url()===`${origin}/api/presets/${second.id}/apply`);await page.getByRole('button',{name:second.name,exact:true}).click();const response=await confirmed;expect(response.ok(),await response.text()).toBe(true);
+ const confirmed=page.waitForResponse(r=>r.url()===`${origin}/api/presets/${second.id}/apply`);await page.getByRole('button',{name:second.name,exact:true}).click();
+ const late=page.waitForResponse(r=>r.url()===firstURL);release();await (await late).finished();
+ const response=await confirmed;expect(response.ok(),await response.text()).toBe(true);
  await page.getByRole('button',{name:'Instrumento',exact:true}).click();await expect(master).toHaveValue(String(second.master));
- const late=page.waitForResponse(r=>r.url()===firstURL);release();await (await late).finished();await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
  await expect(master).toHaveValue(String(second.master));
  const edit=page.waitForResponse(r=>r.url()===`${origin}/api/configuration`&&r.request().method()==='PUT');await master.fill('.177');const changed=await edit;expect(changed.ok(),await changed.text()).toBe(true);expect((await changed.json()).preset.id).toBe(second.id);
  pauseSnapshots=false;

@@ -3081,3 +3081,27 @@ Recorrido corporal con confirmación secuencial explícita: **1 Chrome passed
 referencias/joints, ruteos y presets portables, cambio de cuerpo/loop. Cache original
 manifest/frames intactos; fixture detenida y puerto cerrado. Sólo targets de
 control, sin síntesis/R24/escucha/aceptación nuevas; datos corporales locales.
+
+### Presets · elecciones rápidas con una aplicación en curso — 2026-10-03
+
+Para resolver el conflicto de aplicaciones solapadas registrado en #143, la web
+mantiene una sola solicitud apply en curso y una última elección pendiente. Tras
+confirmar la primera, la siguiente usa la revisión confirmada, sin GET correctivo
+ni retry de escrituras. Una edición posterior descarta la elección anterior;
+un error detiene la cola y permanece visible. Presets siguen elegibles mientras
+se espera apply y un status muestra la elección pendiente; no se pausa la fuente.
+
+Regresión nueva falla antes (envía las tres elecciones mientras la primera está
+retenida) y pasa después (sólo primera y última, revisión final +2, WS posterior
+retenido para no encubrir revisión vieja). Casos adicionales: edición confirmada
+cancela elección pendiente y HTTP409 explícito no dispara esa elección ni retry.
+Se conservan las tres regresiones de HTTP tardío con ediciones confirmadas/
+pendientes; segundo preset ahora se confirma tras liberar la primera respuesta,
+según el contrato de serialización. **6 Chrome passed (5.8s)** contra API/SQLite
+reales; TypeScript/Vite94 módulos **1.35s**. No backend/defaults/audio modificados.
+
+Recorrido corporal completo con bundle nuevo: **1 Chrome passed (11.9s)**;
+video cache hit, calibración, cuatro modelos/seis targets, ruteos, referencias/
+componentes/joints, preset portable y cambios de cuerpo/loop. Cache original
+manifest/frames intactos; fixtures detenidas, puerto cerrado. Targets solamente,
+sin abrir R24 ni validar escucha/aceptación humana. Medios/poses/resultados locales.

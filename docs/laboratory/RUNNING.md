@@ -83,6 +83,10 @@ en SOURCES. La cámara y el audio live no se graban automáticamente.
 Si llega tarde la respuesta de aplicar un preset, la web conserva las ediciones
 posteriores y las revisiones más nuevas ya confirmadas. Esto permite seguir
 explorando mientras llega la respuesta sin que vuelva un valor anterior por HTTP.
+Si elegís varios presets antes de que llegue la confirmación, se termina la
+aplicación en curso y se aplica sólo la última elección pendiente. La web muestra
+qué elección espera confirmación. Una edición posterior de controles descarta esa
+elección pendiente; el video continúa. No se acumula una lista de presets intermedios.
 Los conflictos de revisión continúan visibles; recuperar estado aplicado toma el
 estado vigente en vez de reintentar una escritura sobre otra ventana silenciosamente.
 
