@@ -76,6 +76,8 @@ from .research.rope_annotations import Annotation as RopeAnnotation
 from .research.membrane_service import MembraneService
 from .research.membrane_transfer_service import TransferService
 from .research.membrane_controls_service import ControlService
+from .research.membrane_readout_service import ReadoutService
+from .research.membrane_readout import Config as ReadoutConfig, Request as ReadoutRequest
 from .research.membrane_controls import Request as ControlRequest
 from .research.membrane_transfer import Request as TransferRequest
 from .research.membrane_pcm import Request as MembraneRequest
@@ -299,6 +301,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
+    readouts = ReadoutService(data_dir, membrane)
     spatial_presets = SpatialViewPresets(data_dir)
     spatial_comparison_presets = SpatialComparisonPresets(data_dir)
     spatial_clock_runs = SpatialClockService(data_dir)
@@ -1005,6 +1008,26 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r07-transfer')
     def transfer_jobs():return transfer.list()
+
+    @app.post('/api/research/r07-readout/configuration')
+    def readout_configuration(body: ReadoutConfig):
+        return body.model_dump()
+
+    @app.post('/api/research/r07-readout')
+    def readout_start(body: ReadoutRequest):
+        return readouts.start(body)
+
+    @app.get('/api/research/r07-readout')
+    def readout_jobs():
+        return readouts.list()
+
+    @app.get('/api/research/r07-readout/{ident}/verification')
+    def readout_verification(ident: str, recompute: bool = False):
+        return readouts.verification(ident, recompute=recompute)
+
+    @app.get('/api/research/r07-readout/{ident}/artifacts/{name}')
+    def readout_artifact(ident: str, name: str):
+        return FileResponse(readouts.artifact(ident, name), filename=name)
 
     @app.get('/api/research/r07-controls')
     def control_jobs():return controls.list()
