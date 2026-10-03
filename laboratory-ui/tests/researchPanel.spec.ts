@@ -8,7 +8,7 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
  import {ResearchPanel} from '/src/ResearchPanel.tsx';
  let jobs=[{id:'pending',status:'running',directory:'/synthetic'}];window.requests=[];window.cancelled=[];
- const api=async(path,body)=>{if(path.endsWith('/cancel')){window.cancelled.push(path);jobs=[{id:'pending',status:'cancelled',directory:'/synthetic'}];return jobs[0];}if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3},mean_reconstruction_residual:.002}}}}];}return jobs;};
+ const api=async(path,body)=>{if(!path.startsWith('research/r01'))return [];if(path.endsWith('/cancel')){window.cancelled.push(path);jobs=[{id:'pending',status:'cancelled',directory:'/synthetic'}];return jobs[0];}if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1,linear_trend:.15,lagged_full_ridge:.08,lagged_subspace_ridge:.07},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3,linear_trend:.35,lagged_full_ridge:.28,lagged_subspace_ridge:.27},mean_reconstruction_residual:.002}}}}];}return jobs;};
  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ResearchPanel,{api,run:fn=>fn()}));
  `});
  await expect(page.getByRole('button',{name:'Correr banco R01'})).toBeDisabled();
@@ -20,10 +20,14 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  await page.getByLabel('Memoria estocástica').fill('0');
  await page.getByLabel('Muestras',{exact:true}).fill('120');
  await page.getByLabel('Horizonte de predicción (pasos)').fill('12');
+ await page.getByLabel('Tendencia lineal R01 sintético',{exact:true}).check();
+ await page.getByLabel('Ridge completo con retardos R01 sintético',{exact:true}).check();
+ await page.getByLabel('Ridge subespacio con retardos R01 sintético',{exact:true}).check();
+ await page.getByLabel('Retardos autorregresivos R01 sintético').fill('4');
  await page.getByRole('button',{name:'Exportar configuración JSON'}).click();
  const json=JSON.parse(await page.getByLabel('Configuración R01 JSON').inputValue());
  expect(json.scenario).toBe('stochastic_span');expect(json.temporal_memory).toBe(0);
- expect(json.horizon_steps).toBe(12);
+ expect(json.horizon_steps).toBe(12);expect(json.autoregressive_lags).toBe(4);expect(json.predictors).toHaveLength(6);
  await expect(page.getByText('Horizonte: 0.400 s.',{exact:false})).toBeVisible();
  await page.getByRole('button',{name:'Correr banco R01'}).click();
  expect(await page.evaluate(()=>(window as any).requests[0])).toEqual(json);
@@ -31,6 +35,7 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  await expect(page.getByRole('link',{name:'Configuración de corrida'})).toHaveAttribute('href','/api/research/r01/synthetic/artifacts/request.json');
  await expect(page.getByRole('link',{name:'paired.jsonl',exact:true})).toHaveAttribute('href','/api/research/r01/synthetic/artifacts/paired.jsonl');
  await expect(page.getByRole('columnheader',{name:'Ridge subespacio MSE'})).toBeVisible();
+ await expect(page.getByRole('columnheader',{name:'Ridge completo con retardos MSE'})).toBeVisible();
  await expect(page.getByLabel('Comparar controles sobre instantes comunes')).toBeChecked();
  await expect(page.getByRole('row').filter({hasText:'original'})).toContainText('0.40000');
  await page.getByLabel('Comparar controles sobre instantes comunes').uncheck();

@@ -1,0 +1,18 @@
+{
+  "seed": 17,
+  "samples": 120,
+  "dimensions": 4,
+  "signal_rank": 1,
+  "components": 1,
+  "noise_std": 0.0,
+  "horizon_steps": 6,
+  "autoregressive_lags": 4,
+  "predictors": [
+    "persistence",
+    "full_ridge",
+    "subspace_ridge",
+    "linear_trend",
+    "lagged_full_ridge",
+    "lagged_subspace_ridge"
+  ]
+}

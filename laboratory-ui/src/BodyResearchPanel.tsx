@@ -1,6 +1,7 @@
+import {ForecastControls,defaultPredictors} from './ForecastControls';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
-const defaults={seed:0,components:2,window_s:2,noise_threshold:.02,ridge:.1,horizon_steps:1,max_gap_s:.1};
+const defaults={seed:0,components:2,window_s:2,noise_threshold:.02,ridge:.1,horizon_steps:1,max_gap_s:.1,predictors:defaultPredictors,autoregressive_lags:3};
 export function BodyResearchPanel({api,run,onStarted}:Data){
  const [jobs,setJobs]=useState<Data[]>([]),[evaluation,setEvaluation]=useState(''),[report,setReport]=useState<Data|null>(null);
  const [index,setIndex]=useState(0),[signals,setSignals]=useState<string[]>([]),[settings,setSettings]=useState<Data>(defaults);
@@ -12,7 +13,7 @@ export function BodyResearchPanel({api,run,onStarted}:Data){
  useEffect(()=>{if(!selected)return;const source=report!.manifest.request.sources[selected.source_index];setStart(source.start_s);setEnd(Math.min(source.end_s,source.start_s+120));setSignals([]);},[report,index]);
  const catalog=selected?.signals || {};
  const units=new Set(signals.map(id=>catalog[id]?.unit));
- const valid=!!selected && signals.length>=2 && signals.length<=16 && signals.every(id=>catalog[id]) && units.size===1 && settings.components<=signals.length;
+ const valid=(settings.predictors||defaultPredictors).length>0 && !!selected && signals.length>=2 && signals.length<=16 && signals.every(id=>catalog[id]) && units.size===1 && settings.components<=signals.length;
  return <section>
   <h2>R01 · Features del comparador</h2>
   <p>Usa una corrida local congelada y verificada. No abre el video ni cambia el instrumento o la calibración. El horizonte cuenta muestras únicas de features; su duración real queda en las traces.</p>
@@ -32,12 +33,13 @@ export function BodyResearchPanel({api,run,onStarted}:Data){
    ['ridge','Ridge corporal',.00001,100,.01],['horizon_steps','Horizonte corporal (muestras)',1,30,1],
    ['max_gap_s','Gap máximo corporal (s)',.01,.5,.01],
   ].map(([key,label,min,max,step])=><label key={key}>{label}<input type="number" min={min} max={max} step={step} value={settings[key]} onChange={e=>setSettings({...settings,[key]:+e.target.value})}/></label>)}</div>
+  <ForecastControls settings={settings} onChange={setSettings} scope="R01 corporal"/>
   <p>Faltantes y gaps reinician historia y pronósticos. Repeticiones del mismo timestamp por el reloj de control se excluyen. Rotación en el espacio de features no equivale a rotar físicamente el cuerpo; shuffle preserva los límites de los segmentos válidos.</p>
   <button disabled={!valid} onClick={()=>run(async()=>{await api('research/r01/trace',{...settings,evaluation_id:evaluation,run_index:index,signal_ids:signals,start_s:start,end_s:end});await onStarted();})}>Correr R01 con features</button>
   <button onClick={()=>setText(JSON.stringify({settings,signal_ids:signals},null,2))}>Exportar configuración corporal JSON</button>
   <textarea aria-label="Configuración corporal JSON" value={text} onChange={e=>setText(e.target.value)}/>
   <button onClick={()=>run(async()=>{const config=JSON.parse(text);
-   if(!config.settings || !Array.isArray(config.signal_ids) || !config.signal_ids.every((id:any)=>typeof id==='string') || Object.entries(config.settings).some(([key,value])=>!(key in defaults) || typeof value!=='number' || !Number.isFinite(value)))throw Error('Configuración corporal inválida');
+   if(!config.settings || !Array.isArray(config.signal_ids) || !config.signal_ids.every((id:any)=>typeof id==='string') || Object.entries(config.settings).some(([key,value])=>!(key in defaults) || (key==='predictors'? !Array.isArray(value)||!value.length||!value.every((k:any)=>typeof k==='string'):typeof value!=='number' || !Number.isFinite(value))))throw Error('Configuración corporal inválida');
    setSettings({...defaults,...config.settings});setSignals(config.signal_ids);
   })}>Importar configuración corporal JSON</button>
  </section>;

@@ -2319,3 +2319,21 @@ Chrome: guardar/recargar/aplicar JSON, rechazo sin cambio de controles y accione
 limitadas a perfiles; payloads de esqueleto/figura conservados. Red simulada: no
 demuestra adquisición. Build TypeScript/Vite pasa. No nuevos defaults del
 instrumento ni aceptación humana; la configuración no inicia grabación.
+
+## R01: familias de pronóstico sintético y EVAL — 2026-10-03
+
+27 pruebas grassmann/families/body pasan (5.18 s); una prueba corporal adicional
+verifica las seis familias y reset de gaps (las siete del módulo families pasan,
+.82 s). Cubre q=1 equivalente al ridge anterior, tendencia conocida, causalidad
+incluso cuando se altera el target ya pronosticado, rotación global, repetición
+byte-idéntica, soporte común y selección inválida/métodos incompatibles.
+
+Tres bancos sintéticos congelados y comando reproduce_families.py ejecutados:
+soporte y resúmenes numéricos reproducidos con tolerancias declaradas. Hay casos
+de mejora y de empeoramiento por retardos; no selección post hoc de defaults.
+Build TypeScript/Vite pasa; Chrome: controles sintéticos/tabla y controles
+corporales/JSON/payload pasan (red simulada). El mock sintético se acotó a R01
+para que acciones de otros paneles no alteraran su inventario artificial.
+
+Defaults y síntesis cotidiana sin cambios; sin datos privados ni escucha nueva.
+Predicción específica de HIT y validación en tomas/cuerpos reservados pendientes.
