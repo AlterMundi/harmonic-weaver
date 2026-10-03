@@ -2719,3 +2719,17 @@ opción de descarte, recuperación deshabilitada, nuevo inicio habilitado despu�
 sin POST automático. Recuperación/presets/preview anteriores pasan. Build pasa
 (1.35s). Backend no modificado; evidencia de #122 conservada. No dispositivos,
 medios corporales ni escucha/sincronización física.
+
+
+### R09 · Procedencia multivista en conversiones/comparación — 2026-10-03
+
+15 backend/HTTP/regresiones pasan (3.74s): worker real, origen exacto, stream sin
+mutación, recuperación tras restart sin reads de fuente/recalcular, mismatch de
+manifest, procedencia declarada rechazada, binding del stream, cambio durante
+publicación conserva conversión previa, clock/conversion/comparison compatibles.
+Chrome: 2 tests pasan (10.6s), incluido POST de conversión aceptado con respuesta
+abortada, reintento con mismo ID/manifest/clave, origen y stream exactos en artifact,
+selección por IDs en comparador, admitir inferidos explícitamente y control identidad
+5/5 soportados/error0. Recorridos anteriores conservados. Build pasa (1.34s).
+Comparar un stream consigo mismo prueba recorrido, no referencia independiente ni
+exactitud 3D. No escucha, datos corporales, cámaras, tracking ni calibración física.

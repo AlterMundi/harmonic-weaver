@@ -1,5 +1,6 @@
 """Frozen spatial conversions; recomputation does not authenticate observations."""
 import json
+import hashlib
 import platform
 from pathlib import Path
 from typing import Annotated, Literal
@@ -28,16 +29,34 @@ class Provenance(Contract):
     verification:Literal['completed_in_memory_generation']
 
 
+def stream_digest(stream):
+    return hashlib.sha256(json.dumps(Stream.model_validate(stream).model_dump(),sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+
+
+class MultiviewOrigin(Contract):
+    run_id:Annotated[str,Field(pattern=r'^[a-f0-9]{32}$')]
+    manifest_sha256:Digest
+    request_sha256:Digest
+    result_sha256:Digest
+    stream_sha256:Digest
+    verification:Literal['local_artifact_integrity']
+
+
 class Input(Contract):
     conversion: Request|None=None
     stream:Stream|None=None
     clock_application:Application|None=None
     tracking_provenance:Provenance|None=None
+    multiview_origin:MultiviewOrigin|None=None
 
     @model_validator(mode='after')
     def segment(self):
         if (self.conversion is None)==(self.stream is None):raise ValueError('Choose exactly one conversion or declared stream')
         if self.clock_application is not None and self.stream is None:raise ValueError('Clock application requires declared stream')
+        if self.multiview_origin is not None:
+            if self.stream is None or self.clock_application is not None:raise ValueError('Multiview origin requires its original stream')
+            if self.multiview_origin.stream_sha256!=stream_digest(self.stream):raise ValueError('Multiview origin stream binding mismatch')
+            if self.stream.provider!='calibrated_multiview' or self.stream.dimensions!=3 or any(p.state not in ('inferred','missing') for f in self.stream.frames for p in f.points):raise ValueError('Multiview origin requires inferred/missing 3D')
         p=self.tracking_provenance
         if p is not None and self.conversion is None:raise ValueError('Tracking provenance only belongs to resolved MotionFrames')
         if p is not None:
@@ -63,6 +82,9 @@ def calculate(frozen):
     if frozen.clock_application is not None:
         result['clock_application']=frozen.clock_application.model_dump()
         result['limits'].append('Application freezes verified local source IDs/hashes; source declarations remain unauthenticated physically')
+    if frozen.multiview_origin is not None:
+        result['multiview_origin']=frozen.multiview_origin.model_dump()
+        result['limits'].append('Multiview origin binds verified local calculation artifacts at publication; camera calibration, pairing and timing remain declared')
     return result
 
 
@@ -126,6 +148,7 @@ def verify(folder, *, recompute=True):
     if frozen.stream is not None and (result.get('stream')!=frozen.stream.model_dump() or result.get('input_kind')!='external_stream'):raise ValueError('External stream result/input binding mismatch')
     if result.get('tracking_provenance') != (frozen.tracking_provenance.model_dump() if frozen.tracking_provenance else None):raise ValueError('Spatial conversion provenance binding mismatch')
     if result.get('clock_application')!=(frozen.clock_application.model_dump() if frozen.clock_application else None):raise ValueError('Clock application provenance binding mismatch')
+    if result.get('multiview_origin')!=(frozen.multiview_origin.model_dump() if frozen.multiview_origin else None):raise ValueError('Multiview origin result/input binding mismatch')
     if recompute:
         if manifest['environment'] != environment() or manifest['code_hashes'] != code_hashes():
             raise ValueError('Recorded conversion implementation/environment differs')

@@ -1664,3 +1664,11 @@ llega; una nueva apertura explícita sí los restaura. Inventario retoma seguimi
 de workers activos tras reload y permite cancelación propia. Intentos locales
 inválidos pueden descartarse sin envío. Chrome con worker real y build verificados
 (VALIDATION); no cambios en síntesis/defaults ni prueba física nueva.
+
+
+R09 conecta cálculos multivista completos con conversiones/comparador por ID y
+manifest esperado. Publicación verifica artefactos, mantiene stream exacto y
+origen local hasheado; recuperación idempotente no vuelve a resolver la fuente.
+Origen no puede inyectarse por ruta declarada. UI/HTTP/contratos verificados;
+no cambios a default de inferidos ni síntesis. Procedencia de cálculo conservada
+sin acreditación de calibración física. Ver README R09 y VALIDATION.

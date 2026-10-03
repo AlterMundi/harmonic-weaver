@@ -8,7 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Annotated
 from pydantic import Field
-from ..cache import atomic_json
+from ..cache import atomic_json, sha256_file
 from .coincidence_service import CoincidenceService
 from .spatial_multiview import Request
 from .spatial_multiview_worker import verify
@@ -50,7 +50,9 @@ class MultiviewService(CoincidenceService):
     def report(self,ident):
         report=super().report(ident)
         if report['status']=='complete':
-            try:report.update(verify(self.folder(ident)))
+            try:
+                report.update(verify(self.folder(ident)))
+                report['manifest_sha256']=sha256_file(self.folder(ident)/'manifest.json')
             except (OSError,ValueError) as exc:report.update(status='invalid',error=str(exc))
         return report
 

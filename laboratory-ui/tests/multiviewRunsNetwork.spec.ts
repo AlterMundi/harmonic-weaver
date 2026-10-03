@@ -39,6 +39,27 @@ test('lost accepted multiview start recovers once across reload; explicit open, 
  const result=JSON.parse(await readFile((await(await download).path())!,'utf8'));expect(result.stream.frames[0].points[0].state).toBe('inferred');
  await saved.getByRole('button',{name:`Verificar recálculo multivista ${acceptedId}`,exact:true}).click();
  await expect(saved.getByText('Recálculo verificado',{exact:false})).toBeVisible();
+ // An accepted but lost derived-stream response recovers by the same run ID and key.
+ const selections:any[]=[];let loseConversion=true;let conversionId='';
+ const conversionRoute='**/api/research/r09/multiview-conversions';
+ await page.route(conversionRoute,async route=>{selections.push(route.request().postDataJSON());if(loseConversion){loseConversion=false;const r=await route.fetch();expect(r.ok()).toBeTruthy();conversionId=(await r.json()).id;await route.abort('failed');return}await route.continue()});
+ const originButton=saved.getByRole('button',{name:`Guardar stream con procedencia multivista ${acceptedId}`,exact:true});
+ await originButton.click();await expect(saved.getByRole('alert')).toBeVisible();
+ await originButton.click();await expect(saved.getByRole('status').filter({hasText:'Stream multivista guardado con procedencia'})).toContainText(conversionId);
+ expect(selections).toHaveLength(2);expect(selections[1]).toEqual(selections[0]);
+ const conversionResponse=await page.request.get(`${origin}/api/research/r09/conversions/${conversionId}/artifacts/result.json`);const conversionResult=await conversionResponse.json();
+ expect(conversionResult.multiview_origin.run_id).toBe(acceptedId);expect(conversionResult.multiview_origin.verification).toBe('local_artifact_integrity');expect(conversionResult.stream).toEqual(result.stream);
+ const compare=page.getByRole('region',{name:'Comparación espacial R09',exact:true});
+ await compare.getByRole('combobox',{name:'Origen de comparación R09'}).selectOption('saved');
+ await compare.getByRole('button',{name:'Actualizar conversiones para comparar R09'}).click();
+ await compare.getByRole('combobox',{name:'Referencia guardado R09'}).selectOption(conversionId);
+ await compare.getByRole('combobox',{name:'Candidato guardado R09'}).selectOption(conversionId);
+ await compare.getByRole('textbox',{name:'Etiquetas de comparación R09'}).fill(JSON.stringify(original.labels));
+ await compare.getByRole('checkbox',{name:'Admitir puntos inferidos R09'}).check();
+ await compare.getByRole('button',{name:'Guardar comparación espacial R09'}).click();
+ await expect(compare.getByText('Soporte espacial: 5/5 puntos elegibles. Unidad: metres.',{exact:true})).toBeVisible();
+ await expect(compare.getByText('Error medio sobre soporte: 0; máximo: 0.',{exact:true})).toBeVisible();
+ await page.unroute(conversionRoute);
  // Hold a real accepted artifact response, then edit the worksheet before delivery.
  let release!:()=>void;const gate=new Promise<void>(resolve=>release=resolve);
  let received!:()=>void;const responseReady=new Promise<void>(resolve=>received=resolve);
