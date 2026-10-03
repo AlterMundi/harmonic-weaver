@@ -72,3 +72,24 @@ def test_explicit_csv_api_convert_then_archive_preserves_raw_digest(tmp_path):
         assert reopened==native and reopened['raw_source_sha256']
         body['csv_text']='index,time_ms,channel\n0,0,"unfinished'
         assert client.post('/api/research/r11/import-csv',json=body).status_code==422
+
+
+def test_csv_source_archive_api_restart_raw_bytes_and_explicit_recompute(tmp_path):
+    from research.test_neuro_csv import request
+    body = request(); body['csv_text'] = '\ufeff' + body['csv_text']
+    url = '/api/research/r11/csv-imports'
+    with TestClient(create_app(tmp_path), base_url='http://127.0.0.1') as client:
+        saved = client.post(url, json=body)
+        assert saved.status_code == 200, saved.text
+        ident = saved.json()['id']
+        assert client.post(url, json=body).json()['id'] == ident
+        original = client.get(f'{url}/{ident}/artifacts/source.csv')
+        assert original.content == body['csv_text'].encode('utf-8')
+        assert 'attachment' in original.headers['content-disposition']
+        assert client.get(f'{url}/{ident}/artifacts/unexpected').status_code == 422
+        assert client.get(f'{url}/{ident}/verification?recompute=true').json()['read_verification'] == 'recomputed'
+    with TestClient(create_app(tmp_path), base_url='http://127.0.0.1') as client:
+        assert len(client.get(url).json()) == 1
+        frozen = client.get(f'{url}/{ident}/artifacts/request.json').json()
+        assert frozen['csv_text'] == body['csv_text']
+        assert frozen['mapping']['channel_columns'] == body['mapping']['channel_columns']

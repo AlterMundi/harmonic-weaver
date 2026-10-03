@@ -437,6 +437,13 @@ copia durable guardar en servidor local o exportar antes.
 
 ## R11 · Inspección cruda experimental (PR #79)
 
+Para tablas: Investigación → R11 → Importar tabla CSV; declarar metadatos y
+mapeo, Convertir y **Guardar importación CSV R11**. Al volver, Actualizar/Abrir
+importación recupera original, configuración y resultado. `source.csv` se descarga
+con sus bytes UTF-8 originales. Recalcular es explícito; no cambia la grabación.
+Guardar observaciones conserva sólo el Stream: usar Guardar importación para
+conservar también CSV y mapeo. [Detalles](../../research/laboratory/r11_neuro/README.md#archivo-local-de-importaciones-csv--2026-10-03).
+
 En Investigación → R11, importar un JSON Stream de neuro_observations con
 unidades/referencia/clock y samples explícitos, o editar Observaciones JSON R11.
 Inspeccionar contrato muestra cobertura/gaps y permite exportar inventario+raw.
