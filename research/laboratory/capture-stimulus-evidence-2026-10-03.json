@@ -1,0 +1,101 @@
+{
+  "code_hashes": {
+    "capture_export.py": "6c54d846a4840113d726926017eee69b74631d118be4af10205bc214c90b6218",
+    "capture_timeline.py": "ee7d461e92322f97f756916c5895b7cb05b194dc5dfa546e29b8b81397bd2698"
+  },
+  "conditions": [
+    {
+      "measurements": [
+        {
+          "audio_onset_s": 0.5,
+          "audio_samples": 48000,
+          "bright_frames": [
+            10
+          ],
+          "video_frames": 20,
+          "video_minus_audio_s": 0.0,
+          "video_onset_s": 0.5
+        },
+        {
+          "audio_onset_s": 0.5,
+          "audio_samples": 48000,
+          "bright_frames": [
+            10
+          ],
+          "video_frames": 20,
+          "video_minus_audio_s": 0.0,
+          "video_onset_s": 0.5
+        }
+      ],
+      "offset_s": 0.0,
+      "repeat_measurements_identical": true
+    },
+    {
+      "measurements": [
+        {
+          "audio_onset_s": 0.5,
+          "audio_samples": 48000,
+          "bright_frames": [
+            8
+          ],
+          "video_frames": 20,
+          "video_minus_audio_s": -0.09999999999999998,
+          "video_onset_s": 0.4
+        },
+        {
+          "audio_onset_s": 0.5,
+          "audio_samples": 48000,
+          "bright_frames": [
+            8
+          ],
+          "video_frames": 20,
+          "video_minus_audio_s": -0.09999999999999998,
+          "video_onset_s": 0.4
+        }
+      ],
+      "offset_s": 0.1,
+      "repeat_measurements_identical": true
+    },
+    {
+      "measurements": [
+        {
+          "audio_onset_s": 0.5,
+          "audio_samples": 48000,
+          "bright_frames": [
+            12
+          ],
+          "video_frames": 20,
+          "video_minus_audio_s": 0.09999999999999998,
+          "video_onset_s": 0.6
+        },
+        {
+          "audio_onset_s": 0.5,
+          "audio_samples": 48000,
+          "bright_frames": [
+            12
+          ],
+          "video_frames": 20,
+          "video_minus_audio_s": 0.09999999999999998,
+          "video_onset_s": 0.6
+        }
+      ],
+      "offset_s": -0.1,
+      "repeat_measurements_identical": true
+    }
+  ],
+  "environment": {
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "numpy": "2.5.1",
+    "opencv": "4.14.0",
+    "python": "3.12.13"
+  },
+  "fixture_sha256": "521c3b3228bf0aa3f9103dc963e3b5311740109d2f5ec2a97a265d8b4d81b3ab",
+  "kind": "capture_decoded_digital_stimulus",
+  "limits": [
+    "Synthetic encoded flash and supplied PCM, not physical capture",
+    "Decoded MKV float PCM, not lossy browser preview",
+    "Sampled confirmed source positions, frame-resolution timing",
+    "No DAC/display/acoustic latency or human synchrony/acceptance measured"
+  ],
+  "recipe_sha256": "3161ab05f1528ae712607076bb25fcd483114513f809124a85148002fbe69276"
+}
