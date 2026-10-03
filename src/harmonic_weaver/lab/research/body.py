@@ -9,7 +9,7 @@ from pydantic import Field, model_validator
 from ..cache import atomic_json, sha256_file
 from ..contracts import Contract, Number
 from ..evaluation.runner import code_identity
-from .grassmann import Settings, evaluate, pair_controls
+from .grassmann import Settings, evaluate, pair_controls, summarize_harmonic_forecasts
 from .forecast_families import Predictor, DEFAULT_PREDICTORS
 
 
@@ -145,6 +145,8 @@ def run(request, output):
             'Missing features and long gaps reset all history and pending forecasts; no imputation',
             'Shuffle permutes within each contiguous valid segment, preserving gap boundaries',
             'Feature geometry and forecast errors do not establish HIT, intention, efficiency or tracking accuracy']}
+    if 'fixed_harmonics' in request.predictors:
+        report['harmonic_diagnostics']={name:summarize_harmonic_forecasts(value) for name,value in collected.items()}
     atomic_json(manifest_path,report);return report
 
 

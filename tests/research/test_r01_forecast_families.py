@@ -117,3 +117,23 @@ def test_above_sampling_bound_produces_unavailable_forecasts_not_alias_scores():
 @pytest.mark.parametrize('ratios',[[0],[1,1],[-1],[float('nan')],[33]])
 def test_invalid_declared_harmonic_ratios_rejected(ratios):
     with pytest.raises(ValueError):Settings(harmonic_ratios=ratios)
+
+
+def test_harmonic_diagnostics_separate_origin_support_and_target_clock_error():
+    from harmonic_weaver.lab.research.grassmann import summarize_harmonic_forecasts
+    settings=Settings(samples=70,dimensions=4,signal_rank=2,components=2,predictors=['fixed_harmonics'],harmonic_ratios=[1,2],horizon_steps=4)
+    t,controls=generate(settings)
+    t[40:]+=.005
+    result=evaluate(settings,t,controls['original'])
+    diag=summarize_harmonic_forecasts(result['rows'])
+    assert diag['origin_slots']==70 and sum(diag['origin_states'].values())==70
+    assert diag['origin_states']['committed']>0
+    assert diag['origin_states']['geometry_unavailable']>0
+    assert diag['origin_states']['outside_segment']==3
+    assert diag['scored_target_slots']==result['metrics']['common_samples']
+    assert diag['absolute_target_clock_error_s']['max']==pytest.approx(.005)
+    alias=settings.model_copy(update={'harmonic_fundamental_hz':10})
+    unavailable=summarize_harmonic_forecasts(evaluate(alias,t,controls['original'])['rows'])
+    assert unavailable['origin_states']['sampling_bound']>0
+    assert unavailable['scored_target_slots']==0
+    assert unavailable['absolute_target_clock_error_s']=={'mean':None,'max':None}

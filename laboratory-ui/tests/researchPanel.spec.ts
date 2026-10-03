@@ -8,7 +8,7 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  import React from '/node_modules/.vite/deps/react.js';import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
  import {ResearchPanel} from '/src/ResearchPanel.tsx';
  let jobs=[{id:'pending',status:'running',directory:'/synthetic'}];window.requests=[];window.cancelled=[];
- const api=async(path,body)=>{if(!path.startsWith('research/r01'))return [];if(path.endsWith('/cancel')){window.cancelled.push(path);jobs=[{id:'pending',status:'cancelled',directory:'/synthetic'}];return jobs[0];}if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1,linear_trend:.15,lagged_full_ridge:.08,lagged_subspace_ridge:.07,fixed_harmonics:.05},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3,linear_trend:.35,lagged_full_ridge:.28,lagged_subspace_ridge:.27,fixed_harmonics:.25},mean_reconstruction_residual:.002}}}}];}return jobs;};
+ const api=async(path,body)=>{if(!path.startsWith('research/r01'))return [];if(path.endsWith('/cancel')){window.cancelled.push(path);jobs=[{id:'pending',status:'cancelled',directory:'/synthetic'}];return jobs[0];}if(body){window.requests.push(body);jobs=[{id:'synthetic',status:'complete',directory:'/synthetic',harmonic_diagnostics:{original:{origin_slots:60,origin_states:{committed:50,sampling_bound:2,geometry_unavailable:8},scored_target_slots:48,absolute_target_clock_error_s:{mean:.001,max:.005}}},artifact_hashes:{'paired.jsonl':'synthetic-hash'},results:{original:{common_samples:50,mean_prediction_mse:{persistence:.2,full_ridge:.1,subspace_ridge:.1,linear_trend:.15,lagged_full_ridge:.08,lagged_subspace_ridge:.07,fixed_harmonics:.05},mean_reconstruction_residual:.001}},paired:{common_samples:25,results:{original:{common_samples:25,mean_prediction_mse:{persistence:.4,full_ridge:.3,subspace_ridge:.3,linear_trend:.35,lagged_full_ridge:.28,lagged_subspace_ridge:.27,fixed_harmonics:.25},mean_reconstruction_residual:.002}}}}];}return jobs;};
  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ResearchPanel,{api,run:fn=>fn()}));
  `});
  await expect(page.getByRole('button',{name:'Correr banco R01'})).toBeDisabled();
@@ -45,5 +45,7 @@ test('R01 synthetic research controls freeze settings and show separate metrics'
  await expect(page.getByRole('row').filter({hasText:'original'})).toContainText('0.40000');
  await page.getByLabel('Comparar controles sobre instantes comunes').uncheck();
  await expect(page.getByRole('row').filter({hasText:'original'})).toContainText('0.20000');
+ await expect(page.getByText('Frecuencias fuera del límite del reloj pasado: 2',{exact:true})).toBeVisible();
+ await expect(page.getByText('48 objetivos puntuados',{exact:false})).toBeVisible();
  expect(errors).toEqual([]);
 });

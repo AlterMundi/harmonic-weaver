@@ -87,6 +87,7 @@ def evaluate(settings, t, data):
         state=model.push(float(stamp),value,ids)
         row={'time_s':float(stamp),'state':state['state'],'reason':state.get('reason'),
              'past_samples':state['past_samples'],'history_end_s':state.get('history_end_s')}
+        if 'fixed_harmonics' in settings.predictors:row['shared_forecast_commit_state']='geometry_unavailable'
         if state['state']=='observed':
             past=np.stack([item[1] for item in history]);basis=np.array(state['basis'])
             row.update(rank=state['rank'],components=state['components'],
@@ -104,6 +105,12 @@ def evaluate(settings, t, data):
             harmonic_ok=('fixed_harmonics' not in settings.predictors or
                          (len(harmonic_times)>=2*len(harmonic_frequencies)+1 and max(harmonic_frequencies)*np.max(np.diff(harmonic_times))<.5))
             if not harmonic_ok:row['forecast_unavailable_reason']=('Insufficient past observations for declared harmonic basis' if len(harmonic_times)<2*len(harmonic_frequencies)+1 else 'Declared harmonics exceed conservative sampling bound of past clock')
+            if 'fixed_harmonics' in settings.predictors:
+                if len(past)<required or len(harmonic_times)<2*len(harmonic_frequencies)+1:reason='insufficient_past'
+                elif not harmonic_ok:reason='sampling_bound'
+                elif target>=len(t):reason='outside_segment'
+                else:reason='committed'
+                row['shared_forecast_commit_state']=reason
             if len(past)>=required and target<len(t) and harmonic_ok:
                 predictions={}
                 for key in settings.predictors:
@@ -141,6 +148,26 @@ def evaluate(settings, t, data):
              settings.predictors} if common else {}
     return {'rows':rows,'metrics':{'common_samples':len(common),'mean_prediction_mse':metrics,
         'mean_reconstruction_residual':float(np.mean([row['reconstruction_residual'] for row in common])) if common else None}}
+
+
+def summarize_harmonic_forecasts(rows):
+    """Origin eligibility and scoring coverage are different inventories."""
+    from collections import Counter
+    commits=Counter(row['shared_forecast_commit_state'] for row in rows
+                    if 'shared_forecast_commit_state' in row)
+    errors=[]
+    for row in rows:
+        fit=row.get('prediction_fit_support',{}).get('fixed_harmonics')
+        if fit is not None:
+            errors.append(abs(row['time_s']-fit['target_time_s']))
+    return {'origin_slots':sum(commits.values()),'origin_states':dict(sorted(commits.items())),
+            'scored_target_slots':len(errors),
+            'absolute_target_clock_error_s':{
+                'mean':float(np.mean(errors)) if errors else None,
+                'max':float(np.max(errors)) if errors else None},
+            'limits':['Origin states describe shared eligibility of all selected families',
+                      'Origin commits and scored targets are distinct; tails/gaps may remove targets',
+                      'Clock errors compare estimated vs observed feature timestamps, not measured physical latency']}
 
 
 def pair_controls(evaluations):
@@ -199,6 +226,8 @@ def run(settings, output):
                   'Unpaired control summaries may differ in support; paired summaries use shared clock slots',
                   'Global rotation control shares exact samples; shuffle retains vectors but changes chronology',
                   'No physical constraint, intention or particle-scattering law is inferred']}
+    if 'fixed_harmonics' in settings.predictors:
+        report['harmonic_diagnostics']={name:summarize_harmonic_forecasts(value['rows']) for name,value in evaluations.items()}
     atomic_json(output/'manifest.json',report);return report
 
 

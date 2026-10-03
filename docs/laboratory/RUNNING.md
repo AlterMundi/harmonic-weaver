@@ -816,3 +816,11 @@ clocks/gaps y soporte siguen explícitos. No son frecuencias de síntesis ni cam
 voces/presets. Configuración JSON porta método. Datos/traces permiten inspeccionar
 el tiempo objetivo estimado frente al observado; no se optimizan frecuencias por
 los errores. Banco y límites en research/laboratory/r01_grassmann/README.md.
+
+Los resultados R01 con armónicos muestran ahora diagnóstico de elegibilidad por
+origen y objetivos puntuados, por control. Ventana insuficiente o frecuencias
+fuera del límite del reloj pasado se explican aparte del MSE Sin soporte. La
+media/máxima diferencia entre tiempo objetivo estimado y observado ayuda a revisar
+relojes irregulares; no mide latencia de tracking/audio ni sincronía física. Un
+commit es una predicción para un objetivo futuro, por lo que no sumar commits y
+objetivos puntuados como observaciones independientes.

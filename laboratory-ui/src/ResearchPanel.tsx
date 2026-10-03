@@ -75,6 +75,9 @@ export function ResearchPanel({api,run}:Data){
     {Object.keys(j.artifact_hashes || {}).map(name=><span key={name}>{' · '}<a href={`/api/research/r01/${j.id}/artifacts/${name}`} download>{name}</a></span>)}
    </div>}
    {j.paired && <p>Soporte pareado: {j.paired.common_samples} instantes. Empareja posiciones del reloj; el shuffle cambia el vector observado.</p>}
+   {j.harmonic_diagnostics && <div><p>Diagnóstico del forecast con armónicos: elegibilidad compartida en el origen, antes de puntuar objetivos. El error de reloj compara timestamps estimados y observados; no mide latencia física.</p>
+    {Object.entries(j.harmonic_diagnostics).map(([name,d]:[string,any])=><div key={name}><p>{name} · {d.origin_slots} orígenes · {d.scored_target_slots} objetivos puntuados · diferencia temporal media: {d.absolute_target_clock_error_s.mean??'Sin soporte'} s · máxima: {d.absolute_target_clock_error_s.max??'Sin soporte'} s</p><ul>{Object.entries(d.origin_states).map(([reason,count])=><li key={reason}>{({geometry_unavailable:'Geometría del pasado no disponible',insufficient_past:'Ventana insuficiente para los métodos elegidos',sampling_bound:'Frecuencias fuera del límite del reloj pasado',outside_segment:'Objetivo fuera del segmento',committed:'Forecast comprometido'} as Data)[reason]||reason}: {String(count)}</li>)}</ul></div>)}
+   </div>}
    {j.results && <table><thead><tr><th>Control</th><th>Muestras comunes</th>{resultMethods(j).map(k=><th key={k}>{predictorLabels[k]||k} MSE</th>)}<th>Residuo reconstrucción</th></tr></thead>
     <tbody>{Object.entries(paired && j.paired ? j.paired.results : j.results).map(([name,value]:[string,any])=><tr key={name}><td>{name}</td><td>{value.common_samples}</td>
     {resultMethods(j).map(k=><td key={k}>{value.mean_prediction_mse[k]?.toPrecision(5) ?? 'Sin soporte'}</td>)}

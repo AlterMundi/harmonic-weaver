@@ -2555,3 +2555,29 @@ Con 225 slots comunes: MSE conocido 0.0001395223 e incorrecto 0.4399455 sobre mi
 datos; shuffle 15.8073; blanco estocástico separado 29.5150. Son controles conocidos,
 no inferencia sobre HIT/cuerpo/partículas. Frecuencias corporales/ley física y tomas
 reservadas siguen pendientes. Servidor propio Vite detenido; sin audio/hardware.
+
+### R01 · Integración corporal privada y diagnóstico de soporte — 2026-10-03
+
+Sobre el EVAL corporal local existente de 60 s, dos workers R01 reales usan seis
+velocidades de igual unidad, cuatro familias (incluida fixed_harmonics), componentes
+3, ventana 2 s, ridge 0.1, horizonte 6 y frecuencias .35×[1,2,3,4,5,6]. Es configuración
+exploratoria fijada antes de correr, no frecuencias corporales descubiertas.
+Medio/persona/generación/escala/procedencia coinciden exactamente con la fuente
+previamente verificada del cuerpo derecho. No se transfiere calibración. No lee
+ni copia video/tracking; usa features congeladas verificadas del EVAL guardado.
+
+Ambos workers completan con soporte común no vacío; las cuatro familias aparecen,
+fit_end ≤ origin < target en todos los forecasts y tiempo estimado explícito.
+Inputs y todas las trazas de controles/paired tienen hashes idénticos entre esas
+dos corridas. Evidencia privada bajo `<data-dir>/private-r01-harmonic-check/`,
+fuera de GitHub: no se publican métricas corporales, IDs, hashes o trazas.
+Este recorrido se repitió tras añadir los diagnósticos y vuelve a pasar. No abre
+audio ni recalcula tracking; no prueba HIT, percepción o generalización entre tomas.
+
+Diagnóstico web/manifests separa elegibilidad por origen (geometría/ventana/límite
+de muestreo/objetivo fuera de segmento/commit) de objetivos puntuados; informa
+error absoluto medio/máximo del tiempo objetivo estimado frente al observado.
+Es error del reloj de features, no medición de latencia física. Suite de familias
+ampliada: 17 pasan (1.14 s), incluyendo inventarios exhaustivos y ausencia de score
+con alias temporal; reloj irregular da error explícito. Chrome del resultado pasa
+(2.5 s) y build pasa (1.21 s). Vite propio detenido. Defaults/audio conservados.

@@ -1631,3 +1631,9 @@ control positivo armónico y banco reproducible de frecuencias incorrectas/shuff
 blanco estocástico con evidencia pública sintética. Defaults de predicción/audio
 conservados. No identifica una restricción HIT física; quedan hipótesis/observables
 y tomas independientes (r01_grassmann/README, VALIDATION).
+
+R01 fixed_harmonics verificado también en dos corridas corporales locales de
+60 s con la fuente/generación/cuerpo derecho previamente verificados; trazas y
+inputs repetibles, sin volver a leer/copiar video/tracking ni abrir audio. Web
+muestra causas de soporte y discrepancia del reloj objetivo estimado/observado.
+Datos/estadísticas corporales quedan locales; no generalización ni escucha inferida.
