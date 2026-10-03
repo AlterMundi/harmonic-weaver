@@ -1643,3 +1643,9 @@ versión 3, numérico/ISO, procedencia y presets portables. Timestamp real oblig
 no descarte/interpolación; device_counter_observed=false advierte que numerar filas
 no detecta pérdidas físicas. Backend/API/web verificados (VALIDATION), formatos
 anteriores/defaults conservados. Adquisición/exports reales siguen pendientes.
+
+R08 permite ahora mostrar frame original exacto bajo semillas/etiquetas del
+benchmark: fuente preparada compatible explícita, opt-in/cancelación y descarte
+de contexto antiguo. UI/HTTP con video sintético verificados (VALIDATION). No
+correspondencia automática ni nuevas referencias corporales; revisión humana
+y ground truth siguen pendientes, sin cambios de síntesis o borrador manual.

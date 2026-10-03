@@ -1,7 +1,8 @@
+import {RopeBenchmarkFrame} from './RopeBenchmarkFrame';
 import {RopeFlowPaired} from './RopeFlowPaired';
 import {useEffect,useState} from 'react';
 type Data=Record<string,any>;
-export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
+export function RopeFlowBenchmark({api,revisions,source='',media=null}:{api:any,revisions:Data[],source?:string,media?:Data|null}){
  const [flows,setFlows]=useState<Data[]>([]),[runs,setRuns]=useState<Data[]>([]);
  const [reference,setReference]=useState(''),[flow,setFlow]=useState('');
  const [a,setA]=useState(''),[b,setB]=useState('');
@@ -14,6 +15,7 @@ export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
   return()=>{active=false;};
  },[api,reference,flow]);
  const compatible=preview&&preview.reference.media_sha256===preview.flow.media_sha256&&preview.reference.width_px===preview.flow.width_px&&preview.reference.height_px===preview.flow.height_px;
+ const sourceCompatible=compatible&&source&&media&&media.media_sha256===preview.flow.media_sha256&&media.width_px===preview.flow.width_px&&media.height_px===preview.flow.height_px&&preview.flow.frame_times_s.every((t:number,i:number)=>Math.abs(media.frame_times_s[preview.flow.start_frame_index+i]-t)<=1e-6);
  const initialReference=preview?.reference.frames.find((f:Data)=>f.frame_index===preview.flow.start_frame_index);
 
  const receiptKey='weaver.r08.endpoint-benchmark.pending.v1';
@@ -47,11 +49,12 @@ export function RopeFlowBenchmark({api,revisions}:{api:any,revisions:Data[]}){
  {preview&&<div aria-label="Contexto del mapeo temporal R08">
  <p>Ventana: frame {preview.flow.start_frame_index} a {preview.flow.start_frame_index+preview.flow.frame_times_s.length-1}; {preview.flow.frame_times_s[0]}–{preview.flow.frame_times_s.at(-1)} s. Semillas: {preview.flow.seeds.length}.</p>
  {!compatible?<p role="alert">Referencia y corrida tienen distinta fuente o dimensiones. Elegí entradas compatibles.</p>:<>
- <svg aria-label="Semillas y extremos en frame inicial R08" viewBox={`0 0 ${preview.flow.width_px} ${preview.flow.height_px}`} style={{width:'100%',maxWidth:480,background:'#20232a'}}>
+ {!sourceCompatible&&<p>Para ver el frame original, elegí el video de biblioteca y prepará su anotación. Deben coincidir fuente, dimensiones y reloj con esta corrida.</p>}
+ <RopeBenchmarkFrame key={JSON.stringify([reference,flow,source,sourceCompatible?media.media_sha256:null])} api={api} source={sourceCompatible?source:''} sha256={preview.flow.media_sha256} index={preview.flow.start_frame_index} width={preview.flow.width_px} height={preview.flow.height_px}>
  {preview.flow.seeds.map((p:Data,i:number)=><g key={i}><circle cx={p.x*preview.flow.width_px} cy={p.y*preview.flow.height_px} r={preview.flow.width_px*.012} fill="none" stroke="#66ccff"/><text x={p.x*preview.flow.width_px} y={p.y*preview.flow.height_px} fill="#66ccff" fontSize={preview.flow.width_px*.04}>{i}</text></g>)}
  {Object.entries(initialReference?.endpoints||{}).map(([label,p]:[string,any])=><g key={label}><circle cx={p.x*preview.flow.width_px} cy={p.y*preview.flow.height_px} r={preview.flow.width_px*.006} fill="#ffcc66"/><text x={p.x*preview.flow.width_px} y={p.y*preview.flow.height_px-preview.flow.width_px*.04} fill="#ffcc66" fontSize={preview.flow.width_px*.04}>{label}</text></g>)}
- </svg>
- <p>Azul: índices de semillas; amarillo: etiquetas manuales en el mismo frame inicial. Esquema en plano de imagen, sin video. {initialReference?'':'La referencia no anota el frame inicial; no se trasladan extremos de otro tiempo.'}</p>
+ </RopeBenchmarkFrame>
+ <p>Azul: índices de semillas; amarillo: etiquetas manuales en el mismo frame inicial. Esquema en plano de imagen; frame original opcional cuando la fuente está preparada. {initialReference?'':'La referencia no anota el frame inicial; no se trasladan extremos de otro tiempo.'}</p>
  <table><thead><tr><th>Semilla</th><th>x normalizada</th><th>y normalizada</th></tr></thead><tbody>{preview.flow.seeds.map((p:Data,i:number)=><tr key={i}><td>{i}</td><td>{p.x}</td><td>{p.y}</td></tr>)}</tbody></table>
  </>}
  </div>}
