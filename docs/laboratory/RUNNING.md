@@ -780,3 +780,20 @@ seleccionadas al importar. El JSON portable no aplica selección de otra fuente.
 La descarga antigua Informe y manifest sigue siendo completa y contiene rutas:
 no equivale al resumen del paquete. El soporte común del resumen sigue siendo el
 de la matriz original completa. Contrato y límites en EVALUATION.md.
+
+R03 permite explorar sensibilidad al tiempo declarado de las marcas: elegir
+comparación/señal/grupo y declarar intervalos realmente observados como antes.
+Semiancho de sensibilidad temporal = 0 conserva el recorrido anterior. Para
+examinar, por ejemplo, ±0.2 s alrededor del offset manual, poner semiancho 0.2 y
+2 pasos por lado: se comparan cinco offsets, incluidos centro y extremos.
+Hasta 8 pasos por lado (17 condiciones), semiancho ≤5 s y offsets totales ±10 s.
+La configuración exportada conserva este método; no transporta persona/cobertura.
+
+El resultado conserva la comparación nominal y añade una tabla de sensibilidad
+con soporte común, marcas/candidatos elegibles, coincidencias y precisión/recall.
+Los rangos son mínimos/máximos **entre los puntos muestreados**, sin elegir un
+“mejor” offset ni afirmar significación. El barrido desplaza todas las marcas y
+su cobertura juntas: representa una hipótesis declarada de offset global, no
+latencia medida, incertidumbre por marca ni jitter independiente. Los controles
+temporales manuales existentes permanecen separados. Gaps no se interpolan;
+sin soporte/denominador se informa ausencia, no una puntuación perfecta o cero.

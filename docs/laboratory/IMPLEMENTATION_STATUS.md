@@ -1613,3 +1613,9 @@ Pruebas backend/workers/API/UI/PCM y exportación corporal local pasan; ver
 VALIDATION.md. EVALUATION/RUNNING documentan límites. Resultado listo para revisión
 local; compartir externamente no fue realizado ni autorizado por este paquete.
 No certifica anonimato, datos públicos reproducibles ni conclusiones científicas.
+
+R03 incorpora un barrido configurable de offset global declarado, separado de
+controles temporales: soporte común, denominadores/rangos muestreados, configuración
+portable y worker reproducible. La comparación nominal no cambia. Núcleo y
+recorrido Chrome/HTTP verificados (VALIDATION); incertidumbre por evento, latencia
+medida y marcas humanas independientes siguen pendientes.

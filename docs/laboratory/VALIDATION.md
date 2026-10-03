@@ -2497,3 +2497,21 @@ Ningún paquete se publicó ni abrió dispositivos; no se copiaron video/trackin
 Los ZIP y resultados permanecen locales. No se certifica anonimato de métricas ni
 consentimiento de difusión; escucha/aceptación humana y sincronía física pendientes.
 Servicios cotidianos, bridge de Oliva y defaults sonoros intactos.
+
+### R03 · Sensibilidad a un intervalo temporal declarado — 2026-10-03
+
+`test_temporal_match.py`, `test_temporal_controls.py` y `test_coincidence.py`:
+34 pruebas pasan (0.86 s). Cubren matching original, soporte discontinuo común,
+rango muestreado con coincidencia sensible al offset, ausencia de denominadores,
+límites de tamaño/valores, conservación de comparación nominal y worker repetido
+con parámetros nuevos congelados. No se estiman incertidumbres desde datos.
+
+Chrome: `coincidencePanel.spec.ts` pasa (1.6 s), validando controles, pasos enteros,
+request y configuración portable; `coincidenceNetwork.spec.ts` pasa (3.3 s)
+contra fixture HTTP real, worker y harness de producción. Dos corridas de la misma
+selección con semiancho 0.05/2 pasos por lado producen `result.json` byte-idéntico,
+cinco condiciones y ambas tablas visibles; descarga de features verificada.
+Build TypeScript/Vite pasa (1.27 s). Servidores exclusivos de prueba detenidos.
+Todo sintético, sin dispositivos, escucha o nuevos datos humanos; defaults de
+síntesis/presets intactos y sensibilidad apagada por defecto. Falta medir latencia
+física, incertidumbre por evento y recoger marcas humanas independientes.

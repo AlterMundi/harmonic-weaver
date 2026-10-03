@@ -12,7 +12,7 @@ def content_hash(value):
     return sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
 
 
-def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,tolerance_s=.2,mark_offset_s=0.,control_offsets_s=None):
+def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,tolerance_s=.2,mark_offset_s=0.,control_offsets_s=None,timing_half_width_s=0.,timing_steps_per_side=2):
     if content_hash(features)!=feature_sha256:raise ValueError('Frozen feature selection changed')
     request=CandidateRequest.model_validate(features['request'])
     marks=verified_marks(snapshot,**context)
@@ -45,6 +45,17 @@ def compare_frozen(snapshot,features,*,feature_sha256,context,mark_support,toler
             [row['time_s'] for row in candidates['events']],mark_support,support,
             offsets_s=control_offsets_s,tolerance_s=tolerance_s,mark_offset_s=mark_offset_s)
         document['limits'][-1]='Declared shift controls are exploratory; no significance claim'
+    if not finite(timing_half_width_s) or not 0 <= timing_half_width_s <= 5:
+        raise ValueError('Invalid timing half-width')
+    if type(timing_steps_per_side) is not int or not 1 <= timing_steps_per_side <= 8:
+        raise ValueError('Invalid timing steps')
+    if timing_half_width_s:
+        from .temporal_controls import timing_sensitivity
+        document['timing_sensitivity'] = timing_sensitivity(
+            [row['time_s'] for row in marks['annotations']],
+            [row['time_s'] for row in candidates['events']], mark_support, support,
+            half_width_s=timing_half_width_s, steps_per_side=timing_steps_per_side,
+            tolerance_s=tolerance_s, mark_offset_s=mark_offset_s)
     return {**document,'content_sha256':content_hash(document)}
 
 
@@ -73,7 +84,7 @@ def run_frozen(folder):
         atomic_json(folder/'manifest.json',manifest)
         try:
             request=json.loads((folder/'request.json').read_text())
-            allowed={'feature_sha256','context','mark_support','tolerance_s','mark_offset_s','control_offsets_s'}
+            allowed={'feature_sha256','context','mark_support','tolerance_s','mark_offset_s','control_offsets_s','timing_half_width_s','timing_steps_per_side'}
             if set(request)-allowed:raise ValueError('Unknown R03 request fields')
             result=compare_frozen(json.loads((folder/'marks.json').read_text()),
                                  json.loads((folder/'features.json').read_text()),**request)
