@@ -17,6 +17,7 @@ class Settings(Contract):
     replicate_seeds:list[int]|None=Field(default=None,min_length=1,max_length=8)
     phase_controls:list[list[Number]]|None=Field(default=None,min_length=1,max_length=4)
     spectral_probe:SpectralProbe|None=None
+    circular_shift_controls:list[list[int]]|None=Field(default=None,min_length=1,max_length=4)
     interval_shuffle:bool=False
     event_count:int=Field(default=8,ge=4,le=32)
     excitation_span_s:Number=Field(default=1,ge=.05,le=5)
@@ -34,6 +35,7 @@ class Settings(Contract):
         if self.replicate_seeds is None:value.pop('replicate_seeds',None)
         if self.phase_controls is None:value.pop('phase_controls',None)
         if self.spectral_probe is None:value.pop('spectral_probe',None)
+        if self.circular_shift_controls is None:value.pop('circular_shift_controls',None)
         return value
 
     @model_validator(mode='after')
@@ -49,6 +51,17 @@ class Settings(Contract):
             if any(getattr(control,key)!=getattr(self.medium,key) for key in ('fundamental_hz','ratios','sample_rate')):
                 raise ValueError('Medium controls must preserve carriers, ratios and sample rate')
         total=math.ceil(self.excitation_span_s*self.medium.sample_rate)+math.ceil(self.tail_s*self.medium.sample_rate)
+        if self.circular_shift_controls is not None:
+            span=math.ceil(self.excitation_span_s*self.medium.sample_rate);voices=len(self.medium.ratios)
+            for shifts in self.circular_shift_controls:
+                if len(shifts)!=voices or any(not 0<=s<span for s in shifts):
+                    raise ValueError('Circular shift requires one sample offset per voice within excitation span')
+            cases=(8 if self.interval_shuffle else 4)*(1+len(self.medium_controls or []))*(1+len(self.replicate_seeds or []))*(1+len(self.phase_controls or []))
+            if span*voices*voices*cases*len(self.circular_shift_controls)>64000000:
+                raise ValueError('Circular shift spectral checks exceed 64000000 bin-pair products')
+            points=math.ceil(total/self.trace_stride)+self.event_count*voices+1
+            if points>14400 or points*cases*(1+len(self.circular_shift_controls))>144000:
+                raise ValueError('Increase trace_stride or reduce circular shift bank for trace budget')
         if self.spectral_probe is not None:
             span=math.ceil(self.excitation_span_s*self.medium.sample_rate)
             first,last=spectral_support(self.spectral_probe,self.medium.sample_rate,span,total)
@@ -117,7 +130,7 @@ def _probe_one(settings, excitation_phases_rad=None):
                 'state_norm_time_integral':integral,'final_state_norm_squared':float(np.vdot(kernel.state,kernel.state).real),
                 'tail_rms':math.sqrt(tail_squares/(total-span)) if total>span else None},'trace':trace}
         if spectral is not None:conditions[name]['spectral_probe']=spectral.finish(indices)
-    return {**({'excitation_phases_rad':list(excitation_phases_rad)} if excitation_phases_rad is not None else {}),
+    report={**({'excitation_phases_rad':list(excitation_phases_rad)} if excitation_phases_rad is not None else {}),
         'schema_version':1,'line':'R06','settings':settings.model_dump(),
         'clock':{'sample_rate':sr,'excitation_frames':span,'total_frames':total},
         'impulse_vector':vector.tolist(),'conditions':conditions,
@@ -129,6 +142,14 @@ def _probe_one(settings, excitation_phases_rad=None):
             'State norm is internal model quantity, not measured physical energy or physiological efficacy',
             'Traces are visual decimation; metrics use all samples; no automatic output normalization',
             'No body data, sound acceptance, p-values, intention inference or physical cymatics']}
+    if settings.circular_shift_controls is not None:
+        from .activation_shifts import probe as shift_probe
+        report['circular_shift_controls']=shift_probe(settings,events,conditions,excitation_phases_rad)
+        report['limits']+=['Per-voice circular sample shifts preserve full periodic individual input power spectra and dose',
+            'A common shift preserves complex input cross-spectra; unequal shifts need not distinguish every periodic calendar',
+            'Positive sparse events wrap within excitation block; not arbitrary Fourier phase randomization or causal preprocessing',
+            'Finite zero-initial-state response and tail need not be shift invariant; identical input spectra do not imply equal output or efficacy']
+    return report
 
 
 def _probe_seed(settings, excitation_phases_rad=None):
@@ -149,7 +170,8 @@ def _probe_seed(settings, excitation_phases_rad=None):
                 reference=report['conditions'][name]['metrics']
                 differences[name]={key:(value-reference[key] if value is not None else None) for key,value in condition['metrics'].items()}
             controls.append({'index':index,'medium':medium.model_dump(),
-                             'conditions':condition_report['conditions'],'metric_difference_vs_base':differences})
+                             'conditions':condition_report['conditions'],'metric_difference_vs_base':differences,
+                             **({'circular_shift_controls':condition_report['circular_shift_controls']} if settings.circular_shift_controls is not None else {})})
         report['medium_controls']=controls
         report['limits']+=['Optional medium controls preserve carrier frequencies/clock and identical event samples/dose',
                            'Medium differences change damping/coupling/graph only; metric deltas are control minus base, not efficacy scores']
@@ -210,7 +232,7 @@ def run(settings,folder):
     atomic_json(folder/'manifest.json',{'schema_version':1,'line':'R06','status':'complete',
         'input_hashes':{'request.json':sha256_file(folder/'request.json')},
         'output_sha256':sha256_file(folder/'result.json'),
-        'code_hashes':{name:sha256_file(Path(__file__).with_name(name)) for name in ('activation_bank.py','resonators.py','activation_spectrum.py')},
+        'code_hashes':{name:sha256_file(Path(__file__).with_name(name)) for name in ('activation_bank.py','resonators.py','activation_spectrum.py','activation_shifts.py')},
         'environment':{'python':platform.python_version(),'numpy':np.__version__,'scipy':scipy.__version__},'limits':report['limits']})
     return report
 

@@ -69,6 +69,10 @@ def validate_report(report,settings, *, excitation_phases_rad=None):
             if not all(type(row[k]) in (int,float) and math.isfinite(row[k]) for k in ('sum','state_norm_squared')) or row['state_norm_squared']<0:
                 raise ValueError('Invalid R06 trace values')
     controls=settings.medium_controls
+    if settings.circular_shift_controls is not None:
+        from .activation_shifts import validate as validate_shifts
+        validate_shifts(report.get('circular_shift_controls',[]),settings,events,report['conditions'])
+    elif 'circular_shift_controls' in report:raise ValueError('Unexpected circular shifts')
     if controls is None:
         if 'medium_controls' in report:raise ValueError('Unexpected medium controls')
     else:
@@ -80,7 +84,8 @@ def validate_report(report,settings, *, excitation_phases_rad=None):
             child=settings.model_copy(update={'medium':medium,'medium_controls':None,'replicate_seeds':None,'phase_controls':None})
             validate_report({**({'excitation_phases_rad':excitation_phases_rad} if excitation_phases_rad is not None else {}),
                 'schema_version':1,'line':'R06','settings':child.model_dump(),
-                'clock':report['clock'],'impulse_vector':report['impulse_vector'],'conditions':output['conditions']},child,excitation_phases_rad=excitation_phases_rad)
+                'clock':report['clock'],'impulse_vector':report['impulse_vector'],'conditions':output['conditions'],
+                **({'circular_shift_controls':output.get('circular_shift_controls',[])} if settings.circular_shift_controls is not None else {})},child,excitation_phases_rad=excitation_phases_rad)
             expected={name:{key:(value-report['conditions'][name]['metrics'][key] if value is not None else None)
                 for key,value in condition['metrics'].items()} for name,condition in output['conditions'].items()}
             if output['metric_difference_vs_base']!=expected:raise ValueError('Medium control metric differences mismatch')

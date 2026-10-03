@@ -165,3 +165,51 @@ bloques. Chrome UI/API/workers reales repite bancos byte-idénticos, importa pre
 y compara tabla por fase/medio/semilla (1test,5.9s); build y CLI/verify pasan.
 Pendiente: surrogates que preserven un espectro declarado, hipótesis/observable
 HIT y protocolos físicos/humanos. Estas sondas no igualan espectros entre controles.
+
+## R06 · Desplazamientos circulares por puerto — 2026-10-03
+
+`circular_shift_controls` opcional: hasta cuatro vectores de enteros, uno por voz,
+entre 0 y excitation_frames−1. Cada calendario de impulsos positivos se desplaza
+por puerto módulo el bloque de excitación. Conserva número/amplitud por puerto,
+dosis L2 total y periodograma completo individual. Un desplazamiento común
+conserva además el espectro cruzado complejo; desplazamientos distintos pueden
+alterarlo, pero no obligan a distinguir todos los calendarios periódicos.
+No conserva necesariamente el espectro de la suma de puertos ni la distribución
+de norma instantánea: ya no son todos impulsos simultáneos de igual norma vectorial.
+
+Es una familia particular de fases Fourier lineales en frecuencia, no un
+surrogate de fases arbitrarias. Requiere el bloque completo y envoltura: offline,
+no causal. Tampoco equivale a `phase_controls` (rotación compleja constante de
+cada excitación). Portadoras/ratios/medio/fases elegidas permanecen constantes;
+cada control arranca desde cero, renderiza todas las muestras y conserva cola.
+La salida finita puede variar por transientes y truncamiento aun cuando entrada
+tenga el mismo espectro; esto no implica eficacia ni superior organización.
+
+Checkbox Desplazamientos circulares por voz R06 añade cero/común/diferenciado;
+editar vectores en JSON, guardar/importar preset y correr. Tabla distingue
+error de potencia por puerto, cambio cruzado y RMS/delta de salida. Selector
+Desplazamiento de traza permite inspeccionar la traza real del control, con el
+medio/fase/semilla seleccionados. Se cruza con medios, fases e interval_shuffle;
+retiene cada semilla. No modifica el instrumento ni sus defaults.
+
+El verificador reconstruye calendarios/dosis/soporte y checks FFT de entrada,
+con tolerancia 1e-12 para checks; no vuelve a renderizar métricas de salida.
+Presupuestos agregados de trace y 64000000 bin-pair products evitan cruces enormes.
+Checks usan DFT rectangular del bloque de excitación real por puerto, antes de
+rotar su fase compleja; no son sondas del trace decimado ni espectros del audio.
+
+Referencia pequeña:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.activation_bank --request research/laboratory/r06_activation/reference_circular_shifts.json --output /tmp/r06-shifts-new-run
+```
+
+Corrida local: 400 muestras de excitación. Desplazar 100 muestras la grilla de
+cuatro eventos deja entrada/salida idénticas (contraejemplo). En random, ese
+desplazamiento común mantiene potencia/espectro cruzado (errores <5e-16), pero
+Δ RMS salida=.0784458. Desplazamientos distintos preservan potencias (<7e-16),
+cambian espectro cruzado random≈1.909 y dan Δ RMS≈.0798172. Cambios normalizados
+de espectro pueden superar 1; no son scores de acoplamiento. Observaciones de
+este modelo/bloque, no evidencia corporal o HIT. Esta familia satisface el
+control espectral pendiente para shifts periódicos; surrogates más amplios,
+hipótesis/observable y experimentos físicos/humanos siguen abiertos.

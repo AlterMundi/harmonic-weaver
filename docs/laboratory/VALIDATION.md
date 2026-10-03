@@ -2218,3 +2218,20 @@ reload, recuperación y preset portable sin iniciar nueva corrida al importar.
 Selectors tienen nombres accesibles estables. Fixture8908 detenido después. Banco sintético, torso .26/modelo fijo; no Fourier corporal,
 HIT, aceptación humana ni cambios al sonido cotidiano. Oliva tiene encomendada
 la extensión corporal según NEXT_ITERATION.md.
+
+## R06: espectros individuales conservados por circular shifts — 2026-10-03
+
+Campo opcional por puerto, cero/común/diferenciado; nuevos reportes de calendarios,
+dosis, checks FFT completos y métricas/traces/deltas con igual medio y cero inicial.
+No altera condiciones originales ni serialización al omitir el campo. Cruces con
+medios/fases/semillas/permutaciones, presupuestos, validators y configuración web.
+Conservación periódica de entrada no impone invariancia de respuesta finita.
+
+56 tests pertinentes R06 pasan (39 bank/service/API/shifts +17 phases/spectrum),
+incluyendo cero idéntico, FFT odd/even, DC, espectro cruzado común, contraejemplo
+periódico, cruces completos, campos corruptos/rehasheados y bounds antes de render.
+Build pasa. Chrome real (5.1s): preset portable, dos bancos con resultados
+byte-idénticos, tabla 3 controles×4 calendarios y selección de traza desplazada.
+CLI de referencia +verify pasan; observaciones sintéticas en README R06.
+Fixture8909 detenido; audio/servicios cotidianos/defaults preservados.
+No controles corporales, aceptación perceptual ni confirmación HIT.

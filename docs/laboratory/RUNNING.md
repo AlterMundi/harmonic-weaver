@@ -705,3 +705,13 @@ de tests. El verificador comprueba integridad/configuración/inventario/soporte;
 no vuelve a ejecutar el banco ni autentica resultados rehasheados arbitrariamente.
 Fuentes efectivamente importadas y versiones quedan en el manifest, sin exigir
 igualdad de hashes entre entornos. Fourier corporal es el siguiente aporte de Oliva.
+
+## R06 · Activación con espectros conservados
+
+Investigación → Banco de activación → Desplazamientos circulares por voz R06.
+Checkbox agrega tres vectores; editar `circular_shift_controls` JSON con un offset
+de muestra por voz dentro del bloque de excitación. Exportar/importar configuración
+conserva vectores sin correr. Tabla de desplazamientos compara espectros de entrada
+y respuesta; selector Desplazamiento de traza muestra la traza del control elegido.
+Esto rota tiempos dentro de un bloque offline, no pitch ni fases del audio live.
+[Referencia y límites](../../research/laboratory/r06_activation/README.md#r06--desplazamientos-circulares-por-puerto--2026-10-03).
