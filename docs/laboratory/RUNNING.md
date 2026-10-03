@@ -705,4 +705,3 @@ de tests. El verificador comprueba integridad/configuración/inventario/soporte;
 no vuelve a ejecutar el banco ni autentica resultados rehasheados arbitrariamente.
 Fuentes efectivamente importadas y versiones quedan en el manifest, sin exigir
 igualdad de hashes entre entornos. Fourier corporal es el siguiente aporte de Oliva.
-
