@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 from ..cache import sha256_file
 from .activation_bank import Settings,schedules
+from .activation_spectrum import validate_probe
 
 
 def verify(folder):
@@ -50,6 +51,9 @@ def validate_report(report,settings, *, excitation_phases_rad=None):
             raise ValueError('Invalid R06 dose/calendar types')
         if condition['event_samples']!=indices or not math.isclose(condition['input_squared_norm'],sum(v*v for v in vector)*settings.event_count,rel_tol=1e-14):
             raise ValueError('R06 input dose/calendar mismatch')
+        if settings.spectral_probe is not None:
+            validate_probe(condition.get('spectral_probe',{}),settings.spectral_probe,sr,span,total,indices)
+        elif 'spectral_probe' in condition:raise ValueError('Unexpected spectral probe')
         metrics=condition['metrics']
         if set(metrics)!={'rms','peak_abs','state_norm_time_integral','final_state_norm_squared','tail_rms'}:raise ValueError('R06 metric inventory mismatch')
         for key,value in metrics.items():

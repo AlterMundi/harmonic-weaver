@@ -8,6 +8,7 @@ from pydantic import Field,model_validator,model_serializer
 from ..contracts import Contract,Number
 from ..cache import atomic_json,sha256_file
 from .resonators import Settings as Medium,Resonators
+from .activation_spectrum import Settings as SpectralProbe, Accumulator as SpectralAccumulator, support as spectral_support
 
 
 class Settings(Contract):
@@ -15,6 +16,7 @@ class Settings(Contract):
     medium_controls:list[Medium]|None=Field(default=None,min_length=1,max_length=4)
     replicate_seeds:list[int]|None=Field(default=None,min_length=1,max_length=8)
     phase_controls:list[list[Number]]|None=Field(default=None,min_length=1,max_length=4)
+    spectral_probe:SpectralProbe|None=None
     interval_shuffle:bool=False
     event_count:int=Field(default=8,ge=4,le=32)
     excitation_span_s:Number=Field(default=1,ge=.05,le=5)
@@ -31,6 +33,7 @@ class Settings(Contract):
         if not self.interval_shuffle:value.pop('interval_shuffle',None)
         if self.replicate_seeds is None:value.pop('replicate_seeds',None)
         if self.phase_controls is None:value.pop('phase_controls',None)
+        if self.spectral_probe is None:value.pop('spectral_probe',None)
         return value
 
     @model_validator(mode='after')
@@ -46,6 +49,11 @@ class Settings(Contract):
             if any(getattr(control,key)!=getattr(self.medium,key) for key in ('fundamental_hz','ratios','sample_rate')):
                 raise ValueError('Medium controls must preserve carriers, ratios and sample rate')
         total=math.ceil(self.excitation_span_s*self.medium.sample_rate)+math.ceil(self.tail_s*self.medium.sample_rate)
+        if self.spectral_probe is not None:
+            span=math.ceil(self.excitation_span_s*self.medium.sample_rate)
+            first,last=spectral_support(self.spectral_probe,self.medium.sample_rate,span,total)
+            work=(last-first)*len(self.spectral_probe.frequencies_hz)*(8 if self.interval_shuffle else 4)*(1+len(self.medium_controls or []))*(1+len(self.replicate_seeds or []))*(1+len(self.phase_controls or []))
+            if work>64000000:raise ValueError('Reduce spectral window/frequencies/bank to at most 64000000 frequency-sample products')
         if math.ceil(total/self.trace_stride)+self.event_count+1>14400:
             raise ValueError('Select trace_stride for at most 14400 trace observations per condition')
         if self.replicate_seeds is not None or self.phase_controls is not None:
@@ -88,12 +96,14 @@ def _probe_one(settings, excitation_phases_rad=None):
     conditions={}
     for name,indices in events.items():
         kernel=Resonators(settings.medium);squares=peak=integral=0.;trace=[];tail_squares=0.
+        spectral=SpectralAccumulator(settings.spectral_probe,sr,span,total) if settings.spectral_probe is not None else None
         event_set=set(indices)
         for start in range(0,total,settings.block_size):
             end=min(total,start+settings.block_size);impulses=np.zeros((end-start,voices))
             for index in indices:
                 if start<=index<end:impulses[index-start]=vector
             block=kernel.render(impulses,excitation_phases_rad=excitation_phases_rad);summed=block['sum'];norm=block['state_norm_squared']
+            if spectral is not None:spectral.add(start,summed)
             squares+=float(np.dot(summed,summed));peak=max(peak,float(np.abs(summed).max()))
             integral+=float(norm.sum())/sr
             tail=summed[max(0,span-start):];tail_squares+=float(np.dot(tail,tail))
@@ -106,6 +116,7 @@ def _probe_one(settings, excitation_phases_rad=None):
             'metrics':{'rms':math.sqrt(squares/total),'peak_abs':peak,
                 'state_norm_time_integral':integral,'final_state_norm_squared':float(np.vdot(kernel.state,kernel.state).real),
                 'tail_rms':math.sqrt(tail_squares/(total-span)) if total>span else None},'trace':trace}
+        if spectral is not None:conditions[name]['spectral_probe']=spectral.finish(indices)
     return {**({'excitation_phases_rad':list(excitation_phases_rad)} if excitation_phases_rad is not None else {}),
         'schema_version':1,'line':'R06','settings':settings.model_dump(),
         'clock':{'sample_rate':sr,'excitation_frames':span,'total_frames':total},
@@ -199,7 +210,7 @@ def run(settings,folder):
     atomic_json(folder/'manifest.json',{'schema_version':1,'line':'R06','status':'complete',
         'input_hashes':{'request.json':sha256_file(folder/'request.json')},
         'output_sha256':sha256_file(folder/'result.json'),
-        'code_hashes':{name:sha256_file(Path(__file__).with_name(name)) for name in ('activation_bank.py','resonators.py')},
+        'code_hashes':{name:sha256_file(Path(__file__).with_name(name)) for name in ('activation_bank.py','resonators.py','activation_spectrum.py')},
         'environment':{'python':platform.python_version(),'numpy':np.__version__,'scipy':scipy.__version__},'limits':report['limits']})
     return report
 

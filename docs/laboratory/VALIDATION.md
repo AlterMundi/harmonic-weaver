@@ -2063,3 +2063,20 @@ export/import sin corrida implícita, tabla/trace por fase/medio/semilla (5.8s).
 Build pasa. Fixture8900 detenido; no audio/hardware/medios privados ni escucha nueva.
 Fases acopladas pueden cambiar norma interna; no es energía física. Espectro,
 hipótesis HIT específica y protocolo físico/humano permanecen pendientes.
+
+## R06: sondas espectrales opcionales — 2026-10-03
+
+Coeficiente Fourier medio rectangular de indicador unitario de eventos y mezcla
+sobre todas las muestras, con frecuencias/ventana configurables. Clocks antes/
+después del paso declarados, soporte exacto y memoria por bloques; budget agregado
+incluye fases/medios/semillas. No PSD, watts, suma de energía ni transferencia.
+Campo omitido preserva formato; habilitar conserva métricas/audio/trace anteriores.
+
+58 tests R06/resonadores/render/API pasan (8.05s; AnyIO deprecación sin fallo).
+Incluyen diez de sondas: DC/seno conocidos, ventanas/particiones, cruces, frecuencia/
+soporte/coherencia alterados rechazados, gaps/duplicados/no finitos y budgets.
+Chrome UI/API/workers: dos resultados byte-idénticos, preset y tabla espectral
+siguen fase/medio/semilla sobre800 muestras de cola (1test,5.9s). Build pasa.
+CLI reference_spectral.json ejecutado y verify pasa; números descriptivos en README.
+Fixture8901 detenido; no hardware/audio cotidiano/medios privados ni escucha nueva.
+No control de espectro igualado ni validación HIT; dependencias permanecen explícitas.
