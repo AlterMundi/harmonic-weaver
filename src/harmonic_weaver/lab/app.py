@@ -28,6 +28,7 @@ from .research.spatial_adapter import Request as SpatialAdapterRequest, convert 
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.neuro_csv import Request as NeuroCSVRequest, convert as convert_neuro_csv
 from .research.neuro_service import NeuroService
 from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
@@ -586,6 +587,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r11/synthetic-snr')
     def neuro_synthetic_snr(body:NeuroSNRConfig):return calculate_neuro_snr(body)
+
+    @app.post('/api/research/r11/import-csv')
+    def neuro_csv_import(body: NeuroCSVRequest):
+        return convert_neuro_csv(body)
 
     @app.post('/api/research/r11/inspect')
     def neuro_inspect(body:NeuroStream):return inspect_neuro(body)
