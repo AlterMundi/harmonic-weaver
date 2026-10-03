@@ -470,3 +470,28 @@ video/pose; la figura permanece ligada al PCM. Persistencia depende de FPS de
 exportación y no pretende reproducir cada refresco WebGL de una sesión anterior.
 Siguen pendientes medición física de sincronía, feedback humano e instalación
 de estas PRs; el software no valida por sí mismo HIT ni cymatics físico.
+
+### Configuraciones portables de captura/exportación — 2026-10-03
+
+El panel ofrece configuraciones con nombre: **Guardar configuración de captura**,
+selector y **Cargar configuración de captura**. Se conservan en SQLite junto a
+los presets del laboratorio, en un namespace separado; no reemplazan el preset
+sonoro. Cargar sólo cambia borradores de controles; no inicia captura, cámara,
+exportación ni audio. Importar/cargar controles se deshabilita durante una
+captura o exportación activa.
+
+**Preparar JSON de captura**, **Descargar configuración de captura** y
+**Aplicar JSON de captura** permiten transportar la misma configuración a otra
+fuente/biblioteca. El objeto schema_version=1 contiene id, name, capture y export,
+incluidos parámetros de cámara, offsets, calidad, esqueleto y VisualSettings de
+figura. No admite fuentes, personas, calibración ni rutas de archivos.
+recovered_prefix se decide con el botón de cada captura; no es un modo portable.
+Importar valida todo antes de cambiar controles; guardar valida antes de escribir.
+Los valores anteriores quedan intactos ante un error. Una importación válida no
+reemplaza lo guardado hasta pulsar Guardar.
+
+API: GET/POST /api/capture-profiles; GET /api/capture-profiles/{id} descarga JSON;
+POST /api/capture-profiles/validate normaliza sin persistir ni ejecutar acciones.
+Guardar reutiliza id para actualizar esa configuración; Nueva configuración
+permite crear otra con los controles actuales. Defaults son los ya existentes;
+record_camera, skeleton_overlay, harmonic_figure y browser_preview siguen apagados.

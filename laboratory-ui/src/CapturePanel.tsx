@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {CaptureProfiles} from './CaptureProfiles';
 type Data=Record<string,any>;
 export function CapturePanel({api,run}:Data){
  const [settings,setSettings]=useState<Data>({max_seconds:120,queue_blocks:128,timeline_hz:20,record_camera:false,camera_queue_frames:8,camera_max_frames:10000,camera_max_mb:256});
@@ -20,6 +21,7 @@ export function CapturePanel({api,run}:Data){
  const active=['starting','recording','stopping'].includes(state.current.status);
  return <>
   <h2>Captura de audio y bitácora</h2>
+  <CaptureProfiles api={api} disabled={active||exporting} getDraft={()=>({capture:settings,export:exportPayload()})} onApply={(p:Data)=>{setSettings(p.capture);const {figure_visual,...rest}=p.export;setExportSettings(rest);setFigureVisual(JSON.stringify(figure_visual));}}/>
   <p>Guarda audio de Shaper, configuración, calibración, cambios y timeline local. La preview de cámara se guarda sólo si activás la opción siguiente. El video de archivo se referencia en su ruta.</p>
   <label><input type="checkbox" checked={settings.record_camera} disabled={active}
     onChange={e=>setSettings({...settings,record_camera:e.target.checked})}/>Grabar preview de cámara durante esta captura</label>

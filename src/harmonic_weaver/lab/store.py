@@ -240,6 +240,28 @@ class SessionStore:
             raise KeyError(preset_id)
         return Preset.model_validate_json(row[0])
 
+    def list_capture_profiles(self):
+        from .capture_profiles import CaptureProfile
+        with self._lock:
+            rows=self._db.execute("SELECT payload FROM settings WHERE id LIKE 'capture_profile:%'").fetchall()
+        return sorted([CaptureProfile.model_validate_json(row[0]).model_dump() for row in rows],
+                      key=lambda p:(p['name'].casefold(),p['id']))
+
+    def save_capture_profile(self, profile):
+        from .capture_profiles import CaptureProfile
+        profile=CaptureProfile.model_validate(profile)
+        with self._lock, self._db:
+            self._db.execute("INSERT OR REPLACE INTO settings(id,payload) VALUES (?,?)",
+                             ('capture_profile:'+profile.id,profile.model_dump_json()))
+        return profile.model_dump()
+
+    def load_capture_profile(self, ident):
+        from .capture_profiles import CaptureProfile
+        with self._lock:
+            row=self._db.execute("SELECT payload FROM settings WHERE id=?",('capture_profile:'+ident,)).fetchone()
+        if row is None:raise KeyError(ident)
+        return CaptureProfile.model_validate_json(row[0])
+
     def save_calibration(self, calibration: Calibration):
         with self._lock, self._db:
             self._db.execute("INSERT OR REPLACE INTO calibrations(id,payload) VALUES (?,?)",
