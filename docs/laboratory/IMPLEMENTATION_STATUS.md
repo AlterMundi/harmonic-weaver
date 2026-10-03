@@ -1721,3 +1721,10 @@ baselines/adaptación/shuffle; UI/settings portables y positivo sintético conoc
 El control separa una no linealidad simple de una posible ventaja de descriptor;
 no acredita transferencia entre cuerpos/tareas ni HIT. Datos privados y sonido
 no modificados. Protocolo/evidencia R13 preservan casos sin mejora y dependencias.
+
+LAB-09: panel de captura ya no oculta fallos de consultas de estado. Inventario
+pendiente/fallido se distingue de idle, conserva último estado y bloquea nuevos
+pedidos respectivos hasta reconciliar; stop/cancel conocidos no se bloquean.
+Una consulta por grupo y recuperación sin operaciones automáticas verificados
+en Chrome con HTTP503/demoras controladas. Backend y sonido intactos; validación
+física/cámara/R24 y sincronía siguen pendientes.

@@ -495,3 +495,21 @@ POST /api/capture-profiles/validate normaliza sin persistir ni ejecutar acciones
 Guardar reutiliza id para actualizar esa configuración; Nueva configuración
 permite crear otra con los controles actuales. Defaults son los ya existentes;
 record_camera, skeleton_overlay, harmonic_figure y browser_preview siguen apagados.
+## Consultas de estado fallidas (2026-10-03)
+
+El panel distingue inventario todavía no confirmado del estado idle. Los fallos
+al consultar capturas, exportaciones o recuperación aparecen como alertas, con
+el último estado confirmado conservado y reintento automático. Cada grupo mantiene
+una consulta en vuelo; si una exportación falla mientras su inventario demora,
+el fallo se muestra de inmediato y no se acumulan consultas al inventario.
+
+Un inventario de capturas desconocido/fallido deshabilita nuevos inicios; un estado
+de exportación o recuperación desconocido/fallido bloquea nuevos pedidos respectivos.
+Detener/cancelar una operación conocida sigue disponible. Recuperar la consulta
+quita la alerta y reconcilia los botones; no inicia ni repite operaciones por sí solo.
+Esto no modifica buffers, PCM, codecs, snapshots ni defaults de grabación.
+
+Chrome contra bundle de producción/API real, con 503 y demoras introducidos
+explícitamente en las consultas de prueba: inventario inicial pendiente, tres
+alertas, estado anterior conservado, una consulta por grupo, recuperación y cero
+POST/errores JS. No se grabó audio/cámara ni se usaron medios corporales.

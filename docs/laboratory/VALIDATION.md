@@ -2841,3 +2841,15 @@ export/desactivar/import conserva settings,239 objetivos comunes, resultado repe
 idéntico y cero errores JS. Preset de seis voces, fuente y calibración intactos.
 Build91 módulos pasa (1.31s). Servicios propios detenidos; sin hardware/video privado,
 audio físico ni cambios al instrumento. No transferencia/HIT/aceptación acreditadas.
+
+### Captura · errores visibles de consulta y reintento — 2026-10-03
+
+Chrome: 1 test pasa (4.4s), bundle de producción con API real sin audio y fallos
+de consulta introducidos por routing de prueba. Antes del primer inventario:
+«Esperando inventario» e inicio deshabilitado. Tres 503 son visibles; último estado
+confirmado se conserva, no se inicia otra operación. Una captura demorada y un
+inventario de exportación demorado junto a error rápido mantienen una consulta
+en vuelo por grupo, sin ocultar el fallo rápido. Al restaurar HTTP se limpian
+alertas y se habilita inicio; cero POST y errores JS. Build91 módulos pasa (1.26s).
+Servicios propios cerrados. Backend/PCM/grabación/defaults intactos; no prueba
+de disco lleno, captura física, audio R24 ni escucha añadida por este recorrido.
