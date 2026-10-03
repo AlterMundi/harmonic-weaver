@@ -247,8 +247,8 @@ reproductor para escucha explícita. El seguimiento (default10Hz, loop apagado)
 usa ventanas ya reproducidas; se pueden ajustar points/stride/pesos/fases/escala.
 Ganancia de escucha es una vista float32 del WAV DOUBLE crudo, sin normalización
 ni limitador. Revisión de niveles previa a escuchar; sin equivalencia perceptual
-ni fase corporal/medio cimático físico inferidos. Video de origen aún no aparece
-en este recorrido experimental; no cambia el reproductor de exploración live.
+ni fase corporal/medio cimático físico inferidos. Video de origen y pose se cargan
+explícitamente como se describe abajo; no cambia el reproductor de exploración live.
 
 Preset R05 y preset de proyección se exportan/importan como JSON separados;
 no transportan persona/calibración/fuente/segmento/muestra. Importar proyección
@@ -266,7 +266,7 @@ llegar a su final se pausa mientras continúa la cola del instrumento. Pausas,
 seeks y loops del audio se propagan al video. «Ocultar video» detiene ese elemento.
 Se muestra la persona registrada en el experimento, sin afirmar identidad ni
 transferir calibración. Una fuente ausente/alterada o no decodificable deja un
-error visible. El video no contiene aún overlay de pose ni offset ajustable.
+error visible. El offset y overlay de pose se habilitan explícitamente abajo.
 
 R05 ahora ofrece «Desfase video/audio R05 (s)», entre −10 y +10 s; default cero.
 Positivo adelanta la fuente, negativo la retrasa. Se aplica sólo al video y se
@@ -902,3 +902,22 @@ de transporte es la acción separada para persistirlo en servidor. Borrar archiv
 local sólo borra esa copia. Preparar otro ensayo no borra archivos conservados.
 Datos del sitio/origen/navegador determinan acceso; exportá para conservar copia
 independiente. 4MiB por snapshot/64MiB total; fallo de storage se informa.
+
+
+### Verificación R05 con fuente corporal congelada (desarrollo)
+
+El fixture `tests/laboratory_ui_fixture.py` permite `--read-frozen-evaluation`
+junto a `--frozen-evaluation-request <job/request.json>` y
+`--frozen-cache-root <directorio-cache>`. Usa esa EVAL existente sólo para lectura;
+iniciar/repetir/resumir/cancelar EVAL quedan bloqueados. El `--root` de la prueba
+debe ser un directorio nuevo; allí se generan R05 y estado de sesión separados.
+No copia video/cache/artefactos EVAL ni ejecuta pose nueva. Mantener comandos/rutas
+corporales locales. Audio del fixture sólo registra controles, no abre dispositivo.
+
+Con el fixture y UI de producción corriendo, ejecutar desde laboratory-ui:
+`LAB_R05_BODY_URL=http://127.0.0.1:<puerto> PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/resonatorBodyNetwork.spec.ts`.
+`LAB_R05_BODY_START`/`LAB_R05_BODY_END` ajustan segmento dentro de la EVAL (defaults
+10–16s); se genera comparación de dos mecanismos a8000Hz/seis voces/cola0.5s,
+con positive_delta para el resonador. Presets/defaults live no cambian. Prueba
+seeks/pausa/offset/cola, video original, pose observada causal y figura para ambos
+brazos con audio muted. Es verificación software, no escucha/sincronía física.

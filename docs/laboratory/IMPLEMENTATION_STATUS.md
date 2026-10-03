@@ -19,7 +19,7 @@ instalación cotidiana y trabajo físico/humano pendiente.
 | R02 | Modelos local/relacional/angular/colectivo y centros variables en instrumento/EVAL; banco Sai #36/#97 integrado en #98, web sintética #100 y Fourier corporal #107 incorporado y nuevo consumidor biblioteca/worker/API/UI con cobertura/diagnóstico geométrico | Contrastes corporales entre tomas/cuerpos; Contraste geométrico restringido reservado a Oliva; no inferir organización de compresión sola |
 | R03 | Marcas tipadas/contexto/época, filtros y snapshots; candidatos causales y contraste temporal con soporte común, barrido declarado de offset global, worker/API/UI | Marcas humanas nuevas y su incertidumbre temporal; centros/regiones alternativos y reservas; coincidencia no demuestra intención |
 | R04 | Banco relacional sintético/pose congelada, controles proximal/noise, soporte común y summaries; API/UI y repetición HTTP | Corrida corporal con escala explícita y anotación/tarea independiente; ruido de cámara medido |
-| R05 | Resonadores/excitación y mapeo, PCM/campos de voces, player/source/offset/overlay causal; referencias y recuperación de publicaciones parciales | Escucha/agencia y niveles/latencias físicas; recorrido corporal audiovisual completo de variantes experimentales; otros medios y crash del host |
+| R05 | Resonadores/excitación y mapeo, PCM/campos de voces, player/source/offset/overlay causal; referencias y recuperación de publicaciones parciales | Escucha/agencia y niveles/latencias físicas; otras variantes/medios y crash del host |
 | R06 | Calendarios/medios/semillas, fases y sondas; #101 añade circular shifts por puerto con potencias conservadas, checks FFT y tabla/traza web | Controles más amplios, observable/hipótesis HIT y ensayo físico/humano; espectro periódico de entrada no fija respuesta finita |
 | R07 | Membrana sound-only/campos/RMS y controles de medio/resolución/transientes. #94–96: lectura histórica, readout reservado, labels EVAL; corrida corporal local 5 train +5 test, repetición byte-idéntica | Tomas/cuerpos independientes y controles ampliados; medio físico/calibración/sensores, escucha/aceptación; una toma no prueba generalización |
 | R08 | Anotación/segmentación/flow/bancos pareados con soporte, causas/coverage, archivos y UI; recuperación de POST perdida | Calidad manual/ground truth corporal y referencias de cuerda; 2D no certifica topología 3D |
@@ -1680,3 +1680,12 @@ reemplaza automáticamente borrador ni pending, no revive player ni envía. Chro
 verifica cierre de pestaña y nueva pestaña, recuperación exacta y posterior guardado
 explícito en API real. Límites de almacenamiento y privacidad documentados; ningún
 nuevo default/sonido/telemetría ni exposición humana acreditada.
+
+
+R05 recorrido audiovisual corporal para resonador+mapeo verificado en Chrome sobre
+bundle/runtime/biblioteca reales con PCM muted, source/pose/figura de seis voces,
+seeks/pausa/offset/cola y soporte común no vacío. Fixture reutilizable lee una EVAL
+existente sin mutadores/copia/retracking y guarda nuevos R05 sólo en root separado.
+Datos/evidencia corporal permanecen locales. VALIDATION/RUNNING describen alcance;
+no escucha, precisión 3D, causalidad ni timing físico acreditados. Sonido/defaults
+productivos y workspaces cotidianos intactos.
