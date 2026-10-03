@@ -581,3 +581,40 @@ laboratorio). El render compite por CPU si se exporta durante uso live; para pro
 fluidez, empezar con 640×360/10FPS. No se cambian defaults del instrumento, audio,
 R24, ni presets. Inputs se verifican antes/después; outputs y manifest se verifican
 al descargar. El manifest registra ajustes, hashes, versiones, streams y límites.
+
+### R12 · Importar mediciones y comparar intentos
+
+En investigación, abrir **R12 · Mediciones, tarea y cobertura**. La plantilla es
+un control sintético explícito. **Analizar mediciones R12** obtiene HR media85bpm
+(sintética), potencia2W y10J para5s; al bajar gap máximo a0.5s no hay soporte,
+porque las muestras están a1s. Esto verifica software, no mide a una persona.
+
+Importar JSON R12 real con task/constraints, slot, proveedor, reloj y mediciones.
+Canales disponibles: heart_rate/bpm, mechanical_power/W, metabolic_power/W,
+reported_effort/dimensionless y task_error/dimensionless. Watts requieren método,
+incertidumbre y evidencia de medición/calibración declaradas; no derivar de pose.
+Cada null/exclusión lleva causa. El protocolo íntegro y timestamps originales
+quedan en el JSON editable; la UI controla gap, canales comunes, relojes e intentos.
+Guardar/importar configuración portable sólo transporta gap y selección de canales.
+No mueve datos, cuerpos, calibración, reloj o ventanas a una fuente nueva.
+
+**Vincular explícitamente una evaluación local** pide ID e índice de corrida0-based.
+Rechaza slots diferentes, verifica SHA del manifest y fija el nombre del reloj
+común source_time_s; no modifica la transformación ni los timestamps ni inventa
+mediciones. Ajustar/revisar la correspondencia del reloj con evidencia antes de
+analizar. El servidor comprueba límites de trials dentro del segmento/hash/slot
+al inspeccionar y guardar. Un archivo archivado no revalida video físico al abrir.
+
+El resultado muestra cobertura/media/soporte común y energía/trabajo parcial sólo
+paraW. No calcula calorías, ratios de eficiencia, fatiga o correlaciones causales.
+**Guardar corrida R12** congela request/result/manifest bajo
+`$DATA_DIR/research/r12-measurements/<content-id>/`. Código actual recomputa;
+histórico queda identificado como integridad solamente. Descargas locales, sin
+upload. Envío pendiente se conserva en sessionStorage antes del POST; recuperar,
+exportar o descartar explícitamente tras recargar. Fallos de escritura conservan
+staging `.pending-*` diagnóstico; reintento no lo declara completo ni lo sobrescribe.
+
+Ver tabla variable→instrumentación→incertidumbre y experimento vinculado a EVAL en
+`research/laboratory/R12_MEASUREMENT_PROTOCOL.md`. Faltan mediciones/participantes,
+hardware/adapters y evidencia de sincronización; no se inventaron datos para el
+video corporal disponible. No cambia presets/defaults del instrumento ni R24.

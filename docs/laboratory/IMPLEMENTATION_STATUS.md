@@ -1517,3 +1517,23 @@ Pruebas cubren suma seis voces, fase cropped, silencios sin punto ficticio, MKV
 exacto, MP4 AAC, cancelación, restart, rutas API tipadas, descarga y corrupción.
 El roadmap conserva render de otros bancos, sensores, escucha/aceptación humana y
 validación de sincronía física como pendientes independientes.
+
+## R12 · Banco de mediciones declaradas, tareas y cobertura
+
+Contrato versionado fuente/slot/tarea/restricciones, canales/unidades/método/
+incertidumbre/calibración, reloj original afín, samples con causas, intentos/outcome
+y soporte común. Integra trapezoidalmente sólo pares adyacentes válidos recortados
+al trial; gaps/artefactos/null/extremos sin soporte no se rellenan. Sólo W→J,
+parcial si hay pérdida; HR y resultado útil separados, sin inferir calorías ni
+ranking/eficiencia/HIT. Hash de soporte propio/común y cobertura por canal/trial.
+
+API/UI/import/export/config portable/guardado/verificación/retry/restart implementados.
+Vínculo opcional con EVAL verifica manifest/slot/límites del segmento al guardar;
+no crea sincronización ni transferencia de cuerpo/calibración. Publicación desde
+staging verificado; una escritura interrumpida no bloquea reintento ni se certifica.
+Snapshot pendiente web conserva request congelado ante respuesta perdida.
+
+Protocolo y matriz sensor/proxy/incertidumbre en R12_MEASUREMENT_PROTOCOL.md.
+No hardware conectado ni datos fisiológicos humanos; sólo controles de software.
+Adquisición BLE, conversiones metabólicas, intervención/participantes, pareado
+científico y sincronía física siguen abiertos. R13 aún requiere entrega propia.

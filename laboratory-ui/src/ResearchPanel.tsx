@@ -1,3 +1,4 @@
+import {PhysiologyPanel} from './PhysiologyPanel';
 import {NeuroPanel} from './NeuroPanel';
 import {ExperiencePanel} from './ExperiencePanel';
 import {SpatialPanel} from './SpatialPanel';
@@ -51,6 +52,7 @@ export function ResearchPanel({api,run}:Data){
   <SpatialPanel api={api}/>
   <ExperiencePanel api={api}/>
   <NeuroPanel api={api}/>
+  <PhysiologyPanel api={api}/>
   <CoincidencePanel api={api} run={run}/>
   <BodyResearchPanel api={api} run={run} onStarted={async()=>setJobs(await api('research/r01'))}/>
   {jobs.map(j=><section key={j.id}><p>{j.status} · {j.error || ''} · {j.directory}</p>

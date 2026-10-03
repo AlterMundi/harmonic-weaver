@@ -29,6 +29,8 @@ from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
 from .research.neuro_service import NeuroService
+from .research.physiology_service import PhysiologyService
+from .research.physiology import Request as PhysiologyRequest, calculate as calculate_physiology
 from .research.neuro_observations import Stream as NeuroStream, inspect as inspect_neuro
 from .research.neuro_snr import Config as NeuroSNRConfig, calculate as calculate_neuro_snr
 from .research.experience_pair_design import Request as ExperiencePairDesignRequest, preview as preview_pair_design
@@ -304,6 +306,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     experience_pairs = PairService(data_dir)
     pair_design_presets = PairDesignPresets(data_dir)
     neuro_observations = NeuroService(data_dir)
+    physiology_measurements = PhysiologyService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -490,6 +493,44 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r09/clock-fits/{ident}/artifacts/{name}')
     def spatial_clock_artifact(ident:str,name:str):
         return FileResponse(spatial_clock_runs.artifact(ident,name),filename=name)
+
+    def validate_physiology_binding(body):
+        binding = body.evaluation_binding
+        if binding is None:
+            return
+        if evaluation is None:
+            raise ValueError('Evaluation runtime required for source binding')
+        from .cache import sha256_file
+        report = evaluation.report(binding.evaluation_id)
+        manifest = evaluation.artifact(binding.evaluation_id, 'manifest.json')
+        if sha256_file(manifest) != binding.manifest_sha256:
+            raise ValueError('Evaluation manifest changed')
+        runs = report['manifest']['runs']
+        if binding.run_index >= len(runs):
+            raise ValueError('Evaluation run outside inventory')
+        source = report['manifest']['request']['sources'][runs[binding.run_index]['source_index']]
+        if source['person_id'] != binding.person_slot:
+            raise ValueError('Evaluation body slot differs')
+        if any(t.start_s < source['start_s'] or t.end_s > source['end_s'] for t in body.trials):
+            raise ValueError('Trial outside selected evaluation segment')
+
+    @app.post('/api/research/r12/inspect')
+    def physiology_inspect(body: PhysiologyRequest):
+        validate_physiology_binding(body)
+        return calculate_physiology(body)
+
+    @app.post('/api/research/r12/measurements')
+    def physiology_save(body: PhysiologyRequest):
+        validate_physiology_binding(body)
+        return physiology_measurements.start(body)
+
+    @app.get('/api/research/r12/measurements')
+    def physiology_list():
+        return physiology_measurements.list()
+
+    @app.get('/api/research/r12/measurements/{ident}/artifacts/{name}')
+    def physiology_artifact(ident: str, name: str):
+        return FileResponse(physiology_measurements.artifact(ident, name), filename=name)
 
     @app.post('/api/research/r11/observations')
     def neuro_observation_save(body:NeuroStream):return neuro_observations.start(body)

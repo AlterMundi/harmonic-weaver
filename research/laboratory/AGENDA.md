@@ -899,3 +899,15 @@ siguen pendientes; no resultado sobre placer/belleza/agencia ni sus proxies.
 R11 tiene contrato inicial de observaciones crudas y protocolo abierto en
 [r11_neuro/README.md](r11_neuro/README.md): no adquisición/hardware ni índice de
 placer implementados. Import/API/UI/SNR y sincronización física siguen pendientes.
+
+### R12 · Banco descriptivo de mediciones y tarea (2026-10-02)
+
+Contrato/API/web con imports nativos, relojes y units explícitos, soporte/gaps/
+causas, intentos y resultado útil separado. W medidos declaradamente→J parcial;
+HR no se convierte a calorías/eficiencia. Manifests recomputables, staging/retry,
+configuración portable sin body/clock/samples; vínculo EVAL hash/slot/límites.
+Control sintético e import declarado diferenciados. No mediciones humanas.
+Tabla de instrumentación y experimento pequeño:
+[R12_MEASUREMENT_PROTOCOL.md](R12_MEASUREMENT_PROTOCOL.md).
+Hardware/adapters, participantes, relojes medidos, nuevas intervenciones y preguntas
+científicas siguen pendientes; #26 no se cierra con software. R13 permanece abierto.

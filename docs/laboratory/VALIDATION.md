@@ -1845,3 +1845,20 @@ con cinco versiones reales:1test3,9s. Build TypeScript/Vite pasa. Export60s MKV
 final:600frames verificados por ffprobe,2880000samples@48kHz y comparación
 float32 exacta con el WAV al decodificar. Receipt local
 `comparison-export-validation.json`, sin escucha humana ni sincronía física.
+
+### R12 · Banco descriptivo de mediciones y tareas
+
+22tests R12/neuro-regresión/API pasan (2,33s): integral y media analíticas con
+ventanas recortadas, clocks afines, soporte propio/común, null/gaps/exclusiones/
+colas sin rellenar, units/calibración/orden/finite, manifest/recompute/restart/
+retry/corrupción/histórico y EVAL binding con rechazo hash/slot/ventanas diferentes.
+Fallo antes de manifest deja staging diagnóstico y permite reintento; overflow de
+inputs finitos se rechaza, no certifica Infinity. Build TypeScript/Vite pasa.
+
+Chrome con API local real y datos sintéticos explícitos pasa: controles gap
+hacen aparecer/desaparecer soporte, configuración portable se descarga, guardar
+con respuesta perdida + recarga + recuperación repite idéntico request y produce
+un único registro, abrir/exportar manifest funciona. API sin mocks (salvo pérdida
+de respuesta inyectada después de POST aceptado). No hardware ni fisiología de
+Nicolás/Annie, no escucha/percepción/sincronía física ni prueba de eficiencia/HIT.
+Protocolos/datos de esta prueba aislados del store cotidiano y videos privados.
