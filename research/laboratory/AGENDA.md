@@ -33,6 +33,11 @@ Cada experimento añade una nota fechada con fuente, configuración, condiciones
 evidencia, resultado (también nulo/negativo), límites y siguiente pregunta.
 Cerrar una issue de software no resuelve automáticamente la pregunta científica.
 
+R12 — 2026-10-03: [sensibilidad al reloj declarado](r12_clock/README.md) en
+web/API/CLI con archivos reproducibles. Intersección entre offsets y canales
+observados, cobertura original/pareada, dos controles sintéticos repetidos y
+caso sin soporte. No estima sincronía; mediciones físicas/participantes pendientes.
+
 ## Antecedentes primarios
 
 - HIT, capítulos 8 y 10, manuscrito local citado en el plan.

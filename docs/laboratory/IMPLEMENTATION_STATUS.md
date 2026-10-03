@@ -1766,3 +1766,10 @@ CSV archivada comprueban que el protocolo no cambió durante el await. Cambios
 posteriores conservados con aviso; repetir aplica normalmente. Chrome producción
 con API/archivos reales y respuestas demoradas verifica tres cruces, incluida
 ausencia de resultado guardable obsoleto; build pasa. Instrumento/defaults intactos.
+
+R12: banco configurable web/API/CLI de sensibilidad del reloj declarado con
+offsets congelados, cobertura original y común entre condiciones/canales, archivo
+request/result/manifest idempotente, reapertura/recomputación y configuración
+portable. Dos controles sintéticos repetidos (incluido soporte vacío) publicados.
+41 tests R12/CSV y dos recorridos Chrome pasan; build94 módulos. Mediciones reales,
+calibración/sincronía físicas y eficiencia/aceptación siguen pendientes.

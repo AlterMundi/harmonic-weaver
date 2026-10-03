@@ -664,6 +664,11 @@ la respuesta anterior no se aplica y aparece un aviso para repetir la operación
 Esto también protege la reapertura CSV y el vínculo de manifest EVAL. Guardados
 ya publicados permanecen en la lista; no se cambia su contenido por editar la web.
 
+Investigación → R12 → **Sensibilidad del reloj R12**: configurar deltas JSON que
+incluyan cero, comparar cobertura original y pareada, guardar/reabrir archivos y
+exportar/importar sólo offsets. Conserva rate, muestras, exclusiones e intentos;
+no elige sincronización automáticamente. Ver [receta/semántica y controles](../../research/laboratory/r12_clock/README.md).
+
 R12 JSON: una lectura raw negativa de frecuencia cardíaca o potencia metabólica
 requiere `excluded_causes` en la misma muestra y canal para poder conservarse.
 Ejemplo: `"values":{"hr":-999},"excluded_causes":{"hr":"sensor_error_code"}`

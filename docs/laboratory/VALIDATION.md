@@ -2943,3 +2943,22 @@ guard de contexto, sin nueva adquisición/revalidación física de sincronía.
 
 Build TypeScript/Vite **93 módulos, 1.30s**. Fixture aislado detenido; sin dispositivos,
 video/pose privados ni aceptación humana. No cambios backend ni defaults musicales.
+
+### R12 · sensibilidad temporal con soporte común — 2026-10-03
+
+`test_physiology_sensitivity.py` + R12/CSV: **41 passed (2.08s)**. Deltas declarados
+de offset, rate congelado y segundos comunes; original sin mask mantiene resultados,
+intersección exacta, gaps/exclusiones/tails, canal extra con soporte propio, orden,
+presupuesto, grillas inválidas, API/binding y archivos/reapertura/recomputación
+(incluido rechazo de resultado alterado con hash actualizado).
+
+Receta pública r12_clock ejecutada: dos casos × dos corridas, igualdad de resultados
+y verificación de manifest por recomputación. HR lineal: 85/80/75 con soporte común;
+gap central: nulos con soporte vacío. CLI sobre request archivado también ejecutado.
+No sensores/observaciones humanas ni inferencia de sincronía/eficiencia.
+
+Chrome producción: nuevo banco **1 passed (2.9s)**, más regresión de contexto
+**1 passed (3.1s)**. API/SQLite/archivos reales; tabla original/pareada, validación,
+guardar/export/import, reapertura tras reload y respuesta demorada frente a edición;
+preset/source/calibration intactos, cero errores JS. Build94 módulos **1.29s**.
+Fixture detenido y puerto cerrado. Sin nuevos dispositivos/medios privados/escucha.
