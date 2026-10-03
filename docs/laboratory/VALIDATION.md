@@ -2640,3 +2640,19 @@ históricos (Pads v2); no se confunden con los heads de AlterMundi. Workspaces
 originales conservan sus cambios; laboratorio cotidiano permanece en cc5fb57
 y Shaper lab en f8bfe07. Sin checkout, merge, reprocess ni cambios de R24.
 No acredita escucha, calibración física, resultados HIT ni aceptación humana.
+
+### R11/R12 · Índices de fila opt-in — 2026-10-03
+
+14 pruebas nuevas +48 previas de CSV/archivos/API pasan (62, 2.19 s); suite nueva
+ampliada a 15 pasa (0.30 s) con registros multilínea/preámbulo. Verifica numérico/
+ISO, Clock/valores intactos, gaps/faltantes, archivo/repetición y rechazo de modo/
+versión omitidos, columnas incompatibles, filas vacías, orden temporal inválido,
+origen ISO numérico y exceso de presupuesto. No genera timestamps.
+
+Chrome API/paneles reales: dos recorridos nuevos pasan (R11 numérico/R12 ISO),
+original UTF-8 intacto, origen/índices/missing/procedencia y preset portable;
+volver a columna restaura contrato previo. Dos regresiones existentes de R11/
+R12 CSV pasan (3.3 s). Build TypeScript/Vite pasa (1.21 s). Sólo fixtures
+sintéticos, sin hardware/datos corporales/audio. No acredita ausencia de muestras
+perdidas físicas; procedencia dice device_counter_observed=false. Defaults de
+import/audio conservados. Servidores propios detenidos tras estas comprobaciones.

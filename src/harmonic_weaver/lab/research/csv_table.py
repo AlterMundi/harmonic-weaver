@@ -24,7 +24,7 @@ class Mapping(Contract):
 
     @model_validator(mode="after")
     def columns(self):
-        names = [self.index_column, self.time_column, *self.channel_columns.values()]
+        names = [name for name in [self.index_column, self.time_column, *self.channel_columns.values()] if name is not None]
         if len(set(names)) != len(names) or any(not 1 <= len(n) <= 160 for n in names):
             raise ValueError(
                 "Mapped CSV columns must be nonempty, bounded and distinct"
@@ -57,7 +57,23 @@ class ISOTimeMapping(Mapping):
         return self
 
 
-MappingConfig = Mapping | ISOTimeMapping
+class RowIndexMapping(Mapping):
+    schema_version: Literal[3]
+    index_mode: Literal['row_ordinal']
+    index_column: None = None
+    time_units: Literal['seconds', 'milliseconds', 'microseconds', 'iso8601']
+    time_origin: str | None = Field(default=None, min_length=1, max_length=64)
+
+    @model_validator(mode='after')
+    def temporal_origin(self):
+        if self.time_units == 'iso8601':
+            iso_timestamp(self.time_origin)
+        elif self.time_origin is not None:
+            raise ValueError('Numeric row mapping cannot declare an ISO origin')
+        return self
+
+
+MappingConfig = Mapping | ISOTimeMapping | RowIndexMapping
 
 
 def _rows(reader):
@@ -68,8 +84,8 @@ def _rows(reader):
 
 
 def decode(csv_text, mapping, *, max_samples=120000):
-    if not isinstance(mapping,(Mapping,ISOTimeMapping)):
-        mapping=(ISOTimeMapping if mapping.get('schema_version')==2 else Mapping).model_validate(mapping)
+    if not isinstance(mapping, Mapping):
+        mapping={2: ISOTimeMapping, 3: RowIndexMapping}.get(mapping.get('schema_version'), Mapping).model_validate(mapping)
     raw = csv_text.encode("utf-8")
     if len(raw) > 16 * 1024 * 1024:
         raise ValueError("CSV exceeds 16 MiB UTF-8 budget")
@@ -89,22 +105,22 @@ def decode(csv_text, mapping, *, max_samples=120000):
         or any(not name for name in header)
     ):
         raise ValueError("CSV header names must be nonempty and unique")
-    required = [
+    required = [name for name in [
         mapping.index_column,
         mapping.time_column,
         *mapping.channel_columns.values(),
-    ]
+    ] if name is not None]
     if not set(required) <= set(header):
         raise ValueError("CSV mapped column missing from header")
     positions = {name: header.index(name) for name in required}
-    origin=iso_timestamp(mapping.time_origin) if isinstance(mapping,ISOTimeMapping) else None
+    origin=iso_timestamp(mapping.time_origin) if mapping.time_units == 'iso8601' else None
     scale = None if origin is not None else {"seconds": 1.0, "milliseconds": 0.001, "microseconds": 0.000001}[mapping.time_units]
     samples = []
     decoded_bytes = 0
     for row in rows:
         if len(row) != len(header):
             raise ValueError(f"CSV row {reader.line_num} has wrong column count")
-        index_text = row[positions[mapping.index_column]]
+        index_text = str(len(samples)) if isinstance(mapping, RowIndexMapping) else row[positions[mapping.index_column]]
         if not index_text.isascii() or not index_text.isdecimal():
             raise ValueError(
                 f"CSV row {reader.line_num}: nonnegative integer index required"
@@ -148,4 +164,10 @@ def decode(csv_text, mapping, *, max_samples=120000):
             'kind':'iso8601_relative_seconds','origin':mapping.time_origin,
             'maximum_fractional_digits':6,
             'clock_order':'subtract declared ISO origin, then apply metadata Clock'}
+    if isinstance(mapping, RowIndexMapping):
+        provenance['index_generation'] = {
+            'kind': 'row_ordinal', 'start': 0, 'step': 1,
+            'basis': 'parsed data records after declared header; no rows discarded',
+            'device_counter_observed': False,
+            'limit': 'Contiguous generated indices cannot detect missing device samples; timestamps remain supplied'}
     return samples, provenance

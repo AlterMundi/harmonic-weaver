@@ -831,3 +831,12 @@ se aplica a segundos relativos **después** de restar ese origen. Export/import 
 mapeo portable limpia el origen; abrir el import archivado conserva la entrada
 original. [Contrato y ejemplo](SENSOR_CSV_TIME.md). Sin detección ni sincronía
 inferidas; el formato numérico existente y los defaults musicales se conservan.
+
+### Sensores CSV sin columna de índice
+
+Investigación → R11 o R12 → importación CSV: declarar canales, unidades y Clock,
+elegir Índice CSV → Numerar filas desde cero si el archivo no tiene contador,
+y mapear la columna temporal real. Inspeccionar antes de guardar/aplicar.
+La numeración no detecta muestras perdidas del dispositivo; tiempos y faltantes
+permanecen declarados. Default sigue columna del archivo. Formatos/versiones y
+presets portables en [SENSOR_CSV_TIME.md](SENSOR_CSV_TIME.md).
