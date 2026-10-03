@@ -124,3 +124,44 @@ workers/API/render y siete tests nuevos; Chrome real repite dos bancos byte-idé
 recupera preset y selecciona fase/medio/semilla (1test,5.8s). Build pasa.
 Pendientes espectro, observable/hipótesis HIT concreta y protocolos físicos/humanos.
 No valida HIT ni modifica fases/ratios del instrumento cotidiano aceptado.
+
+## R06 · Sondas de frecuencia sobre soporte completo — 2026-10-03
+
+`spectral_probe` opcional: `frequencies_hz` (1–32, no negativas, estrictamente
+crecientes y bajo Nyquist) y `window` complete/excitation/tail. Ventana rectangular
+con start/stop/sample_count explícitos. Acumula todas sus muestras por bloques,
+sin almacenar PCM completo ni calcular sobre el trace decimado. Máximo agregado
+64000000 productos frecuencia×muestra, incluyendo calendario/medio/fase/semilla.
+Cola vacía se rechaza; campo omitido conserva resultado anterior.
+
+Para cada frecuencia: c=(1/N)Σx[n]exp(−i2πft[n]); publica real/imag/|c|².
+Input es indicador unitario de eventos a n/sr; salida es mezcla después del paso,
+a(n+1)/sr. Es diagnóstico de calendario/respuesta, no fuerzas ni norma/dosis de
+excitación, PSD, watts, energía de banda o función de transferencia. Frecuencias
+arbitrarias no son necesariamente ortogonales; sus cuadrados no se suman como
+energía. Leakage y transientes de ventana permanecen explícitos.
+
+Checkbox/config JSON/preset portable y tabla web siguen fase/medio/semilla elegidos,
+con ventana/cantidad de muestras. No afectan eventos/estado/voz ni normalizan output.
+Verificador reconstruye soporte/frecuencias/coeficiente del indicador y coherencia
+real/imag/cuadrado; no rerenderiza el coeficiente de salida desde PCM. No confundir
+integridad/contrato con resultado experimental autenticado.
+
+Referencia pequeña, en carpeta nueva:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.activation_bank --request research/laboratory/r06_activation/reference_spectral.json --output /tmp/r06-spectrum-new-run
+```
+
+Corrida local real de esa referencia: indicador uniforme a80Hz da|c|²=0.0001;
+phi4.9176380461e-5, sqrt2 2.4513003172e-6 y random5.7079894602e-7. El indicador
+uniforme a40Hz es~0, pero la mezcla de salida tiene|c|²=0.0197260309. No se
+estima transferencia dividiendo esos valores: la respuesta y ventana finitas
+no representan por sí solas una respuesta estacionaria aislada. No resultado HIT.
+
+58 tests pasan, incluidos diez nuevos con señal/DC analíticos, ventanas,
+particiones, ausencia de cambio de audio, cruces, corrupción, budgets y gaps de
+bloques. Chrome UI/API/workers reales repite bancos byte-idénticos, importa preset
+y compara tabla por fase/medio/semilla (1test,5.9s); build y CLI/verify pasan.
+Pendiente: surrogates que preserven un espectro declarado, hipótesis/observable
+HIT y protocolos físicos/humanos. Estas sondas no igualan espectros entre controles.
