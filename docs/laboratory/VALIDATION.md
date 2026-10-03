@@ -3188,3 +3188,24 @@ El control usa20fps (50ms por frame) y PCM48000Hz; posiciones digitales exactas 
 miden error de cámara/pose/DAC/pantalla/acústica. No verifica AAC preview, sensación
 humana ni identidad con sonido escuchado; la evidencia previa del tap post-limiter
 permanece separada. Sin medios/resultados privados ni nuevas inferencias de HIT.
+
+### LAB-09 · AAC preview y decodificador Chrome — 2026-10-03
+
+**38 capture/export/timeline tests passed (6.90s)**, incluidos5 controles nuevos:
+AAC64/192/320kbps y offsets±100ms a192kbps. Pico/centro de energía en ventana fija
+100ms del transiente conocido, tolerancia2ms; flash con PTS esperado y PCM principal
+exacto. Esta tolerancia pertenece a esta fixture, no al error del códec en general.
+Receta pública ejecutada dos veces por condición, mediciones iguales y entorno
+registrado; sólo video/PCM sintéticos. Warning Starlette/AnyIO ya conocido.
+
+**3 Chrome passed (3.5s)**: decodificación de AAC64/192/320 mediante OfflineAudioContext,
+centro/pico dentro de tolerancia, video HTML muted/pause al terminar y flash real
+observado con requestVideoFrameCallback/mediaTime0.5s. Página mínima interceptada
+por Playwright sirve bytes del MP4 real; no es un recorrido completo del player
+productivo. La prueba usa frames presentados durante playback, sin tratar seeked
+como confirmación de repaint. Sin AudioContext realtime/salida sonora solicitada.
+
+No cambios de producción/UI/defaults/audio, build nuevo ni servicios iniciados;
+bundle anterior sigue válido. Sin medios/datos corporales, R24 física, latencia
+acústica/display/cámara, escucha o aceptación humana nuevas. AAC sigue siendo
+lossy con padding posible; no reemplaza el MKV exacto ni mide sincronía física.
