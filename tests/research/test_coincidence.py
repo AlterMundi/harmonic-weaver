@@ -20,6 +20,11 @@ def test_joined_frozen_comparison_repeats_and_rejects_mixed_inputs(tmp_path):
         result=compare_frozen(marks,features,**kwargs)
         assert result==compare_frozen(marks,features,**kwargs)
         assert len(result['comparison']['matches'])==1
+        sensitivity=compare_frozen(marks,features,**kwargs,timing_half_width_s=.01,timing_steps_per_side=2)
+        assert sensitivity['comparison']==result['comparison']
+        assert 'timing_sensitivity' not in result
+        assert sensitivity['timing_sensitivity']['sampled_offsets_s']==[-.01,-.005,0,.005,.01]
+        kwargs.update(timing_half_width_s=.01,timing_steps_per_side=2)
         assert result['comparison']['support_duration_s']==.06
         from harmonic_weaver.lab.cache import atomic_json,sha256_file
         from harmonic_weaver.lab.research.coincidence import run_frozen

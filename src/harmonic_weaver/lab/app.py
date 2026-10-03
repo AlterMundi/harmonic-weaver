@@ -159,6 +159,8 @@ class CoincidenceRequest(Contract):
     control_offsets_s: list[Number] = Field(default_factory=list, max_length=16)
     tolerance_s: Number = Field(default=.2, ge=0, le=10)
     mark_offset_s: Number = Field(default=0, ge=-10, le=10)
+    timing_half_width_s: Number = Field(default=0, ge=0, le=5)
+    timing_steps_per_side: int = Field(default=2, ge=1, le=8)
 
 
 class RelationalBodyRequest(Contract):
@@ -1017,6 +1019,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             from .research.temporal_controls import compare_shifts
             compare_shifts([],[],body.mark_support,[],offsets_s=body.control_offsets_s,
                            tolerance_s=body.tolerance_s,mark_offset_s=body.mark_offset_s)
+        if body.timing_half_width_s:
+            from .research.temporal_controls import timing_sensitivity
+            timing_sensitivity([], [], body.mark_support, [],
+                               half_width_s=body.timing_half_width_s,
+                               steps_per_side=body.timing_steps_per_side,
+                               tolerance_s=body.tolerance_s, mark_offset_s=body.mark_offset_s)
         context={name:getattr(body,name) for name in
                  ('source_id','person_id','session_id','observed_epoch','category')}
         marks=session.marks_snapshot(**context,through_sequence=body.through_sequence)
@@ -1027,7 +1035,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('Replay person differs from annotation person')
         request={'feature_sha256':content_hash(features),'context':context,
                  'mark_support':body.mark_support,'tolerance_s':body.tolerance_s,
-                 'mark_offset_s':body.mark_offset_s,'control_offsets_s':body.control_offsets_s}
+                 'mark_offset_s':body.mark_offset_s,'control_offsets_s':body.control_offsets_s,
+                 'timing_half_width_s':body.timing_half_width_s,
+                 'timing_steps_per_side':body.timing_steps_per_side}
         return coincidence.start(request,marks,features)
 
     @app.get("/api/research/r04")
