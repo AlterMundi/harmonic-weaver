@@ -763,3 +763,20 @@ completar toda la matriz. Repetir configuración congelada crea una comparación
 nueva; no equivale a continuar. Si cambió código de replay, tracking o un artefacto
 completo, se informa el error y se requiere repetir como nueva. Detalles/API/CLI
 en EVALUATION.md. No modifica el instrumento ni obliga a evaluar antes de jugar.
+
+
+## Comparador · paquete seleccionable
+
+Abrir Ver comparación y bajar hasta Preparar paquete local para revisar. Elegir
+corridas; dejar desactivadas las opciones privadas para un resumen sin nombres,
+rutas ni escala. Si querés pedidos de reproducción, traces o PCM, activarlos de
+forma explícita. Ver contenido del paquete muestra archivos/tamaño y si hay esos
+contenidos privados; Generar paquete local crea un ZIP cancelable. Descargar al
+completar. Revisarlo antes de compartir: el resumen también contiene resultados
+derivados que podrían ser sensibles. No publica nada ni copia video/tracking.
+
+Descargar/importar preferencias conserva flags/presupuesto y limpia las corridas
+seleccionadas al importar. El JSON portable no aplica selección de otra fuente.
+La descarga antigua Informe y manifest sigue siendo completa y contiene rutas:
+no equivale al resumen del paquete. El soporte común del resumen sigue siendo el
+de la matriz original completa. Contrato y límites en EVALUATION.md.

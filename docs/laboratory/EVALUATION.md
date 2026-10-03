@@ -313,3 +313,49 @@ PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python -m harmonic_weaver.lab.ev
 Para PCM usar el mismo SHAPER_DIR/extras que el render inicial. El presupuesto
 CLI es un ajuste de ejecución registrado, no una modificación de método/preset.
 Ver VALIDATION.md para pruebas sintéticas, PCM y tracking corporal privado.
+
+
+## Paquetes seleccionados para revisión local — 2026-10-03
+
+Después de abrir un informe completo, Preparar paquete local para revisar permite
+seleccionar corridas y contenidos. Default: summary.json y package-manifest.json,
+sin video/tracking, rutas, nombres originales, persona ni escala corporal. Los
+presets del resumen tienen nombres/IDs/etiquetas sustituidos y conservan parámetros
+computacionales; señales/targets iguales verificados en fixture. Sólo señales
+catalogadas con unidades compatibles se resumen; omisiones se cuentan por corrida.
+Resultados derivados pueden seguir siendo sensibles: esto no certifica anonimato.
+
+Opciones explícitas, desactivadas por defecto: pedidos de reproducción de cada
+corrida elegida (incluyen rutas/persona/calibración y labels originales), traces de
+features/targets y WAV/estados de osciladores disponibles. No se incluyen fuentes o
+presets ajenos a las corridas elegidas. Los pedidos se ejecutan como Request de una
+fuente × un preset; requieren los inputs locales originales y código compatible.
+No son una reproducción autónoma sin video/cache. No se copia ningún video ni
+tracking al paquete y no hay publicación externa automática.
+
+Las medias seleccionadas conservan el soporte común de la matriz original completa.
+Exportar dos presets no recalcula una intersección nueva más amplia; el resumen
+indica cuántos presets definieron el soporte. Esto evita alterar la comparación al
+seleccionar sólo resultados favorables. El paquete no agrega inferencia científica,
+aceptación perceptual ni medición de sincronía física.
+
+La vista previa enumera archivos, hashes y bytes antes del contenedor. El límite
+1..4096 MiB (default 64) aplica al payload; ZIP/manifest agregan overhead. Un cambio
+de selección invalida la vista previa; el servidor rechaza entradas/resultados
+cambiados. Writer cancelable en proceso propio, fuera del instrumento. Directorios
+locales research/eval-package/<id>/; ZIP con timestamps fijos e inventario interno
+hasheado. Se escribe un archivo .partial y se publica el ZIP local completo por
+rename tras verificar entradas; lectura verifica checksum y no descarga parciales.
+
+API: POST /api/evaluations/{id}/package-preview recibe Selection; POST
+/api/evaluations/{id}/packages recibe selection y preview_sha256. GET
+/api/evaluation-packages lista; POST /api/evaluation-packages/{id}/cancel cancela
+sólo worker propio; GET /api/evaluation-packages/{id}/artifacts/package.zip descarga
+resultado completo. manifest.json permite diagnóstico, no es el informe público.
+Inputs/job/manifest externos contienen referencias locales y no se agregan al ZIP.
+
+Preferencias del paquete se exportan/importan por JSON: flags y presupuesto,
+sin corridas/fuente/identidad. Importar limpia selección y preview y no ejecuta nada.
+Revisar el contenido antes de compartir manualmente; publicar requiere selección
+humana de datos/destino y consentimiento pertinente. Este corte prepara el paquete,
+no proporciona por sí solo fuentes públicas ni autorización de publicación.
