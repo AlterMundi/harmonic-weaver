@@ -21,6 +21,11 @@ class ExportSettings(Contract):
     max_gap_s: Number = Field(default=.25,gt=0,le=5)
     camera_clock: Literal['collector_monotonic_s','available_monotonic_s','captured_monotonic_s'] = 'collector_monotonic_s'
     recovered_prefix: bool = False
+    skeleton_overlay: bool = False
+    skeleton_people: Literal['selected','all'] = 'selected'
+    skeleton_confidence: Number = Field(default=0,ge=0,le=1)
+    skeleton_max_offset_s: Number = Field(default=.1,ge=0,le=1)
+    skeleton_line_px: int = Field(default=2,ge=1,le=12)
     browser_preview: bool = False
     preview_audio_kbps: int = Field(default=192,ge=64,le=320)
 
@@ -75,7 +80,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
         ('sample_rate','capture_file_sample_start','capture_frames','generated_monotonic_s')})
     observations=read_lines(session/'timeline.jsonl',lambda row:{
         'sampled_monotonic_s':row['sampled_monotonic_s'],
-        'state':{key:row['state'].get(key) for key in ('source','session','runtime')}})
+        'state':{key:row['state'].get(key) for key in (('source','session','runtime','motion_frame') if settings.skeleton_overlay else ('source','session','runtime'))}})
     camera_frames=[]
     camera_manifest=(manifest.get('recovery',{}).get('camera') if partial else manifest.get('camera'))
     camera_folder=session/'camera'
@@ -116,7 +121,8 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
                       'Unrecorded/missing/stale camera intervals rendered black; processed preview only',
                       'Video may outlast PCM by less than one output frame',
                       'Original file identity is declared, not rehashed during export',
-                      'No skeleton or harmonic figure overlay in this export'],
+                      'No harmonic figure overlay; skeleton uses sampled observed joints only'],
+            'skeleton_overlay':{'enabled':settings.skeleton_overlay,'frames':0,'omissions':{}},
             'input_hashes':inputs,'status':'rendering','frames':0,'gaps':gaps,'sources':sources}
     atomic_json(folder/'manifest.json',report)
     process=None
@@ -125,7 +131,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
             process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=log)
             for row in frame_plan(blocks,observations,**{k:getattr(settings,k) for k in ('fps','offset_s','max_gap_s','camera_clock')},camera_frames=camera_frames):
                 if cancelled and cancelled.is_set():raise ValueError('Export cancelled')
-                source=row['source'];frame=None
+                source=row['source'];frame=None;source_size=None
                 if source and source.get('kind')=='camera':
                     filename=source['file']
                     if Path(filename).name!=filename:raise ValueError('Invalid recorded camera frame name')
@@ -133,7 +139,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
                     if jpeg.is_symlink() or sha256_file(jpeg)!=source['sha256']:raise ValueError('Recorded camera frame changed')
                     decoded=cv2.imread(str(jpeg))
                     if decoded is None:raise ValueError('Recorded camera frame is undecodable')
-                    h,w=decoded.shape[:2];scale=min(settings.width/w,settings.height/h)
+                    h,w=decoded.shape[:2];source_size=(w,h);scale=min(settings.width/w,settings.height/h)
                     resized=cv2.resize(decoded,(max(1,round(w*scale)),max(1,round(h*scale))))
                     frame=np.zeros((settings.height,settings.width,3),dtype=np.uint8)
                     rh,rw=resized.shape[:2];y=(settings.height-rh)//2;x=(settings.width-rw)//2
@@ -148,7 +154,7 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
                         decoder.set(cv2.CAP_PROP_POS_MSEC,source['position_s']*1000)
                         ok,image=decoder.read();last_position=source['position_s']
                         if not ok:raise ValueError('Could not decode requested source position')
-                    h,w=image.shape[:2];scale=min(settings.width/w,settings.height/h)
+                    h,w=image.shape[:2];source_size=(w,h);scale=min(settings.width/w,settings.height/h)
                     resized=cv2.resize(image,(max(1,round(w*scale)),max(1,round(h*scale))))
                     frame=np.zeros((settings.height,settings.width,3),dtype=np.uint8)
                     rh,rw=resized.shape[:2];y=(settings.height-rh)//2;x=(settings.width-rw)//2
@@ -156,6 +162,15 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
                 else:
                     frame=np.zeros((settings.height,settings.width,3),dtype=np.uint8)
                     gaps[row['reason']]=gaps.get(row['reason'],0)+1
+                if settings.skeleton_overlay:
+                    from .capture_skeleton import draw_skeleton
+                    observation=(observations[row['observation_index']] if 'observation_index' in row else None)
+                    overlay=draw_skeleton(frame,row,observation,settings,source_size=source_size)
+                    row['skeleton_overlay']=overlay
+                    if overlay['status']=='drawn':report['skeleton_overlay']['frames']+=1
+                    else:
+                        omissions=report['skeleton_overlay']['omissions']
+                        omissions[overlay['reason']]=omissions.get(overlay['reason'],0)+1
                 process.stdin.write(frame.tobytes());timeline.write(json.dumps(row,sort_keys=True,allow_nan=False)+'\n')
                 count+=1
                 if progress:progress(count)

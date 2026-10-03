@@ -414,3 +414,29 @@ y carpeta/frame_root/índice/corte del prefijo de cámara consumido. input_hashe
 source_hashes_declared se conservan como declaraciones de recuperación; no se
 afirma revalidación del raw original. Todo permanece local, no portable ni apto
 para publicación automática sin revisar rutas/datos privados.
+
+### Overlay opcional de esqueleto — 2026-10-03
+
+En Exportar video + audio, **Incluir esqueleto observado en la exportación**
+arranca apagado. Elegí persona seleccionada en cada observación o todas; confianza
+mínima (0), grosor (2 px) y desfase máximo pose/video (0.1 s) son configurables.
+Funciona para capturas completas y prefijos recuperados, MKV y preview MP4.
+No modifica el PCM ni activa fuentes o tracking. No cambia defaults del instrumento.
+
+Usa el MotionFrame guardado en el timeline: joints observados, coordenadas
+camera_isotropic/frame_height y letterbox del video. Descarta held/missing,
+puntos fuera de imagen y confianza inferior al umbral. No proyecta coordenadas
+world. Requiere época observada confirmada; archivo debe coincidir en identidad
+y stream y estar dentro de la tolerancia temporal. Cámara exige el mismo stream
+y sequence del JPEG grabado y geometría compatible. Una observación posterior de
+pose no se aplica a un JPEG anterior: la omisión es explícita, sin interpolación.
+
+frames.jsonl registra observation_index y resultado del overlay por fotograma;
+el manifest resume frames dibujados y causas de omisión. Capturas históricas sin
+pose siguen exportándose, con pose_not_recorded si se solicita overlay. El desfase
+es una tolerancia de selección, no una medida de sincronía física.
+
+La preview de prefijos ya tiene integración API/export/reinicio/rangos; las
+menciones históricas a ese pendiente arriba están superadas. Pendientes: figura
+armónica exportada desde estado efectivo de síntesis, medición física y feedback
+humano de cámara. No se declara que el esqueleto esté sincronizado acústicamente.

@@ -2276,3 +2276,17 @@ Incluye live lock visto desde otra instancia, restart, job muerto interrumpido,
 identidad distinta rechazada y restore de receipt Weaver sin POST. No hardware.
 No build/browser nuevo requerido: UI no cambió. Overlays/prefijos/sincronía física
 siguen pendientes; no se declara terminado LAB-09 ni aceptación humana.
+
+## LAB-09: esqueleto observado en exportación — 2026-10-03
+
+42 pruebas de skeleton/export/timeline pasan (6.37 s), incluidas exportaciones
+reales FFmpeg completas y recuperadas con preview AAC: PCM del MKV idéntico,
+poses observadas dibujadas, omisión ante cambio de época y captura parcial
+conservada. Unidades/proyección, identidad, secuencia de cámara, selección, held,
+confianza, aspect y letterbox tienen pruebas pertinentes. Datos sintéticos.
+
+Build TypeScript/Vite pasa. Chrome: un test de controles reales de CapturePanel
+(1.5 s, red simulada) confirma defaults apagados y payloads de export completo
+y recuperado, sin iniciar captura. No demuestra adquisición ni sincronía física.
+Servidor de prueba detenido al terminar; servicios cotidianos/R24 preservados.
+Sin escucha ni aceptación humana nuevas. Figura armónica exportada pendiente.
