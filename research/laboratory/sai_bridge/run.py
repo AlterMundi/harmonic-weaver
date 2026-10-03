@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import platform
+import importlib
 from pathlib import Path
 
 import numpy as np
@@ -12,6 +13,7 @@ import pydantic
 from . import SAI_BASE, WEAVER_BASE
 from .adapter import common_observed, read_models, summarize
 from .prediction import prediction_contrast, support_selection_control
+from .fourier import fourier_bench
 from .synthetic import (ambiguous_projection, common_rhythm_no_pair_coupling,
                         concentration, diagonal_counterexample, equal_path_rhythm,
                         frame_controls, jittered_frames, paired_cycles, phase_controls,
@@ -19,11 +21,19 @@ from .synthetic import (ambiguous_projection, common_rhythm_no_pair_coupling,
 
 
 def source_hashes():
-    root = Path(__file__).resolve().parents[3]
-    paths = ("src/harmonic_weaver/lab/contracts.py", "src/harmonic_weaver/lab/models.py",
-             "src/harmonic_weaver/lab/analysis_math.py", "src/harmonic_weaver/lab/collective.py",
-             "src/harmonic_weaver/lab/kinematics.py", "src/harmonic_weaver/lab/legacy.py")
-    return {path: hashlib.sha256((root / path).read_bytes()).hexdigest() for path in paths}
+    """Selected effective imported modules, not files relative to this bridge.
+
+    This is a source manifest, not an exhaustive dependency/bytecode audit.
+    Historical reference SHAs in source_sha do not identify the effective code.
+    """
+    names = ("contracts", "models", "analysis_math", "collective", "kinematics", "legacy")
+    manifest = {}
+    for name in names:
+        module = importlib.import_module(f"harmonic_weaver.lab.{name}")
+        path = Path(module.__file__).resolve()
+        manifest[module.__name__] = {"path": str(path),
+                                   "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+    return manifest
 
 
 def bench():
@@ -72,8 +82,10 @@ def bench():
             "q_tensor_counterexample": diagonal_counterexample(),
             "prediction": {"null": prediction_contrast(False),
                            "related": prediction_contrast(True),
-                           "selection_control": support_selection_control()}}
-    # A digest of the numerical content, not a claim that platforms are bitwise equal.
+                           "selection_control": support_selection_control()},
+            "fourier_controls": fourier_bench()}
+    # Whole report digest includes paths, provenance and runtime, not just numbers.
+    # No cross-environment equality or identity of historical digests is asserted.
     canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), allow_nan=False)
     data["result_sha256"] = hashlib.sha256(canonical.encode()).hexdigest()
     return data
