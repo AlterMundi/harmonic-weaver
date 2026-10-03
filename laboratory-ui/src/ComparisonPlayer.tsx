@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ComparisonExport } from "./ComparisonExport";
 import { Figure } from "./figure";
 import { voicesAt, sourcePosition, type Block } from "./replayClock";
 type Data = Record<string, any>;
@@ -316,6 +317,7 @@ export function ComparisonPlayer({
         El cambio de archivo puede tener una interrupción audible: no es un
         crossfade ni modifica fases, niveles o artefactos renderizados.
       </p>
+      <ComparisonExport report={report} run={run} />
       {!blocks.length && !error && <p>Cargando estado de osciladores…</p>}
       {error && <p role="alert">{error}</p>}
     </section>

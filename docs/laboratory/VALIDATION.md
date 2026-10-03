@@ -1822,3 +1822,26 @@ archivos/workspaces cotidianos. Abrir desde selector Videos de la biblioteca.
 Primer intento local de registro falló por venv/checkpoint ausentes en HarMoCAP-lab;
 se usó el mismo fallback al venv/modelo de HarMoCAP que contempla el launcher,
 con código de HarMoCAP-lab explícito. Cache previo y configuración conservados.
+
+### Exportación de comparación con video y figura (desarrollo)
+
+`tests/test_lab_video_export.py` verifica fórmula de seis voces independiente,
+interpolación gain/fase cropped, no figura ficticia en silencio, encoding real de
+fixture sintético MKV/MP4, PCM float32 exacto al decodificar MKV, frame inventory,
+worker/restart/cancelación/corrupción y API. `comparisonExportNetwork.spec.ts`
+requiere LAB_AB_API_URL, LAB_AB_JOB, LAB_COMPONENT_TEST_URL y API/Vite proxy locales:
+Chrome opera controles reales, guarda configuración, hace POST real, observa
+finalización, descarga MP4 y verifica avance de video; no mocks del API/encoder.
+Audio muted: no escucha humana. Comparador A/B anterior sigue probado aparte.
+
+Se exportó localmente el segmento privado60s y se conserva receipt sólo bajo
+laboratory-dev. No se publican video/tracking/receipts corporales. La verificación
+cubre reloj lógico y fidelidad PCM MKV, no calidad perceptual ni sincronía física.
+
+Resultado: 32 tests de export/evaluación/PCM/API pasan (14,13s); tras añadir
+cancelación durante encoding y recuperación no confirmada, 6 tests del módulo
+export pasan (4,93s). Chrome export con API/media reales:1test16,7s; regresión A/B
+con cinco versiones reales:1test3,9s. Build TypeScript/Vite pasa. Export60s MKV
+final:600frames verificados por ffprobe,2880000samples@48kHz y comparación
+float32 exacta con el WAV al decodificar. Receipt local
+`comparison-export-validation.json`, sin escucha humana ni sincronía física.

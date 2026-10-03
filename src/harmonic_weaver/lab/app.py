@@ -16,6 +16,7 @@ from pydantic import Field
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
+from .evaluation.video_export import Settings as ComparisonExportSettings
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
 from .research.grassmann import Settings as GrassmannSettings
@@ -317,9 +318,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     rope_flow_presets = RopeFlowPresets(data_dir)
     rope_flow_verification = RopeFlowVerification(rope_flow,rope_reader)
     evaluation = None
+    comparison_exports = None
     if runtime is not None:
         from .evaluation.service import EvaluationService
         evaluation = EvaluationService(data_dir, session, runtime.library)
+        from .evaluation.video_exports import VideoExports
+        comparison_exports = VideoExports(data_dir, evaluation)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -342,6 +346,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
                 exports.close()
             if capture is not None:
                 capture.close()
+            if comparison_exports is not None:
+                comparison_exports.close()
             if evaluation is not None:
                 evaluation.close()
             if runtime is not None:
@@ -1119,6 +1125,27 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return {"ok": True}
 
     if runtime is not None:
+        @app.post("/api/evaluations/{ident}/exports/{run_index}")
+        def export_comparison(ident: str, run_index: int, body: ComparisonExportSettings):
+            return comparison_exports.start(ident, run_index, body)
+
+        @app.get("/api/comparison-exports")
+        def comparison_export_list():
+            return comparison_exports.list()
+
+        @app.get("/api/comparison-exports/{ident}")
+        def comparison_export_status(ident: str):
+            return comparison_exports.snapshot(ident)
+
+        @app.post("/api/comparison-exports/{ident}/cancel")
+        def comparison_export_cancel(ident: str):
+            return comparison_exports.cancel(ident)
+
+        @app.get("/api/comparison-exports/{ident}/artifacts/{filename}")
+        def comparison_export_artifact(ident: str, filename: str):
+            path = comparison_exports.artifact(ident, filename)
+            return FileResponse(path, filename=filename)
+
         @app.post("/api/evaluations")
         def start_evaluation(body: EvaluationRequest):
             return evaluation.start(body.preset_ids, [s.model_dump() for s in body.segments],

@@ -1501,3 +1501,19 @@ escucha/aceptación humana ni prueba de niveles/sincronización física. Datos/r
 locales, servidores de prueba detenidos. Presets incorporados sólo en desarrollo,
 configuración activa preservada, workspaces cotidianos intactos. Preguntas de HIT,
 eficacia/intención, tracking físico y protocolos perceptuales siguen abiertas.
+
+## Comparador: exportación local audiovisual con todos los osciladores
+
+Implementados renderer raster, encoder FFmpeg, servicio owned con cancelación/
+progreso/estado durable y API/web. Configuración portable de exportación, override
+visual opcional, MKV PCM conservado o MP4 AAC. Reutiliza fuentes verificadas y
+osciladores/PCM congelados, sin tracking nuevo ni cambio de configuración live.
+Suma todas las voces y conserva interpolación cropped de gain/fase del replay.
+No es PCM post-timbre en XY, ni membrana física. Exporta a1× sin offset del player.
+
+Verificación de streams y cantidad de frames encontró que shortest=1 omitía el
+último frame de cola; corregido usando hstack sin ese corte y duración PCM explícita.
+Pruebas cubren suma seis voces, fase cropped, silencios sin punto ficticio, MKV
+exacto, MP4 AAC, cancelación, restart, rutas API tipadas, descarga y corrupción.
+El roadmap conserva render de otros bancos, sensores, escucha/aceptación humana y
+validación de sincronía física como pendientes independientes.

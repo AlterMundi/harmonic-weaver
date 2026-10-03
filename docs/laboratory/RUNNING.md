@@ -548,3 +548,36 @@ opcional. El test abre desde ruta y exige cache_hit; no upload ni copia del medi
 Detener fixture con Ctrl+C. Su root contiene estado/datos privados de la prueba:
 no publicarlo. La biblioteca real de desarrollo ya tiene registrado el minuto dúo;
 para jugar usar el launcher de desarrollo y elegirlo en Videos de la biblioteca.
+
+### Exportación opcional de una comparación: video + audio + figura
+
+En desarrollo, abrir una comparación terminada con PCM y elegir **Reproducir**.
+Dentro del reproductor, **Exportar video, audio y figura** exporta el preset y
+segmento elegidos. FPS, tamaño total, CRF, formato y bitrate AAC son editables.
+La figura hereda el preset congelado; **Personalizar figura** permite cambiar
+períodos, puntos, persistencia, grosor, brillo, escala, componentes, color y espejo.
+Guardar/importar configuración sólo transporta esos ajustes, sin fuente/persona/
+calibración/IDs de corrida. El servidor valida límites al exportar.
+
+El trabajo es opcional y separado del transporte: muestra progreso, admite
+cancelación y permite descargar video, manifest y timeline cuando termina.
+La lista persiste tras reiniciar. Un trabajo sin confirmación final queda
+interrumpido; no se presenta su archivo parcial como exportación completa.
+Destino: `$DATA_DIR/comparison-exports/<id>/result/` (desarrollo:
+`~/.local/share/harmonic-weaver/laboratory-dev/comparison-exports/`). No hay subida
+automática. No copia el original ni recalcula tracking.
+
+MKV conserva paquetes PCM del WAV. MP4 usa AAC con pérdida, apto para navegador;
+el WAV original sigue siendo la referencia. Máximo 120s de PCM incluida cola.
+Exportación siempre a 1×, sin offset manual del reproductor. Video a la izquierda,
+suma de todos los osciladores a la derecha, con fase/gain interpolados del archivo
+voice-frames. La cola sostiene el último frame de video. Se excluye audio original.
+No hay esqueletos. La figura está antes del timbre/limitador y no representa una
+membrana física. La persistencia raster depende de FPS; el estilo no es idéntico
+a WebGL. El reloj compartido es digital, no una medición de sincronía física.
+
+Requiere FFmpeg/ffprobe con libx264 y AAC, OpenCV, NumPy y SoundFile (entorno del
+laboratorio). El render compite por CPU si se exporta durante uso live; para probar
+fluidez, empezar con 640×360/10FPS. No se cambian defaults del instrumento, audio,
+R24, ni presets. Inputs se verifican antes/después; outputs y manifest se verifican
+al descargar. El manifest registra ajustes, hashes, versiones, streams y límites.
