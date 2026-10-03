@@ -16,6 +16,7 @@ from harmonic_weaver.contract_codec import (
     contract_id_from_manifest,
     validate_manifest,
 )
+from harmonic_weaver.drivers.observations import ObservationEvent
 
 from .compiler import (
     AggregatorRuntime,
@@ -122,6 +123,8 @@ class WeaverEngine:
         self._last_outputs: dict[tuple[Any, ...], float] = {}
         self._transitions: dict[tuple[Any, ...], TransitionRuntime] = {}
         self._driver_seq: dict[str, int] = {}
+        self._driver_observation_watermarks: dict[tuple[str, int], tuple[tuple, int, int]] = {}
+        self._observation_sources: set[str] = set()
         self._callbacks: dict[str, InstrumentSendCallback] = {}
         self.transport = transport or RecordingOutputTransport()
         self.report_writer = report_writer
@@ -446,6 +449,25 @@ class WeaverEngine:
         captured_at_us: int | None = None,
         now_us: int | None = None,
     ) -> bool:
+        return self._ingest_source_channels(
+            source_id, stream_id, contract_id, frame_seq, channel_values,
+            captured_at_us=captured_at_us, now_us=now_us,
+        )
+
+    def _ingest_source_channels(
+        self,
+        source_id: str,
+        stream_id: str,
+        contract_id: str,
+        frame_seq: int,
+        channel_values: Mapping[str, Any],
+        *,
+        captured_at_us: int | None = None,
+        now_us: int | None = None,
+        partial_slot: int | None = None,
+        observation: ObservationEvent | None = None,
+        reset_observation_history: bool = False,
+    ) -> bool:
         receipt_perf_ns = time.perf_counter_ns()
         now = self._clock_us() if now_us is None else now_us
         if captured_at_us is not None and (
@@ -471,12 +493,23 @@ class WeaverEngine:
                     self.report_writer.count("drops")
                 return False
             declared = {item["name"]: tuple(item["range"]) for item in status.manifest["channels"]}
-            if set(channel_values) != set(declared):
+            expected = set(declared) if partial_slot is None else {
+                name for name in declared if name.startswith(f"slot_{partial_slot}_")
+            }
+            if not expected or set(channel_values) != expected:
                 self.metrics["frames_dropped"] += 1
-                raise validation("source frame must contain exactly every declared channel")
+                raise validation("source frame must contain exactly every declared channel" if partial_slot is None
+                                 else "observation must contain exactly every declared channel of its slot")
             normalized: dict[str, ValueEnvelope] = {}
             for channel_name, raw in channel_values.items():
                 envelope = _normalize_channel_value(raw, f"channels.{channel_name}", now, captured_at_us)
+                if observation is not None:
+                    envelope = replace(envelope, capture_clock=observation.capture_clock,
+                                       receipt_clock="engine_configured_us")
+                if observation is not None and (
+                    envelope.state != OBSERVED or observation.event_kind != "slot_update"
+                ):
+                    envelope = replace(envelope, captured_at_us=None)
                 low, high = declared[channel_name]
                 if envelope.state != INVALID and not low <= envelope.value <= high:
                     raise validation(f"channels.{channel_name}.value is outside [{low}, {high}]")
@@ -491,12 +524,30 @@ class WeaverEngine:
                 ):
                     raise validation(f"channels.{channel_name}.confidence must decay monotonically while held")
                 normalized[address] = envelope
+            if reset_observation_history and self._compiled_scene is not None:
+                for route in self._compiled_scene.routes:
+                    if set(route.inputs) & set(normalized):
+                        self._route_runtime[route.route_id].reset_observation_history()
             self._values.update(normalized)
+            if observation is not None:
+                self._observation_sources.add(source_id)
             status = replace(status, last_frame_seq=frame_seq, lease_deadline_us=now + int(float(status.lease_ms or 0) * 1000))
             self._sources[source_id] = status
             self.metrics["frames_accepted"] += 1
             if self.report_writer is not None:
-                self.report_writer.trace({"phase": "source_received", "source_id": source_id, "stream_id": stream_id, "frame_seq": frame_seq, "received_at_us": now, "captured_at_us": captured_at_us})
+                trace = {"phase": "source_received", "source_id": source_id, "stream_id": stream_id, "frame_seq": frame_seq, "received_at_us": now, "captured_at_us": captured_at_us}
+                if observation is not None:
+                    trace.update({"capture_clock": observation.capture_clock,
+                                  "receipt_clock": "engine_configured_us",
+                                  "scope": observation.scope, "slot": observation.slot})
+                self.report_writer.trace(trace)
+                if observation is not None:
+                    self.report_writer.trace({
+                        "phase": "driver_observation_received", "observation": observation.to_dict(),
+                        "engine_applied_at_us": now, "engine_clock": "engine_configured_us",
+                        "adapter_stream_id": stream_id, "adapter_contract_id": contract_id,
+                        "adapter_sequence": frame_seq,
+                    })
             self._run_tick_locked(now, set(normalized), receipt_perf_ns=receipt_perf_ns, input_changed=True)
             return True
 
@@ -518,6 +569,43 @@ class WeaverEngine:
 
     driver_callback = ingest_driver_frame
     on_frame = ingest_driver_frame
+
+    def ingest_driver_observation(self, event: ObservationEvent) -> bool:
+        """Explicit per-slot ingress; engine scheduling never adopts producer time."""
+        if not isinstance(event, ObservationEvent):
+            raise validation("expected ObservationEvent v2")
+        # Revalidate the channel mapping, which a caller may have mutated.
+        event.__post_init__()
+        if (event.captured_frame_id is None) != (event.captured_at_us is None):
+            raise validation("observation capture identity and time must be present together")
+        now = self._clock_us()
+        with self._lock:
+            status = self._sources.get(event.source_id)
+            if status is None or status.gate_state != "ready" or status.stream_id is None or status.runtime_contract_id is None:
+                self.metrics["frames_dropped"] += 1
+                return False
+            identity = (status.stream_id, event.stream_id, event.contract_id,
+                        event.calibration_generation, event.calibration_hash)
+            key = (event.source_id, event.slot)
+            prior = self._driver_observation_watermarks.get(key)
+            if event.captured_frame_id is not None and prior and prior[0] == identity:
+                if event.captured_frame_id <= prior[1] or event.captured_at_us <= prior[2]:
+                    self.metrics["frames_dropped"] += 1
+                    return False
+            sequence = max(status.last_frame_seq, self._driver_seq.get(event.source_id, -1)) + 1
+            accepted = self._ingest_source_channels(
+                event.source_id, status.stream_id, status.runtime_contract_id, sequence,
+                event.channel_values, captured_at_us=event.captured_at_us, now_us=now,
+                partial_slot=event.slot, observation=event,
+                reset_observation_history=prior is not None and prior[0] != identity,
+            )
+            if accepted:
+                self._driver_seq[event.source_id] = sequence
+                if event.captured_frame_id is not None:
+                    self._driver_observation_watermarks[key] = (
+                        identity, event.captured_frame_id, event.captured_at_us,
+                    )
+            return accepted
 
     def install_instrument_manifest(
         self,
@@ -1030,11 +1118,25 @@ class WeaverEngine:
             if not route.definition["enabled"]:
                 continue
             runtime = self._route_runtime[route.route_id]
+            observation_mode = any(address.split(".", 1)[0] in self._observation_sources for address in route.inputs)
             needs_time = route.destination.key in self._transitions or route.definition["validity"]["invalid"] == "hold_then_reset"
             if not (set(route.inputs) & all_changed) and not needs_time:
                 continue
+            if observation_mode and not (set(route.inputs) & all_changed):
+                policy = route.definition["validity"]
+                still_usable = all(
+                    (envelope := self._values.get(address, ValueEnvelope.invalid(now_us))).state != INVALID
+                    and envelope.confidence >= policy["min_confidence"]
+                    and (envelope.state != HELD or policy["held"] == "accept")
+                    for address in route.inputs
+                )
+                if still_usable:
+                    # Progress output transitions without resampling motion.
+                    if route.destination.key in self._transitions and runtime.last_usable_output is not None:
+                        self._dispatch_route_value(route, runtime.last_usable_output, now_us, receipt_perf_ns)
+                    continue
             self.metrics["route_evaluations"] += 1
-            value, reason = evaluate_route(route, runtime, self._values, now_us)
+            value, reason = evaluate_route(route, runtime, self._values, now_us, observation_mode=observation_mode)
             if self.report_writer is not None:
                 self.report_writer.trace({"phase": "route_evaluated", "route_id": route.route_id, "evaluated_at_us": now_us, "result": reason, "value": value})
             if reason == "reset":
@@ -1351,13 +1453,17 @@ class WeaverEngine:
             return snapshot, self._state.revision, self._event_seq
 
     def _channel_snapshot(self, envelope: ValueEnvelope) -> dict[str, Any]:
-        return {
+        result = {
             "value": envelope.value,
             "state": envelope.state,
             "confidence": envelope.confidence,
             "received_at_us": envelope.received_at_us,
             "captured_at_us": envelope.captured_at_us,
         }
+        if envelope.capture_clock is not None:
+            result.update({"capture_clock": envelope.capture_clock,
+                           "receipt_clock": envelope.receipt_clock})
+        return result
 
     def _publish_derived_source_channels(self, addresses: set[str]) -> None:
         """Broadcast derived-source channel updates on the Stage sources topic.

@@ -1,7 +1,7 @@
 # Observaciones OSC por slot — extensión v2
 
-Estado: contrato e implementación opt-in del receptor; adopción por el motor y
-los launchers históricos pendiente. Relación: #77 y R09. No cambia la sesión web
+Estado: receptor, ingreso parcial al motor y launcher histórico opt-in.
+Relación: #77 y R09. No cambia la sesión web
 cotidiana, sus fuentes PyAV/HarMoCAP ni los defaults de audio.
 
 ## Evento y relojes
@@ -51,12 +51,39 @@ exportarse por el llamador en una sesión larga.
 No conectar v2 a `Engine.ingest_driver_frame`: esa función necesita todos los
 canales declarados e inventa la secuencia de su adapter. El motor actual también
 usa un reloj configurable (por defecto de pared), distinto de la recepción
-monotónica del driver. La adopción requiere un ingreso parcial explícito que
-actualice sólo los canales recibidos, conserve identidad/metadatos y valide el
-contrato instalado sin confundirlo con el contrato del productor. Derivadas
-corporales deben consumir el reloj de captura; scheduling/leases/smoothing de
-salida conservan su reloj de operación declarado. No basta pasar
-captured_at_us como now_us ni rellenar el snapshot con slots anteriores.
+monotónica del driver. `Engine.ingest_driver_observation(event)` ofrece el ingreso
+parcial: exige exactamente los canales declarados para ese slot, verifica rangos
+antes de cambiar valores y conserva watermark por slot/identidad. El contrato y
+stream del adapter siguen sujetos al gate instalado del engine; la validación
+de hello/calibración del productor corresponde al driver. El evento no saltea
+esa validación ni autoriza automáticamente un productor nuevo.
+
+La traza `driver_observation_received` contiene el evento completo, incluido su
+reloj de recepción, y aparte adapter_stream_id, adapter_contract_id,
+adapter_sequence y engine_applied_at_us (`engine_configured_us`). Esa secuencia
+interna ordena actualizaciones parciales; no se presenta como captured_frame_id.
+Los envelopes y snapshots v2 etiquetan capture_clock y receipt_clock.
+Los envelopes held/invalid no reciben una nueva captura válida. No se reemplaza
+captured_at_us por now_us ni se rellenan snapshots con slots anteriores.
+
+Para fuentes que entran por este seam, los ticks y bundles de otras personas no
+vuelven a muestrear rutas cuyo input usable sigue igual. Las transiciones de
+salida pueden avanzar sin recalcular historia corporal. Held conserva el último
+target permitido por la política, sin renovar historia de derivada/fase/peaks;
+invalid respeta suppress/reset/hold_then_reset y permite completar el release.
+Las fuentes y callbacks legacy conservan sus reglas anteriores.
+
+En el harness de ensayo, agregar `--harmocap-events v2` selecciona este callback,
+tanto live como con `--replay`. El default es `legacy`, guardado en run_config.
+Es una opción de transporte del harness, no un preset del laboratorio corporal.
+
+**Límite pendiente:** los transforms temporales genéricos del engine mantienen
+su reloj operativo configurable; no se presentan como velocidades físicas por
+segundo del productor. Las derivadas de investigación por capture_time están en
+SlotObservationHistory y en los modelos causales del laboratorio. Habilitar
+transforms corporales por ese reloj requiere una opción explícita, compatibilidad
+de relojes entre inputs y resets por gaps/identidad. El opt-in de transporte no
+reinterpreta silenciosamente esos transforms ni certifica replay científico.
 
 R09 describe observaciones espaciales y procedencia en el laboratorio. Este
 evento describe transporte de canales OSC: no crea coordenadas 3D, calibración
@@ -69,5 +96,8 @@ a mediciones espaciales calibradas silenciosamente.
 `tests/test_harmocap_observation_events.py` usa fixtures sintéticos de dos cuerpos:
 identidad, duplicados, estados, gaps, streams/calibración, expiración, tombstone y
 callbacks fallidos. La suite histórica del driver acredita compatibilidad.
-Esto prueba software; sincronía física gesto/audio, precisión de pose, HIT y
+`tests/test_engine_driver_observations.py` verifica ingreso parcial/gating,
+held/invalid/recovery, export de ambos relojes, ausencia de resampling al recibir
+otro slot o tick, y ambas modalidades del launcher con bundles OSC reales
+sintéticos. Esto prueba software; sincronía física gesto/audio, precisión de pose, HIT y
 aceptación humana requieren evidencia independiente.

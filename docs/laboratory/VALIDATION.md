@@ -1953,3 +1953,31 @@ al motor/launchers, identidad de su contrato instalado frente al del productor y
 traza de ambos relojes sin confundirlos con el reloj operativo del engine.
 No se declara #77 completa. Fixtures sintéticos; sin datos privados, sincronía
 física ni escucha/aceptación humana acreditadas.
+
+
+### Ingreso OSC parcial en engine y launcher opt-in — 2026-10-02
+
+El engine incorpora ingest_driver_observation: valida todos los canales del slot
+contra su manifest instalado, mantiene gates/rangos y conserva watermark e IDs
+del productor separados de stream/contrato/secuencia internos del adapter.
+Los envelopes y snapshots explicitan los relojes; held/invalid no renuevan una
+captura válida. Las trazas conservan el evento completo y el reloj operativo del
+engine aparte. Recibir otro slot o un tick no remuestrea inputs utilizables; las
+transiciones de salida pueden avanzar sin recalcular historia corporal.
+Cambiar identidad/calibración reinicia la historia de derivada/fase/peaks incluso
+si se perdió la invalidación previa. El launcher de rehearsal acepta
+--harmocap-events v2; legacy sigue siendo default y se registra en run_config.
+
+86 tests seleccionados engine/transforms/pads E2E/driver pasan (66,29 s).
+27 de engine/derivadas/harness pasan tras el cambio final de etiquetas de reloj
+(1,82 s). La integración con dos personas usa bundles OSC reales sintéticos,
+tanto en modo legacy como v2; demuestra la diferencia de resampling y la
+expiración sin renovar captura. No hardware ni escucha en esa prueba.
+El laboratorio cotidiano sigue en main, sin reinicio/cambio de preset, y su
+API confirma audio running a 48 kHz. No se infiere aceptación humana.
+
+Pendiente explícito: selección del reloj de captura para transforms temporales
+genéricos, compatibilidad entre múltiples inputs/derivados y resets por gaps.
+Por ahora esos transforms conservan su reloj operativo; el consumidor research
+SlotObservationHistory usa el reloj productor. El opt-in no certifica velocidades
+físicas ni equivalencia científica del replay histórico. #77 permanece abierta.
