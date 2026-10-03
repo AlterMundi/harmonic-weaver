@@ -16,6 +16,7 @@ from pydantic import Field
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
+from .evaluation.profiles import EvaluationProfile
 from .evaluation.packages import PackageService, Selection as PackageSelection, CreateRequest as PackageCreateRequest, preview as package_preview
 from .evaluation.video_export import Settings as ComparisonExportSettings
 from .capture import CaptureSettings, CaptureSession
@@ -1000,6 +1001,20 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/captures")
     def captures():
         return {"current":capture.snapshot(), "jobs":capture.list()} if capture else {"current":{"status":"idle"}, "jobs":[]}
+
+    @app.get('/api/evaluation-profiles')
+    def evaluation_profile_list():return session.list_evaluation_profiles()
+
+    @app.post('/api/evaluation-profiles/validate')
+    def evaluation_profile_validate(body:EvaluationProfile):return body.model_dump()
+
+    @app.post('/api/evaluation-profiles')
+    def evaluation_profile_save(body:EvaluationProfile):return session.save_evaluation_profile(body)
+
+    @app.get('/api/evaluation-profiles/{ident}')
+    def evaluation_profile_load(ident:str):
+        return JSONResponse(session.load_evaluation_profile(ident).model_dump(),headers={
+            'Content-Disposition':'attachment; filename="evaluation-profile.json"'})
 
     @app.post("/api/captures/start")
     def start_capture(body: CaptureSettings):

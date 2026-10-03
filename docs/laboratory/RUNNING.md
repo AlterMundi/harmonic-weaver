@@ -700,6 +700,16 @@ cuadrática R13** ofrece un control positivo sintético conocido; no abre video 
 demuestra transferencia corporal. Los resultados añaden columnas cuadráticas sobre
 los mismos objetivos. Elegir parámetros mirando test es exploración; reservar otra
 toma antes de conclusiones. Mismo ridge no significa misma complejidad de modelos.
+
+### Reutilizar ajustes del comparador
+
+En **Comparar**, guardar un perfil de procesamiento con nombre; cargarlo recupera
+reloj de control, historia previa, presupuesto por tanda y opciones PCM. Queda en
+estado local y se puede descargar como JSON, pegar y aplicar sobre otras fuentes.
+No incorpora selección de presets, cuerpos, segmentos/calibración ni identidad
+del renderer. No inicia cálculos ni cambia una corrida congelada: repetir/continuar
+conserva su request. Preparar JSON toma controles actuales; aplicar modifica sólo
+esos controles. Si los editás durante una carga demorada, se conserva tu edición.
 La UI carga los bancos de investigación al abrir la pestaña: el bundle cotidiano
 queda separado. No cambia presets/defaults/R24 ni workspaces cotidianos.
 

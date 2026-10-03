@@ -2,6 +2,7 @@ import { EvaluationPackages } from "./EvaluationPackages";
 import { ComparisonPlayer } from "./ComparisonPlayer";
 import { useState } from "react";
 import {useConfirmedPolling} from './useConfirmedPolling';
+import {EvaluationProfiles} from './EvaluationProfiles';
 type Data = Record<string, any>;
 
 export function EvaluationPanel({
@@ -44,6 +45,8 @@ export function EvaluationPanel({
   return (
     <>
       <h2>Comparación reproducible</h2>
+      <EvaluationProfiles api={api} getDraft={()=>({control_hz:hz,preroll_s:preroll,max_runs_per_invocation:batchRuns,pcm})}
+        onApply={(profile:Data)=>{setHz(profile.control_hz);setPreroll(profile.preroll_s);setBatchRuns(profile.max_runs_per_invocation);setPCM(profile.pcm)}}/>
       {!inventory.ready&&<p role="status">Esperando inventario de comparaciones.</p>}
       {inventory.error&&<p role="alert">No se pudo actualizar las comparaciones: {inventory.error}. Se conserva el último estado confirmado; reintentando.</p>}
       <p>
