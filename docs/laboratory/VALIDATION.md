@@ -2366,3 +2366,20 @@ fases compartidas. Diagnóstico es desviación de longitudes congeladas, no
 puntaje anatómico ni evidencia de intención/HIT/coupling causal/eficiencia.
 Sin datos humanos privados, escucha ni aceptación nuevas. Servicio/UI corporal
 y contraste geométrico restringido quedan pendientes concretos.
+
+## Fourier corporal: consumidor worker/API/UI — 2026-10-03
+
+Cinco tests del nuevo servicio verifican freeze por identidad, held como inválido,
+preparación sin worker/runtime mutado, escala requerida/muestreo/preset inválidos,
+worker real repetido con idéntico snapshot, restore e integridad, cancelación de
+proceso propio e inicio concurrente rechazado. Fixtures sintéticas del bridge.
+Build TypeScript/Vite pasa; Chrome (red simulada) pasa en 1.4 s: selección
+explícita, escala inicialmente ausente, preparar/correr/abrir y Sin soporte; no
+requests al instrumento ni audio. Los 58 tests del bridge se reutilizan del
+corte anterior, dado que sus archivos permanecen intactos.
+
+Se corrigió representación tuple/list al verificar configuración serializada.
+La prueba de repetición usa un preset congelado: IDs nuevos son nuevas entradas,
+no evidencia de una diferencia numérica. Sin datos reales privados publicados,
+R24 ni servicios cotidianos modificados. Recorrido con tracking corporal real,
+sincronía física, escucha y aceptación siguen pendientes explícitos.

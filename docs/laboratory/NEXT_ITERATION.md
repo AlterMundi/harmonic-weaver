@@ -221,3 +221,34 @@ El contraste sintético de geometría restringida/espacio angular propuesto por
 Oliva queda como investigación posterior, midiendo su trade-off espectral; no
 se atribuyen cambios de descriptores únicamente a relaciones. Sin nuevo encargo
 ni mensajes a personas por esta incorporación.
+
+### Consumidor Fourier corporal de biblioteca — 2026-10-03
+
+Nueva rama implementa worker/API/UI en src/ y laboratory-ui/ sin modificar
+archivos reservados del bridge. Usa spatial_segment para congelar una generación
+completa en memoria: no reabre/copia el video ni recalcula tracking. Preparación
+es rápida y separada del cálculo cancelable. request.json/input.json contienen
+selección y MotionFrames privados; result/manifest conservan cobertura, espectros,
+longitudes, soporte común por descriptor y productores efectivos. Todo local.
+
+En Investigación → Sai–Oliva · Fourier corporal congelado: Actualizar fuentes,
+elegir fuente/persona, intervalo y ajustes JSON. Completar scale y
+scale_provenance; declarar sample_hz, canales [COCO-17, x/y], tolerancias, semillas
+y preset descriptivo con plucks desactivados. Preparar muestra exclusiones y
+bloques; Correr usa su propio snapshot vigente, no una preparación vieja.
+Abrir muestra condición/descriptor sobre soporte común, espectros y geometría
+al lado. Ausencia de soporte queda como Sin soporte, nunca cero.
+
+Descargar/importar ajustes valida Settings y permite portabilidad de métodos;
+importar limpia persona seleccionada y no inicia el cálculo. Escala/procedencia
+son declaraciones explícitas del análisis, no calibración recuperada ni inferida.
+No se modifica instrumento, fuente, tracking o síntesis. Hasta 4800 frames y
+14400 frames × semillas, con 1–4 semillas; el segmento de biblioteca admite
+hasta 120 segundos. PTS irregulares/tolerancias pueden dejar cero bloques: se
+explica en preparación sin rellenar datos. 3D se excluye explícitamente.
+
+Persistencia conserva entradas/manifests y descargas verifican integridad sin
+recalcular el banco. Cancelación/cierre afectan sólo procesos propios. La fuente
+es una generación en memoria; no prueba integridad actual de video/cache en
+disco. Pendiente: recorrido con tracking corporal real y feedback, instalación
+de la pila; contraste geométrico restringido y trabajo científico independiente.

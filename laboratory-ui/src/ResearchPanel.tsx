@@ -1,5 +1,6 @@
 import {ForecastControls,predictorLabels,defaultPredictors} from './ForecastControls';
 import {HeldoutPanel} from './HeldoutPanel';
+import {SaiBodyFourierPanel} from './SaiBodyFourierPanel';
 import {SaiFourierPanel} from './SaiFourierPanel';
 import {PhysiologyPanel} from './PhysiologyPanel';
 import {NeuroPanel} from './NeuroPanel';
@@ -50,6 +51,7 @@ export function ResearchPanel({api,run}:Data){
   <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
   <RelationalPanel api={api} run={run}/>
   <SaiFourierPanel api={api}/>
+  <SaiBodyFourierPanel api={api}/>
   <ResonatorPanel api={api} run={run}/>
   <ActivationPanel api={api} run={run}/>
   <MembranePanel api={api}/>
