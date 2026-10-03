@@ -2617,3 +2617,26 @@ el Python del proyecto. Conserva la persona explícita del request; no traslada
 calibración. Reproduce el medio completo desde start_s, sin recortar en end_s.
 Sirve el build y los servicios reales con controles sin audio; Ctrl+C lo detiene.
 Los paths e inventarios privados no deben publicarse.
+
+### Integración conjunta hasta #118 — 2026-10-03
+
+Suite completa `tests`: **1070 passed, 4 subtests passed**, sin skips/fallos,
+278.80 s. Weaver 5db9a3e; Shaper de desarrollo 516ebde; HarMoCAP lab 27b8fc2
+consultado sin modificarlo. Una advertencia de deprecación de Starlette/anyio.
+
+```bash
+SHAPER_DIR=/home/nicolas/Projects/harmonic-shaper-dev PYTHONPATH=src:tests:/home/nicolas/Projects/harmonic-shaper-dev/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q tests --maxfail=5
+```
+
+El primer comando con sólo PYTHONPATH=src falló al recolectar diez módulos por
+imports de fixtures. `pyproject.toml` incorpora tests en pythonpath para quitar
+esa dependencia manual; el comando básico `PYTHONPATH=src ... pytest --collect-only
+-q tests` recolecta las 1070 pruebas (1.82 s). Shaper sigue siendo una dependencia
+explícita para las pruebas PCM; no se inicia un servicio ni un dispositivo.
+
+Heads main de AlterMundi verificados: Weaver cc5fb57, Shaper f8bfe07, HarMoCAP
+25fda8d. Los origin de estos checkouts leen forks de Nicolás con otros main
+históricos (Pads v2); no se confunden con los heads de AlterMundi. Workspaces
+originales conservan sus cambios; laboratorio cotidiano permanece en cc5fb57
+y Shaper lab en f8bfe07. Sin checkout, merge, reprocess ni cambios de R24.
+No acredita escucha, calibración física, resultados HIT ni aceptación humana.
