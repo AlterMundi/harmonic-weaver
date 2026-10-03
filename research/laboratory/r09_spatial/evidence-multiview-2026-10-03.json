@@ -1,0 +1,59 @@
+{
+  "synthetic_only": true,
+  "physical_calibration_verified": false,
+  "environment": {
+    "python": "3.12.13",
+    "numpy": "2.5.1"
+  },
+  "module_sha256": "677ff859c3196b5b470730680e445a99ad4e56d970866e0cf72a521bf96bedff",
+  "conditions": {
+    "known": {
+      "coverage": {
+        "observed": 0,
+        "held": 0,
+        "inferred": 5,
+        "missing": 0
+      },
+      "max_error_to_known_synthetic_3d_m": 7.105644194726877e-15,
+      "max_reprojection_error_px": 8.526512829121202e-13,
+      "causes": []
+    },
+    "clock_offset": {
+      "coverage": {
+        "observed": 0,
+        "held": 0,
+        "inferred": 0,
+        "missing": 5
+      },
+      "max_error_to_known_synthetic_3d_m": null,
+      "max_reprojection_error_px": null,
+      "causes": [
+        "paired_time_difference"
+      ]
+    },
+    "low_parallax": {
+      "coverage": {
+        "observed": 0,
+        "held": 0,
+        "inferred": 0,
+        "missing": 5
+      },
+      "max_error_to_known_synthetic_3d_m": null,
+      "max_reprojection_error_px": 8.526512829121202e-13,
+      "causes": [
+        "insufficient_parallax"
+      ]
+    },
+    "wrong_pairing": {
+      "coverage": {
+        "observed": 0,
+        "held": 0,
+        "inferred": 5,
+        "missing": 0
+      },
+      "max_error_to_known_synthetic_3d_m": 0.48365093022259564,
+      "max_reprojection_error_px": 0.5952703866494042,
+      "causes": []
+    }
+  }
+}

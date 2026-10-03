@@ -516,3 +516,61 @@ una nueva conversión (dos totales), descarga nativa con IDs y frames preservado
 clock original offset0/nuevo offset2. Servidor apagado. Sin medios privados ni
 hardware, defaults/audio intactos. Retención al cerrar tab/coordinación multipestaña
 no garantizadas; exactitud física/calibración/proveedores 3D reales siguen pendientes.
+
+## Corte 35 · Adaptador de pares de cámaras calibradas
+
+`spatial_multiview.py` calcula DLT lineal offline con dos cámaras K[R|t],
+R mundo→cámara ortonormal propia y t en metros. Convención de proyección y
+triangulación: [documentación primaria OpenCV](https://docs.opencv.org/4.11.0/d9/d0c/group__calib3d.html).
+Sólo píxeles explícitamente sin distorsión; no corrige lentes ni convierte
+coordenadas frame_height/normalizadas. Baseline no nulo y calibración/evidencia/
+marco/unidades/slot declarados. No estima identidad, cámaras ni escala.
+
+Cada fila declara índice y tiempos de las dos vistas y etiquetas correspondientes;
+no matching/interpolación automático. Dos Clock deben compartir common_clock.
+Settings portables ajustan diferencia temporal, suma de incertidumbres declaradas,
+paralaje agudo mínimo y reproyección máxima de cualquiera de las dos cámaras.
+Rechaza matriz/orden/presupuesto inválidos; conserva missing ante píxeles ausentes/
+held/inferred, separación temporal, paralaje bajo, reproyección alta, punto infinito
+o detrás del plano de cámara. Hasta 48000 pares seleccionados por solicitud.
+
+Todos los puntos 3D admitidos permanecen **inferred**, sin confianza 3D inventada.
+Salida en metros/marco declarados; reloj de salida es media de los tiempos comunes
+pareados, con método declared_assumption. Inputs conservan tiempos/relojes/cámaras
+y estados/causas originales. Incertidumbre derivada de declaraciones y separación
+no es una cota medida; no afirma disponibilidad causal ni calibración física.
+
+POST /r09/multiview, GET /example y POST /configuration (sólo Settings) permiten
+web/CLI. Panel dentro de R09: cargar control sintético explícitamente o importar
+JSON, modificar umbrales, reconstruir, inspeccionar cobertura/diagnóstico/figura
+3D, exportar resultado completo y ajustes. Preset no contiene datos/cámaras/
+calibración/slot/relojes; importar no ejecuta. Usar stream lo carga como declarado
+en R09 para validar/guardar, sin conservar vínculo autenticado a cálculo/calibración.
+Conservar también resultado completo para repetir el adaptador; no writer persistido
+de triangulación/recibos/worker propio aún. No cambia fuente ni síntesis live.
+
+```bash
+OPENBLAS_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python \
+  research/laboratory/r09_spatial/reproduce_multiview.py --output /tmp/r09-multiview-new
+```
+
+Directorio nuevo: request/result por condición y summary. Cada cálculo se repite
+con inputs/entorno iguales. [Evidencia sintética](evidence-multiview-2026-10-03.json):
+known tiene 5/5 inferidos y máximo error 3D ~7.1e-15 m; offset de50 ms y mínimo
+deparalaje89° dejan 5 missing. **Wrong pairing sigue admitiendo 5 puntos, máximo
+reproyección0.595 px pero error contra verdad sintética0.484 m**. Por eso reproyección
+pequeña no certifica correspondencias/profundidad. Ninguno es resultado corporal
+ni exactitud de cámaras reales. Comparar números con tolerancias, no hashes de
+entorno/procedencia como criterio de equivalencia.
+
+26 pruebas core/HTTP/regresión R09 pasan (2.16 s), incluyendo rotación/traslación
+no trivial, soporte y entradas inválidas. Chrome sobre SpatialPanel/API reales
+pasa (1.7 s): control conocido, rechazo por paralaje, presets sin datos/no
+ejecución automática, export, visor y guardar stream declarado. Build pasa
+(1.24 s); servidores propios detenidos, sólo fixtures sintéticos.
+
+Pendientes: adquisición/extracción pareada y undistorsión con modelos de lente,
+calibración y sincronía medidas con referencia independiente, incertidumbre de
+calibración/correspondencias y triangulación robusta/multivista>2; persistencia
+del cálculo completo con procedencia y trabajo cancelable. Adaptador IMU requiere
+convenciones/export del sensor. No presume que haya cámaras/sensores instalados.

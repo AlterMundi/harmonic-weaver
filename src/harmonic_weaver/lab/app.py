@@ -77,6 +77,7 @@ from .research.rope_mask_service import RopeMaskService
 from .research.rope_mask_run import Request as RopeMaskRunRequest
 from .research.rope_mask import Settings as RopeMaskSettings
 from .research.rope_jobs import RopeJobs
+from .research.spatial_multiview import Request as MultiviewRequest, Settings as MultiviewSettings, calculate as triangulate_multiview, synthetic_request as multiview_example
 from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
 from .research.rope_annotations import Annotation as RopeAnnotation
@@ -815,6 +816,15 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r09/convert')
     def spatial_convert(body:SpatialAdapterRequest):return convert_spatial(body)
+
+    @app.post('/api/research/r09/multiview')
+    def spatial_multiview(body:MultiviewRequest):return triangulate_multiview(body)
+
+    @app.get('/api/research/r09/multiview/example')
+    def spatial_multiview_example():return multiview_example()
+
+    @app.post('/api/research/r09/multiview/configuration')
+    def spatial_multiview_configuration(body:MultiviewSettings):return body.model_dump()
 
     @app.post('/api/research/r09/validate')
     def spatial_validate(body:SpatialStream):

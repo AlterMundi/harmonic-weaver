@@ -851,3 +851,16 @@ video preparado no coincide en hash/dimensiones/reloj, el botón queda bloqueado
 No cambia borrador, correspondencias, métricas ni sonido; ayuda a revisar
 visualmente antes de declarar semilla→extremo. Referencia sin anotación inicial
 se informa sin trasladar extremos de otro tiempo. Imágenes sólo locales.
+
+### R09 · Exploración multivista inicial
+
+Investigación → Observaciones y relojes → Pares de cámaras calibradas. Cargar
+control sintético para probar sin hardware; para datos propios importar Request
+JSON con píxeles ya sin distorsión, cámaras K/R/t en metros, correspondencias,
+calibración y relojes explícitos. Ajustar tolerancias y Reconstruir pares.
+Revisar inferidos/faltantes y causas; no llamar observado al 3D resultante.
+Exportar resultado conserva entradas/método; export/import de ajustes conserva
+sólo umbrales, sin transferir cámaras/calibración/cuerpo/relojes. Import no corre.
+Usar stream carga su contrato en R09 como declaración para validar/guardar;
+conservar resultado completo aparte para repetir triangulación. No conexión
+a HarMoCAP live ni dispositivos automática. Ver README R09 para CLI/límites.
