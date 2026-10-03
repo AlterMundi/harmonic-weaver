@@ -158,3 +158,29 @@ def test_legacy_code_only_pin_cannot_be_silently_refrozen_by_cli(tmp_path):
     with pytest.raises(ValueError,match='legacy'):
         PCMWriter(tmp_path/'legacy.wav',request.pcm,begin_s=0,start_s=0,end_s=.1)
     assert not (tmp_path/'legacy.wav').exists()
+
+
+def test_pcm_resume_preserves_completed_audio_and_matches_fresh_reset_render(tmp_path):
+    source,_,_=source_fixture(tmp_path)
+    source.end_s=.5
+    request=Request(presets=[Preset(id='a'),Preset(id='b')],sources=[source],
+                    pcm=PCMSettings(enabled=True),max_runs_per_invocation=1)
+    folder=tmp_path/'batch'
+    first=run(request,folder)
+    entry=first['runs'][0]
+    before={name:(folder/name).stat().st_mtime_ns for name in (entry['file'],entry['pcm']['file'],entry['pcm']['voice_frames'])}
+    frozen=Request.model_validate_json((folder/'request.json').read_text())
+    continued=run(frozen,folder,resume=True)
+    fresh=run(frozen,tmp_path/'fresh',max_runs=2)
+    assert continued['status']=='complete'
+    for key in ('sha256','voice_frames_sha256'):
+        assert [r['pcm'][key] for r in continued['runs']]==[r['pcm'][key] for r in fresh['runs']]
+    assert continued['comparison_hashes']==fresh['comparison_hashes']
+    assert all((folder/name).stat().st_mtime_ns==stamp for name,stamp in before.items())
+    # Refuse altered completed audio before mutating the frozen partial manifest.
+    again=run(request,tmp_path/'tampered')
+    path=tmp_path/'tampered'/again['runs'][0]['pcm']['file'];path.write_bytes(b'changed')
+    original=(tmp_path/'tampered/manifest.json').read_bytes()
+    with pytest.raises(ValueError,match='artifact changed'):
+        run(Request.model_validate_json((tmp_path/'tampered/request.json').read_text()),tmp_path/'tampered',resume=True)
+    assert (tmp_path/'tampered/manifest.json').read_bytes()==original

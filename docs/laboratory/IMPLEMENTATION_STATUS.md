@@ -1584,3 +1584,18 @@ corporal privado ya cacheado, con selección/escala explícitas y repetición lo
 idéntica. No se cambiaron defaults, bridge de Oliva ni servicios cotidianos.
 Ver VALIDATION.md para evidencia y límites: recorrido web de producción con cache real verificado (audio desconectado);
 aceptación humana pendiente; el banco no valida HIT ni causalidad corporal.
+
+
+## EVAL #18 · tandas y continuación de matriz congelada
+
+Presupuesto de corridas nuevas por invocación configurable desde web/API/CLI;
+default 1024 mantiene la matriz completa admitida. partial distingue presupuesto
+agotado de resultado completo. Continuación conserva ID/entradas/corridas enteras
+verificadas, recalcula la corrida inacabada desde reset/preroll y reconstruye
+soporte común para toda la matriz. Locks, recuperación tras restart/cancelación,
+procedencia de continuación y causas previas registrados. No auto-continuación.
+
+Pruebas de API/workers/UI/PCM y contraste local corporal contra ejecución fresca
+pasan; evidencia y límites en VALIDATION.md. Contrato y recorrido en EVALUATION.md
+y RUNNING.md. No instala/mergea la pila ni acredita escucha/sincronía física,
+publicación segura de paquetes seleccionados o resultados científicos.

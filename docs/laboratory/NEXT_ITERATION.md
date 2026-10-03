@@ -268,3 +268,14 @@ La UI limpia escala/procedencia al cambiar fuente o persona, conservando método
 una edición JSON incompleta no se pierde al intentar cambiar selección. El
 recorrido web real del consumidor está verificado, no la escucha ni la apertura
 física de dispositivos. Ver VALIDATION.md y RUNNING.md.
+
+
+### EVAL #18 · continuación por corridas completas — 2026-10-03
+
+Web/API/CLI permiten presupuesto por tanda y continuación de matriz congelada,
+sin repetir corridas completas ni transportar estado de otra corrida. Ver
+EVALUATION.md/VALIDATION.md: pruebas y contraste corporal local con PCM pasan.
+Presupuesto mide corridas, no tiempo/recursos internos; cambios de método/entradas
+requieren corrida nueva. Publicación seleccionada con revisión de privacidad,
+sincronía física y feedback humano siguen pendientes concretos. Los datos
+corporales permanecen locales; no afecta el bridge reservado ni los defaults.

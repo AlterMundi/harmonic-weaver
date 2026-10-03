@@ -283,3 +283,136 @@ def test_historical_default_numeric_roundtrip_is_not_a_configuration_change():
     assert not same_request_content({'pcm':{'enabled':False}},{'pcm':{'enabled':0}})
     assert not same_request_content({'pcm':{'tail_s':0}},{'pcm':{'tail_s':.1}})
     assert not same_request_content({'pcm':{'tail_s':0}},{'pcm':{'tail_s':0,'enabled':False}})
+
+
+def test_budget_and_resume_reuse_whole_runs_and_preserve_common_support(tmp_path, monkeypatch):
+    import harmonic_weaver.lab.evaluation.runner as runner
+    source, _, _ = source_fixture(tmp_path)
+    second_source, _, _ = source_fixture(tmp_path,'b')
+    presets = [Preset(id='first'), Preset(id='second')]
+    request = Request(presets=presets, sources=[source,second_source], max_runs_per_invocation=1)
+    folder = tmp_path/'batched'
+    partial = run(request, folder)
+    assert partial['status'] == 'partial' and len(partial['runs']) == 1
+    artifact = folder/partial['runs'][0]['file']
+    before = artifact.stat(); contents = artifact.read_bytes()
+    original = runner.replay
+    replayed = []
+    def observed(preset, *args, **kwargs):
+        replayed.append(preset.id)
+        return original(preset, *args, **kwargs)
+    monkeypatch.setattr(runner, 'replay', observed)
+    identity=runner.code_identity();identity['head']='metadata-only';identity['code_sha256']='unrelated research change'
+    monkeypatch.setattr(runner,'code_identity',lambda:identity)
+    complete = run(request, folder, resume=True, max_runs=3)
+    assert complete['status'] == 'complete' and replayed == ['second','first','second']
+    assert complete['execution_budget']['max_runs']==3
+    assert complete['request']['max_runs_per_invocation']==1
+    assert artifact.read_bytes() == contents and artifact.stat().st_mtime_ns == before.st_mtime_ns
+    assert complete['continuations'][0]['reused_runs'] == 1
+    fresh = run(request.model_copy(update={'max_runs_per_invocation':1024}), tmp_path/'fresh')
+    assert [r['sha256'] for r in complete['runs']] == [r['sha256'] for r in fresh['runs']]
+    assert complete['comparison_hashes'] == fresh['comparison_hashes']
+    with pytest.raises(ValueError, match='incomplete'): run(request, folder, resume=True)
+
+
+@pytest.mark.parametrize('changed', ['request', 'trace', 'cache', 'code'])
+def test_resume_rejects_changed_completed_inputs_before_writing_manifest(tmp_path, monkeypatch, changed):
+    import harmonic_weaver.lab.evaluation.runner as runner
+    from pathlib import Path
+    source, _, _ = source_fixture(tmp_path)
+    request = Request(presets=[Preset(id='first'), Preset(id='second')], sources=[source], max_runs_per_invocation=1)
+    folder = tmp_path/'partial'
+    manifest = run(request, folder)
+    before = (folder/'manifest.json').read_bytes()
+    if changed == 'request': request.preroll_s += 1
+    elif changed == 'trace': (folder/manifest['runs'][0]['file']).write_text('changed')
+    elif changed == 'cache':
+        p=Path(source.cache_manifest);p.write_text(p.read_text()+'\n')
+    else:
+        identity=runner.code_identity();identity['replay_sha256']='changed'
+        monkeypatch.setattr(runner,'code_identity',lambda:identity)
+    with pytest.raises(ValueError): run(request, folder, resume=True)
+    assert (folder/'manifest.json').read_bytes() == before
+
+
+def test_resume_replays_failed_partial_run_and_keeps_worker_lock(tmp_path, monkeypatch):
+    import fcntl
+    import harmonic_weaver.lab.evaluation.runner as runner
+    source, _, _ = source_fixture(tmp_path)
+    request=Request(presets=[Preset(id='first'),Preset(id='second')],sources=[source])
+    folder=tmp_path/'interrupted'
+    original=runner.replay
+    # Fail after writing one valid partial row in the second run.
+    def failure(preset,*args,**kwargs):
+        for i,row in enumerate(original(preset,*args,**kwargs)):
+            yield row
+            if preset.id=='second' and i==0:raise RuntimeError('interrupted fixture')
+    monkeypatch.setattr(runner,'replay',failure)
+    with pytest.raises(RuntimeError):run(request,folder)
+    manifest=json.loads((folder/'manifest.json').read_text())
+    assert manifest['status']=='failed' and len(manifest['runs'])==1
+    monkeypatch.setattr(runner,'replay',original)
+    with (folder.parent/('.'+folder.name+'.evaluation.lock')).open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        with pytest.raises(ValueError,match='active worker'):run(request,folder,resume=True)
+    complete=run(request,folder,resume=True)
+    assert complete['status']=='complete' and len(complete['runs'])==2
+    assert complete['continuations'][0]['previous_status']=='failed'
+    assert complete['continuations'][0]['previous_error']=='interrupted fixture'
+
+
+def test_service_continues_same_job_after_restart_and_rejects_complete(tmp_path):
+    from harmonic_weaver.lab.evaluation.service import EvaluationService
+    source, _, _ = source_fixture(tmp_path)
+    store=SessionStore(tmp_path/'session',prepare=PreparedRoutes)
+    for p in (Preset(id='first'),Preset(id='second')):store.save(p)
+    class Library:
+        def list_assets(self):return [{'id':'fixture','path':source.media_path,'cache_location':source.cache_manifest}]
+    service=EvaluationService(store.data_dir,store,Library())
+    try:
+        job=service.start(['first','second'],[{'asset_id':'fixture','person_id':'one','start_s':.2,'end_s':1}],max_runs_per_invocation=1)
+        assert service.processes[job['id']].wait(timeout=30)==0
+        assert service.snapshot(job['id'])['status']=='partial'
+        from harmonic_weaver.lab.cache import atomic_json
+        folder=service.root/job['id']
+        manifest=json.loads((folder/'result/manifest.json').read_text());manifest['status']='cancelled'
+        atomic_json(folder/'result/manifest.json',manifest);atomic_json(folder/'cancelled.json',{'cancelled':True})
+        service.close()
+        service=EvaluationService(store.data_dir,store,Library())
+        assert service.snapshot(job['id'])['resume_supported']
+        resumed=service.resume(job['id'])
+        assert resumed['id']==job['id']
+        assert not (folder/'cancelled.json').exists()
+        assert service.processes[job['id']].wait(timeout=30)==0
+        assert service.report(job['id'])['manifest']['status']=='complete'
+        assert not service.snapshot(job['id'])['resume_supported']
+        with pytest.raises(ValueError):service.resume(job['id'])
+    finally:service.close();store.close()
+
+
+def test_resume_api_accepts_execution_budget_and_rejects_invalid_budget(tmp_path):
+    from types import SimpleNamespace
+    from fastapi.testclient import TestClient
+    from harmonic_weaver.lab.app import create_app
+    from uuid import uuid4
+    source, _, _=source_fixture(tmp_path)
+    root=tmp_path/'session';ident=uuid4().hex;folder=root/'evaluations'/ident;folder.mkdir(parents=True)
+    request=Request(presets=[Preset(id='first'),Preset(id='second')],sources=[source],max_runs_per_invocation=1)
+    (folder/'request.json').write_text(request.model_dump_json())
+    run(request,folder/'result')
+    runtime=SimpleNamespace(library=None,start=lambda:None,close=lambda:None,snapshot=lambda:{})
+    with TestClient(create_app(root,runtime=runtime),base_url='http://127.0.0.1') as client:
+        assert client.post(f'/api/evaluations/{ident}/resume',json={'max_runs':0}).status_code==422
+        response=client.post(f'/api/evaluations/{ident}/resume',json={'max_runs':2})
+        assert response.status_code==200,response.text
+        assert response.json()['id']==ident
+        import time
+        for _ in range(200):
+            status=client.get(f'/api/evaluations/{ident}').json()['status']
+            if status!='running':break
+            time.sleep(.05)
+        assert status=='complete'
+        report=client.get(f'/api/evaluations/{ident}/report').json()['manifest']
+        assert report['execution_budget']['max_runs']==2
+        assert report['request']['max_runs_per_invocation']==1

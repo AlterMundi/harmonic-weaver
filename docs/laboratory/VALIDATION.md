@@ -2439,3 +2439,36 @@ Esto cubre el recorrido web del análisis con tracking real congelado; no escuch
 aceptación humana ni adquisición en vivo. La salida de audio desconectada es una
 condición de prueba explícita, no evidencia de funcionamiento de la R24. Defaults
 sonoros y servicios cotidianos intactos. Sin validación científica de HIT.
+
+
+## EVAL · presupuesto y continuación entre corridas — 2026-10-03
+
+27 pruebas de evaluación/PCM pasan (16.13 s, sin skips) con Shaper-dev explícito;
+tras conservar estado/error anteriores en el manifest, tres pruebas pertinentes
+adicionales pasan (2.22 s). Verifican matriz de dos fuentes × dos presets,
+reutilización sin nuevo replay ni cambio de mtime de artefactos completos,
+paridad de traces/comparaciones frente a matriz fresca, rechazo de entradas/
+cache/artefactos/código de replay cambiados antes de escribir manifest, lock,
+recálculo de corrida parcial fallida, conservación de error previo, recuperación
+tras restart/cancel marker, API y cambio de presupuesto sin mutar request.
+Cambios de HEAD/hash global de investigación no bloquean continuación si la
+identidad del replay se conserva. Normalización JSON al congelar evita diferencias
+int/float de defaults al recuperar una entrada idéntica.
+
+PCM: WAV y estados de osciladores completados permanecen sin reescritura; los
+renders restantes con reset/preroll coinciden byte por byte con render fresco.
+Audio completo alterado se rechaza antes de mutar el manifest incompleto.
+Build TypeScript/Vite pasa. Dos pruebas Chrome aisladas (presupuesto/continuación
+y controles/artefactos PCM) pasan; UI usa red simulada, backend usa workers reales.
+
+Verificación privada adicional: cache corporal existente, selección/escala de la
+misma generación y presets de referencia de seis voces. Dos segmentos cortos ×
+dos presets, tanda de una corrida y continuación de tres. Features, WAV, estados
+de osciladores y reportes sobre soporte común coinciden con ejecución completa
+nueva en este entorno. No se recalculó tracking, copió video ni abrió dispositivo
+de audio. Resultados y entrada corporal permanecen locales; no publicados.
+
+Presupuesto limita corridas enteras, no costo de una corrida. Sin recuperación de
+estado a mitad de modelo/PCM ni claim de checkpoint físico. No prueba escucha,
+latencia audiovisual física, aceptación humana ni conclusiones científicas.
+Defaults sonoros, R24 y servicios cotidianos intactos.

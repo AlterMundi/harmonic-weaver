@@ -14,6 +14,7 @@ export function EvaluationPanel({
   const [segments, setSegments] = useState<Data>({});
   const [preroll, setPreroll] = useState(2);
   const [hz, setHz] = useState(60);
+  const [batchRuns, setBatchRuns] = useState(1024);
   const [pcm, setPCM] = useState<Data>({
     enabled: false,
     sample_rate: 48000,
@@ -207,6 +208,10 @@ export function EvaluationPanel({
           />
         </label>
       </div>
+      <label>Máximo de corridas por tanda
+        <input type="number" min={1} max={1024} step={1} value={batchRuns} onChange={e=>setBatchRuns(+e.target.value)}/>
+      </label>
+      <p>Una corrida es un preset × segmento. Al alcanzar el límite, continuar conserva las corridas terminadas y calcula las restantes con reset e historia previa; no recupera un estado a mitad de corrida.</p>
       <fieldset>
         <legend>Render de audio opcional</legend>
         <label>
@@ -258,6 +263,7 @@ export function EvaluationPanel({
               segments: Object.values(segments),
               preroll_s: preroll,
               control_hz: hz,
+              max_runs_per_invocation: batchRuns,
               pcm,
             });
             setJobs(await api("evaluations"));
@@ -279,6 +285,7 @@ export function EvaluationPanel({
               Cancelar comparación
             </button>
           )}
+          {j.resume_supported && <button disabled={jobs.some(job=>job.status==='running')} onClick={()=>run(async()=>{await api(`evaluations/${j.id}/resume`,{max_runs:batchRuns});setJobs(await api('evaluations'))})}>Continuar comparación congelada</button>}
           {j.status === "complete" && (
             <button
               onClick={() =>

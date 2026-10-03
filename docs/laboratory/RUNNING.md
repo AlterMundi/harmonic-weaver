@@ -745,3 +745,21 @@ resultados privados; mantenerlos locales. El banco es offline y no modifica
 tracking, transporte ni síntesis. Requiere el bridge integrado del checkout.
 Ver VALIDATION.md para el recorrido automático con cache corporal real y sus
 límites: salida de audio desconectada en esa instancia, sin aceptación humana.
+
+
+## Comparador · continuar por tandas
+
+En Comparación, Máximo de corridas por tanda permite repartir presets × segmentos
+sin repetir lo ya terminado. Default 1024 conserva la matriz completa habitual.
+Elegir 1 para una primera tanda corta; cuando aparezca partial, ajustar el límite
+y pulsar Continuar comparación congelada. Se conserva el ID y la configuración
+original, aunque se hayan editado los presets guardados después. El nuevo límite
+aplica a las corridas que faltan y queda registrado como presupuesto de ejecución.
+
+Tras cancelación o reinicio, el botón aparece sólo si existe manifest incompleto
+con contrato de continuación. La corrida que quedó a medias comienza otra vez con
+reset/historia previa; las completas se conservan. Ver comparación se habilita al
+completar toda la matriz. Repetir configuración congelada crea una comparación
+nueva; no equivale a continuar. Si cambió código de replay, tracking o un artefacto
+completo, se informa el error y se requiere repetir como nueva. Detalles/API/CLI
+en EVALUATION.md. No modifica el instrumento ni obliga a evaluar antes de jugar.

@@ -46,6 +46,7 @@ class Request(Contract):
     control_hz: int = Field(default=60, ge=10, le=240)
     preroll_s: Number = Field(default=2., ge=0, le=30)
     pcm: PCMSettings = Field(default_factory=PCMSettings)
+    max_runs_per_invocation: int = Field(default=1024, ge=1, le=1024)
 
     @model_validator(mode="after")
     def compatible(self):
@@ -158,18 +159,100 @@ def code_identity():
     files = sorted((root/"src/harmonic_weaver/lab").rglob("*.py"))
     files += sorted((root/"research/movement-consonance/consonance").glob("*.py"))
     hashes = {str(p.relative_to(root)): sha256_file(p) for p in files}
+    replay_names = {'analysis_math.py', 'collective.py', 'contracts.py', 'kinematics.py',
+                    'legacy.py', 'models.py', 'routing.py', 'runtime.py', 'store.py',
+                    'transport.py', 'quality.py', 'cache.py'}
+    replay_files = {name: checksum for name, checksum in hashes.items()
+        if (Path(name).parent == Path('src/harmonic_weaver/lab') and Path(name).name in replay_names)
+        or name in ('src/harmonic_weaver/lab/evaluation/runner.py', 'src/harmonic_weaver/lab/evaluation/pcm.py')
+        or name.startswith('research/movement-consonance/consonance/')}
     def git(*args):
         result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
         return result.stdout.strip() if result.returncode == 0 else None
     return {"head": git("rev-parse", "HEAD"), "working_tree": git("status", "--porcelain"),
             "files": hashes, "code_sha256": digest(hashes),
+            "replay_files": replay_files, "replay_sha256": digest(replay_files),
             "python": platform.python_version(), "platform": platform.platform(),
             "packages": {n: importlib.metadata.version(n) for n in ("numpy", "pydantic")}}
 
 
-def run(request: Request, output: Path, *, progress=None):
+def resumed_support(output, entry):
+    support = {}
+    with (output/entry['file']).open() as handle:
+        for line in handle:
+            row = json.loads(line)
+            for key, signal in (row['features'] or {}).get('signals', {}).items():
+                if signal['state'] == 'observed' and signal['value'] is not None:
+                    support.setdefault(key, set()).add(row['tick'])
+    return support
+
+
+def resume_manifest(request, output, code):
+    """Reuse whole verified runs; never restore partial model/oscillator state."""
+    def document(name):
+        path = output/name
+        if path.is_symlink() or not path.is_file():
+            raise ValueError('Missing or invalid resume document')
+        return json.loads(path.read_text())
+    manifest = document('manifest.json')
+    if manifest['status'] not in ('running', 'interrupted', 'cancelled', 'failed', 'partial'):
+        raise ValueError('Only an incomplete evaluation can continue')
+    frozen = request.model_dump()
+    if any(digest(value) != manifest['request_sha256'] for value in (document('request.json'), manifest['request'], frozen)):
+        raise ValueError('Frozen request changed; repeat as a new evaluation')
+    previous = manifest['code']
+    if not previous.get('replay_sha256') or any(previous.get(key) != code.get(key) for key in ('replay_sha256', 'python', 'packages')):
+        raise ValueError('Replay code or numerical dependencies changed; repeat as a new evaluation')
+    seen = set()
+    for entry in manifest['runs']:
+        si, pi = entry['source_index'], entry['preset_index']
+        if not 0 <= si < len(request.sources) or not 0 <= pi < len(request.presets) or (si, pi) in seen:
+            raise ValueError('Invalid completed-run inventory')
+        seen.add((si, pi))
+        if entry['preset_sha256'] != digest(request.presets[pi].model_dump()):
+            raise ValueError('Completed preset changed')
+        expected_name = f'source-{si:02d}-preset-{pi:02d}.jsonl'
+        if entry['file'] != expected_name:
+            raise ValueError('Invalid completed-run filename')
+        artifacts = [(entry['file'], entry['sha256'])]
+        if request.pcm.enabled:
+            pcm = entry['pcm']
+            for key, suffix, checksum in (('file', '.wav', 'sha256'), ('voice_frames', '.voice-frames.jsonl', 'voice_frames_sha256')):
+                if pcm[key] != str(Path(expected_name).with_suffix(suffix)):
+                    raise ValueError('Invalid completed PCM filename')
+                artifacts.append((pcm[key], pcm[checksum]))
+        for name, expected in artifacts:
+            path = output/name
+            if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:
+                raise ValueError('Completed artifact changed; cannot continue')
+    for record in manifest['source_records']:
+        index = record['source_index']
+        if not 0 <= index < len(request.sources) or sha256_file(request.sources[index].cache_manifest) != record['cache_manifest_sha256']:
+            raise ValueError('Frozen cache generation changed; cannot continue')
+    return manifest
+
+
+def run(request: Request, output: Path, *, progress=None, resume=False, max_runs=None):
+    import fcntl
+    request = Request.model_validate_json(request.model_dump_json())
+    if max_runs is not None and (type(max_runs) is not int or not 1 <= max_runs <= 1024):
+        raise ValueError('Choose 1..1024 runs per invocation')
     output = Path(output)
-    output.mkdir(parents=True, exist_ok=False)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = output.parent/('.'+output.name+'.evaluation.lock')
+    if lock_path.is_symlink() or output.is_symlink():
+        raise ValueError('Invalid evaluation directory or lock')
+    with lock_path.open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ValueError('Evaluation already has an active worker') from exc
+        return _run(request, output, progress=progress, resume=resume, max_runs=max_runs)
+
+
+def _run(request: Request, output: Path, *, progress=None, resume=False, max_runs=None):
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=resume)
     if request.pcm.enabled:
         identity = engine_identity()
         if request.pcm.engine_sha256 and request.pcm.engine_sha256 != identity["code_sha256"]:
@@ -181,10 +264,13 @@ def run(request: Request, output: Path, *, progress=None):
         request = request.model_copy(deep=True)
         request.pcm.engine_sha256 = identity["code_sha256"]
         request.pcm.environment_sha256 = identity['environment_sha256']
+    budget = request.max_runs_per_invocation if max_runs is None else max_runs
     frozen = request.model_dump()
-    atomic_json(output/"request.json", frozen)
+    code = code_identity()
+    previous = resume_manifest(request, output, code) if resume else None
+    if not resume: atomic_json(output/"request.json", frozen)
     manifest = {"format": 1, "status": "running", "request_sha256": digest(frozen),
-                "code": code_identity(), "request": frozen, "seed": 0,
+                "code": code, "request": frozen, "seed": 0,
                 "clock": "logical_replay", "output_stage": "voice_targets_before_shaper",
                 "audio_stage": "post_shape_master_soft_limiter" if request.pcm.enabled else None,
                 "units": "per FeatureFrame signal; no combined scientific score",
@@ -192,18 +278,35 @@ def run(request: Request, output: Path, *, progress=None):
                 "limits": ["Logical block rendering is not physical latency or subjective loudness" if request.pcm.enabled else "No PCM/audio rendering or physical latency measurement",
                            "Coverage is availability, not geometric precision",
                            "Private local paths and features: review before sharing"]}
+    if previous is not None:
+        manifest = previous
+        continuation = {'reused_runs': len(manifest['runs']), 'code': code, 'max_runs': budget,
+                        'previous_status': manifest['status'], 'previous_error': manifest.get('error')}
+        manifest['status'] = 'running'
+        manifest.pop('error', None)
+        manifest.setdefault('continuations', []).append(continuation)
+    manifest['execution_budget'] = {'max_runs': budget, 'unit': 'new whole preset x segment runs'}
+    completed = {(e['source_index'], e['preset_index']): e for e in manifest['runs']}
+    added = 0
     atomic_json(output/"manifest.json", manifest)
     try:
         cache = TrackingCache(output/".cache-index")
         for source_index, source in enumerate(request.sources):
             track = load_source(source, cache)
-            manifest["source_records"].append({"source_index": source_index,
+            if not any(r["source_index"] == source_index for r in manifest["source_records"]):
+                manifest["source_records"].append({"source_index": source_index,
                 "cache_manifest_sha256": sha256_file(source.cache_manifest),
                 "cache_manifest": track.manifest, "coverage": coverage(track.frames,
                     start_s=source.start_s, end_s=source.end_s, person_id=source.person_id)})
             per_source = []
             for preset_index, preset in enumerate(request.presets):
+                existing = completed.get((source_index, preset_index))
+                if existing is not None:
+                    per_source.append((existing, resumed_support(output, existing)))
+                    continue
                 name = f"source-{source_index:02d}-preset-{preset_index:02d}.jsonl"
+                for candidate in (output/name, output/Path(name).with_suffix('.wav'), output/Path(name).with_suffix('.voice-frames.jsonl')):
+                    if candidate.is_symlink(): raise ValueError('Invalid partial-run artifact')
                 support, summaries = {}, {}
                 gain_sum, sounding, nrows = 0., 0, 0
                 writer = PCMWriter(output/Path(name).with_suffix('.wav'), request.pcm,
@@ -254,10 +357,15 @@ def run(request: Request, output: Path, *, progress=None):
                                         "observed_fraction_on_control_clock": v["count"]/max(nrows, 1)} for k,v in summaries.items()}}
                 if pcm_result: entry["pcm"] = pcm_result
                 manifest["runs"].append(entry)
+                added += 1
                 per_source.append((entry, support))
                 atomic_json(output/"manifest.json", manifest)
                 if progress:
                     progress(len(manifest["runs"]), len(request.sources)*len(request.presets))
+                if added >= budget and len(manifest['runs']) < len(request.sources)*len(request.presets):
+                    manifest['status'] = 'partial'
+                    atomic_json(output/'manifest.json', manifest)
+                    return manifest
             common = set.intersection(*(set(support) for _, support in per_source)) if per_source else set()
             comparisons, common_ticks = {}, {}
             for signal in sorted(common):
