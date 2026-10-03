@@ -306,11 +306,72 @@ Código/entorno coincidentes no son una prueba numérica; hashes locales no son
 custodia firmada. El banco sigue siendo sintético y no valida una membrana física.
 No se cambian defaults del instrumento ni se aplica nada al audio live.
 
+## Recuperación de atributos en casos reservados
+
+`membrane_readout` lee exclusivamente figuras RMS calculadas desde el PCM final.
+La selección local declara un ID de proyección R07, rol train/test, grabación,
+grupo corporal y valores de atributos en unidades explícitas. El servicio
+verifica y congela figuras existentes; las etiquetas entran después, en el
+decodificador, y no modifican el sonido ni la membrana.
+
+En Investigación → **R07 · Recuperación de atributos reservados**:
+
+1. Editar/validar el preset: atributos/unidades, reserva within_take/take/subject,
+   ridge, normalización, embargo y semilla. Exportarlo no incluye casos ni etiquetas.
+2. Actualizar figuras disponibles. Agregar casos con IDs de grabación/grupo y
+   atributos declarados; el JSON de casos permite corregir o retirar selecciones.
+   Conservar el mismo ID de grabación entre renders/presets de una toma.
+3. Calcular con al menos tres casos train y dos test, mismo medio y grilla de
+   2×2 a32×32. Ventanas idénticas de un PCM no cuentan como múltiples casos.
+   take/subject excluyen grabación o PCM compartidos; subject excluye grupo
+   compartido. within_take exige entrenamiento anterior y embargo declarado.
+   Entre PCM distintos de la misma grabación, el origen temporal se toma del
+   manifest R05 verificado; si ya no está disponible, no se inventa ese offset.
+4. Comparar siete lecturas sobre exactamente los mismos casos reservados:
+   media train, ridge del RMS completo/forma/magnitud y sus controles train-label
+   shuffle. Cada atributo conserva su MSE y unidad²; no promediamos unidades
+   incompatibles. Normalización/intercepto/coefs usan exclusivamente train.
+5. Descargar dataset/result/manifest o reabrir la corrida. La lectura verifica
+   integridad y binding de casos/atributos; recálculo explícito verifica números
+   sin sobrescribir archivos. Una diferencia de código/entorno se informa aparte.
+
+La forma divide cada vector por su norma L2; un campo cero produce forma cero.
+La magnitud es norma L2 sobre puntos de grilla, no loudness ni energía física.
+Una tolerancia relativa de resolución numérica evita amplificar a varianza
+unitaria el roundoff de formas constantes. El solve dual limita el trabajo a
+64 casos; no hay renderer, captura ni audio en esta comparación síncrona.
+Publicación usa staging; restos de staging no aparecen como corridas completas.
+No se afirma recuperación tras corte de energía en todos los puntos de rename.
+
+CLI sobre un dataset congelado local:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.membrane_readout_run \
+  --dataset DATASET.json --output NUEVA_CARPETA
+```
+
+`verify(folder)` comprueba integridad; `verify(folder,recompute=True)` compara
+contra el decodificador actual, tolerancias rel1e-12/abs1e-15. No necesita los PCM
+ni las proyecciones originales después de congelar el dataset. El snapshot
+contiene RMS, etiquetas e IDs: mantenerlo local cuando provenga de datos corporales.
+
+Control ejecutado en fixture sintético R05→PCM→R07: seis ganancias declaradas
+(train .2/.4/.6/.8, test .3/.7), mismo medio y figura5×5, ridge .001. MSE de
+ganancia en los dos casos comunes: media train .04; campo completo
+3.0862482930651985e-11; magnitud2.498750468642882e-9; forma normalizada .04.
+El control shuffle del campo completo dio .0016003555654286051. La recuperación
+es de una ganancia codificada explícitamente: prueba el canal configurado y
+su confusión con magnitud, no HIT ni información corporal. No aporta significancia
+ni independencia humana. Shuffle tampoco conserva autocorrelación temporal.
+
 ## Pendientes de entrega e investigación
 
 El adaptador PCM R05, campos/RMS, workers, recuperación, API/UI y controles
 transientes están implementados; sus cortes y pruebas se registran arriba.
-- Banco reproducible de señales/control y recuperación de atributos reservados.
+- Usar el banco de recuperación con atributos del movimiento declarados y tomas
+  independientes; ampliar controles de espectro/temporalidad y probar estabilidad
+  frente al medio/resolución. IDs declarados no certifican identidad ni ceguera
+  prospectiva. Ajustar mirando la prueba convierte la comparación en exploratoria.
   Las semejanzas de figuras no demuestran información conservada ni HIT.
 - Medio físico: faltan actuador, membrana/material/bordes caracterizados,
   observación sincronizada y calibración. No se ha realizado escucha ni ensayo

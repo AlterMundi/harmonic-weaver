@@ -10,6 +10,7 @@ import {ActivationPanel} from './ActivationPanel';
 import {MembranePanel} from './MembranePanel';
 import {MembraneTransferPanel} from './MembraneTransferPanel';
 import {MembraneControlsPanel} from './MembraneControlsPanel';
+import {MembraneReadoutPanel} from './MembraneReadoutPanel';
 import {ResonatorPanel} from './ResonatorPanel';
 import {CoincidencePanel} from './CoincidencePanel';
 import {BodyResearchPanel} from './BodyResearchPanel';
@@ -49,6 +50,7 @@ export function ResearchPanel({api,run}:Data){
   <MembranePanel api={api}/>
   <MembraneTransferPanel api={api}/>
   <MembraneControlsPanel api={api}/>
+  <MembraneReadoutPanel api={api}/>
   <RopePanel api={api}/>
   <SpatialPanel api={api}/>
   <ExperiencePanel api={api}/>

@@ -652,3 +652,16 @@ Histórico indica code_matches_current; no se promueve silenciosamente.
 Protocolo completo/controles/dependencias: `research/laboratory/R13_TRANSFER_PROTOCOL.md`.
 La UI carga los bancos de investigación al abrir la pestaña: el bundle cotidiano
 queda separado. No cambia presets/defaults/R24 ni workspaces cotidianos.
+
+### R07 · Recuperar atributos desde figuras sonoras
+
+En la rama de desarrollo: Investigación → **R07 · Recuperación de atributos
+reservados**. Validar el preset sin fuentes; agregar figuras R07 ya calculadas,
+roles train/test, IDs de grabación/grupo y atributos/unidades declarados. Calcular
+compara RMS completo, forma y magnitud sobre los mismos casos reservados. Se
+guardan snapshots/resultados en `$DATA_DIR/research/r07-readout/<id>/`; pueden
+reabrirse y recalcularse sin los PCM originales. No aplica cambios a live.
+
+[Recorrido, contratos y control sintético](../../research/laboratory/r07_membrane/README.md#recuperación-de-atributos-en-casos-reservados).
+Los IDs y atributos son declaraciones; falta validación con tomas independientes
+y mediciones humanas. No se modificaron el launcher ni los defaults de R24.

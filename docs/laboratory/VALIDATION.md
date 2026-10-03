@@ -2094,3 +2094,28 @@ sin sobrescritura. Build TypeScript/Vite pasa. Chrome HTTP real verifica lectura
 de procedencia histórica simulada, recálculo y conservación de bytes de resultado
 y manifest (1 test). Fixture aislado8902; datos sintéticos, sin hardware ni audio.
 Recuperación de atributos reservados y ensayo físico/humano siguen pendientes.
+
+## R07: decodificación de atributos reservados — 2026-10-03
+
+Dataset de figuras RMS verificadas de PCM R05, separado de etiquetas del decoder.
+Reservas temporal/toma/grupo, embargo y detección de PCM/ventana repetidos. Mismo
+medio/grilla; modelos full/shape/magnitude, media train y controles label-shuffle
+comparten soporte test. Normalización/coefs train-only, MSE por atributo/unidad².
+API/UI/preset portable, snapshots sin copiar PCM, staging, reapertura/recompute.
+
+63 pruebas pertinentes R07/backend/API pasan (8.90s). Tras precisar binding de
+etiquetas/inventarios y origen temporal de PCM distintos,20 pruebas del nuevo
+núcleo/archivo/API pasan (1.86s), incluyendo rehash de target alterado. Cubren confusión con magnitud,
+atributo espacial a magnitud constante, zero/multiatributo, train-only, reservas,
+integridad/tolerancias/repetición y reapertura aun sin fuentes originales.
+Entre renders de una toma, el embargo usa el origen R05 verificado y no índices
+de muestras relativos como si compartieran un cero. Origen ausente se rechaza
+para esa comparación; casos de un mismo PCM conservan su reloj común.
+Build TypeScript/Vite pasa. Chrome HTTP real (3.6s): seis figuras de PCM sintético,
+preset sin casos, dos resultados byte-idénticos, tabla de siete lecturas,
+recálculo, reload y rechazo de reserva inválida sin registro nuevo.
+
+Fixture8903 detenido. Control de ganancia muestra recuperación desde RMS completo/
+magnitud y resultado nulo desde shape (valores en README R07). Sólo control de
+canal sintético; faltan atributos corporales/tomas independientes, medios físicos,
+aceptación humana y controles científicos más amplios. Audio/defaults intactos.
