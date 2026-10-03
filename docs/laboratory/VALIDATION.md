@@ -2235,3 +2235,28 @@ byte-idénticos, tabla 3 controles×4 calendarios y selección de traza desplaza
 CLI de referencia +verify pasan; observaciones sintéticas en README R06.
 Fixture8909 detenido; audio/servicios cotidianos/defaults preservados.
 No controles corporales, aceptación perceptual ni confirmación HIT.
+
+## Integración de la pila #86–101 — 2026-10-03
+
+Suite conjunta de laboratorio/research: **726 passed**, sin skips, 157.41s.
+Se corrigieron dos imports de fixtures que dependían del orden de colección.
+Las pruebas que usan PCM/captura de Shaper requieren su checkout explícito en
+PYTHONPATH además de SHAPER_DIR; no se instala ni inicia un servicio de audio.
+
+```bash
+SHAPER_DIR=/home/nicolas/Projects/harmonic-shaper-dev PYTHONPATH=src:tests:/home/nicolas/Projects/harmonic-shaper-dev/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q tests/test_lab_*.py tests/research/test_*.py --maxfail=5
+```
+
+Observaciones/driver HarMoCAP, escenas de ingreso/derivadas y transform derivative:
+45 pruebas adicionales pasan (2.22s). No nuevas modificaciones de audio/UI;
+evidencia de build y Chrome de #101 sigue válida. No escucha/latencia física nueva.
+Shaper seleccionado `00893ad`: fuentes productivas iguales a main `f8bfe07`,
+diferencia sólo en test_shaper_contract.py. Weaver main sigue `cc5fb57`; la pila
+abierta no está instalada en el laboratorio cotidiano. HarMoCAP main `25fda8d`,
+workspace original con cambios preservados, sin checkout/reset/retracking.
+
+IMPLEMENTATION_STATUS.md actualiza el resumen vigente R01–R13 y distingue
+entregas existentes de pendientes: LAB-09 aún no exporta skeleton/figura ni
+consulta recovery in-flight de Shaper; R01/R13 requieren ampliación de modelos/
+reservas; hardware, participantes y aceptación quedan explícitos. No se marca
+completo el roadmap a partir de estas pruebas.
