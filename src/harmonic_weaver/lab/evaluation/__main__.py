@@ -6,9 +6,11 @@ def main():
     parser = argparse.ArgumentParser(description="Replay causal de presets × fuentes; PCM opcional sin dispositivo")
     parser.add_argument("request", type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument('--resume', action='store_true', help='Reuse verified whole runs from an incomplete output')
+    parser.add_argument('--max-runs', type=int, help='Override execution budget without changing frozen analysis settings')
     args = parser.parse_args()
     request = Request.model_validate_json(args.request.read_text())
-    result = run(request, args.output, progress=lambda n, total: print(f"{n}/{total}", flush=True))
+    result = run(request, args.output, resume=args.resume, max_runs=args.max_runs, progress=lambda n, total: print(f"{n}/{total}", flush=True))
     print(f"{result['status']}: {args.output / 'manifest.json'}")
 
 if __name__ == "__main__":

@@ -139,6 +139,11 @@ class EvaluationRequest(Contract):
     control_hz: int = Field(default=60, ge=10, le=240)
     preroll_s: Number = Field(default=2, ge=0, le=30)
     pcm: PCMSettings = Field(default_factory=PCMSettings)
+    max_runs_per_invocation: int = Field(default=1024, ge=1, le=1024)
+
+
+class EvaluationResumeRequest(Contract):
+    max_runs: int | None = Field(default=None, ge=1, le=1024)
 
 
 class CoincidenceRequest(Contract):
@@ -1355,7 +1360,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         @app.post("/api/evaluations")
         def start_evaluation(body: EvaluationRequest):
             return evaluation.start(body.preset_ids, [s.model_dump() for s in body.segments],
-                                    control_hz=body.control_hz, preroll_s=body.preroll_s, pcm=body.pcm.model_dump())
+                                    control_hz=body.control_hz, preroll_s=body.preroll_s, pcm=body.pcm.model_dump(),
+                                    max_runs_per_invocation=body.max_runs_per_invocation)
 
         @app.get("/api/evaluations")
         def list_evaluations():
@@ -1368,6 +1374,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         @app.post("/api/evaluations/{ident}/cancel")
         def cancel_evaluation(ident: str):
             return evaluation.cancel(ident)
+
+        @app.post("/api/evaluations/{ident}/resume")
+        def resume_evaluation(ident: str, body: EvaluationResumeRequest):
+            return evaluation.resume(ident, max_runs=body.max_runs)
 
         @app.post("/api/evaluations/{ident}/repeat")
         def repeat_evaluation(ident: str):

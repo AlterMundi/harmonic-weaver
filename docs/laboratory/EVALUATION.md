@@ -268,3 +268,48 @@ locales. La prueba reproducible de software es comparisonRealNetwork.spec.ts y
 requiere LAB_AB_API_URL, LAB_AB_JOB (corrida completa ≥2 presets del mismo segmento)
 y LAB_COMPONENT_TEST_URL con proxy /api hacia esa API aislada; no apunta por
 defecto a sesiones compartidas ni inicia hardware.
+
+
+## Tandas y continuación de una comparación — 2026-10-03
+
+`max_runs_per_invocation` (1..1024, default 1024) acota corridas nuevas por
+invocación; una corrida es preset × segmento. El default ejecuta toda matriz
+admitida de hasta 32 × 32. No limita segundos, RAM ni CPU dentro de una corrida.
+Al alcanzar el presupuesto sin terminar la matriz, manifest/status quedan
+`partial`; todavía no se presentan como comparación completa. La web ofrece
+Continuar comparación congelada y usa el presupuesto actualmente elegido.
+
+POST `/api/evaluations/{id}/resume` recibe `{ "max_runs": 3 }` o `{}` para usar
+el presupuesto original. Conserva ID, request congelado y corridas completas.
+La continuación verifica request, cache identificado y hashes de artefactos
+completos, incluido WAV/estado de osciladores cuando corresponde. Rechaza cambios
+en código de replay, Python o versiones de dependencias numéricas; cambios de
+HEAD/metadatos o bancos ajenos al replay no bloquean por sí solos. El renderer
+PCM conserva además su contrato previo de motor/entorno congelados.
+
+Sólo se reutilizan corridas enteras declaradas en el manifest. La corrida
+inacabada se calcula de nuevo desde reset/preroll y sobrescribe sus artefactos
+parciales; no restaura historia del modelo ni fase a mitad del render. Los
+artefactos completos no se reescriben. Soporte común y comparaciones se reconstruyen
+leyendo las traces verificadas de toda la matriz, no usando sólo la última tanda.
+El manifest registra presupuesto efectivo, corridas reutilizadas, código de
+continuación, estado/error anteriores; process.log conserva los intentos.
+
+Un lock por directorio de resultado impide dos workers simultáneos sobre esa
+comparación. Cancelación/reinicio no inicia una continuación automáticamente.
+Sólo se continúa un resultado incompleto con contrato nuevo y manifest válido;
+una corrida completa, legacy sin identidad de replay o cancelada antes de publicar
+su primer manifest se repite como nueva. Repetir conserva el camino anterior.
+
+CLI, desde el checkout correspondiente:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python -m harmonic_weaver.lab.evaluation \
+  /ruta/request.json --output /ruta/resultado-nuevo --max-runs 1
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python -m harmonic_weaver.lab.evaluation \
+  /ruta/request.json --output /ruta/resultado-nuevo --resume --max-runs 3
+```
+
+Para PCM usar el mismo SHAPER_DIR/extras que el render inicial. El presupuesto
+CLI es un ajuste de ejecución registrado, no una modificación de método/preset.
+Ver VALIDATION.md para pruebas sintéticas, PCM y tracking corporal privado.

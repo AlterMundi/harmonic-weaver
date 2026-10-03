@@ -8,7 +8,7 @@ import threading
 from uuid import uuid4
 
 from ..cache import atomic_json, sha256_file
-from .runner import Request, Source, digest
+from .runner import Request, Source, digest, resume_manifest, code_identity
 from .pcm import PCMSettings, engine_identity
 
 
@@ -48,7 +48,7 @@ class EvaluationService:
                                          "directory": str(folder/"result")}
                 self.processes[folder.name] = None
 
-    def start(self, preset_ids, segments, *, control_hz=60, preroll_s=2., pcm=None):
+    def start(self, preset_ids, segments, *, control_hz=60, preroll_s=2., pcm=None, max_runs_per_invocation=1024):
         with self._lock:
             if any(p is not None and p.poll() is None for p in self.processes.values()):
                 raise ValueError("Ya hay una comparación activa")
@@ -70,7 +70,8 @@ class EvaluationService:
                     torso_scale=calibration["torso_scale"] if calibration else None,
                     calibration_provenance=calibration["provenance"] if calibration else None))
             request = Request(presets=[self.store.load(i) for i in preset_ids], sources=sources,
-                              control_hz=control_hz, preroll_s=preroll_s, pcm=PCMSettings.model_validate(pcm or {}))
+                              control_hz=control_hz, preroll_s=preroll_s, pcm=PCMSettings.model_validate(pcm or {}),
+                              max_runs_per_invocation=max_runs_per_invocation)
             return self._launch(request)
 
     def repeat(self, ident):
@@ -98,6 +99,24 @@ class EvaluationService:
                 raise ValueError('Corrida legacy sin entorno congelado: crear una comparación nueva; no se conoce su entorno original')
             return self._launch(request)
 
+    def resume(self, ident, *, max_runs=None):
+        if max_runs is not None and (type(max_runs) is not int or not 1 <= max_runs <= 1024):
+            raise ValueError('Elegí 1..1024 corridas por tanda')
+        with self._lock:
+            if any(p is not None and p.poll() is None for p in self.processes.values()):
+                raise ValueError("Ya hay una comparación activa")
+            job = self.snapshot(ident)
+            if not job.get('resume_supported'):
+                raise ValueError('Esta comparación no admite continuación; repetir como nueva')
+            folder = self.root/ident
+            if folder.is_symlink(): raise ValueError('Directorio de comparación inválido')
+            request = Request.model_validate_json(self._artifact_path(folder/'result','request.json').read_text())
+            if not same_request_content(json.loads(self._artifact_path(folder,'request.json').read_text()), request.model_dump()):
+                raise ValueError('La configuración congelada cambió desde la corrida')
+            # Fail before clearing cancellation or writing worker state.
+            resume_manifest(request, folder/'result', code_identity())
+            return self._spawn(ident, resume=True, max_runs=max_runs)
+
     def _launch(self, request):
         # Validate explicit defaults exactly as the subprocess does before hashing.
         request = Request.model_validate_json(request.model_dump_json())
@@ -119,7 +138,11 @@ class EvaluationService:
         folder.mkdir()
         atomic_json(folder/"request.json", request.model_dump())
         atomic_json(folder/'request-identity.json',{'format':1,'sha256':digest(request.model_dump())})
-        log = (folder/"process.log").open("w")
+        return self._spawn(ident)
+
+    def _spawn(self, ident, *, resume=False, max_runs=None):
+        folder = self.root/ident
+        log = (folder/"process.log").open("a" if resume else "w")
         env = dict(os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1")
         # Child must import this checkout, including when the interpreter comes
         # from a preserved original workspace.
@@ -127,10 +150,11 @@ class EvaluationService:
         env["PYTHONPATH"] = os.pathsep.join([source_root, env.get("PYTHONPATH", "")])
         try:
             process = subprocess.Popen([sys.executable, "-m", "harmonic_weaver.lab.evaluation",
-                str(folder/"request.json"), "--output", str(folder/"result")],
+                str(folder/"request.json"), "--output", str(folder/"result"), *(["--resume"] if resume else []), *(["--max-runs", str(max_runs)] if max_runs is not None else [])],
                 stdout=log, stderr=subprocess.STDOUT, env=env)
         finally:
             log.close()
+        if resume: (folder/"cancelled.json").unlink(missing_ok=True)
         self.processes[ident] = process
         self.jobs[ident] = {"id": ident, "status": "running", "directory": str(folder/"result")}
         return self.snapshot(ident)
@@ -139,6 +163,7 @@ class EvaluationService:
     def snapshot(self, ident):
         with self._lock:
             job = dict(self.jobs[ident])
+            job["resume_supported"] = False
             process = self.processes[ident]
             path = Path(job["directory"])/"manifest.json"
             if path.is_file():
@@ -152,9 +177,12 @@ class EvaluationService:
                 job['repeat_reason']='Entorno original no registrado; crear una comparación nueva' if legacy else None
             code = process.poll() if process is not None else None
             if job["status"] != "cancelled" and code is not None:
-                job["status"] = "complete" if code == 0 else "failed"
+                job["status"] = manifest.get("status", "failed") if code == 0 and path.is_file() else "failed"
                 if code and not job.get("error"):
                     job["error"] = (self.root/ident/"process.log").read_text()[-2000:]
+            job['resume_supported'] = (job['status'] in ('partial','cancelled','interrupted','failed')
+                and path.is_file() and not legacy and 'max_runs_per_invocation' in manifest['request']
+                and bool(manifest['code'].get('replay_sha256')))
             return job
 
     def cancel(self, ident):
