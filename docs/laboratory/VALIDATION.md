@@ -2260,3 +2260,19 @@ entregas existentes de pendientes: LAB-09 aún no exporta skeleton/figura ni
 consulta recovery in-flight de Shaper; R01/R13 requieren ampliación de modelos/
 reservas; hardware, participantes y aceptación quedan explícitos. No se marca
 completo el roadmap a partir de estas pruebas.
+
+## LAB-09: recuperación consultable sin segundo writer — 2026-10-03
+
+Nuevo Shaper anuncia pollable_jobs y conserva recibos/lease del writer real.
+Weaver congela ID antes de HTTP y consulta tras respuesta perdida; restore/acción
+explícita conserva ID. 404 confirmado permite POST idempotente; 5xx/transporte/
+timeout no relanzan otro ID. Ruta legacy y su retry por hashes siguen compatibles.
+No nuevo audio/UI/defaults ni instalación sobre servicios cotidianos.
+
+18 tests Shaper capture/recovery/jobs pasan (1.08s); 56 Weaver captura/poll/cámara/
+journal/export/input pasan (5.78s). Prueba integrada adicional con Shaper API real,
+PCM sintético y respuesta POST perdida pasa (.44s): una sola ejecución/prefijo.
+Incluye live lock visto desde otra instancia, restart, job muerto interrumpido,
+identidad distinta rechazada y restore de receipt Weaver sin POST. No hardware.
+No build/browser nuevo requerido: UI no cambió. Overlays/prefijos/sincronía física
+siguen pendientes; no se declara terminado LAB-09 ni aceptación humana.
