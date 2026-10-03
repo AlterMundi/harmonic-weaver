@@ -2853,3 +2853,16 @@ en vuelo por grupo, sin ocultar el fallo rápido. Al restaurar HTTP se limpian
 alertas y se habilita inicio; cero POST y errores JS. Build91 módulos pasa (1.26s).
 Servicios propios cerrados. Backend/PCM/grabación/defaults intactos; no prueba
 de disco lleno, captura física, audio R24 ni escucha añadida por este recorrido.
+
+### Comparador · inventario confirmado y fallos visibles — 2026-10-03
+
+Dos tests Chrome pasan (13.0s): captura regresa tras extracción del hook común;
+comparador usa bundle de producción con inventarios explícitos de UI partial/running,
+503 y demora controlados. Primer inventario pendiente visible y una sola petición
+durante demora. Partial2/4 conserva progreso tras fallo; repetir/continuar se
+deshabilitan. Running conocido conserva cancelar disponible bajo fallo. Recuperar
+el inventario limpia alerta/habilita acciones, sin POST ni errores JS.
+No se crearon jobs ni pretendieron reales esos estados de fixture; API y servicios
+propios reales sin audio, cerrados al terminar. Build92 módulos pasa (1.28s).
+Backend/PCM/traces/player/defaults intactos; evidencia anterior no repetida sin razón.
+No escucha, sincronía física ni nuevo resultado corporal/científico acreditados.
