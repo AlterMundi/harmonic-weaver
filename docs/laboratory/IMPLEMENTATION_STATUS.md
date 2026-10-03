@@ -23,8 +23,8 @@ instalación cotidiana y trabajo físico/humano pendiente.
 | R06 | Calendarios/medios/semillas, fases y sondas; #101 añade circular shifts por puerto con potencias conservadas, checks FFT y tabla/traza web | Controles más amplios, observable/hipótesis HIT y ensayo físico/humano; espectro periódico de entrada no fija respuesta finita |
 | R07 | Membrana sound-only/campos/RMS y controles de medio/resolución/transientes. #94–96: lectura histórica, readout reservado, labels EVAL; corrida corporal local 5 train +5 test, repetición byte-idéntica | Tomas/cuerpos independientes y controles ampliados; medio físico/calibración/sensores, escucha/aceptación; una toma no prueba generalización |
 | R08 | Anotación/segmentación/flow/bancos pareados con soporte, causas/coverage, archivos y UI; recuperación de POST perdida | Calidad manual/ground truth corporal y referencias de cuerda; 2D no certifica topología 3D |
-| R09 | Imports 2D/3D declarados, recibos y clocks, comparación/conversiones, ajuste temporal persistido y presets/API/UI | Proveedores reales, multivista/IMUs, escala/calibración/sincronización y referencia física independientes |
-| R10 | Protocolos/condiciones, transporte/player, respuestas/paired analysis/diseños portables; borrador y cierre recuperables | Participantes, niveles/sincronía/exposición medidas, sesiones largas y aceptación; datos sintéticos no son experiencia humana |
+| R09 | Imports/recibos/clocks, comparación/conversiones y presets; DLT de pares declarados con workers recuperables y procedencia conservada en comparador (#121–124) | Adquisición/undistorsión, cámaras/IMUs reales y escala/calibración/sincronización/referencia independientes |
+| R10 | Protocolos/condiciones, transporte/player, respuestas/paired analysis/diseños portables; borrador/cierre recuperables y archivo local opcional entre pestañas | Participantes, niveles/sincronía/exposición medidas, sesiones largas y aceptación; datos sintéticos no son experiencia humana |
 | R11 | Stream crudo, control SNR conocido archivado (#90), import CSV explícito (#91); #99 conserva original/mapeo/conversión y recuperación web; CSV ISO con origen explícito compartido con R12 | Export/hardware OpenBCI reales, adquisición y sincronía físicas; no índice de placer/estado mental |
 | R12 | Mediciones/tarea declaradas, soporte/gaps, integral parcial W→J, vínculo EVAL, archivos, CSV numérico/ISO y configuración portable; protocolo documentado | Export sensor real y clocks, BLE/RR/adquisición, fuerzas/escala o metabolismo apropiados; no calorías desde HR/pose |
 | R13 | Banco nativo/EVAL, splits y normalización train-only, baselines/shuffle y adaptación de prefijo; worker/API/UI y protocolo | Nuevas tomas/participantes/tareas, mapeos funcionales, más modelos/validación externa y diseños de intervención/retención |
@@ -1672,3 +1672,11 @@ origen local hasheado; recuperación idempotente no vuelve a resolver la fuente.
 Origen no puede inyectarse por ruta declarada. UI/HTTP/contratos verificados;
 no cambios a default de inferidos ni síntesis. Procedencia de cálculo conservada
 sin acreditación de calibración física. Ver README R09 y VALIDATION.
+
+
+R10 incorpora archivo opcional IndexedDB para snapshots de borradores, con
+export/restore/delete explícitos, dedup del mismo JSON y checksum al leer. No
+reemplaza automáticamente borrador ni pending, no revive player ni envía. Chrome
+verifica cierre de pestaña y nueva pestaña, recuperación exacta y posterior guardado
+explícito en API real. Límites de almacenamiento y privacidad documentados; ningún
+nuevo default/sonido/telemetría ni exposición humana acreditada.
