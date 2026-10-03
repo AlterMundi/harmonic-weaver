@@ -1,7 +1,7 @@
 import time
 from fastapi.testclient import TestClient
 from harmonic_weaver.lab.app import create_app
-from test_resonator_artifacts import fixture
+from research.test_resonator_artifacts import fixture
 
 
 def test_real_r07_api_worker_portable_config_and_artifacts(tmp_path):

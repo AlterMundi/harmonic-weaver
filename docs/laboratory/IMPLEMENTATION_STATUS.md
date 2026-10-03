@@ -4,31 +4,45 @@
 La aceptación anterior de 01c/contraste se conserva; la escucha de realce ×10,
 articulación y modelos nuevos sigue pendiente. [Evidencia y límites](VALIDATION.md).
 
-## Estado vigente de las ramas de desarrollo (auditoría 2026-09-30)
+## Estado vigente (auditoría 2026-10-03)
 
-Los apartados fechados posteriores conservan historia; sus pendientes pueden estar
-resueltos por incrementos posteriores. Esta tabla resume el estado actual, sin
-confundir rama publicada con instalación, merge ni aceptación humana.
+La historia fechada de abajo conserva evidencia de cada corte; sus pendientes
+pueden estar resueltos por entregas posteriores. Esta tabla separa software,
+instalación cotidiana y trabajo físico/humano pendiente.
 
-| Entrega | Evidencia / alcance actual | Pendiente real |
+| Entrega | Evidencia / alcance actual | Pendiente concreto |
 |---|---|---|
-| LAB-00–08 y v2 | PRs #29/#30/#37/#39; controles, modelos, cache y cuerpo por defecto; experiencia baseline previamente aceptada | Calibración/modelos/realce nuevos y latencia requieren feedback humano; CUDA no se declara reparado |
-| Comparador #18 | #40 motor PCM compartido, #41 reproducción fuente/WAV/figura y #54 descarga verificada de features/targets/configuración; repetibilidad local documentada | Ampliar evaluación/paridad/métricas y validación humana; investigación formal no completa |
-| LAB-09 #17 | #42–47 colector, export, preview cámara y recovery PCM/journal; #57 prefijo de imágenes y #67 export de prefijos PCM/journal/cámara; preview MP4 opcional con reproducción web verificada | Overlays, cámara física/sincronía medida, recovery in-flight por job polling, recorrido navegador–servidor de prefijos y journal completo |
-| R03 técnico | #68 marcas tipadas y snapshot; #69 contraste causal, servicio propio, API/UI, shifts declarados sobre soporte común y browser→HTTP→replay verificado con fixture sintética | Revisión humana, incertidumbre de anotación, centros/regiones alternativos y experimento reservado; no cierre científico |
-| R04 técnico | #70 valida datos relacionales; #71 banco sintético y pose congelada, worker/API/UI, controles globales/local proximal, JSON portable y browser HTTP probado | Corrida corporal real requiere evaluación con escala/procedencia explícitas; anotaciones independientes, ruido/emparejamientos y valor de tarea pendientes |
-| R05 técnico | #72 núcleo resonadores pasivos/excitación causal, mapeo amplitud con modulación opcional de portadoras/serie f1/2, comparación con soporte común/colas separadas, PCM DOUBLE y manifests verificados, worker/API/UI/presets y cuadratura exacta por voz; proyección/caché/presets y player ligado al clock; video original verificado, offset portable y overlay de pose causal con edad configurable; Chrome HTTP muted con seeks/loops/respuestas demoradas y gaps sobre pose/MP4 sintéticos pasa; interrupciones entre cada promoción y reverificación final cubiertas | Modalidades adicionales, prueba corporal del recorrido audiovisual, durabilidad ante caída del host/corte de energía, niveles/latencias físicas y escucha/agencia humanas pendientes; no equivalente al Shaper aceptado ni cierre científico |
-| R06 técnico | Banco CLI sintético: cuatro calendarios, igual dosis/eventos/medio, métricas completas, trace acotado y manifest reproducible; worker/service/verificador con cancelación/restauración y pruebas de proceso real; API/UI/JSON portable y contraste de medios; surrogates seeded preservan multiset de intervalos y soporte; banco de semillas explícitas. PRs #92/#93 añaden controles de fase y sondas Fourier opcionales con API/UI y pruebas | Controles de espectro igualado e hipótesis/protocolo físicos/humanos; no cierre HIT; PRs nuevas pendientes de integrar |
-| R07 técnico | Membrana sound-only y RMS causal, trayectoria/audio-follow/seek/pause/loop, presets visuales portables; mix R05 single/par verificado; bancos de transferencia/resoluciones/transientes con artifacts/API/UI, cancelación running y kill post-publicación reales. En desarrollo: lectura histórica sin recálculo implícito (#94), decoder de atributos reservados desde figuras verificadas con controles de forma/magnitud, train-only, presets/API/UI, archivos congelados y prueba Chrome real | Recuperación de atributos corporales en tomas independientes, controles ampliados, convergencia física y protocolo/medio/sensores calibrados; escucha/aceptación humana pendientes; no cierre científico; cambios nuevos pendientes de integrar |
-| R01–R13 | Agenda conservada; banco R01 con controles pareados, horizontes, cancelación y entrada de features congeladas; repetición sintética y corporal local; Sai–Oliva #36 revisado sin merge | Hipótesis HIT específicas y evaluación ampliada; bancos/experimentos R02–R13 y sus dependencias aún pendientes |
+| LAB-00–08 | Instrumento, seis voces iniciales, presets, modelos/calibración, múltiples cuerpos, biblioteca/cache y transporte en main hasta #85; experiencia baseline aceptada. #86–89 añaden observaciones parciales y derivadas con reloj de captura | Feedback de modelos/calibración/realce, calidad y latencia físicas; CUDA no se declara reparado; nueva pila aún no instalada |
+| Comparador #18 | Motor PCM causal compartido, manifests/features/targets, video/WAV/suma de voces y selector de presets al mismo instante. Recorrido corporal con tres renders y Chrome muted registrado en EVALUATION.md | Escucha y sincronía físicas; familias/métricas científicas adicionales y reservas independientes |
+| LAB-09 #17 | Captura PCM/journal/video opt-in, export MKV/MP4/preview web, inventario y recuperación de prefijos con procedencia | Overlay de esqueleto/figura en export; polling de recuperación Shaper en curso; preview integrado de prefijos recuperados; cámara/sincronía medidas |
+| R01 | Subespacios y forecasts causales, controles pareados/horizontes; entradas EVAL congeladas y repetición corporal local | Más familias de predictores y splits reservados; predicción HIT específica |
+| R02 | Modelos local/relacional/angular/colectivo y centros variables en instrumento/EVAL; banco Sai #36/#97 integrado en #98, web sintética #100 | Contrastes corporales entre tomas/cuerpos; Fourier corporal encomendado a Oliva; no inferir organización de compresión sola |
+| R03 | Marcas tipadas/contexto/época, filtros y snapshots; candidatos causales y contraste temporal con soporte común, worker/API/UI | Marcas humanas nuevas y su incertidumbre temporal; centros/regiones alternativos y reservas; coincidencia no demuestra intención |
+| R04 | Banco relacional sintético/pose congelada, controles proximal/noise, soporte común y summaries; API/UI y repetición HTTP | Corrida corporal con escala explícita y anotación/tarea independiente; ruido de cámara medido |
+| R05 | Resonadores/excitación y mapeo, PCM/campos de voces, player/source/offset/overlay causal; referencias y recuperación de publicaciones parciales | Escucha/agencia y niveles/latencias físicas; recorrido corporal audiovisual completo de variantes experimentales; otros medios y crash del host |
+| R06 | Calendarios/medios/semillas, fases y sondas; #101 añade circular shifts por puerto con potencias conservadas, checks FFT y tabla/traza web | Controles más amplios, observable/hipótesis HIT y ensayo físico/humano; espectro periódico de entrada no fija respuesta finita |
+| R07 | Membrana sound-only/campos/RMS y controles de medio/resolución/transientes. #94–96: lectura histórica, readout reservado, labels EVAL; corrida corporal local 5 train +5 test, repetición byte-idéntica | Tomas/cuerpos independientes y controles ampliados; medio físico/calibración/sensores, escucha/aceptación; una toma no prueba generalización |
+| R08 | Anotación/segmentación/flow/bancos pareados con soporte, causas/coverage, archivos y UI; recuperación de POST perdida | Calidad manual/ground truth corporal y referencias de cuerda; 2D no certifica topología 3D |
+| R09 | Imports 2D/3D declarados, recibos y clocks, comparación/conversiones, ajuste temporal persistido y presets/API/UI | Proveedores reales, multivista/IMUs, escala/calibración/sincronización y referencia física independientes |
+| R10 | Protocolos/condiciones, transporte/player, respuestas/paired analysis/diseños portables; borrador y cierre recuperables | Participantes, niveles/sincronía/exposición medidas, sesiones largas y aceptación; datos sintéticos no son experiencia humana |
+| R11 | Stream crudo, control SNR conocido archivado (#90), import CSV explícito (#91); #99 conserva original/mapeo/conversión y recuperación web | Export/hardware OpenBCI reales, adquisición y sincronía físicas; no índice de placer/estado mental |
+| R12 | Mediciones/tarea declaradas, soporte/gaps, integral parcial W→J, vínculo EVAL, archivos y configuración portable; protocolo documentado | Export sensor real y clocks, BLE/RR/adquisición, fuerzas/escala o metabolismo apropiados; no calorías desde HR/pose |
+| R13 | Banco nativo/EVAL, splits y normalización train-only, baselines/shuffle y adaptación de prefijo; worker/API/UI y protocolo | Nuevas tomas/participantes/tareas, mapeos funcionales, más modelos/validación externa y diseños de intervención/retención |
 
-Desarrollo permanece en `harmonic-weaver-dev` y `harmonic-shaper-dev`; no sustituye
-el workspace `harmonic-weaver-lab` de pruebas ni workspaces originales. PRs listadas
-siguen abiertas en GitHub; no se ejecutaron merges. Los datos privados no se publican.
+GitHub main Weaver sigue en `cc5fb57`, Shaper en `f8bfe07` y HarMoCAP en
+`25fda8d` (heads remotos consultados en esta auditoría). La pila Weaver #86–96,
+#98–101 permanece abierta; #36/#97 están incorporadas conservando autoría en #98
+sin mergear sus ramas históricas. La rama de integración hereda todos esos cortes.
+El laboratorio cotidiano `harmonic-weaver-lab` sigue en `cc5fb57`; desarrollo
+permanece en `harmonic-weaver-dev`. No se sustituyó el entorno de prueba habitual
+ni se publicaron datos privados. Workspaces originales, incluido HarMoCAP con
+cambios locales, permanecen preservados.
 
-Auditoría posterior a #67: 64 tests Weaver de captura/recuperación/export y 15
-Shaper pasan; [alcance y límites](INTEGRATION_AUDIT.md). No equivale a validación
-de hardware ni aceptación humana.
+[Verificación y límites](VALIDATION.md), [arranque/recorridos](RUNNING.md),
+[agenda completa R01–R13](../../research/laboratory/AGENDA.md). Las dependencias
+científicas/humanas no desaparecen al terminar una herramienta; el roadmap sigue
+abierto. El siguiente software concreto de LAB-09 es recovery in-flight/overlays,
+y las líneas R01/R13 conservan ampliación de predictores y reservas.
 
 ## Publicación
 
