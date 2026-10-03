@@ -29,6 +29,8 @@ from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
 from .research.neuro_service import NeuroService
+from .research.heldout_service import HeldoutService, SequenceSelection
+from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic
 from .research.physiology_service import PhysiologyService
 from .research.physiology import Request as PhysiologyRequest, calculate as calculate_physiology
 from .research.neuro_observations import Stream as NeuroStream, inspect as inspect_neuro
@@ -307,6 +309,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     pair_design_presets = PairDesignPresets(data_dir)
     neuro_observations = NeuroService(data_dir)
     physiology_measurements = PhysiologyService(data_dir)
+    heldout = HeldoutService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
     rope = RopeService(data_dir)
@@ -345,6 +348,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             relational.close()
             coincidence.close()
             research.close()
+            heldout.close()
             if exports is not None:
                 exports.close()
             if capture is not None:
@@ -513,6 +517,30 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('Evaluation body slot differs')
         if any(t.start_s < source['start_s'] or t.end_s > source['end_s'] for t in body.trials):
             raise ValueError('Trial outside selected evaluation segment')
+
+    @app.get('/api/research/r13/template')
+    def heldout_template():return heldout_synthetic().model_dump()
+
+    @app.post('/api/research/r13')
+    def heldout_start(body: HeldoutRequest):return heldout.start(body)
+
+    @app.get('/api/research/r13')
+    def heldout_list():return heldout.list()
+
+    @app.post('/api/research/r13/{ident}/cancel')
+    def heldout_cancel(ident: str):return heldout.cancel(ident)
+
+    @app.post('/api/research/r13/{ident}/repeat')
+    def heldout_repeat(ident: str):return heldout.repeat(ident)
+
+    @app.get('/api/research/r13/{ident}/artifacts/{name}')
+    def heldout_artifact(ident: str, name: str):
+        return FileResponse(heldout.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r13/sequence')
+    def heldout_sequence(body: SequenceSelection):
+        if evaluation is None:raise ValueError('Evaluation runtime required')
+        return heldout.freeze(evaluation,body.model_dump())
 
     @app.post('/api/research/r12/inspect')
     def physiology_inspect(body: PhysiologyRequest):

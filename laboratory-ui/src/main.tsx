@@ -1,12 +1,14 @@
 import {MovementMarks} from "./MovementMarks";
-import { ResearchPanel } from "./ResearchPanel";
+
 import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
 import { EvaluationPanel } from "./EvaluationPanel";
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Figure } from "./figure";
 import "./style.css";
+
+const ResearchPanel = lazy(() => import("./ResearchPanel").then(module => ({default: module.ResearchPanel})));
 
 type Data = Record<string, any>;
 let signalUnits: Data = {};
@@ -842,7 +844,7 @@ function App() {
             ))}
           </nav>
           <div className="panel">
-            {tab === "Investigación" && <ResearchPanel api={api} run={run}/>}
+            {tab === "Investigación" && <Suspense fallback={<p>Cargando bancos de investigación…</p>}><ResearchPanel api={api} run={run}/></Suspense>}
             {tab === "Captura" && <CapturePanel api={api} run={run}/>}
             {tab === "Comparar" && (
               <EvaluationPanel

@@ -911,3 +911,14 @@ Tabla de instrumentación y experimento pequeño:
 [R12_MEASUREMENT_PROTOCOL.md](R12_MEASUREMENT_PROTOCOL.md).
 Hardware/adapters, participantes, relojes medidos, nuevas intervenciones y preguntas
 científicas siguen pendientes; #26 no se cierra con software. R13 permanece abierto.
+
+### R13 · Transferencia reservada y adaptaciones declaradas (2026-10-02)
+
+[Protocolo R13](R13_TRANSFER_PROTOCOL.md): banco web/worker sobre inputs nativos o
+snapshots EVAL, reservas/normalización train-only, cuatro baselines congelados,
+prefix adaptation pooled/specific y train-target shuffle opcionales en soporte
+común. Trace/model/manifest repetibles, nulos/fallos preservados, datos locales.
+Dentro de toma real: validación de pipeline, no transferencia independiente.
+Intervención, aprendizaje, persona–prótesis y beneficio requieren diseños/datos
+propios y dependencias explícitas; Anni P3–P6 no se sustituyen por un score ni se
+cierra #27. Direcciones compartidas con Oliva siguen reservadas/intactas.

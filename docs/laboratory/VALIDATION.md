@@ -1862,3 +1862,30 @@ un único registro, abrir/exportar manifest funciona. API sin mocks (salvo pérd
 de respuesta inyectada después de POST aceptado). No hardware ni fisiología de
 Nicolás/Annie, no escucha/percepción/sincronía física ni prueba de eficiencia/HIT.
 Protocolos/datos de esta prueba aislados del store cotidiano y videos privados.
+
+### R13 · Forecasts reservados, adaptación y controles
+
+44tests R13/R12/evaluación/API pasan (13,02s),11específicos R13 pasan (2,17s).
+Controles: cambiar objetivo test final no altera modelos/predicciones previas;
+normalización/base/coefs train-only; rango completo hace coincidir ridge completo/
+subespacio; gaps y reservas/embargo no se cruzan; prefix-only/pooled conservan
+baselines y puntúan igual soporte, shuffle sólo en targets train; nulos sin soporte;
+repeat/recompute exacto, corrupción/histórico/defaults archivados y no overwrite.
+Worker propio/restart/cancel y snapshot EVAL también verificados.
+
+Chrome API real/worker: control/config portable y repetición con hashes iguales
+pasan (3,5s). Producción real sin mock de componentes: investigación no se pide al
+inicio, se carga al abrir pestaña; nueve predictores/controles con prefix-only30 y
+shuffle puntúan149objetivos comunes (2,9s). Regresión UI corporal:cacheCPU, slot
+derecho exacto, video/pausa/seek/loop/calibración/presets cuatro modelos/seis targets
+pasa (9,6s). Primer intento de esa regresión falló por pasar ID abreviado1 en lugar
+de slot-1-generation-1; se corrigió entrada del test, no tracking o selección.
+Fixture control_targets_only: no mide audio hardware ni escucha humana.
+
+Comparación corporal local within_take:seis velocidades T/s, train0..25s/test30..60s,
+embargo5s, historia2/H3/componentes3/z-score train;891objetivos comunes, ambos runs
+recomputados y hashes de request/result/traces idénticos. Receipt sólo local
+r13-body-validation.json. No transferencia entre sujetos/tareas ni beneficio/HIT
+verificados. No copia/retracking de original ni medios/tracking publicados.
+Build TypeScript/Vite pasa; split~292kB inicial/~215kB investigación sin aumentar
+límite de warning. UI/node fixtures propios aislados, sin cambios audio live/defaults.

@@ -618,3 +618,35 @@ Ver tabla variable→instrumentación→incertidumbre y experimento vinculado a 
 `research/laboratory/R12_MEASUREMENT_PROTOCOL.md`. Faltan mediciones/participantes,
 hardware/adapters y evidencia de sincronización; no se inventaron datos para el
 video corporal disponible. No cambia presets/defaults del instrumento ni R24.
+
+### R13 · Predicción en tomas/personas/tareas reservadas
+
+Investigación → **R13 · Predicción en fuentes reservadas**. **Cargar control
+sintético R13** permite correr y comparar baselines sobre dos secuencias conocidas.
+Editar historia, horizonte, componentes, ridge, centrado/z-score train, gap,
+embargo y reserva. Shuffle de objetivos train y prefijo de adaptación opcionales.
+Train+prefijo y sólo prefijo conservan modelos originales y excluyen el prefijo
+para puntuación de todos los modelos. Ningún control cambia las voces/audio live.
+
+Guardar/importar settings portable transporta sólo opciones de análisis/reserva;
+el experimento completo (datos/roles/grupos/tarea/equivalencias) es JSON aparte.
+Import nativo hasta16MiB/20000observaciones. Para features corporales: cargar un
+control, quitar ambas secuencias, **Añadir secuencia desde EVAL verificado**, ID /
+corrida / segmento / señales 2..16 con misma unidad, y grupo/tarea declarados.
+Congelar una secuencia train y otra test, con mismos IDs ordenados y unidades.
+No inventar identidad a partir del person_slot. La equivalencia de tarea se declara
+antes de correr. Dentro de la misma toma, train debe preceder test con embargo;
+dos presets superpuestos no son reserva. Para otras reservas recordings deben
+ser distintos; subject/task requieren también grupos/tareas declarados diferentes.
+
+**Correr transferencia R13** lanza worker separado, muestra estado/métricas/soporte.
+Cancelar, abrir request y descargar outputs o **Repetir corrida R13** (código actual).
+Los artefactos quedan en `$DATA_DIR/research/r13-heldout/<id>/`. Comparar hashes de
+outputs repetidos; integridad al descargar no es recomputación científica. Fixtures
+no son mediciones humanas. Modelos y MSE están en las unidades de features, sin
+ranking de cuerpos, intención, eficacia, aprendizaje, beneficio o prótesis inferidos.
+Histórico indica code_matches_current; no se promueve silenciosamente.
+
+Protocolo completo/controles/dependencias: `research/laboratory/R13_TRANSFER_PROTOCOL.md`.
+La UI carga los bancos de investigación al abrir la pestaña: el bundle cotidiano
+queda separado. No cambia presets/defaults/R24 ni workspaces cotidianos.

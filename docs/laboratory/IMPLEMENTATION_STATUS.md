@@ -1537,3 +1537,25 @@ Protocolo y matriz sensor/proxy/incertidumbre en R12_MEASUREMENT_PROTOCOL.md.
 No hardware conectado ni datos fisiológicos humanos; sólo controles de software.
 Adquisición BLE, conversiones metabólicas, intervención/participantes, pareado
 científico y sincronía física siguen abiertos. R13 aún requiere entrega propia.
+
+## R13 · Banco de transferencia reservada, sin intervención inferida
+
+Contrato/imports/UI/settings portables, reservas temporal/toma/grupo/tarea,
+equivalencia funcional/restricciones, snapshot EVAL compartido con R01 (causal/
+observado/unique time/units), normalización/basis/coefs train-only. Persistencia,
+media train, ridge completo/subespacio en soporte común. Adaptaciones pooled-prefix
+o prefix-only con originales congelados y prefijo excluido; control train-target
+shuffle. Workers own, cancel/repeat/restart, manifest/outputs verificados y traces
+con origin/target/elapsed/errores/model hash. No cal/sonido live alterados.
+
+Lectura certifica integridad, no recomputación; verify(recompute=True) y repetición
+se prueban separadamente. Defaults históricos no reescriben el request archivado.
+Validación real local within_take y control sintético; no otra persona/tarea ni
+aprendizaje o prótesis. Protocolo R13_TRANSFER_PROTOCOL.md conserva etapas P3–P6 de
+Anni, nulos/fallos y dependencias. R13 permanece abierto para datos independientes,
+más modelos/equivalencias, intervención/retención y colaboración con usuario/device.
+
+Investigación se carga con React.lazy/Suspense al abrir la pestaña: evita sumar
+los bancos al bundle cotidiano. Build divide ~292kB inicial/~215kB investigación,
+sin modificar controles o lógica de síntesis. Verificación browser producción y
+regresión del recorrido corporal se registran en VALIDATION.md.
