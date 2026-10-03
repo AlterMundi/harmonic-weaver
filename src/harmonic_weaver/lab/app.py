@@ -1018,6 +1018,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r07-controls/{ident}')
     def control_report(ident:str):return controls.report(ident)
 
+    @app.get('/api/research/r07-controls/{ident}/verification')
+    def control_verification(ident: str, recompute: bool = False):
+        return controls.verification(ident, recompute=recompute)
+
     @app.post('/api/research/r07-controls/{ident}/cancel')
     def control_cancel(ident:str):return controls.cancel(ident)
 
