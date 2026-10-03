@@ -19,6 +19,8 @@ class ValueEnvelope:
     confidence: float
     received_at_us: int
     captured_at_us: int | None = None
+    capture_clock: str | None = None
+    receipt_clock: str | None = None
 
     @classmethod
     def invalid(cls, now_us: int) -> "ValueEnvelope":

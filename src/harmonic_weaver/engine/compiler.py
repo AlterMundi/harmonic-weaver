@@ -282,6 +282,13 @@ class RouteRuntime:
     last_usable_at_us: int | None = None
     invalid_reset_sent: bool = False
 
+    def reset_observation_history(self) -> None:
+        self.derivative_values.clear()
+        self.derivative_at_us.clear()
+        self.phase_values.clear()
+        self.phase_at_us.clear()
+        self.peak_history.clear()
+
 
 @dataclass(frozen=True)
 class CompiledAggregator:
@@ -666,6 +673,8 @@ def evaluate_route(
     runtime: RouteRuntime,
     values: Mapping[str, ValueEnvelope],
     now_us: int,
+    *,
+    observation_mode: bool = False,
 ) -> tuple[float | None, str]:
     """Evaluate one route. The returned reason is usable, suppress, or reset."""
 
@@ -680,6 +689,11 @@ def evaluate_route(
     )
     if route.has_edge_gate and any(envelope.state != OBSERVED for envelope in envelopes):
         usable = False
+    if observation_mode and (not usable or any(envelope.state != OBSERVED for envelope in envelopes)):
+        # Held/invalid never become additional samples in motion histories.
+        runtime.reset_observation_history()
+        if usable:
+            return (runtime.last_usable_output, "usable") if runtime.last_usable_output is not None else (None, "suppress")
     if not usable:
         invalid_policy = policy["invalid"]
         if invalid_policy == "suppress":
