@@ -2745,3 +2745,25 @@ corrupción local detectada, borrado conserva el registro del servidor. Test no
 reproduce estímulos ni simula exposición humana. Build pasa (1.26s), bundle inicial
 cotidiano mantiene tamaño; archivos sólo bajo investigación. Backend/player sin
 cambios. Participantes, escucha/niveles/sincronía y sesiones largas siguen pendientes.
+
+
+### R05 · Recorrido audiovisual corporal local — 2026-10-03
+
+Chrome con bundle de producción, runtime/biblioteca/reader/workers reales pasa
+(14.9s). Fuente es evaluación/selección corporal ya congeladas, cuerpo elegido
+anteriormente, tracking CPU cacheado; fixture nuevo expone EVAL sólo lectura y
+bloquea mutadores. Genera R05 pareado para6s dentro de clip60s a8000Hz, seis voces,
+resonador positive_delta +mapeo de amplitud y cola0.5s. Ambos brazos decodifican PCM
+muted/video original, figura6voces, overlay con joints observados y timestamp no
+futuro; reproducción avanza frames reales, pausas/seeks/offset y final con cola
+siguen reloj nominal. Soporte válido de ambos brazos coincide y es no vacío.
+0 errores JS; fixture retorna control_targets_only, sin R24/audio device/cámara.
+
+No video/cache/EVAL copiados, pose ni EVAL recalculadas, calib trasladada ni nueva
+identidad inferida. Nuevos inputs/PCM/evidencia quedan en directorio privado local;
+ningún dato o resultado numérico corporal se publica. Test genérico reutilizable:
+`resonatorBodyNetwork.spec.ts` y flag --read-frozen-evaluation del fixture.
+No cambios productivos ni motivo para repetir build/suite backend ya válidos.
+Esto acredita decodificación/integración y reloj software, no escucha/aceptación,
+latencias/sincronía físicas, precisión del tracking, comparación científica de
+mecanismos ni generalización. Esas dependencias siguen pendientes.

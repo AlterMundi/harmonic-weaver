@@ -38,11 +38,14 @@ parser.add_argument('--checkpoint',type=Path,required=True)
 parser.add_argument('--port',type=int,default=8879)
 parser.add_argument('--seed-r07-labels',action='store_true',help='Create synthetic EVAL/PCM/figures before services restore their inventory')
 parser.add_argument('--frozen-evaluation-request',type=Path,help='Local EVAL request JSON with an explicitly selected body; no media/pose recomputation')
+parser.add_argument('--read-frozen-evaluation',action='store_true',help='Expose only the supplied existing EVAL read-only; no artifact/media copies or evaluation writes')
 parser.add_argument('--source-index',type=int,default=0)
 parser.add_argument('--frozen-cache-root',type=Path,help='Explicit existing tracking cache root; originals remain there')
 args=parser.parse_args()
 if bool(args.frozen_evaluation_request)!=bool(args.frozen_cache_root):
     parser.error('Frozen evaluation request and cache root must be provided together')
+if args.read_frozen_evaluation and not args.frozen_evaluation_request:
+    parser.error('Read-only EVAL requires the frozen evaluation request')
 if args.source_index<0:parser.error('Source index must be nonnegative')
 if not (args.ui/'index.html').is_file() or not args.checkpoint.is_file():
     parser.error('Built production UI and existing checkpoint required')
@@ -82,6 +85,24 @@ if source is not None:
     runtime.kind='video';runtime.job_id=job.id;runtime.person_id=source.person_id
     runtime._selection_explicit=True;runtime.selection_status='explicit'
     runtime._autoplay_pending=False;runtime.transport.seek(source.start_s)
+if args.read_frozen_evaluation:
+    import harmonic_weaver.lab.evaluation.service as evaluation_module
+    original_service=evaluation_module.EvaluationService
+    frozen_folder=args.frozen_evaluation_request.resolve().parent
+    if args.frozen_evaluation_request.name!='request.json' or not (frozen_folder/'result/manifest.json').is_file():
+        raise ValueError('Completed frozen evaluation job folder required')
+    class ReadOnlyEvaluation(original_service):
+        def __init__(self,data_dir,session,video_library):
+            super().__init__(frozen_folder.parent.parent,session,video_library)
+            if frozen_folder.name not in self.jobs:raise ValueError('Frozen evaluation not found')
+            self.jobs={frozen_folder.name:self.jobs[frozen_folder.name]}
+            self.processes={frozen_folder.name:None}
+        def readonly(self,*values,**options):
+            raise ValueError('Fixture frozen evaluation is read-only')
+        start=repeat=resume=cancel=_launch=_spawn=readonly
+        def close(self):pass
+    evaluation_module.EvaluationService=ReadOnlyEvaluation
+
 app=create_app(args.root,store=store,runtime=runtime,
     perception=PerceptionSettings(checkpoint=str(args.checkpoint.resolve()),device='cpu'))
 @app.get('/api/fixture/controls')
