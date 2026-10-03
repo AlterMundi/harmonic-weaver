@@ -876,3 +876,10 @@ recuperan resultados sin recalcular. Abrir restaura cámaras/calibración/reloje
 específicos de esa corrida; no es un preset portable. Repetir crea otro ID y
 Verificar recálculo requiere implementación/entorno coincidentes. Descargar
 request.json, result.json y manifest.json mantiene el paquete local completo.
+
+
+Si recargás durante un cálculo multivista, elegir **Seguir cálculo multivista ID**
+en el inventario para retomar su estado y acceder a Cancelar. No inicia otra corrida.
+Si editás inputs durante Abrir, la apertura tardía se descarta; volver a abrir
+explícitamente reemplaza la edición. Un intento local inválido permite Descartar;
+esto sólo limpia IndexedDB, no cancela cálculos del servidor.
