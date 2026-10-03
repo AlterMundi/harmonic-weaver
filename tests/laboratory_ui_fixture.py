@@ -70,6 +70,12 @@ if args.frozen_evaluation_request:
     ids=sorted({person.person_id for frame in track.frames for person in frame.persons})
     if source.person_id not in ids:raise ValueError('Declared frozen person absent from tracking')
     library=VideoLibrary(args.root)
+    class ReadOnlyTrackingCache(TrackingCache):
+        def write(self,*values,**options):
+            raise ValueError('Frozen-source fixture forbids tracking recomputation; use an existing verified cache')
+    # Real VideoLibrary.open can check current perception identity and read the
+    # original generation. A miss must not run inference or replace private data.
+    library.cache=ReadOnlyTrackingCache(args.frozen_cache_root)
     job=VideoJob('frozen-cache-fixture',Path(source.media_path),
         PerceptionSettings(checkpoint=str(args.checkpoint.resolve()),**manifest['perception']),
         status='ready',requested_device=manifest['perception']['device'],

@@ -2985,3 +2985,29 @@ Shaper-dev limpio516ebde y Weaver-lab limpio cc5fb57. Último aporte Ani sigue e
 #107 f424981, ya incorporado. Sin merges/instalación cotidiana ni dispositivos/
 medios privados/escucha. CONTRIBUTING actualiza base de aportes y dependencia
 Shaper vigentes; no exige repetir la suite completa para cada cambio.
+
+### Instrumento cotidiano · modelos/referencias/ruteos actuales — 2026-10-03
+
+Recorrido `fullLaboratoryNetwork.spec.ts` ampliado y ejecutado con bundle actual,
+FastAPI/WS, LaboratoryRuntime y VideoLibrary reales: **1 Chrome passed (11.3s)**.
+Default percepción CPU actual produce la identidad del cache corporal existente;
+apertura confirma cache_hit sin copiar video ni recalcular tracking. Fixture con
+fuente congelada usa cache original de sólo lectura: un miss falla antes de
+escribir/consumir observaciones nuevas. Audio es ControlRecorder, no DAC.
+
+Desde web: selección explícita del slot indicado, avance del video, pause/seek,
+calibración medida, presets08–11 y seis targets afinados/no nulos por modelo.
+Colectivo cambia a dos componentes sin reducir voces; referencias pelvis/torso/
+fixed/camera y exclusión de muñecas se aplican conservando cuerpo/escala/video.
+Peso del ruteo de voz1 a cero hace decaer sólo ese target, otras voces permanecen
+activas; volver a .75 recupera target sin pausar. Preset portable guarda componentes/
+referencia/joints sin identidad/calibración. Cambio de persona y retorno descartan
+escala; seek al final/loop mantiene avance. Cero errores JS.
+
+La repetición del fixture encontró nombres de preset duplicados; el test ahora usa
+nombre único para seleccionar el registro que acaba de crear. Corrida final pasa.
+Manifest/frames del cache original mantienen SHA previo; IDs, poses y datos del
+recorrido permanecen locales. Fixture detenido y puerto cerrado. No producción/
+defaults musicales modificados ni rebuild necesario (sólo pruebas/documentos).
+No se afirma audio efectivo, fase del DAC, latencia física, precisión anatómica ni
+aceptación perceptual. Evidencia de escucha01c previa se conserva separadamente.
