@@ -32,3 +32,10 @@ Instrument Control manifest and safety profile, pass `instrument_hello` plus
 The authoritative implementation design remains
 [`docs/CORE_DESIGN.md`](docs/CORE_DESIGN.md); the concrete recording-only MVP
 boundary is documented in [`docs/ENGINE_MVP.md`](docs/ENGINE_MVP.md).
+
+## Laboratorio corporal (plan de construcción)
+
+El [índice del laboratorio](docs/laboratory/README.md) reúne la especificación,
+los milestones y las tareas para explorar movimiento, sonido y geometría
+en tiempo real, junto con la agenda de investigación y evaluación posterior.
+Estado: plan publicado; implementación pendiente.

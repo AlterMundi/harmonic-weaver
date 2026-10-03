@@ -1,0 +1,194 @@
+{
+  "repo": "AlterMundi/harmonic-weaver",
+  "document_commit": "506afe3e6f43b63252f9b289365d7b33650896b5",
+  "milestones": {
+    "live": {
+      "number": 1,
+      "title": "Laboratorio corporal — exploración en tiempo real v1",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/milestone/1"
+    },
+    "evaluation": {
+      "number": 2,
+      "title": "Laboratorio corporal — comparación reproducible de presets",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/milestone/2"
+    }
+  },
+  "issues": {
+    "PROGRAM": {
+      "number": 7,
+      "title": "Laboratorio corporal: programa, decisiones y mapa de investigación",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/7",
+      "milestone": null,
+      "depends": []
+    },
+    "LAB-00": {
+      "number": 8,
+      "title": "LAB-00 · Preservar y reconciliar el instrumento local antes de implementar",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/8",
+      "milestone": "live",
+      "depends": []
+    },
+    "LAB-01": {
+      "number": 9,
+      "title": "LAB-01 · Contratos de sesión, presets portables y bitácora ligera",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/9",
+      "milestone": "live",
+      "depends": [
+        "LAB-00"
+      ]
+    },
+    "LAB-02": {
+      "number": 10,
+      "title": "LAB-02 · Video/cámara y cache persistente de tracking para loops",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/10",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ]
+    },
+    "LAB-03": {
+      "number": 11,
+      "title": "LAB-03 · Runtime causal y matriz de ruteos modificable en caliente",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/11",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ]
+    },
+    "LAB-04": {
+      "number": 12,
+      "title": "LAB-04 · Telemetría efectiva de Shaper y Lissajous polifónico nuevo",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/12",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ]
+    },
+    "LAB-05": {
+      "number": 13,
+      "title": "LAB-05 · Mesa web de exploración, controles completos y presets",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/13",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ]
+    },
+    "LAB-06": {
+      "number": 14,
+      "title": "LAB-06 · Baselines, interferencia relacional v0 y geometría angular",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/14",
+      "milestone": "live",
+      "depends": [
+        "LAB-01"
+      ]
+    },
+    "LAB-07": {
+      "number": 15,
+      "title": "LAB-07 · Organización colectiva, centros de despliegue e interferencia",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/15",
+      "milestone": "live",
+      "depends": [
+        "LAB-01",
+        "LAB-06"
+      ]
+    },
+    "LAB-08": {
+      "number": 16,
+      "title": "LAB-08 · Integración del laboratorio, latencia y primeras sesiones",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/16",
+      "milestone": "live",
+      "depends": [
+        "LAB-02",
+        "LAB-03",
+        "LAB-04",
+        "LAB-05",
+        "LAB-06",
+        "LAB-07"
+      ]
+    },
+    "LAB-09": {
+      "number": 17,
+      "title": "LAB-09 · Captura opcional de fragmentos video + audio y configuración",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/17",
+      "milestone": "live",
+      "depends": [
+        "LAB-02",
+        "LAB-03",
+        "LAB-04",
+        "LAB-05"
+      ]
+    },
+    "EVAL": {
+      "number": 18,
+      "title": "EVAL · Corridas reproducibles de presets × fuentes y resultados publicables",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/18",
+      "milestone": "evaluation",
+      "depends": [
+        "LAB-08"
+      ]
+    },
+    "RES-THEORY": {
+      "number": 19,
+      "title": "HIT, Grassmannianos y activación: restricciones, ondas y predicciones distinguibles",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/19",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-ORGANIZATION": {
+      "number": 20,
+      "title": "Organización colectiva y Jpsh!: de candidatos cinemáticos a evidencia",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/20",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-SONIFICATION": {
+      "number": 21,
+      "title": "Sonificar relaciones: mapeos, resonadores y respuesta al Jpsh!",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/21",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-CYMATICS": {
+      "number": 22,
+      "title": "Cuerpo → sonido → geometría: información preservada y medios cimáticos",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/22",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-CAPTURE": {
+      "number": 23,
+      "title": "Cuerda, 3D y captura adicional para estudiar el despliegue",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/23",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-PERCEPTION": {
+      "number": 24,
+      "title": "Placer, belleza y legibilidad para practicantes y observadores",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/24",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-NEURO": {
+      "number": 25,
+      "title": "OpenBCI, sincronización y SNR en experiencia audiovisual",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/25",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-ENERGY": {
+      "number": 26,
+      "title": "Movimiento, trabajo y costo energético: ¿se relacionan belleza y eficiencia?",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/26",
+      "milestone": null,
+      "depends": []
+    },
+    "RES-TRANSFER": {
+      "number": 27,
+      "title": "Transferencia, entrenamiento y persona–prótesis: horizonte de la propuesta",
+      "html_url": "https://github.com/AlterMundi/harmonic-weaver/issues/27",
+      "milestone": null,
+      "depends": []
+    }
+  }
+}
