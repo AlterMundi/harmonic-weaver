@@ -176,3 +176,20 @@ contratos fijados; al menos un control negativo y un contraejemplo informativo;
 tests de causalidad/missingness; informe separa esperado, observado, límite y
 propuesta. PR revisable contra base declarada, sin datos privados ni afirmación
 de validación humana/HIT. No depende del comparador que CompAII aún construirá.
+
+## Siguiente aporte de Oliva: Fourier corporal — 2026-10-03
+
+Nicolás confirmó que le pasó el goal para extender #97 a trayectorias corporales
+congeladas: bloques por persona/articulaciones, continuidad y muestreo regular
+explícitos; sin rellenar gaps, calibración inventada ni resampling silencioso.
+Original/fases compartidas/independientes sobre igual soporte; diagnóstico de
+longitudes de segmentos/plausibilidad para separar cambios geométricos de los
+descriptores. Fixtures sintéticas y contraejemplos, comando/JSON reproducibles;
+datos corporales privados no requeridos para desarrollar.
+
+Reservados para ese aporte: `research/laboratory/sai_bridge/body_fourier.py`,
+`BODY_FOURIER_REPORT.md`, nuevas fixtures dentro del bridge y
+`tests/research/test_sai_bridge_body_fourier*.py`. Mantener funciones existentes
+compatibles. CompAII implementa servicio/UI en `src/` y `laboratory-ui/`, sin
+editar esos archivos reservados ni esperar la entrega para avanzar. Encomienda
+confirmada por Nicolás; no se infiere que el trabajo esté ejecutándose ni terminado.
