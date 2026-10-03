@@ -518,3 +518,33 @@ Comparar → Ver comparación → Ver video, sonido y figura → Preset del mism
 La calibración de esa corrida está congelada en su solicitud; no queda aplicada a
 la sesión live. El render/recorrido software pasó; escuchar y dar feedback está
 pendiente. No se publicó ningún video, tracking o resultado corporal.
+
+
+### Prueba de UI completa sin dispositivos
+
+Para verificar el recorrido de video/cache/persona/calibración/presets/loop sin
+abrir salida de audio ni cámara, construir la UI y arrancar la fixture en un
+**directorio nuevo**, separado de la sesión cotidiana:
+
+```sh
+npm --prefix laboratory-ui run build
+HARMOCAP_DIR=../HarMoCAP-lab HARMOCAP_VENV=../HarMoCAP/.venv PYTHONPATH=src \
+  .venv/bin/python tests/laboratory_ui_fixture.py \
+  --root /tmp/weaver-ui-nuevo --ui laboratory-ui/dist \
+  --checkpoint ../HarMoCAP/harmocap-m-pose-ft2.pt --port 8879
+```
+
+Fixture confirma explícitamente audio no disponible; registra targets de control,
+no VoiceFrames ni escucha ficticias. Otro terminal, desde laboratory-ui:
+
+```sh
+LAB_FULL_UI_URL=http://127.0.0.1:8879 LAB_FULL_VIDEO=/ruta/local/clip-con-cache.mp4 \
+  LAB_FULL_PERSON=slot-elegido PLAYWRIGHT_CHANNEL=chrome \
+  npx playwright test tests/fullLaboratoryNetwork.spec.ts --workers=1
+```
+
+Usar clip multipersona de más de7s con cacheCPU compatible; LAB_FULL_PERSON es
+opcional. El test abre desde ruta y exige cache_hit; no upload ni copia del medio.
+Detener fixture con Ctrl+C. Su root contiene estado/datos privados de la prueba:
+no publicarlo. La biblioteca real de desarrollo ya tiene registrado el minuto dúo;
+para jugar usar el launcher de desarrollo y elegirlo en Videos de la biblioteca.

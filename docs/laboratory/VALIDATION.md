@@ -1795,3 +1795,30 @@ No se cambia comportamiento de calendarios válidos ni formatos/presets/sonido.
 
 31 tests R06 pasan (8.81 s), incluidos nuevos rechazos antes de render/encolado.
 No se necesitó nueva corrida Chrome para este cambio de diagnóstico de backend.
+
+
+### Recorrido de aplicación completa con cache corporal — 2026-10-02
+
+fullLaboratoryNetwork.spec.ts pasó en Chrome (14,6s total), usando bundle de
+producción, FastAPI/WebSocket, LaboratoryRuntime y VideoLibrary reales en estado
+local aislado. Sin route mocks ni UI ensamblada por partes. CacheCPU del minuto
+existente confirmó cache_hit; sin copiar video ni recalcular tracking.
+
+Desde UI: abrir ruta, persona por defecto, elección explícita, avance del video,
+pausa/seek5s, diagnóstico de calibración requerida, medición con hombros/caderas,
+aplicar08–11, seis targets afinados no nulos por modelo, guardar/recuperar preset
+portable, cambio de cuerpo descarta escala incluso al volver, y seek al final con
+loop conserva avance de video. Sin excepciones JavaScript. Preset guardado no
+incluye source/persona/calibración. Datos/artefactos/capturas quedan locales.
+
+Fixture usa ControlRecorder: targets reales del runtime, **sin sintetizar ni abrir
+salida física**. Informa audio no disponible y no publica VoiceFrame ficticio.
+No valida figura/audio live ni R24; el recorrido WAV/figura del comparador está
+verificado por separado. No escucha/aceptación humana. Fixtures no abren cámara.
+
+Se registró además el minuto en biblioteca de desarrollo (media.json), reutilizando
+cache válido y backendCPU confirmado. Se corrigió sólo la preparación local, no
+archivos/workspaces cotidianos. Abrir desde selector Videos de la biblioteca.
+Primer intento local de registro falló por venv/checkpoint ausentes en HarMoCAP-lab;
+se usó el mismo fallback al venv/modelo de HarMoCAP que contempla el launcher,
+con código de HarMoCAP-lab explícito. Cache previo y configuración conservados.
