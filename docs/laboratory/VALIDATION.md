@@ -2013,3 +2013,21 @@ y subconjunto seleccionado; motor con dos personas entregadas por separado,
 alineación posterior y tick repetido. git diff --check pasa. Sin hardware/medios
 privados ni escucha nueva. Pendientes: otros transforms y sincronía entre
 productores; no se afirma equivalencia científica ni velocidad métrica.
+
+## R11: archivo recuperable de controles SNR — 2026-10-02
+
+SNRService publica request/result/manifest por staging; identidad de configuración
+permite retry/restart sin duplicados. API/listado/artifacts y controles web de
+guardado/reapertura, pendiente congelado sessionStorage y recuperación explícita.
+Procedencia de módulos importados/entorno separada de equivalencia numérica:
+estructura/support/config exactos, floats rel/abs1e-12; flags de implementación/
+entorno distintos no bloquean recomputación equivalente. integrity_only no se
+presenta como recomputación. No adquiere hardware ni altera audio/defaults.
+
+18 tests R11 núcleo/raw/SNR/runner/API pasan (1.46 s; deprecación AnyIO sin fallo).
+Cinco del archivo pasan tras precisar hashes de módulos importados (0.23 s).
+Chrome UI/API real: POST aceptado/respuesta perdida, reload/retry idéntico, registro
+único y reapertura restaura amplitud/resultados/config (1 test,2.2 s). Build
+TypeScript/Vite pasa. Fixture aislado8898 detenido; laboratorio cotidiano intacto.
+Sólo componentes sintéticos conocidos, no EEG, SNR físico ni escucha humana.
+Dependencias de hardware/formatos reales/sync física permanecen en README R11/#25.

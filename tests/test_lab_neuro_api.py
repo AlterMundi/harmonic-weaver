@@ -40,3 +40,20 @@ def test_neuro_synthetic_snr_explicit_control_without_archive(tmp_path):
         body['signal']['frequency_hz']=128
         assert client.post('/api/research/r11/synthetic-snr',json=body).status_code==422
         assert list((tmp_path/'research/r11-observations').iterdir())==[]
+
+
+def test_snr_archive_api_repeat_restart_and_artifact_allowlist(tmp_path):
+    from research.test_neuro_snr import config
+    url='/api/research/r11/snr-records'
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        response=client.post(url,json=config())
+        assert response.status_code==200,response.text
+        saved=response.json();ident=saved['id']
+        assert client.post(url,json=config()).json()['id']==ident
+        result=client.get(f'{url}/{ident}/artifacts/result.json')
+        assert result.status_code==200 and 'attachment' in result.headers['content-disposition']
+        assert result.json()['metrics']['snr_db']>6
+        assert client.get(f'{url}/{ident}/artifacts/unexpected').status_code==422
+    with TestClient(create_app(tmp_path),base_url='http://127.0.0.1') as client:
+        assert len(client.get(url).json())==1
+        assert client.get(f'{url}/{ident}/artifacts/result.json').content==result.content

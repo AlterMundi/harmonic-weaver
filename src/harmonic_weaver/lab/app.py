@@ -29,6 +29,7 @@ from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
 from .research.neuro_service import NeuroService
+from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
 from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic
 from .research.physiology_service import PhysiologyService
@@ -308,6 +309,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     experience_pairs = PairService(data_dir)
     pair_design_presets = PairDesignPresets(data_dir)
     neuro_observations = NeuroService(data_dir)
+    neuro_snr_records = SNRService(data_dir)
     physiology_measurements = PhysiologyService(data_dir)
     heldout = HeldoutService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
@@ -569,6 +571,18 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r11/observations/{ident}/artifacts/{name}')
     def neuro_observation_artifact(ident:str,name:str):
         return FileResponse(neuro_observations.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r11/snr-records')
+    def neuro_snr_save(body: NeuroSNRConfig):
+        return neuro_snr_records.start(body)
+
+    @app.get('/api/research/r11/snr-records')
+    def neuro_snr_list():
+        return neuro_snr_records.list()
+
+    @app.get('/api/research/r11/snr-records/{ident}/artifacts/{name}')
+    def neuro_snr_artifact(ident: str, name: str):
+        return FileResponse(neuro_snr_records.artifact(ident, name), filename=name)
 
     @app.post('/api/research/r11/synthetic-snr')
     def neuro_synthetic_snr(body:NeuroSNRConfig):return calculate_neuro_snr(body)
