@@ -2733,3 +2733,15 @@ selección por IDs en comparador, admitir inferidos explícitamente y control id
 5/5 soportados/error0. Recorridos anteriores conservados. Build pasa (1.34s).
 Comparar un stream consigo mismo prueba recorrido, no referencia independiente ni
 exactitud 3D. No escucha, datos corporales, cámaras, tracking ni calibración física.
+
+
+### R10 · Archivo opcional de borradores — 2026-10-03
+
+Chrome con IndexedDB y API reales pasa: conserva/dedup snapshot declarado, cierra
+pestaña y abre otra con sessionStorage vacío; inventario persiste, sin player/media
+ni POST automático. Export idéntico byte a byte, restore mantiene pendiente previo,
+guardado explícito del trace ligado a protocolo sintético real retorna artifact;
+corrupción local detectada, borrado conserva el registro del servidor. Test no
+reproduce estímulos ni simula exposición humana. Build pasa (1.26s), bundle inicial
+cotidiano mantiene tamaño; archivos sólo bajo investigación. Backend/player sin
+cambios. Participantes, escucha/niveles/sincronía y sesiones largas siguen pendientes.

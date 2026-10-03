@@ -892,3 +892,13 @@ aparece en conversiones R09. En Comparación espacial elegir Conversiones guarda
 Actualizar conversiones y seleccionar referencia/candidato. Admitir puntos inferidos
 es opt-in; relojes/marcos deben ser compatibles. La conversión conserva hashes del
 cálculo completo; guardarla/reabrirla no recalcula DLT ni valida cámaras físicas.
+
+
+R10 → Registros de transporte → Archivo local: **Conservar borrador en navegador**
+guarda una copia independiente del ensayo actual (sin medios) que permanece al
+cerrar la pestaña. Exportar descarga JSON; Restaurar lo coloca como borrador en
+esta pestaña, sin reproducir, enviar ni alterar un envío pendiente. Guardar borrador
+de transporte es la acción separada para persistirlo en servidor. Borrar archivo
+local sólo borra esa copia. Preparar otro ensayo no borra archivos conservados.
+Datos del sitio/origen/navegador determinan acceso; exportá para conservar copia
+independiente. 4MiB por snapshot/64MiB total; fallo de storage se informa.
