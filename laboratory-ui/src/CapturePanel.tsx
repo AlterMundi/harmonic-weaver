@@ -1,37 +1,19 @@
-import {useEffect,useState} from 'react';
+import {useState} from 'react';
 import {CaptureProfiles} from './CaptureProfiles';
+import {useConfirmedPolling} from './useConfirmedPolling';
 type Data=Record<string,any>;
 const pollPaths={capture:['captures'],exports:['capture-exports','capture-exports/jobs'],recovery:['capture-recovery']};
-function useCapturePolling(api:any,kind:keyof typeof pollPaths,initial:Data[]){
- const [data,setData]=useState(initial),[error,setError]=useState(''),[ready,setReady]=useState(false);
- useEffect(()=>{let live=true,inFlight=false;
-  const poll=async()=>{
-   if(inFlight)return;inFlight=true;
-   try{
-    const results=await Promise.allSettled(pollPaths[kind].map(async path=>{
-     try{return await api(path)}catch(e){if(live)setError(String(e));throw e}
-    }));
-    const values=results.map(result=>{if(result.status==='rejected')throw result.reason;return result.value});
-    if(live){setData(values);setError('');setReady(true)}
-   }
-   catch(e){if(live)setError(String(e))}
-   finally{inFlight=false}
-  };
-  void poll();const timer=setInterval(()=>void poll(),500);return()=>{live=false;clearInterval(timer)};
- },[api,kind]);
- return {data,error,ready,setData};
-}
 export function CapturePanel({api,run}:Data){
  const [settings,setSettings]=useState<Data>({max_seconds:120,queue_blocks:128,timeline_hz:20,record_camera:false,camera_queue_frames:8,camera_max_frames:10000,camera_max_mb:256});
- const capturePoll=useCapturePolling(api,'capture',[{current:{status:'idle'},jobs:[]}]);
+ const capturePoll=useConfirmedPolling(api,pollPaths.capture,[{current:{status:'idle'},jobs:[]}]);
  const state=capturePoll.data[0];const setState=(value:Data)=>capturePoll.setData([value]);
  const [exportSettings,setExportSettings]=useState<Data>({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'collector_monotonic_s',browser_preview:false,preview_audio_kbps:192,harmonic_figure:false,figure_window_hz:40.4,skeleton_overlay:false,skeleton_people:'selected',skeleton_confidence:0,skeleton_max_offset_s:.1,skeleton_line_px:2});
  const [figureVisual,setFigureVisual]=useState('{}');
  const exportPayload=()=>({...exportSettings,figure_visual:JSON.parse(figureVisual)});
  const [preview,setPreview]=useState<string|null>(null);
- const exportPoll=useCapturePolling(api,'exports',[{status:'idle'},[]]);
+ const exportPoll=useConfirmedPolling(api,pollPaths.exports,[{status:'idle'},[]]);
  const [exportState,exportJobs]=exportPoll.data;const setExportState=(value:Data)=>exportPoll.setData(previous=>[value,previous[1]]);
- const recoveryPoll=useCapturePolling(api,'recovery',[{status:'idle'}]);
+ const recoveryPoll=useConfirmedPolling(api,pollPaths.recovery,[{status:'idle'}]);
  const recovery=recoveryPoll.data[0];const setRecovery=(value:Data)=>recoveryPoll.setData([value]);
  const exporting=exportState.status==='rendering';
  const active=['starting','recording','stopping'].includes(state.current.status);

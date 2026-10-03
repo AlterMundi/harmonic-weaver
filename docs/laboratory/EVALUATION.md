@@ -359,3 +359,18 @@ sin corridas/fuente/identidad. Importar limpia selección y preview y no ejecuta
 Revisar el contenido antes de compartir manualmente; publicar requiere selección
 humana de datos/destino y consentimiento pertinente. Este corte prepara el paquete,
 no proporciona por sí solo fuentes públicas ni autorización de publicación.
+## Inventario de corridas no confirmado o inaccesible (2026-10-03)
+
+El comparador muestra «Esperando inventario» antes de la primera respuesta y una
+alerta si la consulta falla. Conserva el último progreso confirmado y reintenta
+cada1.5s, sin acumular consultas mientras una está pendiente. Comparar, repetir
+y continuar requieren inventario confirmado sin fallo actual; cancelar una
+corrida conocida sigue disponible. Abrir resultados/descargas no se oculta por
+un fallo del inventario. Recuperar la consulta no lanza ni repite corridas.
+
+Captura y comparación comparten la misma lógica de consultas; no cambia el
+worker, hashes, PCM, modelos, presupuesto ni estado del reproductor. Dos recorridos
+Chrome verifican captura y evaluación con 503/demoras e inventarios de UI declarados,
+sin crear trabajos, fuentes ni resultados corporales. Las pruebas del motor y
+repetibilidad previas conservan su alcance; esto sólo verifica diagnóstico/acciones
+del panel, no evaluación científica ni latencia física.

@@ -1728,3 +1728,9 @@ pedidos respectivos hasta reconciliar; stop/cancel conocidos no se bloquean.
 Una consulta por grupo y recuperación sin operaciones automáticas verificados
 en Chrome con HTTP503/demoras controladas. Backend y sonido intactos; validación
 física/cámara/R24 y sincronía siguen pendientes.
+
+EVAL #18 comparte consultas confirmadas con captura: inventario pendiente/fallido
+visible, progreso anterior conservado, repetir/continuar/iniciar bloqueados hasta
+reconciliar y cancelación de corrida conocida disponible. Dos recorridos Chrome
+con fallos/demoras e inventarios explícitos verifican acciones sin nuevos jobs.
+Motor, resultados, reproductor y sonido no cambian; aceptación física sigue pendiente.

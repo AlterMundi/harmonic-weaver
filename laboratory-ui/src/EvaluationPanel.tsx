@@ -1,6 +1,7 @@
 import { EvaluationPackages } from "./EvaluationPackages";
 import { ComparisonPlayer } from "./ComparisonPlayer";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import {useConfirmedPolling} from './useConfirmedPolling';
 type Data = Record<string, any>;
 
 export function EvaluationPanel({
@@ -23,24 +24,11 @@ export function EvaluationPanel({
     shaper_master: 0.8,
     tail_s: 0,
   });
-  const [jobs, setJobs] = useState<Data[]>([]);
+  const inventory=useConfirmedPolling(api,['evaluations'],[[]],1500);
+  const jobs:Data[]=inventory.data[0];
+  const setJobs=(value:Data[])=>inventory.setData([value]);
   const [report, setReport] = useState<Data | null>(null);
   const [playRun, setPlayRun] = useState<Data | null>(null);
-  useEffect(() => {
-    let live = true;
-    const poll = () =>
-      api("evaluations")
-        .then((x: Data[]) => {
-          if (live) setJobs(x);
-        })
-        .catch(() => {});
-    void poll();
-    const timer = setInterval(poll, 1500);
-    return () => {
-      live = false;
-      clearInterval(timer);
-    };
-  }, [api]);
   const edit = (id: string, key: string, value: any) =>
     setSegments((s) => ({ ...s, [id]: { ...s[id], [key]: value } }));
   const download = () => {
@@ -56,6 +44,8 @@ export function EvaluationPanel({
   return (
     <>
       <h2>Comparación reproducible</h2>
+      {!inventory.ready&&<p role="status">Esperando inventario de comparaciones.</p>}
+      {inventory.error&&<p role="alert">No se pudo actualizar las comparaciones: {inventory.error}. Se conserva el último estado confirmado; reintentando.</p>}
       <p>
         Corre aparte de la sesión en vivo. Usa presets guardados y tracking
         completo; puede renderizar audio aparte sin cambiar lo que está sonando.
@@ -253,6 +243,7 @@ export function EvaluationPanel({
       </fieldset>
       <button
         disabled={
+          !inventory.ready || !!inventory.error ||
           !selected.length ||
           !Object.keys(segments).length ||
           jobs.some((j) => j.status === "running")
@@ -286,7 +277,7 @@ export function EvaluationPanel({
               Cancelar comparación
             </button>
           )}
-          {j.resume_supported && <button disabled={jobs.some(job=>job.status==='running')} onClick={()=>run(async()=>{await api(`evaluations/${j.id}/resume`,{max_runs:batchRuns});setJobs(await api('evaluations'))})}>Continuar comparación congelada</button>}
+          {j.resume_supported && <button disabled={!inventory.ready||!!inventory.error||jobs.some(job=>job.status==='running')} onClick={()=>run(async()=>{await api(`evaluations/${j.id}/resume`,{max_runs:batchRuns});setJobs(await api('evaluations'))})}>Continuar comparación congelada</button>}
           {j.status === "complete" && (
             <button
               onClick={() =>
@@ -301,7 +292,7 @@ export function EvaluationPanel({
           )}
           {j.status !== "running" && (
             <button
-              disabled={j.repeat_supported===false || jobs.some((job) => job.status === "running")}
+              disabled={!inventory.ready || !!inventory.error || j.repeat_supported===false || jobs.some((job) => job.status === "running")}
               onClick={() =>
                 run(async () => {
                   await api(`evaluations/${j.id}/repeat`, {});
