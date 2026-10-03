@@ -16,7 +16,8 @@ PYTHONPATH=src:. python -m research.laboratory.sai_bridge.run > sai-bridge-resul
 
 That **one command** generates deterministic JSON. The output path is an
 example; keep generated result files outside the PR unless deliberately
-reviewed. The program imports the pinned Weaver laboratory model facade,
+reviewed. The program imports the Weaver laboratory model facade selected by
+the Python environment (the historical reference is pinned below),
 constructs validated 2D `MotionFrame`s, and compares descriptors before audio.
 It prints source hashes and a result digest. For tests:
 
@@ -40,9 +41,13 @@ same image point. Generated longer fixtures are deterministic functions in
 - GitHub lists no licence for Sai's repository at that SHA. No Sai code or
   files are redistributed here. The mathematical scenarios are independently
   implemented and attributed; this is not a licence determination.
-- The JSON contains SHA-256 hashes of the imported Weaver model/contract
-  files. These document exact producer code even if this research branch later
-  moves beyond its PR #30 base.
+- `source_sha` declares historical reference commits, not the effective checkout.
+  `production_source_sha256` records resolved `module.__file__` paths and SHA-256
+  hashes for six selected, effectively imported Weaver model/contract modules.
+  It therefore follows imports from another checkout via `PYTHONPATH`, rather
+  than hashing files relative to the bridge. It is not a complete dependency,
+  dynamically loaded baseline-driver, or in-memory bytecode audit. Do not change
+  source files during a run; the manifest hashes their bytes at report time.
 
 ## What each representation means
 
@@ -62,7 +67,63 @@ and target start. The held-out units are whole synthetic sessions, not random
 frames. Comparisons require matching observation identities, observed validity,
 and measurement units. Values in the JSON retain IEEE-754 precision; interpret near-zero and
 cross-platform differences with numerical tolerances (typically `1e-6`), not
-bitwise equality. The digest verifies repeats in the **same pinned environment**.
+bitwise equality. The whole-report digest includes runtime, source hashes and
+absolute paths. No equal hashes between environments are required; compare
+numerical fields with tolerances and inspect effective provenance separately.
+
+## Offline Fourier controls
+
+The same one-command report now includes `fourier_controls`. Reusable APIs in
+`fourier.py` are `FourierConfig`, `scenario`, `phase_surrogate`,
+`frames_from_channels`, `spectral_checks` and `common_three`. Defaults are
+480 samples at 60 Hz and three declared seeds `(7, 19, 41)`; every seed is
+reported, not selected for its outcome. `frames_from_channels` returns ordinary
+COCO-17 2D `MotionFrame`s suitable for other offline Weaver banks. No comparator
+or private video is needed.
+
+For each finite N×C regularly sampled coordinate-displacement array, let
+`X[k,c] = rFFT(x[:,c])`. At interior positive-frequency bins:
+
+```text
+shared:      Y[k,c] = X[k,c] * exp(i * phi[k])
+independent: Y[k,c] = X[k,c] * exp(i * phi[k,c])
+y = irFFT(Y, n=N)
+```
+
+Phases are uniform on `[-pi, pi)`. DC and the real Nyquist coefficient (even N)
+are unchanged; negative frequencies are implied by real reconstruction.
+Each scalar channel is a declared joint coordinate, not a whole limb, joint,
+person, speed magnitude or signal descriptor. Constant pose offsets are added
+after reconstruction. No clipping, padding, windowing or rescaling is applied.
+Do not supply missing samples, uneven timestamps or a repeated periodic endpoint.
+
+| Property | Shared phases | Independent phases |
+|---|---|---|
+| Individual coordinate periodogram, mean, variance, circular autocorrelation | Preserved | Preserved |
+| Complex cross-spectrum and circular lag cross-covariance between channels | Preserved | Generally changed where channels share spectral support; not guaranteed to change every relation |
+| Higher-order/cross-frequency relations, trajectories and finite-window temporal organization | Not generally preserved | Not generally preserved |
+| Individual speed distributions, articulated geometry, biomechanics | Not guaranteed | Not guaranteed |
+
+The shared-phase control retains `X_c * conjugate(X_d)` because its phase
+factors cancel. Independent phases add a relative phase to this product.
+This is **not** a test of coupling causation or a claim that shared phases
+preserve all relational organization. Per-bin magnitude-only periodogram
+coherence is not used as a discriminator.
+
+Three scenarios are evaluated: proportional multitone elbow/wrist motion,
+one active scalar wrist channel, and a static pose. For each descriptor,
+`common_three` takes one exact identity/observed intersection across original,
+shared and independent outputs; all means, standard deviations and paired
+MAEs use that same support. Full observed counts are also reported. No support
+means `null`, never a neutral zero. These are existing facade descriptors,
+not newly implemented models or independent wins for different audio mappings.
+
+Both transforms require the **whole record** and are noncausal offline controls.
+A future-tail perturbation changes earlier surrogate samples, as tested.
+Synthetic availability clocks describe replay of the completed fixture, not
+when a live transform could know its samples. The causal Weaver facade remains
+unchanged; a causal model receiving an offline surrogate does not make that
+surrogate causal. See [FOURIER_REPORT](FOURIER_REPORT.md) for results and limits.
 
 ## Epoch identity in the research adapter
 
