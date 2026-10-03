@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "description": "Public synthetic recipe only; no captured human poses. MotionFrames are frozen in memory before block selection and transformation.",
+  "sample_hz": 60.0,
+  "scale": 0.26,
+  "scale_provenance": "Declared synthetic reference length in frame_height units, not an estimated or physical calibration",
+  "seeds": [7, 19, 41],
+  "algorithm": {
+    "id": "relational", "version": 1, "reference": "camera",
+    "fixed_x": 0.0, "fixed_y": 0.0,
+    "joints": [5,6,7,8,9,10,11,12,13,14,15,16],
+    "smoothing_s": 0.0, "derivative_window_s": 0.12, "horizon_s": 0.15,
+    "history_s": 0.25, "noise_velocity": 0.02, "noise_delta": 0.015,
+    "relation_reference": "history", "window_s": 2.0, "components": 3,
+    "ridge": 0.1, "lag_s": 0.12, "propagation_interval_s": 0.2,
+    "event_threshold": 2.0, "refractory_s": 0.25, "event_duration_s": 0.15,
+    "max_gap_s": 0.25
+  },
+  "preparation": {
+    "min_samples": 64,
+    "absolute_tolerance_s": 1e-8,
+    "relative_tolerance": 1e-6,
+    "max_gap_s": 0.25,
+    "minimum_confidence": 0.5
+  },
+  "epochs": [
+    {"stream_id": "coupled", "kind": "coupled", "samples": 240},
+    {"stream_id": "rigid_links", "kind": "articulated", "samples": 240},
+    {"stream_id": "gapped", "kind": "coupled", "samples": 320, "drop_indices": [100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117], "invalid_indices": [210], "absent_indices": [270]},
+    {"stream_id": "single", "kind": "single_channel", "samples": 128},
+    {"stream_id": "static", "kind": "static", "samples": 128}
+  ],
+  "selections": [
+    {"name": "upper_body", "streams": ["coupled", "rigid_links", "gapped", "static"], "channels": [[7,0],[7,1],[9,0],[9,1],[8,0],[8,1],[10,0],[10,1]]},
+    {"name": "one_scalar", "streams": ["single"], "channels": [[9,0]]}
+  ]
+}
