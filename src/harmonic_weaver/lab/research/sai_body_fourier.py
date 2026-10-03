@@ -18,6 +18,24 @@ def body_bridge():
     return importlib.import_module(bridge().__package__+'.body_fourier')
 
 
+def short_block_summary(support):
+    """Explain minimum-length exclusions without joining identity/grid cuts."""
+    boundaries={row['input_index'] for row in support['boundaries']}
+    rows=sorted((r for r in support['exclusions'] if r['reason']=='short_block'),
+                key=lambda r:r['input_index'])
+    lengths=[];previous=None;count=0
+    for row in rows:
+        identity=tuple(row[k] for k in ('source_id','stream_id','person_id'))
+        same=(previous is not None and row['input_index']==previous[0]+1
+              and identity==previous[1] and row['input_index'] not in boundaries)
+        if not same:
+            if count:lengths.append(count)
+            count=0
+        count+=1;previous=(row['input_index'],identity)
+    if count:lengths.append(count)
+    return {**support,'short_block_lengths':lengths,'longest_short_block':max(lengths,default=0)}
+
+
 class Settings(Contract):
     schema_version: Literal[1] = 1
     channels: list[list[int]] = Field(min_length=1,max_length=34)
@@ -63,6 +81,7 @@ def freeze(library, request):
         raise ValueError('Choose at most 4800 frames and 14400 frames × seeds')
     config=body_bridge().BodyConfig(request.person_id,**request.settings.config())
     blocks,support=body_bridge().prepare_blocks(frames,config,provenance=provenance)
+    support=short_block_summary(support)
     document={'frames':[f.model_dump() for f in frames],'provenance':provenance}
     return request,document,support
 
@@ -74,6 +93,7 @@ def calculate(request,document):
     frames=[MotionFrame.model_validate(f) for f in document['frames']]
     config=body_bridge().BodyConfig(request.person_id,**request.settings.config())
     blocks,support=body_bridge().prepare_blocks(frames,config,provenance=document['provenance'])
+    support=short_block_summary(support)
     return {'schema_version':1,'kind':'sai_body_fourier','request':request.model_dump(),
             'preparation':support,'comparison':body_bridge().compare_blocks(blocks,
                 seeds=request.settings.seeds,preset=request.settings.preset),

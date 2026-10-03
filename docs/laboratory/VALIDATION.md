@@ -2381,5 +2381,32 @@ corte anterior, dado que sus archivos permanecen intactos.
 Se corrigió representación tuple/list al verificar configuración serializada.
 La prueba de repetición usa un preset congelado: IDs nuevos son nuevas entradas,
 no evidencia de una diferencia numérica. Sin datos reales privados publicados,
-R24 ni servicios cotidianos modificados. Recorrido con tracking corporal real,
-sincronía física, escucha y aceptación siguen pendientes explícitos.
+R24 ni servicios cotidianos modificados. Recorrido web con tracking corporal real, sincronía física, escucha y aceptación
+siguen pendientes explícitos; la verificación backend posterior se registra abajo.
+
+
+## Fourier corporal: soporte sobre tracking real — 2026-10-03
+
+Verificación local del backend con un segmento corporal privado de biblioteca:
+selección manual previa de persona y escala de la misma generación, manifest y
+frames del cache verificados, backend CPU identificado. Sin copiar video,
+recalcular tracking, publicar datos privados ni modificar servicios cotidianos.
+
+Con brazos/muñecas y mínimo de 64 muestras, la preparación no retuvo bloques:
+invalidaciones de articulaciones fragmentaban el soporte. La corrida terminó
+sin comparaciones, sin presentar ausencia de soporte como resultado cero.
+Con codos y el mismo mínimo hubo un bloque válido; con brazos/muñecas y mínimo
+explícito de 32 hubo dos. Ambos ajustes produjeron soporte colectivo común y
+resultados byte-idénticos al repetir las entradas congeladas en este entorno.
+No se cambió el mínimo por defecto ni se rellenaron gaps o bajaron umbrales.
+
+El consumidor agrega longitudes de bloques descartados por ser cortos y muestra
+su máximo en preparación. Respeta identidad y límites del grid del bridge;
+no modifica sus archivos ni su política de soporte. Seis tests del servicio
+pasan (3.21 s), incluyendo separación por límites explícitos y no mutación de
+entradas. Build TypeScript/Vite pasa. La prueba Chrome con red simulada verifica
+el nuevo diagnóstico; no constituye un recorrido web con tracking real.
+
+Estos controles comprueban funcionamiento y repetibilidad local; no validan
+HIT, intención, eficiencia ni aceptación perceptual humana. Recorrido web real,
+escucha y aceptación continúan pendientes.

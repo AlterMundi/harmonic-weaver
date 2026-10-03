@@ -34,6 +34,9 @@ def test_freeze_keeps_private_identity_and_reports_invalid_rows_without_filling(
     req,document,support=freeze(library,request())
     assert support['input_frames']==32 and support['excluded_frames']==1
     assert support['exclusion_counts']=={'selected_joint_invalid':1}
+    variant=request().model_copy(update={'settings':settings().model_copy(update={'min_samples':64})})
+    _,_,short=freeze(library,variant)
+    assert short['short_block_lengths']==[15,16] and short['longest_short_block']==16
     before=deepcopy(document['frames'][0])
     library.frames[0].persons[0].joints[7].position[0]+=1
     assert document['frames'][0]==before
@@ -95,3 +98,12 @@ def test_cancel_only_owned_worker_and_reject_concurrent_start(tmp_path,monkeypat
     restored=BodyFourierService(tmp_path)
     assert restored.list()[0]['status']=='cancelled'
     service.close();restored.close()
+
+
+def test_short_block_summary_preserves_metadata_and_grid_boundaries():
+    from harmonic_weaver.lab.research.sai_body_fourier import short_block_summary
+    rows=[{'reason':'short_block','input_index':i,'source_id':'source','stream_id':'stream','person_id':'person'} for i in range(8)]
+    support={'boundaries':[{'input_index':4,'reason':'sampling_grid_drift'}],'exclusions':rows}
+    result=short_block_summary(support)
+    assert result['short_block_lengths']==[4,4] and result['longest_short_block']==4
+    assert 'short_block_lengths' not in support
