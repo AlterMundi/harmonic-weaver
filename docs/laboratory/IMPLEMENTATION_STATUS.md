@@ -1804,3 +1804,10 @@ reemplazan lecturas más recientes ni muestran errores obsoletos. Dos regresione
 Chrome reproducidas y corregidas con API/SQLite reales; sin defaults/backend/audio
 modificados. Pendiente separado identificado: dos aplicaciones de preset que se
 solapan pueden producir conflicto de revisión; no se reintenta silenciosamente.
+
+Presets rápidos: resuelto el solapamiento propio de apply registrado en #143;
+una solicitud en curso y última elección pendiente, revisión confirmada antes de
+la siguiente. Ediciones posteriores descartan elección pendiente; errores visibles
+sin retry. Seis pruebas Chrome reales y build pasan; sin defaults/audio modificados.
+No representa una cola universal para todas las escrituras ni elimina conflictos
+con otras ventanas o controles anteriores a una confirmación de revisión.

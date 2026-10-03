@@ -404,6 +404,9 @@ function App() {
     figure = useRef<Figure | null>(null);
   const macroQueue = useRef<{ id: string; value: number } | null>(null);
   const macroBusy = useRef(false);
+  const presetBusy = useRef(false);
+  const presetQueue = useRef<{preset: Data; generation: number} | null>(null);
+  const [presetProgress, setPresetProgress] = useState("");
   const run = async (action: () => Promise<any>) => {
     try {
       setError("");
@@ -411,6 +414,35 @@ function App() {
     } catch (e) {
       setError(String(e));
     }
+  };
+  const applyPreset = (preset: Data) => {
+    presetQueue.current = {preset, generation: generation.current};
+    setPresetProgress(`Elegido: ${preset.name}`);
+    if (presetBusy.current) return;
+    presetBusy.current = true;
+    void run(async () => {
+      try {
+        while (presetQueue.current) {
+          const choice = presetQueue.current;
+          presetQueue.current = null;
+          // A subsequent control edit takes precedence over an older choice.
+          if (choice.generation !== generation.current) continue;
+          const next = await api(`presets/${choice.preset.id}/apply`, {
+            expected_revision: revision.current,
+          });
+          if (choice.generation !== generation.current ||
+              next.session.desired_revision < revision.current) continue;
+          revision.current = next.session.desired_revision;
+          dirty.current = false;
+          current.current = next.preset;
+          setDraft(next.preset);
+        }
+      } finally {
+        presetQueue.current = null;
+        presetBusy.current = false;
+        setPresetProgress("");
+      }
+    });
   };
   const inventoryRequests = useRef<Record<string, number>>({});
   const refreshInventory = async (path: string, accept: (rows: Data[]) => void) => {
@@ -424,6 +456,7 @@ function App() {
     }
   };
   useEffect(() => () => {
+    presetQueue.current = null;
     // Invalidate in-flight reads without reusing tokens on a StrictMode remount.
     for (const path of Object.keys(inventoryRequests.current))
       inventoryRequests.current[path] += 1;
@@ -1370,27 +1403,13 @@ function App() {
                     />
                   </label>
                 </div>
+                {presetProgress && <p role="status">{presetProgress} · esperando confirmación</p>}
                 <div className="preset-list">
                   {presets.map((p) => (
                     <button
                       key={p.id}
                       disabled={pending}
-                      onClick={() =>
-                        run(async () => {
-                          const editGeneration = generation.current;
-                          const next = await api(`presets/${p.id}/apply`, {
-                            expected_revision: revision.current,
-                          });
-                          // The backend can confirm newer edits while this HTTP
-                          // response is delayed. Never roll their draft/revision back.
-                          if (editGeneration !== generation.current ||
-                              next.session.desired_revision < revision.current) return;
-                          revision.current = next.session.desired_revision;
-                          dirty.current = false;
-                          current.current = next.preset;
-                          setDraft(next.preset);
-                        })
-                      }
+                      onClick={() => applyPreset(p)}
                     >
                       {p.name}
                     </button>
