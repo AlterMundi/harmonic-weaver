@@ -20,10 +20,12 @@ El wrapper acepta `WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON`, `HARMOCAP_DIR`
 `HARMOCAP_VENV` y `HARMOCAP_CHECKPOINT` para otros checkouts/entornos. Los flags
 posteriores se pasan al launcher Python.
 
-Weaver `feat/laboratory-live` (PR #30), HarMoCAP
-`feat/laboratory-capture-baseline` (PR #1), Shaper
-`feat/laboratory-telemetry` (PR #2). Los tres checkouts están separados de los
-workspaces originales preservados. No requiere fusionar las PRs para probar.
+Desde la integración del 2026-10-02, las entregas publicadas del laboratorio
+están en `main`: Weaver hasta #84, incluido el follow-up #39; Shaper hasta #6;
+HarMoCAP #1. Los checkouts cotidianos `harmonic-weaver-lab` y
+`harmonic-shaper-lab` usan esa integración, con entornos `.venv` propios.
+Los workspaces originales y el trabajo OSC todavía no publicado permanecen
+preservados. El bridge de Oliva #36 se revisa por separado.
 
 Entorno Weaver: dependencias del proyecto y extra `lab`. Entorno HarMoCAP:
 dependencias propias + `av>=12,<17` y modelo pose local. Entorno Shaper:
