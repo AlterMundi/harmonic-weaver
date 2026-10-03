@@ -141,3 +141,32 @@ tabla anterior. Servidor de prueba detenido. Datos sintéticos, sin escucha huma
 Pendientes manifests/verificación de corridas SNR, controles adicionales, datos
 reales/adaptador, inventario hardware, protocolo/estimador sobre señal física y sync.
 Roadmap R01–R13 abierto; sin resultados sobre estados mentales o fisiología.
+
+## Corridas SNR recuperables — 2026-10-02
+
+Investigación → R11 → control sintético: calcular, **Guardar corrida SNR R11**,
+actualizar listado y abrir una corrida. Recupera parámetros y resultado congelados;
+request/result/manifest se descargan por separado. Cambiar parámetros invalida el
+resultado visible. El cálculo exploratorio sigue sin guardar por defecto.
+
+POST/GET `/api/research/r11/snr-records` y GET
+`/api/research/r11/snr-records/{id}/artifacts/{request.json|result.json|manifest.json}`
+usan identidad de configuración para reintento/reinicio sin duplicar resultados.
+Publicación en staging; una interrupción previa a promoción no publica un registro
+parcial. El navegador conserva el envío en sessionStorage antes del POST y permite
+recuperación explícita, exportarlo o descartarlo. No reenvía automáticamente;
+conservar el JSON exportado sigue siendo necesario para persistencia entre sesiones
+de navegador. Máximo del control: 20000 muestras, artifacts de lectura hasta 32 MiB.
+
+El manifest separa hashes de artefactos, hashes de módulos efectivamente importados
+y entorno. `verify(recompute=True)` recalcula componentes/soporte/métricas; exige
+estructura, índices y configuración exactos, y compara floats con rel_tol=1e-12,
+abs_tol=1e-12. Diferencias de entorno/procedencia aparecen como flags, no bloquean
+un resultado numéricamente equivalente. `recompute=False` declara sólo integridad,
+no recomputación. Los hashes no son firmas ni validación de hardware/EEG.
+
+Evidencia: 18 tests núcleo/API/archivo pasan y Chrome contra API/UI reales prueba
+respuesta POST perdida después de guardar, reload/reintento idéntico, un solo
+registro y reapertura de configuración/resultados. Build pasa. Fixture sintético
+sin hardware ni audio. Quedan adaptador/export real, inventario de placa, adquisición,
+control de señal física y sincronización medida; esto no resuelve #25 científicamente.
