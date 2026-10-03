@@ -55,6 +55,17 @@ requieren su checkout pinneado o una nueva corrida, nunca quitar el hash en sile
 
 ## Siguiente integración, sin perder el alcance de #17
 
+Actualización 2026-10-03: recovery in-flight dispone de jobs consultables en el
+nuevo Shaper. Weaver guarda shaper_recovery_job_id antes del envío; respuesta
+perdida se resuelve consultando ese mismo recibo. GET no relanza. Reload conserva
+ID y Recuperar vuelve a consultar explícitamente. Timeout/5xx/transporte ambiguo
+quedan unconfirmed, con ID reutilizable; job muerto es interrupted y un nuevo
+intento después de fallo terminal requiere acción explícita. Espera acotada a
+120s por intento, solicitudes de8s. Shaper viejo conserva camino anterior.
+Job recuperado no equivale a captura normalmente completa ni revalida por sí
+solo archivos actuales: exportación mantiene sus verificaciones. Las menciones
+históricas de polling pendiente abajo quedan superadas por este corte.
+
 1. Controles web explícitos iniciar/detener, duración/presupuesto y diagnóstico.
    Proxy al Shaper seleccionado, id propio y reconocimiento de desconexiones;
    no activar cámara ni un buffer retrospectivo como efecto de grabar audio.

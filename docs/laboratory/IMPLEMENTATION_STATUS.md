@@ -14,7 +14,7 @@ instalación cotidiana y trabajo físico/humano pendiente.
 |---|---|---|
 | LAB-00–08 | Instrumento, seis voces iniciales, presets, modelos/calibración, múltiples cuerpos, biblioteca/cache y transporte en main hasta #85; experiencia baseline aceptada. #86–89 añaden observaciones parciales y derivadas con reloj de captura | Feedback de modelos/calibración/realce, calidad y latencia físicas; CUDA no se declara reparado; nueva pila aún no instalada |
 | Comparador #18 | Motor PCM causal compartido, manifests/features/targets, video/WAV/suma de voces y selector de presets al mismo instante. Recorrido corporal con tres renders y Chrome muted registrado en EVALUATION.md | Escucha y sincronía físicas; familias/métricas científicas adicionales y reservas independientes |
-| LAB-09 #17 | Captura PCM/journal/video opt-in, export MKV/MP4/preview web, inventario y recuperación de prefijos con procedencia | Overlay de esqueleto/figura en export; polling de recuperación Shaper en curso; preview integrado de prefijos recuperados; cámara/sincronía medidas |
+| LAB-09 #17 | Captura PCM/journal/video opt-in, export MKV/MP4/preview web, inventario y recuperación de prefijos con procedencia | Overlay de esqueleto/figura en export; recuperación consultable Shaper implementada en la nueva rama; preview integrado de prefijos recuperados; cámara/sincronía medidas |
 | R01 | Subespacios y forecasts causales, controles pareados/horizontes; entradas EVAL congeladas y repetición corporal local | Más familias de predictores y splits reservados; predicción HIT específica |
 | R02 | Modelos local/relacional/angular/colectivo y centros variables en instrumento/EVAL; banco Sai #36/#97 integrado en #98, web sintética #100 | Contrastes corporales entre tomas/cuerpos; Fourier corporal encomendado a Oliva; no inferir organización de compresión sola |
 | R03 | Marcas tipadas/contexto/época, filtros y snapshots; candidatos causales y contraste temporal con soporte común, worker/API/UI | Marcas humanas nuevas y su incertidumbre temporal; centros/regiones alternativos y reservas; coincidencia no demuestra intención |
@@ -41,7 +41,7 @@ cambios locales, permanecen preservados.
 [Verificación y límites](VALIDATION.md), [arranque/recorridos](RUNNING.md),
 [agenda completa R01–R13](../../research/laboratory/AGENDA.md). Las dependencias
 científicas/humanas no desaparecen al terminar una herramienta; el roadmap sigue
-abierto. El siguiente software concreto de LAB-09 es recovery in-flight/overlays,
+abierto. El siguiente software concreto de LAB-09 es overlays/preview de prefijos,
 y las líneas R01/R13 conservan ampliación de predictores y reservas.
 
 ## Publicación
