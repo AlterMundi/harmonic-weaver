@@ -1,112 +1,135 @@
-# harmonic-weaver — Project Memory
+# Harmonic Weaver — Project Memory
 
-> Last updated: 2026-07-24. Pads v2 on integration branch `feat/pads-v2`.
+## Current State (2026-09-27)
 
-## Status
+### Movement-consonance lane (research closed, driver v1 verified)
 
-Critical-path engine of the beacon ecosystem. All core tasks complete (T1.1–T4.5).
-**Pads v2** (cuerpo-como-instrumento with retrigger/pluck) on integration branch `feat/pads-v2`:
-- Single-slot symmetric per-hand grid (hand_r → odd N, hand_l → even N).
-- 64 routes: 16 envelope + 16 trigger per hand.
-- New engine transforms: `radial_velocity`, `peak_detector`, `pad_dwell`.
-- New Shaper capability: `harmonic_trigger` (pluck envelope on deceleration peak, contract id `cac459b4`).
-- `--pads-view` flag on the launcher.
-- Audio path switched from pw-jack to ALSA directly (R24 USB Audio stable).
-- Orphan process reclaim on boot (no more manual port cleanup).
-- 150 tests green. branch `feat/pads-v2` (NOT merged to main — pending user review).
+- Research pack COMPLETE at `research/movement-consonance/` (5 raw reports +
+  CROSS_REPORT + SYNTHESIS + NARRATED + ADDENDUM + bibliography, ~330 KB).
+  Topic: new control mode where movement QUALITY drives detuning of the
+  natural harmonic series; `f'(n,d) = f1·(n + d/2)`, `|d|=1` lands on the
+  odd multiples of `f1/2` (just intervals). Snap = finite potential well,
+  continuous escape (Nicolás: "continuo con nivel de snap, NO rejilla").
+- Driver v1 prototype at `research/movement-consonance/consonance/`
+  (metrics.py + driver.py, stdlib only). Verified end-to-end 2026-09-27:
+  720 frames of HarMoCAP `session_v1.jsonl` → shaper `--no-audio --slave`
+  → 9 detuned voices live in `/api/state` (−498 to +80 cents). Drives the
+  shaper through the EXISTING `/beacon/*` slave port (voice_id 7000+n):
+  zero shaper changes, no contract bump.
+- Current mapping: hips F1, shoulders F2, knees F3, elbows F4, ankles F5,
+  wrists F6. Six sustained shared voices; replaces the original nine zones.
+- Current raw experiment supersedes the sustained-at-rest revision: snap=0,
+  gain floor=0, no 200 ms output smoothing, no One-Euro pose filtering or
+  held sound for missing joints. Shaper attack/release=0. Speed drives gain;
+  stationary samples silence each zone immediately. Independent limb-side
+  histories avoid fake motion when selecting a different side.
+- Isolated experiment: `scripts/start-kinetic-consonance.sh` runs only
+  HarMoCAP, consonance and Shaper; no spatializer, MIDI, ECG or Stage runtime.
+  Recording is opt-in.
+- Live launcher integration: `--scene kinetic-consonance` (alias `consonance`)
+  runs the consonance controller INSTEAD OF the pads/bands runtime. Existing
+  HarMoCAP camera window uses skeleton + external H1–H6 state, without pads.
+  See `docs/KINETIC_CONSONANCE.md` for invocation and verification.
+- Nicolás reports hearing the prior prototype test; source of that specific
+  audible run is not independently established by the saved handoff.
+- Codex handoff for this lane: `docs/CODEX_HANDOFF_MOVEMENT_CONSONANCE.md`
+- HMK chapters (shared pool `~/.agents/memory/compaii`): 187, 189, 190.
+- Open decisions for Nicolás: anatomical mapping (midline-virtual vs
+  kinetic-chain), default snap mode, and metric weights — these are to be
+  CALIBRATED by the baseline experiment (blind ratings + Spearman ρ), not
+  hand-tuned.
 
-## Key paths
+## Previous State (2026-09-22)
 
-| File | Role |
-|------|------|
-| `src/harmonic_weaver/engine/core.py` | WeaverEngine: sources, instruments, routes, aggregators, panic, stage WS |
-| `src/harmonic_weaver/engine/compiler.py` | Scene/route/aggregator compilation, `bin_2d` operator |
-| `src/harmonic_weaver/server.py` | FastAPI + Stage WS protocol + `/api/pads` endpoint |
-| `src/harmonic_weaver/static/` | Patchbay + overlay (vanilla JS) |
-| `src/harmonic_weaver/drivers/` | HarMoCAP, MIDI, ECG source drivers |
-| `rehearsal/` | e2e rehearsal harness (runner, scenes, weaver_runtime, ecg_simulator) |
-| `rehearsal/weaver_runtime.py` | Live runtime: installs instruments+gates+drivers, serves Stage WS |
-| `rehearsal/scenes/pads_v1.scene.json` | Pads spatial grid: 4×8 serpentine→32 harmonics, 64 routes, 6 aggregators |
+### Branch: feat/geometry-activation
 
-## Quick-start
+**Completed:**
+- Vertical bands geometry (bands-v1) with symmetric activation
+- `abs` operator in compiler for symmetric band computation
+- Per-slot `band_span` calibration from shoulder width (×2.5)
+- Lazy calibration update (only when shoulders change >10%)
+- `raw_keypoints` field in PersonState for correct skeleton overlay
+- PAD_HUES color scheme for bands (same as pads mode)
+- Active harmonic highlighting (alpha 0.50 + white border)
+- 169 weaver tests + 4 subtests passing
+- Live `bands-v1` sound path verified through HarMoCAP → Weaver → Shaper/R24
+- Geometry-scene snapshots/status payloads now expose compiled geometry routes
+  with real runtime state instead of crashing on missing raw `routes`
+- Deterministic two-person × two-hand engine-boundary coverage proves four
+  independent `harmonic_source_envelope` source slots, a harmonic transition,
+  and selective release
+- Privacy-safe analyzer command:
+  `python -m rehearsal.analyze_bands_artifact rehearsal/artifacts/<run-id>`
+- Audited artifact analysis: 172 true frame-level transitions, 18 route-reset
+  zeros, and no ambiguous source-state changes
 
+**HarMoCAP Changes:**
+- Pipeline computes per-slot `band_span` from shoulder distance
+- Normalizes wrist X in bands mode: `abs(wrist_x - nose_x) / band_span`
+- Overlay uses `raw_keypoints` for skeleton drawing (original coords)
+- Bands overlay uses PAD_HUES colors, labels H1-H8
+
+**Audio Routing:**
+- 128 routes (8 slots × 16 routes: 2 hands × 8 bands)
+- Source ID: `S = slot*2 + hand_side` (0=r, 1=l)
+- Presence gate: `include_when: slot_N_present == 1`
+- Shaper handles polyphony: max of source gains per harmonic
+
+**Known-good live command:**
 ```bash
-# Shaper with pluck capability (MUST be on feat/pads-v2)
-cd ~/Projects/harmonic-shaper && git checkout feat/pads-v2
-# Weaver with all transforms + scene v2 + launcher fixes
-cd ~/Projects/harmonic-weaver && git checkout feat/pads-v2
-
-# Live stack with pads-v2 scene (harmonic switching + retrigger on deceleration)
-./scripts/start-live-stack.sh --scene pads-v2 --beacon-mute --pads-view harmocap
-
-# Stop
-./scripts/start-live-stack.sh --stop latest
+./scripts/start-live-stack.sh \
+  --camera 2 \
+  --scene bands-v1 \
+  --beacon-mute \
+  --pads-view harmocap \
+  --shaper-device "R24 Analog Stereo"
 ```
 
-```bash
-# Tests
-PYTHONPATH=src /tmp/weaver-audit/bin/python -m pytest tests/ -q
-# 150 passed, 1 skipped, 4 subtests
-```
+**Latest evidence:**
+- `rehearsal/artifacts/live-20260922T015050/`
+- 1,044 HarMoCAP frames: 387 with 0 people, 650 with 1, 7 with 2
+- 508 instrument output events; non-zero output observed on source slots 0–3
+- Corrected analyzer: 172 frame-level harmonic transitions, 18 route-reset
+  zeros, no ambiguous source-state changes
+- Full canonical-tree suite: 169 tests + 4 subtests independently green after integration repair
+- The original run's audio remained functional, but its `rehearsal-status`
+  thread crashed in `Engine.snapshot()` because geometry scenes expose
+  `geometry_routes`, not `routes`; the regression now has automated coverage
 
-## Pads v1 — spatial grid mode (2026-07-22)
+### Remaining Work
 
-### Architecture
-- **bin_2d aggregator**: maps (X,Y) → pad index 0..31 with serpentine layout (cols=4, rows=8)
-- **Scene `pads-v1`**: 6 aggregators (hand positions + pad indices), 64 routes (32 per hand)
-- **Right hand** → `harmonic_envelope` (voice activation with attack/release)
-- **Left hand** → `harmonic_gain` (gain control)
-- **Safety profile**: extended to N=1..32 for both envelope and gain
-- **Shaper poly gain**: 1/√N ducking prevents saturation regardless of active voice count
+- Repeat a sustained 30–60 second two-person live/audio verification with
+  camera, OSC, Shaper/R24 audio, and human/orchestrator confirmation
+- Consider adding y_effect back (currently disabled in bands-v1)
 
-### HarMoCAP overlay
-- `scripts/run_realtime.py` renders 4×8 serpentine grid directly on camera window
-- Uses same pixel-space coordinate math as skeleton for perfect alignment
-- Only shows focused person (matches Weaver's focus gate)
-- Camera C920e: v4l2 fast-mode applied after first frame (30fps, short exposure)
+Canonical engineering task: https://github.com/AlterMundi/harmonic-weaver/issues/4
 
-### Coordinate alignment notes
-- HarMoCAP normalises X relative to height: `kp.x * h = pixel X` (NOT unit-normalised)
-- `pad_from_xy()` in HarMoCAP uses pixel coords to match skeleton rendering exactly
-- Weaver bin_2d uses `x_min=1.0, x_max=0.0` (X flip for mirror) and `y_min=1.0, y_max=0.0` (Y flip)
-- Overlay grid renders with flipped rows: grid_row 0 (bottom of model) → canvas bottom
+Codex handoff: `docs/CODEX_HANDOFF_BANDS_V1.md`
 
-### Known issues / future
-- Engine source lease no auto-recovery (STILL OPEN from S14)
-- Smoothing 60ms + slew_limiter adds ~100ms latency between visual and audio
-- Per-pad velocity/onset via hand acceleration (future card)
-- Master gain route removed — poly gain handles clipping in Shaper
+### Key Files
 
-## bin_2d aggregator operator (2026-07-21)
+- `src/harmonic_weaver/engine/geometry_bands.py` — vertical bands expander
+- `src/harmonic_weaver/engine/geometry_toolkit.py` — shared toolkit (band_zone_aggregator_symmetric)
+- `src/harmonic_weaver/engine/compiler.py` — abs operator, geometry dispatch
+- `rehearsal/scenes/bands-v1.scene.json` — 8-band symmetric scene
+- `rehearsal/analyze_bands_artifact.py` — compact JSON live-artifact analyzer
+- `docs/CODEX_HANDOFF_BANDS_V1.md` — bounded two-iteration continuation
+- `HarMoCAP/src/harmocap/pipeline.py` — band_span calibration, wrist normalization
+- `HarMoCAP/scripts/run_realtime.py` — bands overlay rendering
 
-- New aggregator operator mapping 2D spatial position → discrete bin index
-- Parameters: `cols`, `rows`, `serpentine` (bool, default true), `x_min/x_max`, `y_min/y_max`
-- Supports inverted ranges (min > max = axis flip)
-- Exactly 2 input channels required
-- Validation: `x_min ≠ x_max`, `y_min ≠ y_max`, `cols > 0`, `rows > 0`
-- Tests: `tests/test_engine_derived_scenes.py` (5 bin_2d tests)
+### Architecture Notes
 
-## Stateful transform resources
+**Geometry/Activation Orthogonality:**
+- Geometry returns topology only (zone layout)
+- Activation owns routes and gains
+- `mirror: bool` explicit in schema (bands are symmetric)
 
-| Transform | Role | Docs/Tests |
-|-----------|------|------------|
-| `phase_accumulator` | velocity→wrapped phase (Latido laser/cymatics) | `docs/TRANSFORM_PHASE_ACCUMULATOR.md`, `tests/test_phase_accumulator.py` |
-| `slew_limiter` | rate-limited chase (convergence primitive) | `tests/test_transforms_slew.py` |
-| `derivative` | causal trailing diff (signed velocity from position) | `tests/test_transforms_derivative.py` |
-| `beat_envelope` | trigger→decaying pulse | `tests/test_beat_envelope.py` |
+**Band Computation:**
+- H1 = center (near nose), H8 = outermost (full arm reach)
+- Both arms produce same harmonic (symmetric: `abs(offset)`)
+- band_span adapts to person's position/size (shoulder width × 2.5)
 
-## Live test findings (S13/S14)
-
-- ROOT CAUSE of shaper voices not firing: `harmocap_manifest()` declared all features (0,1) but producer `verticality` is signed (-1,1). Fixed S14.
-- LiveOSCTransport: fixed (dict serialization instead of asdict on mappingproxy).
-- Engine source lease: expires permanently after 2500ms, no auto-recovery. STILL OPEN.
-- RTX 2060 CUDA unstable: `CUDA_LAUNCH_BLOCKING=1` + supervised restart in start-live-stack.sh.
-
-## Sibling repos
-
-| Repo | Role | Key files |
-|------|------|-----------|
-| `harmonic-shaper` | Additive synth (OSC :9002, HTTP :8080) | `src/harmonic_shaper/state.py` (poly gain, voice mgmt), `config.py` (attack/release defaults) |
-| `HarMoCAP` | Pose detection (camera→OSC :9100) | `scripts/run_realtime.py` (pad overlay), `src/harmocap/capture.py` (v4l2 fast mode) |
-| `harmonic-beacon-tines` | Nature sound engine | — |
-| `beacon-spatial` | Spatializer (SuperCollider) | — |
+**Visual/Audio Coordination:**
+- Same `band_span` used for overlay rendering and audio routing
+- Person plays same note regardless of distance from camera
+- Calibration is lazy (updates only when torso size changes >10%)

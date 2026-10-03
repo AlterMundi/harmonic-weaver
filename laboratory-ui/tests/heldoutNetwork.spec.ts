@@ -1,0 +1,35 @@
+import {test,expect} from '@playwright/test';
+test('R13 real owned worker, settings, frozen models and repeated support',async({page})=>{
+ test.skip(!process.env.LAB_COMPONENT_TEST_URL,'requires explicit local API/Vite proxy');
+ const origin=process.env.LAB_COMPONENT_TEST_URL!;
+ await page.route(`${origin}/r13-test`,r=>r.fulfill({contentType:'text/html',body:'<div id="test-root"></div>'}));
+ await page.goto(`${origin}/r13-test`);
+ await page.addScriptTag({type:'module',content:`
+  import React from '/node_modules/.vite/deps/react.js';
+  import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
+  import {HeldoutPanel} from '/src/HeldoutPanel.tsx';
+  const api=async(path,body)=>{const r=await fetch('/api/'+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await r.json();if(!r.ok)throw Error(JSON.stringify(value));return value};
+  ReactDOM.createRoot(document.getElementById('test-root')).render(React.createElement(HeldoutPanel,{api}));
+ `});
+ await page.getByRole('button',{name:'Cargar control sintético R13'}).click();
+ await page.getByLabel('Normalización R13',{exact:true}).selectOption('standardize_train');
+ await page.getByLabel('Componentes del predictor',{exact:true}).fill('1');
+ const settings=page.waitForEvent('download');
+ await page.getByRole('button',{name:'Guardar configuración portable R13'}).click();
+ expect((await settings).suggestedFilename()).toBe('r13-settings.json');
+ const posted=page.waitForResponse(r=>r.url().endsWith('/api/research/r13')&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Correr transferencia R13'}).click();
+ const accepted=await posted;expect(accepted.ok()).toBe(true);const id=(await accepted.json()).id;
+ const table=page.getByRole('table',{name:`Resultados transferencia ${id}`});
+ await expect(table).toBeVisible({timeout:15000});
+ await expect(table.getByRole('row').nth(1)).toContainText('178');
+ const first=await page.request.get(`${origin}/api/research/r13/${id}/artifacts/manifest.json`);expect(first.ok()).toBe(true);const manifest=await first.json();
+ expect(manifest.settings.components).toBe(1);expect(manifest.settings.normalization).toBe('standardize_train');
+ const repeat=page.waitForResponse(r=>r.url().endsWith(`/${id}/repeat`));
+ await table.locator('..').getByRole('button',{name:'Repetir corrida R13'}).click();
+ const secondId=(await (await repeat).json()).id;
+ await expect(page.getByRole('table',{name:`Resultados transferencia ${secondId}`})).toBeVisible({timeout:15000});
+ const second=await page.request.get(`${origin}/api/research/r13/${secondId}/artifacts/manifest.json`);expect(second.ok()).toBe(true);
+ expect((await second.json()).hashes).toEqual(manifest.hashes);
+ await expect(page.getByRole('alert')).toHaveCount(0);
+});

@@ -1,0 +1,585 @@
+{
+  "schema_version": 1,
+  "id": "six-zones",
+  "name": "Seis zonas · plucks",
+  "favorite": false,
+  "algorithm": {
+    "id": "baseline",
+    "version": 1,
+    "reference": "camera",
+    "fixed_x": 0.0,
+    "fixed_y": 0.0,
+    "joints": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ],
+    "smoothing_s": 0.0,
+    "derivative_window_s": 0.12,
+    "horizon_s": 0.15,
+    "history_s": 0.25,
+    "noise_velocity": 0.02,
+    "noise_delta": 0.015,
+    "relation_reference": "history",
+    "window_s": 2.0,
+    "components": 3,
+    "ridge": 0.1,
+    "lag_s": 0.12,
+    "propagation_interval_s": 0.2,
+    "event_threshold": 2.0,
+    "refractory_s": 0.25,
+    "event_duration_s": 0.15,
+    "max_gap_s": 0.25
+  },
+  "response": {
+    "core_falloff": 0.75,
+    "snap": 0.0,
+    "phase_depth": 45.0,
+    "pluck_enabled": true,
+    "attack_ms": 80.0,
+    "tail_ms": 700.0,
+    "impulse_threshold": 0.15,
+    "zones": [
+      {
+        "sensitivity": 1.0,
+        "distance": 0.0,
+        "speed_range": 0.6,
+        "accel_range": 6.0
+      },
+      {
+        "sensitivity": 1.0,
+        "distance": 1.0,
+        "speed_range": 0.6,
+        "accel_range": 6.0
+      },
+      {
+        "sensitivity": 1.0,
+        "distance": 1.0,
+        "speed_range": 0.6,
+        "accel_range": 6.0
+      },
+      {
+        "sensitivity": 1.0,
+        "distance": 2.0,
+        "speed_range": 0.6,
+        "accel_range": 6.0
+      },
+      {
+        "sensitivity": 1.0,
+        "distance": 2.0,
+        "speed_range": 0.6,
+        "accel_range": 6.0
+      },
+      {
+        "sensitivity": 1.0,
+        "distance": 3.0,
+        "speed_range": 0.6,
+        "accel_range": 6.0
+      }
+    ]
+  },
+  "fundamental_hz": 40.4,
+  "master": 0.7,
+  "expression": 0.0,
+  "transient_mix": 0.0,
+  "transient_decay_s": 0.15,
+  "expression_window_s": 0.12,
+  "voices": [
+    {
+      "id": 1,
+      "label": "Caderas",
+      "ratio": 1.0,
+      "gain": 1.0,
+      "detune": 0.0,
+      "phase_deg": 0.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "muted": false,
+      "solo": false
+    },
+    {
+      "id": 2,
+      "label": "Hombros",
+      "ratio": 2.0,
+      "gain": 1.0,
+      "detune": 0.0,
+      "phase_deg": 0.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "muted": false,
+      "solo": false
+    },
+    {
+      "id": 3,
+      "label": "Rodillas",
+      "ratio": 3.0,
+      "gain": 1.0,
+      "detune": 0.0,
+      "phase_deg": 0.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "muted": false,
+      "solo": false
+    },
+    {
+      "id": 4,
+      "label": "Codos",
+      "ratio": 4.0,
+      "gain": 1.0,
+      "detune": 0.0,
+      "phase_deg": 0.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "muted": false,
+      "solo": false
+    },
+    {
+      "id": 5,
+      "label": "Tobillos",
+      "ratio": 5.0,
+      "gain": 1.0,
+      "detune": 0.0,
+      "phase_deg": 0.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "muted": false,
+      "solo": false
+    },
+    {
+      "id": 6,
+      "label": "Muñecas",
+      "ratio": 6.0,
+      "gain": 1.0,
+      "detune": 0.0,
+      "phase_deg": 0.0,
+      "pan": 0.0,
+      "shape": 0.0,
+      "muted": false,
+      "solo": false
+    }
+  ],
+  "routes": [
+    {
+      "id": "zone-1-gain",
+      "voice": 1,
+      "target": "gain",
+      "terms": [
+        {
+          "source": "zone.1.gain",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-1-detune",
+      "voice": 1,
+      "target": "detune",
+      "terms": [
+        {
+          "source": "zone.1.detune",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-1-phase_deg",
+      "voice": 1,
+      "target": "phase_deg",
+      "terms": [
+        {
+          "source": "zone.1.phase_deg",
+          "input_unit": "deg",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -180.0,
+      "clamp_max": 180.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-2-gain",
+      "voice": 2,
+      "target": "gain",
+      "terms": [
+        {
+          "source": "zone.2.gain",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-2-detune",
+      "voice": 2,
+      "target": "detune",
+      "terms": [
+        {
+          "source": "zone.2.detune",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-2-phase_deg",
+      "voice": 2,
+      "target": "phase_deg",
+      "terms": [
+        {
+          "source": "zone.2.phase_deg",
+          "input_unit": "deg",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -180.0,
+      "clamp_max": 180.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-3-gain",
+      "voice": 3,
+      "target": "gain",
+      "terms": [
+        {
+          "source": "zone.3.gain",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-3-detune",
+      "voice": 3,
+      "target": "detune",
+      "terms": [
+        {
+          "source": "zone.3.detune",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-3-phase_deg",
+      "voice": 3,
+      "target": "phase_deg",
+      "terms": [
+        {
+          "source": "zone.3.phase_deg",
+          "input_unit": "deg",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -180.0,
+      "clamp_max": 180.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-4-gain",
+      "voice": 4,
+      "target": "gain",
+      "terms": [
+        {
+          "source": "zone.4.gain",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-4-detune",
+      "voice": 4,
+      "target": "detune",
+      "terms": [
+        {
+          "source": "zone.4.detune",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-4-phase_deg",
+      "voice": 4,
+      "target": "phase_deg",
+      "terms": [
+        {
+          "source": "zone.4.phase_deg",
+          "input_unit": "deg",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -180.0,
+      "clamp_max": 180.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-5-gain",
+      "voice": 5,
+      "target": "gain",
+      "terms": [
+        {
+          "source": "zone.5.gain",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-5-detune",
+      "voice": 5,
+      "target": "detune",
+      "terms": [
+        {
+          "source": "zone.5.detune",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-5-phase_deg",
+      "voice": 5,
+      "target": "phase_deg",
+      "terms": [
+        {
+          "source": "zone.5.phase_deg",
+          "input_unit": "deg",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -180.0,
+      "clamp_max": 180.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-6-gain",
+      "voice": 6,
+      "target": "gain",
+      "terms": [
+        {
+          "source": "zone.6.gain",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": 0.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-6-detune",
+      "voice": 6,
+      "target": "detune",
+      "terms": [
+        {
+          "source": "zone.6.detune",
+          "input_unit": "1",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -1.0,
+      "clamp_max": 1.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    },
+    {
+      "id": "zone-6-phase_deg",
+      "voice": 6,
+      "target": "phase_deg",
+      "terms": [
+        {
+          "source": "zone.6.phase_deg",
+          "input_unit": "deg",
+          "weight": 1.0,
+          "offset": 0.0,
+          "exponent": 1.0,
+          "deadband": 0.0,
+          "absolute": false
+        }
+      ],
+      "mix": "sum",
+      "enabled": true,
+      "clamp_min": -180.0,
+      "clamp_max": 180.0,
+      "smoothing_s": 0.0,
+      "missing": "silence"
+    }
+  ],
+  "macros": [],
+  "visual": {
+    "window_periods": 2.0,
+    "samples": 2400,
+    "persistence": 0.65,
+    "line_width": 1.5,
+    "brightness": 0.8,
+    "scale": 1.0,
+    "auto_scale": true,
+    "components": false,
+    "color": "ice",
+    "mirror_video": false,
+    "show_skeleton": true,
+    "on_disconnect": "clear"
+  },
+  "pause_behavior": "release",
+  "release_ms": 150.0
+}

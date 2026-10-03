@@ -1,0 +1,48 @@
+import {test,expect} from '@playwright/test';
+test('temporal flow config and recovery preserve manual annotations',async({page})=>{
+ test.skip(!process.env.LAB_R08_FLOW_URL,'isolated fixture required');
+ const origin=process.env.LAB_R08_FLOW_URL!;await page.goto(origin);
+ const prepare=async()=>{await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();await expect(page.getByText(/Imagen decodificada/)).toBeVisible();};
+ await prepare();const draft=page.getByLabel('Anotación R08 JSON'),before=await draft.inputValue();
+ await page.getByLabel('Configuración temporal portable R08').fill(JSON.stringify({frames:3,settings:{max_gap_s:.05}}));
+ await page.getByLabel('Seeds temporales R08').fill('[{"x":0.5,"y":0.5}]');
+ await page.getByLabel('Decoder temporal R08').selectOption('sequential_png');
+ let starts=0,interrupted=false;
+ page.on('request',request=>{if(request.method()==='POST'&&request.url().endsWith('/api/research/r08/flow'))starts++;});
+ await page.route(/\/api\/research\/r08\/flow\/[a-f0-9]{32}$/,route=>{
+  if(route.request().method()==='GET'&&!interrupted){interrupted=true;return route.abort();}
+  return route.continue();
+ });
+ await page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true}).click();
+ await expect(page.getByText(/Corrida temporal R08: connection_lost/)).toBeVisible();
+ const lost=await page.getByText(/Corrida temporal R08: connection_lost/).textContent();
+ const id=lost!.match(/[a-f0-9]{32}/)![0];
+ await expect(page.getByRole('button',{name:'Iniciar corrida temporal R08',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Cancelar corrida temporal R08',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Retomar consulta temporal R08',exact:true}).click();
+ await expect(page.getByText(new RegExp(`Corrida temporal R08: complete.*${id}`))).toBeVisible();
+ expect(starts).toBe(1);
+ await expect(page.locator('svg[aria-label="Candidatos temporales R08"] circle')).toHaveCount(1);
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(1);
+ await expect(page.getByTestId('rope-flow-overlay').locator('circle')).toHaveAttribute('cx','0.5');
+ await page.getByLabel('Frame R08',{exact:true}).fill('1');
+ await expect(page.getByText(/Cuadro actual: reset, 0 puntos con soporte/)).toBeVisible();
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(0);
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
+ await page.getByLabel('Frame R08',{exact:true}).fill('0');
+ await expect(page.getByTestId('rope-flow-overlay')).toHaveCount(1);
+ await expect(draft).toHaveValue(before);
+ const jobs=await(await page.request.get(`${origin}/api/research/r08/flow`)).json();expect(jobs).toHaveLength(1);
+ const result=await(await page.request.get(`${origin}/api/research/r08/flow/${jobs[0].id}/artifacts/result.json`)).json();
+ expect(result.frames.map((f:any)=>f.status)).toEqual(['seeded','reset','reset']);
+ expect(result.request.decoder).toBe('sequential_png');
+ await page.reload();await prepare();
+ await page.getByRole('button',{name:'Ver corrida temporal R08',exact:true}).click();
+ await expect(page.getByText(/Resultado temporal R08: 3 cuadros/)).toBeVisible();
+ await page.getByRole('button',{name:'Recuperar sólo configuración temporal R08',exact:true}).click();
+ const config=JSON.parse(await page.getByLabel('Configuración temporal portable R08').inputValue());
+ expect(config.frames).toBe(3);expect(config.settings.max_gap_s).toBe(.05);expect(config.seeds).toBeUndefined();
+ expect(config.decoder).toBe('sequential_png');
+ expect(await page.getByLabel('Seeds temporales R08').inputValue()).toBe('[]');
+ await expect(page.getByLabel('Anotación R08 JSON')).toHaveValue(before);
+});

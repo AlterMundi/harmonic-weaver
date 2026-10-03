@@ -1,0 +1,160 @@
+{
+  "common_target_end_s": 5.966666666666667,
+  "common_target_samples": 149,
+  "common_target_start_s": 1.0333333333333334,
+  "date": "2026-09-30",
+  "experiment": "R01 direct horizon forecasts",
+  "limits": [
+    "Synthetic sinusoidal trajectories only; not evidence about HIT or bodies",
+    "Same target clock slots across horizons and controls; shuffle changes observations",
+    "Single seed, no confidence intervals or scientific generalization"
+  ],
+  "module_sha256": "48fcff1dd42ae12794d0d0fa98572350225c97fbc6b6bb975774480a25c9c739",
+  "runs": {
+    "1": {
+      "artifact_hashes": {
+        "global_rotation.jsonl": "51d94cdea2380df09e95dda83a55fbe171c9d436bacf4d2b1f81a9897177350e",
+        "original.jsonl": "f007466e6cef01eb9c6607e2933d89a5e51f53b136a706e57b8ceee14509159a",
+        "paired.jsonl": "8b605442455661d45398632271cc5912a2554ba088e48da3480ccc0dec411712",
+        "temporal_shuffle.jsonl": "b95448a60f25c9a7cc69d0143af74d23c50f06585d63224136c3dabe0ec66184"
+      },
+      "common_horizon_scores": {
+        "global_rotation": {
+          "full_ridge": 0.0036133886169446693,
+          "persistence": 0.002832152620093563,
+          "subspace_ridge": 0.003610600087059047
+        },
+        "original": {
+          "full_ridge": 0.003613388616944666,
+          "persistence": 0.002832152620093564,
+          "subspace_ridge": 0.0036106000870590417
+        },
+        "temporal_shuffle": {
+          "full_ridge": 0.22600303871643715,
+          "persistence": 0.39416341167205105,
+          "subspace_ridge": 0.2259977090404119
+        }
+      },
+      "input_hashes": {
+        "global_rotation": "98998e5c1852c58058f18664120301e440ded9ea18406f7db19299ec947542a4",
+        "original": "506215f1a33cf7cc7bf84066e451ea20ba90e95201c12cc2d74fb1d532a5aeae",
+        "temporal_shuffle": "6cc410dade2a169f91574fc2f543947fc6af5f978d7eb51e0d53698438d4f809"
+      },
+      "paired_samples": 174,
+      "repeat_identical": true,
+      "settings": {
+        "components": 2,
+        "control_hz": 30,
+        "dimensions": 5,
+        "horizon_steps": 1,
+        "noise_std": 0.01,
+        "noise_threshold": 0.02,
+        "ridge": 0.1,
+        "rotation_deg_s": 30.0,
+        "samples": 180,
+        "scenario": "fixed_span",
+        "seed": 17,
+        "signal_rank": 2,
+        "temporal_memory": 0.95,
+        "window_s": 2.0
+      }
+    },
+    "15": {
+      "artifact_hashes": {
+        "global_rotation.jsonl": "33f3e20f4673c0cc254124503ebea83669170dd692530b9c8242da2a2b49dc4d",
+        "original.jsonl": "2c2100f5be588b15aacc8f1351e7d646b0cd7e6302d93e1d8a3a46bffcb702d2",
+        "paired.jsonl": "5479174f2ad10a7f07b8e852bbfbb8cbcca4d7bb4f1173e4c5ab690d825dafe5",
+        "temporal_shuffle.jsonl": "2f39ae9b5c1744c00ac74191bec7e3408471031bc7fe41f63f7b78a8f3dfa7c5"
+      },
+      "common_horizon_scores": {
+        "global_rotation": {
+          "full_ridge": 2.26809375543754,
+          "persistence": 0.4240016553642647,
+          "subspace_ridge": 2.26880572206318
+        },
+        "original": {
+          "full_ridge": 2.268093755437539,
+          "persistence": 0.42400165536426476,
+          "subspace_ridge": 2.2688057220631785
+        },
+        "temporal_shuffle": {
+          "full_ridge": 0.23905056940612568,
+          "persistence": 0.42998736501065427,
+          "subspace_ridge": 0.23913618575673143
+        }
+      },
+      "input_hashes": {
+        "global_rotation": "98998e5c1852c58058f18664120301e440ded9ea18406f7db19299ec947542a4",
+        "original": "506215f1a33cf7cc7bf84066e451ea20ba90e95201c12cc2d74fb1d532a5aeae",
+        "temporal_shuffle": "6cc410dade2a169f91574fc2f543947fc6af5f978d7eb51e0d53698438d4f809"
+      },
+      "paired_samples": 149,
+      "repeat_identical": true,
+      "settings": {
+        "components": 2,
+        "control_hz": 30,
+        "dimensions": 5,
+        "horizon_steps": 15,
+        "noise_std": 0.01,
+        "noise_threshold": 0.02,
+        "ridge": 0.1,
+        "rotation_deg_s": 30.0,
+        "samples": 180,
+        "scenario": "fixed_span",
+        "seed": 17,
+        "signal_rank": 2,
+        "temporal_memory": 0.95,
+        "window_s": 2.0
+      }
+    },
+    "6": {
+      "artifact_hashes": {
+        "global_rotation.jsonl": "fab16740773efe0d59b6eb0e620eeae2f57dfd2a9824c9b1a79c09881ce72893",
+        "original.jsonl": "d96e651a7098d140466c1439da030569a20ccd5e65c5f7b308284c0bba09eabd",
+        "paired.jsonl": "c649a55fa3cf5546e249d9b5f79ceaaf50ebe02407e5e21950585ca97867186d",
+        "temporal_shuffle.jsonl": "2bc94edd92071a3f7daac5219eb592dae7b37b47c6b931539eed33bf0f9a3171"
+      },
+      "common_horizon_scores": {
+        "global_rotation": {
+          "full_ridge": 0.25626451610816436,
+          "persistence": 0.08861608731420938,
+          "subspace_ridge": 0.2563606619018929
+        },
+        "original": {
+          "full_ridge": 0.2562645161081643,
+          "persistence": 0.0886160873142094,
+          "subspace_ridge": 0.2563606619018928
+        },
+        "temporal_shuffle": {
+          "full_ridge": 0.23015613792475084,
+          "persistence": 0.4227235815689425,
+          "subspace_ridge": 0.22977447888315566
+        }
+      },
+      "input_hashes": {
+        "global_rotation": "98998e5c1852c58058f18664120301e440ded9ea18406f7db19299ec947542a4",
+        "original": "506215f1a33cf7cc7bf84066e451ea20ba90e95201c12cc2d74fb1d532a5aeae",
+        "temporal_shuffle": "6cc410dade2a169f91574fc2f543947fc6af5f978d7eb51e0d53698438d4f809"
+      },
+      "paired_samples": 167,
+      "repeat_identical": true,
+      "settings": {
+        "components": 2,
+        "control_hz": 30,
+        "dimensions": 5,
+        "horizon_steps": 6,
+        "noise_std": 0.01,
+        "noise_threshold": 0.02,
+        "ridge": 0.1,
+        "rotation_deg_s": 30.0,
+        "samples": 180,
+        "scenario": "fixed_span",
+        "seed": 17,
+        "signal_rank": 2,
+        "temporal_memory": 0.95,
+        "window_s": 2.0
+      }
+    }
+  },
+  "schema_version": 1
+}

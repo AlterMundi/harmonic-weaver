@@ -1,0 +1,81 @@
+import { test, expect } from '@playwright/test';
+import {readFileSync} from 'node:fs';
+
+test('explicit capture controls preserve settings, show failures and do not start on mount', async ({page}) => {
+  test.skip(!process.env.LAB_COMPONENT_TEST_URL, 'requires isolated Vite');
+  const origin=process.env.LAB_COMPONENT_TEST_URL!;
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(String(e)));
+  await page.route(`${origin}/capture-test`,r=>r.fulfill({contentType:'text/html',body:'<div id="test-root"></div>'}));
+  await page.goto(`${origin}/capture-test`);
+  await page.addScriptTag({type:'module',content:`
+    import React from '/node_modules/.vite/deps/react.js';
+    import ReactDOM from '/node_modules/.vite/deps/react-dom_client.js';
+    import {CapturePanel} from '/src/CapturePanel.tsx';
+    let state={current:{status:'idle'},jobs:[]};let recovery={status:'idle'};window.captureCalls=[];
+    const api=async(path,body)=>{
+      window.captureCalls.push({path,body});
+      if(path==='capture-recovery')return recovery;
+      if(path==='capture-exports')return {status:'idle'};
+      if(path==='capture-exports/jobs')return [{id:'export',status:'complete',capture_completeness:'recovered_partial',preview:{status:'complete'}}];
+      if(path==='captures/interrupted/recover'){recovery={status:'recovered',result:{directory:'/synthetic/recovery',recovered_samples:256},journal:{directory:'/synthetic/journal',files:{'events.jsonl':{rows:2},'timeline.jsonl':{rows:3}}}};return recovery;}
+      if(path==='captures/test/export')return {status:'rendering',frames:0};
+      if(path==='captures/start')state={current:{status:'recording'},jobs:[]};
+      if(path==='captures/stop')state={current:{status:'complete'},jobs:[{id:'test',status:'complete',events:1205,timeline_rows:7,directory:'/synthetic/session',shaper:{directory:'/synthetic/audio'}},{id:'interrupted',status:'interrupted',shaper:{id:'known'}}]};
+      return state;
+    };
+    window.prefixHistory=()=>{state.jobs[1].recovery={status:'recovered',result:{recovered_samples:256},journal:{status:'partial'}};};
+    window.recoveryHistory=()=>{state.jobs[1].recovery={status:'unconfirmed',error:'Lost synthetic ack',persistence_error:'Synthetic disk full'};recovery={status:'idle'};};
+    window.failCapture=()=>state={current:{status:'failed',error:'Synthetic disk failure'},jobs:[]};
+    ReactDOM.createRoot(document.getElementById('test-root')).render(React.createElement(CapturePanel,{api,run:fn=>fn()}));
+  `});
+  const start=page.getByRole('button',{name:'Iniciar captura'});
+  const stop=page.getByRole('button',{name:'Detener captura'});
+  await expect(start).toBeEnabled();await expect(stop).toBeDisabled();
+  await expect(page.getByRole('link',{name:'Descargar video + PCM'})).toHaveAttribute('href','/api/capture-exports/export/artifacts/capture.mkv');
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(()=>(window as any).captureCalls.every((x:any)=>['captures','capture-exports','capture-exports/jobs','capture-recovery'].includes(x.path)))).toBe(true);
+  await expect(page.getByLabel('Grabar preview de cámara durante esta captura')).not.toBeChecked();
+  await expect(page.getByText('Exportación de prefijo recuperado:',{exact:false})).toContainText('captura parcial');
+  await expect(page.locator('video')).toHaveCount(0);
+  if(process.env.LAB_CAPTURE_PREVIEW){
+    await page.route('**/api/capture-exports/export/artifacts/preview.mp4',r=>r.fulfill({contentType:'video/mp4',body:readFileSync(process.env.LAB_CAPTURE_PREVIEW!)}));
+    await page.getByRole('button',{name:'Ver preview de captura'}).click();
+    const video=page.locator('video');
+    await expect.poll(()=>video.evaluate((el:HTMLVideoElement)=>el.readyState)).toBeGreaterThanOrEqual(1);
+    expect(await video.evaluate((el:HTMLVideoElement)=>el.paused)).toBe(true);
+    await video.evaluate(async(el:HTMLVideoElement)=>{el.muted=true;await el.play()});
+    await expect.poll(()=>video.evaluate((el:HTMLVideoElement)=>el.currentTime)).toBeGreaterThan(.2);
+    await page.getByRole('button',{name:'Cerrar preview'}).click();
+    await expect(video).toHaveCount(0);
+  }
+  await page.getByLabel('Grabar preview de cámara durante esta captura').check();
+  await page.getByLabel('Duración máxima (s)').fill('60');
+  await page.getByLabel('Capacidad de cola de audio (bloques)').fill('64');
+  await page.getByLabel('Frecuencia del timeline (Hz)').fill('30');
+  await start.click();await expect(start).toBeDisabled();await expect(stop).toBeEnabled();
+  await expect(page.getByLabel('Duración máxima (s)')).toBeDisabled();
+  expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/start').body)).toEqual({max_seconds:60,queue_blocks:64,timeline_hz:30,record_camera:true,camera_queue_frames:8,camera_max_frames:10000,camera_max_mb:256});
+  await stop.click();await expect(start).toBeEnabled();await expect(stop).toBeDisabled();
+  await expect(page.getByText('Bitácora local: /synthetic/session')).toBeVisible();
+  await expect(page.getByText('Audio local: /synthetic/audio')).toBeVisible();
+  await expect(page.getByLabel('Generar preview MP4 para navegador')).not.toBeChecked();
+  await page.getByLabel('Generar preview MP4 para navegador').check();
+  await page.getByLabel('Bitrate AAC de preview (kbps)').fill('128');
+  await page.getByLabel('Reloj de cámara para alinear').selectOption('captured_monotonic_s');
+  await page.getByRole('button',{name:'Exportar captura test'}).click();
+  expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/test/export').body)).toEqual({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'captured_monotonic_s',browser_preview:true,preview_audio_kbps:128});
+  await page.getByRole('button',{name:'Recuperar audio interrup'}).click();
+  expect(await page.evaluate(()=>(window as any).captureCalls.some((x:any)=>x.path==='captures/interrupted/recover'))).toBe(true);
+  await expect(page.getByText(/^Prefijo recuperado:/)).toContainText('256 muestras');
+  await expect(page.getByText('Bitácora parcial:',{exact:false})).toContainText('2 eventos · 3 observaciones');
+  await page.evaluate(()=>(window as any).prefixHistory());
+  await page.getByRole('button',{name:'Exportar prefijo recuperado interrup'}).click();
+  expect(await page.evaluate(()=>(window as any).captureCalls.find((x:any)=>x.path==='captures/interrupted/export').body.recovered_prefix)).toBe(true);
+  await page.evaluate(()=>(window as any).recoveryHistory());
+  await expect(page.getByText('Recuperación de esta captura:',{exact:false})).toContainText('unconfirmed');
+  await expect(page.getByText('Recuperación de esta captura:',{exact:false})).toContainText('Lost synthetic ack');
+  await expect(page.getByRole('alert')).toContainText('Synthetic disk full');
+  await page.evaluate(()=>(window as any).failCapture());
+  await expect(page.getByRole('status')).toContainText('Synthetic disk failure');
+  expect(errors).toEqual([]);
+});

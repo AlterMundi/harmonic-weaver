@@ -1,0 +1,20 @@
+import {test,expect} from '@playwright/test';
+test('R07 transient controls real worker preset download and restoration',async({page})=>{
+ test.skip(!process.env.LAB_R07_NETWORK_URL,'isolated HTTP server required');
+ const origin=process.env.LAB_R07_NETWORK_URL!;await page.goto(origin);
+ const text=page.getByLabel('Preset portable de controles R07');await expect(text).not.toHaveValue('');
+ const config=JSON.parse(await text.inputValue());config.settings.duration_samples=800;config.settings.forcing_samples=400;config.settings.seed=29;
+ await text.fill(JSON.stringify(config));await page.getByRole('button',{name:'Validar preset de controles R07',exact:true}).click();
+ await expect.poll(async()=>JSON.parse(await text.inputValue()).settings.seed).toBe(29);
+ expect(await(await page.request.get(`${origin}/api/research/r07-controls`)).json()).toEqual([]);
+ await page.getByRole('button',{name:'Calcular controles R07',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Ver controles R07',exact:true})).toBeVisible({timeout:15000});
+ await page.getByRole('button',{name:'Ver controles R07',exact:true}).click();
+ await expect(page.locator('table tbody tr')).toHaveCount(4);
+ const jobs=await(await page.request.get(`${origin}/api/research/r07-controls`)).json();
+ const result=await(await page.request.get(`${origin}/api/research/r07-controls/${jobs[0].id}/artifacts/result.json`)).json();
+ expect(result.request.seed).toBe(29);expect(Object.keys(result.conditions)).toHaveLength(4);
+ expect(result.conditions.pulse.input_sum_squares).toBe(400);
+ await page.reload();await expect(page.getByRole('button',{name:'Ver controles R07',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Ver controles R07',exact:true}).click();await expect(page.locator('table tbody tr')).toHaveCount(4);
+});

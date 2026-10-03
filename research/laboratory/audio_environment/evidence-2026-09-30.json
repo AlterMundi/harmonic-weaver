@@ -1,0 +1,46 @@
+{
+  "controls_sha256": "05489a99939f0d3acc4e24da9827b8cce9b009251d3b9658779bad784c4b8b0a",
+  "engine_files_identical": true,
+  "environments": {
+    "shaper": {
+      "engine_files": {
+        "audio_engine.py": "1286a30858d18e871cdbbbdae7c72105f20241e373b56cf654f225b765e94fd9",
+        "audio_levels.py": "94fc40c19d4aad41fbbffc0d6722ce90e617089082289af76e77e3adf3c46e7e",
+        "config.py": "49f9346eb3d77e587785aef109e620fdabc4bcc847291472bf45e74e40b16a16",
+        "laboratory.py": "fd49639e26a072e4da54dd6e7080fef28e3faef9a9fab894f6a7d06cce0a0acc",
+        "state.py": "3e9b6f8697147b054252fd8f4207b4f06e9f474cad1c6f6f7ea6c84771686299"
+      },
+      "libsndfile": "1.2.2",
+      "numpy": "2.4.6",
+      "pcm_sha256": "2200379f88498ba5715b73224823a0995f2de5a32acb96f1fa47a378a8ab7bc3",
+      "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+      "python": "3.13.5",
+      "samples": 38400,
+      "soundfile": "0.14.0"
+    },
+    "weaver": {
+      "engine_files": {
+        "audio_engine.py": "1286a30858d18e871cdbbbdae7c72105f20241e373b56cf654f225b765e94fd9",
+        "audio_levels.py": "94fc40c19d4aad41fbbffc0d6722ce90e617089082289af76e77e3adf3c46e7e",
+        "config.py": "49f9346eb3d77e587785aef109e620fdabc4bcc847291472bf45e74e40b16a16",
+        "laboratory.py": "fd49639e26a072e4da54dd6e7080fef28e3faef9a9fab894f6a7d06cce0a0acc",
+        "state.py": "3e9b6f8697147b054252fd8f4207b4f06e9f474cad1c6f6f7ea6c84771686299"
+      },
+      "libsndfile": "1.2.2",
+      "numpy": "2.5.1",
+      "pcm_sha256": "2200379f88498ba5715b73224823a0995f2de5a32acb96f1fa47a378a8ab7bc3",
+      "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+      "python": "3.12.13",
+      "samples": 38400,
+      "soundfile": "0.14.0"
+    }
+  },
+  "limits": [
+    "Synthetic control sequence only; not universal parity",
+    "Production logical block kernel, no hardware callback or physical latency measured"
+  ],
+  "max_absolute_sample_difference": 0.0,
+  "pcm_identical": true,
+  "schema_version": 1,
+  "voices": 6
+}

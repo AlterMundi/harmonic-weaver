@@ -79,11 +79,11 @@ def _source_writes(records, harmonic: int, source: int):
 def test_pads_v2_compiles_full_grid_for_both_hands_of_two_people() -> None:
     engine, _ = _ready_engine()
     snapshot = engine.snapshot(["routes"])
-    assert len(snapshot["routes"]) == 128
+    assert len(snapshot["routes"]) == 512
     assert {
         route["destination"]["bindings"]["S"]
         for route in snapshot["routes"]
-    } == {0, 1, 2, 3}
+    } == set(range(16))
     assert {
         route["destination"]["bindings"]["N"]
         for route in snapshot["routes"]
@@ -154,3 +154,20 @@ def test_absent_person_does_not_activate_a_hand() -> None:
         and record.value > 0.0
     ]
     assert active == []
+
+
+def test_unchanged_hand_position_does_not_resend_same_value() -> None:
+    """Identical source frames must not produce duplicate transport writes."""
+    engine, recorder = _ready_engine()
+    recorder.clear()
+    # First frame: activate pad-0 (H1).
+    _emit_hand(engine, 0, "r", HARMOCAP_X_SPAN * 1.0, 1.0)
+    first = len(recorder.records)
+    assert first > 0
+    # Second frame: exact same position.
+    _emit_hand(engine, 0, "r", HARMOCAP_X_SPAN * 1.0, 1.0)
+    second = len(recorder.records)
+    assert second <= first, (
+        f"Expected no new writes for unchanged position; "
+        f"got {first} → {second}"
+    )

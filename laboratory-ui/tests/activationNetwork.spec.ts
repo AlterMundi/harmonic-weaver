@@ -1,0 +1,46 @@
+import {test,expect} from '@playwright/test';
+test('R06 controls portable preset real workers and comparison survive restore',async({page})=>{
+ test.skip(!process.env.LAB_R06_NETWORK_URL,'explicit isolated HTTP fixture required');
+ const origin=process.env.LAB_R06_NETWORK_URL!;await page.goto(origin);
+ const rate=page.getByLabel('medium.sample_rate R06',{exact:true});await expect(rate).toBeVisible();
+ await rate.fill('8000');
+ for(const [key,value] of Object.entries({excitation_span_s:'.1',tail_s:'.1',seed:'43',impulse_strength:'.7',block_size:'317',trace_stride:'64'}))await page.getByLabel(`${key} R06`,{exact:true}).fill(value);
+ await page.getByLabel('medium.topology R06',{exact:true}).selectOption('ring');
+ await page.getByLabel('medium.coupling_per_s R06',{exact:true}).fill('2');
+ await page.getByRole('checkbox',{name:'Banco de semillas R06',exact:true}).check();
+ await page.getByRole('checkbox',{name:'Permutar intervalos R06',exact:true}).check();
+ await page.getByRole('checkbox',{name:'Comparar medios R06',exact:true}).check();
+ const controls=page.getByLabel('medium_controls R06',{exact:true});
+ const media=JSON.parse(await controls.inputValue());media[0].damping_per_s=Array(6).fill(8);media[0].coupling_per_s=4;
+ await controls.fill(JSON.stringify(media));
+ await page.getByRole('button',{name:'Exportar configuración R06',exact:true}).click();
+ const text=page.getByLabel('Configuración R06 JSON',{exact:true});await expect(text).not.toHaveValue('');
+ const preset=JSON.parse(await text.inputValue());expect(preset.settings.seed).toBe(43);expect(preset.settings.interval_shuffle).toBe(true);expect(preset.settings.replicate_seeds).toEqual([44]);expect(preset.settings.medium.topology).toBe('ring');expect(preset.settings.medium_controls[0].damping_per_s).toEqual(Array(6).fill(8));
+ const before=await(await page.request.get(`${origin}/api/research/r06`)).json();
+ await page.getByLabel('seed R06',{exact:true}).fill('9');
+ await page.getByRole('button',{name:'Importar configuración R06',exact:true}).click();
+ await expect(page.getByLabel('seed R06',{exact:true})).toHaveValue('43');
+ expect((await(await page.request.get(`${origin}/api/research/r06`)).json()).length).toBe(before.length);
+ const results:Buffer[]=[];let firstId='';
+ for(let i=0;i<2;i++){
+  const button=page.getByRole('button',{name:'Correr banco R06',exact:true});await expect(button).toBeEnabled();await button.click();
+  await expect.poll(async()=>{const jobs=await(await page.request.get(`${origin}/api/research/r06`)).json();return jobs.filter((j:any)=>j.status==='complete').length;}).toBe(before.length+i+1);
+  const jobs=await(await page.request.get(`${origin}/api/research/r06`)).json();const newest=jobs.filter((j:any)=>!before.some((old:any)=>old.id===j.id));
+  await expect(page.getByRole('button',{name:/^Ver resultado R06 /})).toHaveCount(before.length+i+1);
+  const job=newest.find((j:any)=>!results.length || j.id!==firstId)!;
+  if(i===0)firstId=job.id;
+  await page.getByRole('button',{name:`Ver resultado R06 ${job.id}`,exact:true}).click();
+  await expect(page.getByRole('table',{name:'Comparación R06',exact:true})).toBeVisible();
+  await expect(page.getByRole('table',{name:'Comparación R06',exact:true}).locator('tbody tr')).toHaveCount(8);
+  await expect(page.getByRole('table',{name:'Contraste de medios R06',exact:true}).locator('tbody tr')).toHaveCount(8);
+  const response=await page.request.get(`${origin}/api/research/r06/${job.id}/artifacts/result.json`);expect(response.status()).toBe(200);results.push(await response.body());
+ }
+ expect(results[0].equals(results[1])).toBe(true);
+ await page.getByLabel('Semilla de resultado R06',{exact:true}).selectOption('0');
+ await expect(page.getByText('Resultado congelado de semilla 44',{exact:false})).toBeVisible();
+ await page.getByText('Resumen descriptivo del banco R06',{exact:true}).click();
+ await page.getByLabel('Medio de traza R06',{exact:true}).selectOption('0');
+ await page.getByLabel('Calendario de traza R06',{exact:true}).selectOption('phi_interval_shuffle');
+ await expect(page.getByLabel('Traza R06',{exact:true})).toContainText('muestra');
+ await page.reload();await expect(page.getByRole('button',{name:/^Ver resultado R06 /})).toHaveCount(before.length+2);
+});

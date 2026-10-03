@@ -1,0 +1,652 @@
+# Arranque y primer recorrido local
+
+Estado: segunda iteración local disponible; ver IMPLEMENTATION_STATUS. La escucha y
+aceptación de Nicolás no se infieren de las pruebas automatizadas.
+
+[Evidencia, mediciones y límites conocidos](VALIDATION.md).
+
+## Dependencias
+
+En Legion, el comando corto prepara la web e inicia la sesión:
+
+```sh
+cd /home/nicolas/Projects/harmonic-weaver-lab
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+El modo `auto` prefiere JACK sobre PipeWire si está disponible y selecciona una salida estéreo JACK. En Legion, el camino ALSA `pipewire` puede reportar callbacks activos sin salida útil; se usa JACK. `--audio-backend native` y `--device` permiten elegir otra ruta.
+
+El wrapper acepta `WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON`, `HARMOCAP_DIR`,
+`HARMOCAP_VENV` y `HARMOCAP_CHECKPOINT` para otros checkouts/entornos. Los flags
+posteriores se pasan al launcher Python.
+
+Weaver `feat/laboratory-live` (PR #30), HarMoCAP
+`feat/laboratory-capture-baseline` (PR #1), Shaper
+`feat/laboratory-telemetry` (PR #2). Los tres checkouts están separados de los
+workspaces originales preservados. No requiere fusionar las PRs para probar.
+
+Entorno Weaver: dependencias del proyecto y extra `lab`. Entorno HarMoCAP:
+dependencias propias + `av>=12,<17` y modelo pose local. Entorno Shaper:
+dependencias propias, dispositivo de audio disponible. Frontend: Node 22.
+
+```sh
+cd laboratory-ui
+npm ci
+npm run build
+```
+
+Desde el checkout Weaver, un arranque genérico:
+
+```sh
+PYTHONPATH=src HARMOCAP_DIR=/ruta/HarMoCAP HARMOCAP_VENV=/ruta/HarMoCAP/.venv \
+python -m harmonic_weaver.lab \
+  --shaper-dir /ruta/harmonic-shaper \
+  --shaper-python /ruta/harmonic-shaper/.venv/bin/python \
+  --checkpoint /ruta/modelo-pose.pt
+```
+
+En Legion, los checkouts y entornos ya preparados permiten:
+
+```sh
+cd /home/nicolas/Projects/harmonic-weaver-lab
+PYTHONPATH=src \
+HARMOCAP_DIR=/home/nicolas/Projects/HarMoCAP-lab \
+HARMOCAP_VENV=/home/nicolas/Projects/HarMoCAP/.venv \
+/home/nicolas/Projects/harmonic-weaver/.venv/bin/python -m harmonic_weaver.lab \
+  --shaper-dir /home/nicolas/Projects/harmonic-shaper-lab \
+  --shaper-python /home/nicolas/Projects/harmonic-shaper/.venv/bin/python \
+  --checkpoint /home/nicolas/Projects/HarMoCAP/harmocap-m-pose-ft2.pt \
+  --audio-backend jack --device "R24 Analog Stereo"
+```
+
+Abrir **http://127.0.0.1:8765**. Shaper propio usa localhost:8085, sin MIDI ni OSC.
+Si un puerto está ocupado, el launcher informa el conflicto; no mata ese proceso.
+Usar `--port` / `--shaper-port` para otra sesión, o `--external-shaper` para conectar
+explícitamente un motor ya iniciado que tenga la API de laboratorio.
+Ctrl+C termina esta sesión y solo su proceso Shaper propio.
+
+`--no-audio` es diagnóstico: no representa un laboratorio sonoro funcionando.
+Los presets/bitácora van a `~/.local/share/harmonic-weaver/laboratory` (cambiable
+con `--data-dir`). El tracking vive junto al video o en el fallback documentado
+en SOURCES. La cámara y el audio live no se graban automáticamente.
+
+## Recorrido breve
+
+1. Fuente: ingresar la ruta de un video y abrirlo; esperar el tracking o explorar
+   el prefijo procesado. Reproducir y activar Loop. Reabrir el mismo archivo debe
+   mostrar «cache reutilizado»; «Forzar tracking» genera una extracción nueva.
+   En esta máquina ya hay cuatro fragmentos en `~/Videos/weaver-lab/` y en la
+   biblioteca. No hace falta abrir/procesar el original de 15 GB para empezar.
+2. Presets: elegir «Instrumento original» para el baseline de seis voces.
+   Cambiar master, sensibilidades y ruteos mientras la fuente sigue corriendo.
+3. Para modelos nuevos, elegir la persona y **Calibrar escala con este cuerpo**.
+   Aplicar un preset local, relacional, angular o colectivo. Si no hay datos
+   suficientes para una señal, se muestra missing; no se fabrica movimiento.
+4. Figura: ver la suma de todos los armónicos activos y habilitar componentes.
+   Las fases/ganancias vienen de Shaper. Shape y limiter pueden agregar contenido
+   al audio que esta figura preprocesamiento no representa.
+5. Guardar como nuevo y exportar JSON. Reaplicar al mismo video u otro; la
+   calibración y la historia no viajan en el preset. Una marca guarda un comentario
+   y contexto de sesión, no un fragmento audiovisual.
+
+La aceptación humana evalúa lo que se siente al moverse/observar/escuchar.
+Los tests verifican contratos, continuidad y comportamiento técnico; no esa sensación.
+
+Al reiniciar se recupera el último video abierto, pausado desde el inicio, usando
+sus parámetros de percepción y la caché válida. Esta preferencia es local y no
+viaja en los presets. Cerrar explícitamente la fuente o elegir cámara borra esa
+preferencia; la cámara no se enciende automáticamente al arrancar.
+
+**Realce expresivo** (Instrumento): slider −1..+10, neutral en 0. Cambia la curva
+de intensidad corporal, no frecuencias, ratios, fases ni forma de onda. Positivo
+acentúa subidas y bajadas respecto de una media causal por voz, sin elevar
+el sostenido; negativo atenúa valores bajos como en la primera prueba.
+Duración del contraste controla la constante de tiempo (default 0.12 s):
+menor = gestos más breves, mayor = énfasis más prolongado. El master sigue controlando el nivel final. Se guarda en presets.
+La figura recibe las ganancias efectivas y refleja ese realce; su autoescala
+puede disimular cambios de tamaño global (desactivarla para comparar amplitud).
+
+Los modelos distintos de baseline requieren calibración: el inspector muestra
+un aviso y botón cuando falta. Calibrar con hombros y caderas visibles antes de
+evaluarlos; permitir que acumulen historia tras arrancar.
+
+
+Para aprender los controles: en Ruteos, exponente > 1 reduce valores pequeños
+más que grandes (contraste estático); exponente < 1 levanta valores pequeños
+(compresión). Suavizado reduce variaciones rápidas. Realce positivo, en cambio,
+distingue una subida de un nivel sostenido mediante historia temporal.
+
+Realce positivo ahora llega a **10**: 1 conserva el máximo anterior, 10 multiplica
+por diez el énfasis de cambios (no la ganancia general). Los picos se acotan a 1:
+puede recortar más el contraste extremo sin aumentar indefinidamente el volumen.
+
+**Articulación** mezcla sostenido (0%) e impulsos de subida (100%).
+Los impulsos salen del aumento de intensidad respecto de su media causal, no de
+un reloj ni de reiniciar voces. **Cola de transientes**, default 0.15 s, controla
+su caída exponencial. Primero probar una mezcla intermedia; a 100% un nivel
+constante termina en silencio. Ambos controles se guardan en presets.
+
+## Segunda iteración: probar sin perder la sesión
+
+En Legion con R24:
+
+```sh
+cd /home/nicolas/Projects/harmonic-weaver-lab
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo"
+```
+
+Si Shaper de esta sesión ya está funcionando en 8085, agregar
+`--external-shaper`: se conecta al motor existente y no lo detiene al salir.
+Un puerto ocupado no autoriza a matar un motor ajeno. La cámara sigue siendo una
+selección explícita; no se abre automáticamente al reiniciar.
+
+1. Reproducir el video cacheado. La configuración actual y los presets guardados
+   se conservan; las ediciones compatibles de realce/articulación ya no pierden
+   la historia temporal del ruteo al mover el control.
+2. **06 · Referencia 01c** recupera los valores iniciales sostenidos y afinados;
+   **07 · Exploración** propone realce 10 y articulación 30%, para escuchar.
+   Son nuevos IDs: no sobrescriben el antiguo 01c ni se aplican solos. Tampoco
+   significan que Nicolás haya aceptado esas nuevas combinaciones.
+3. Para local/relacional/angular/colectivo, calibrar con hombros y caderas
+   observados. El inspector distingue fuente, calibración, historia/faltantes,
+   ruteo sin actividad y estado del audio. Expandir las razones por señal.
+4. En Fuente, abrir **Cobertura de tracking y huecos**. Muestra proporciones
+   observadas y duración máxima de gaps por joint. Una pose puede estar equivocada
+   aunque el detector la considere observada. No elegir fragmentos sólo por energía.
+5. Ante un fallo de tracking, **Reintentar con CPU** conserva el diagnóstico y
+   reutiliza una caché CPU válida si existe. No cambia de backend silenciosamente.
+   `auto` ahora resuelve el dispositivo antes de identificar el cache; cachés
+   históricas etiquetadas `auto` pueden requerir una extracción nueva una vez.
+6. Guardar configuraciones interesantes y usar **Comparar** cuando quieras;
+   seleccionar presets, segmentos y calibración explícita si corresponde.
+   [Contrato, resultados y repetición](EVALUATION.md). No hace falta comparar para tocar.
+
+Defaults sonoros existentes intactos: realce 0, articulación 0, contraste 0.12 s,
+cola 0.15 s, suavizado de ganancia 01c 0.03 s. Pitch/fase siguen siendo ruteos
+separados; las referencias afinadas los mantienen deshabilitados. Los controles
+extremos necesitan escucha: las pruebas automáticas no juzgan empaste o musicalidad.
+
+## Fragmentos con varios cuerpos
+
+Al abrir un video se elige automáticamente el cuerpo con mayor cobertura
+de articulaciones observadas (no una estimación de precisión). En Fuente se
+puede elegir como alternativa el primero de la lista y desactivar la reproducción
+automática al terminar el tracking. Después podés cambiar **Persona** libremente. La lista incluye las personas de la generación completa para
+poder conservar una selección aunque el cuerpo esté momentáneamente fuera de
+cuadro. La figura atenúa los esqueletos no seleccionados; esto ayuda a verificar
+la elección. Los números de slot no son nombres ni identidades humanas.
+
+La elección queda guardada localmente para ese archivo, clave de cache y generación.
+Reabrir el mismo tracking recupera el cuerpo elegido; reprocesarlo elige un
+nuevo valor por defecto y lo informa para que verifiques la selección. Nunca transfiere calibración: sigue siendo una acción explícita.
+Mientras se construye un prefijo, se puede seleccionar; se guarda al terminar
+la generación válida. Si la extracción falla, esa elección parcial no reemplaza
+la preferencia de la generación anterior. Si el cuerpo elegido deja de verse,
+el instrumento espera sus datos y no cambia a otro cuerpo automáticamente.
+
+El modo `--no-audio` devuelve 503 en la telemetría de voces: es un arranque de
+percepción/UI sin audio. Conectar la R24 después no habilita ese proceso.
+Detenerlo con Ctrl+C y volver a iniciar con el comando R24 de arriba, sin
+`--no-audio`. Recargar la web después del reinicio.
+
+## Arranque explícito de desarrollo
+
+Los avances posteriores al laboratorio habitual están en
+`~/Projects/harmonic-weaver-dev` y requieren el Shaper compatible de
+`~/Projects/harmonic-shaper-dev`. No reemplazan `harmonic-weaver-lab`.
+Cada checkout usa su propio `.venv`; para preparar una instalación nueva:
+
+```bash
+cd ~/Projects/harmonic-weaver-dev
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python -e '.[lab,test]'
+cd ~/Projects/harmonic-shaper-dev
+uv venv --python 3.13 .venv
+uv pip install --python .venv/bin/python -e '.[test]'
+```
+
+Las versiones instaladas forman parte de la identidad de los experimentos;
+instalar sin constraints puede resolver versiones distintas y exige producir
+un nuevo manifest, no reutilizar una identidad antigua.
+
+```bash
+cd ~/Projects/harmonic-weaver-dev
+./scripts/start-laboratory-dev.sh --check
+./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+La web de desarrollo es `http://127.0.0.1:8875`, Shaper usa `8185` y el estado
+se guarda en `~/.local/share/harmonic-weaver/laboratory-dev`. `--check` sólo
+comprueba imports y muestra destinos; no abre cámara ni audio, ni verifica la
+conexión física de la R24. Ctrl+C detiene los procesos de esa sesión.
+
+La primera apertura tiene estado independiente: importar los presets portables
+que quieras probar desde la web. No se copian selecciones corporales,
+calibraciones, fuentes ni videos del laboratorio habitual. Abrir un fragmento
+existente lo usa desde su ruta; no hace falta copiar el original grande.
+El nuevo estado puede necesitar su propio tracking. No iniciar ambos Shapers
+sobre la R24 simultáneamente. Para cambiar puertos o datos, pasar `--port`,
+`--shaper-port` o `--data-dir`; los argumentos explícitos prevalecen.
+`WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON` y `LAB_DEV_DATA_DIR` permiten
+seleccionar otras instalaciones deliberadamente; el wrapper no usa un venv
+original como alternativa silenciosa para Weaver o Shaper.
+
+
+### Recorrido R05 experimental (rama de desarrollo, PR #72)
+
+En Investigación, elegir comparación terminada, corrida y señal; confirmar
+persona/unidad congeladas. Ajustar resonadores/excitación y, opcionalmente,
+activar «Comparar con mapeo de amplitud R05». Correr y revisar métricas: soporte
+común y cola están separados; undefined significa ausencia de soporte, no cero.
+
+«Explorar figura R05» abre el estado de todas las voces. Elegir brazo y usar
+«Leer ventana» para inspección manual, o «Cargar audio R05» y los controles del
+reproductor para escucha explícita. El seguimiento (default10Hz, loop apagado)
+usa ventanas ya reproducidas; se pueden ajustar points/stride/pesos/fases/escala.
+Ganancia de escucha es una vista float32 del WAV DOUBLE crudo, sin normalización
+ni limitador. Revisión de niveles previa a escuchar; sin equivalencia perceptual
+ni fase corporal/medio cimático físico inferidos. Video de origen aún no aparece
+en este recorrido experimental; no cambia el reproductor de exploración live.
+
+Preset R05 y preset de proyección se exportan/importan como JSON separados;
+no transportan persona/calibración/fuente/segmento/muestra. Importar proyección
+detiene audio y no lo reinicia. Se descarga PCM DOUBLE/verificador para evidencia;
+la vista float32 sirve para escuchar en Chrome. Escucha/aceptación humanas pendientes.
+
+### Video de origen en la exploración R05
+
+En una corrida terminada, abrir «Explorar figura» y «Mostrar video de origen R05».
+La fuente se resuelve desde la evaluación congelada y se verifican su medio,
+tracking y procedencia; no se copia el video ni se ejecuta tracking nuevo. Cargar
+el audio R05 y reproducirlo desde sus controles. El video está silenciado y sigue
+el reloj del audio: cero corresponde al inicio del segmento seleccionado; al
+llegar a su final se pausa mientras continúa la cola del instrumento. Pausas,
+seeks y loops del audio se propagan al video. «Ocultar video» detiene ese elemento.
+Se muestra la persona registrada en el experimento, sin afirmar identidad ni
+transferir calibración. Una fuente ausente/alterada o no decodificable deja un
+error visible. El video no contiene aún overlay de pose ni offset ajustable.
+
+R05 ahora ofrece «Desfase video/audio R05 (s)», entre −10 y +10 s; default cero.
+Positivo adelanta la fuente, negativo la retrasa. Se aplica sólo al video y se
+conserva al exportar/importar el preset de proyección. La posición se limita al
+crop; al empezar antes del crop o terminar después, la imagen queda retenida.
+Durante la cola se congela la posición desplazada del final del segmento, también
+con offsets negativos. No corrige ni modifica timestamps, features o PCM; es una
+hipótesis visual explícita, no una latencia medida. Importar detiene la escucha.
+
+R05: después de mostrar el video, «Cargar pose congelada R05» recupera el tracking
+verificado de la persona registrada. «Mostrar pose R05» oculta/muestra el dibujo;
+«Antigüedad máxima pose R05 (s)» controla cuánto puede durar una observación,
+default 0.1 s (rango >0 hasta 5 s). Ambos controles se guardan en el preset.
+Sólo se dibujan joints observados y conexiones entre dos joints observados,
+en coordenadas de cámara 2D/frame_height. La observación elegida nunca es futura
+respecto del video; no se interpola. Gap, cuerpo ausente, seek en curso o
+coordenadas no proyectables dejan la figura vacía y un diagnóstico visible.
+El offset audiovisual también desplaza la pose: sigue el tiempo real del video,
+no la muestra de audio. No convierte coordenadas world/3D a imagen.
+
+### R05: modulación experimental de frecuencia y serie f1/2
+
+Activar «Comparar con mapeo de amplitud R05» y, opcionalmente, «Modular frecuencia
+del mapeo R05». Depth (default de la opción .25, rango 0..<1) controla la excursión;
+smoothing_s (.1 s, rango 0..10 s) suaviza el control. La señal dividida por
+mapping.reference_scale se recorta a [-1,1]; un factor común
+`1 + depth × señal suavizada` multiplica todas las portadoras, conservando ratios
+instantáneos. Missing o vencimiento max_hold_s lleva el control hacia cero.
+La fase se integra por muestra y continúa durante silencios: no reataques.
+Configuraciones que podrían alcanzar Nyquist se rechazan antes de correr.
+La amplitud sigue su mapeo existente; los valores negativos no la activan.
+
+La modulación está desactivada por defecto; no cambia Shaper ni presets live.
+«Serie f1/2 R05» establece ratios 0.5,1,1.5… sin reducir la cantidad de voces;
+«Serie armónica R05» restaura ratios 1,2,3… Ambos sobrescriben explícitamente la
+lista de ratios del experimento, no la afinación del instrumento cotidiano.
+Exportar/importar conserva opciones y valores. Renderizar, escuchar mapped y
+observar su figura usa cuadratura real del modelo modulado. No es audificación,
+fase corporal medida ni evidencia de coordinación fisiológica.
+
+### R06 en la mesa web
+
+En harmonic-weaver-dev, pestaña «Investigación» → «R06 · Banco de activación».
+La web carga defaults validados del servidor. Modificar medio (f1, ratios,
+damping, acoplamiento, topología/matriz y sample rate) y todos los parámetros de
+calendario/cálculo. «Exportar configuración R06» guarda JSON portable;
+«Importar configuración R06» lo valida/restaura sin ejecutar ni elegir cuerpo.
+«Correr banco R06» congela esa configuración y calcula en worker propio.
+Cancelar sólo afecta esa corrida. No requiere video, calibración ni audio.
+
+«Ver resultado R06» muestra cuatro calendarios, dosis/RMS/pico/integral de norma
+y RMS de cola. Selector/slider inspeccionan trace y distinguen cola de excitación.
+Descargar request/result/manifest usa verificación de integridad. Cambiar los
+controles no cambia un resultado ya calculado; su configuración está congelada.
+RMS/loudness, clustering/espectro y eficacia no son equivalentes. No hay ganador
+ni prueba de privilegio phi. Esperar finalización del proceso antes de otra
+corrida: UI también observa worker_active al terminar el manifest.
+
+R06: «Comparar medios R06» crea una copia explícita del medio base. Editar la
+lista JSON medium_controls (hasta cuatro medios) para variar amortiguamiento,
+acoplamiento y topología/matriz. f1, ratios y sample_rate deben ser idénticos al
+base; cambios incompatibles se rechazan antes de correr. La copia conserva su
+configuración al cambiar después el medio base; no sigue silenciosamente esos
+cambios. Una copia idéntica devuelve diferencias cero y sirve como control.
+
+Preset export/import conserva la lista. El resultado muestra «Contraste de
+medios R06»: valores raw y diferencias control menos base para cada calendario.
+«Medio de traza R06» permite inspeccionar base o cada control, con el mismo reloj,
+eventos y dosis. Los resultados siguen congelados aunque se editen controles.
+No son un ranking de eficacia; cambiar el medio modifica su respuesta esperable.
+
+R06: «Permutar intervalos R06» agrega un surrogate por cada calendario: reordena
+los intervalos entre impulsos mediante una permutación seeded. Conserva exactamente
+su multiset digital, cantidad/dosis y primer/último evento. Hay ocho condiciones
+cuando se activa; medio y clock se mantienen. La grilla uniforme puede quedar
+idéntica y no se fuerza otra permutación. No conserva espectro ni correlaciones
+de orden superior. El checkbox se exporta/importa y aplica también a medios de
+control; selector de calendario permite inspeccionar *_interval_shuffle.
+Default apagado y campo omitido conservan presets anteriores. Una sola semilla
+no constituye una distribución nula ni un contraste estadístico de significancia.
+
+R06: «Banco de semillas R06» agrega una lista JSON de hasta ocho semillas
+adicionales, únicas y distintas de la principal. El preset congela la lista.
+Validación comprueba todos los calendarios antes de encolar y limita el trace
+agregado a 144000 puntos; aumentar trace_stride si se excede. La corrida retiene
+el resultado principal y cada repetición, incluidos sus medios de control.
+«Semilla de resultado R06» cambia juntas las tablas/trazas visibles; el resultado
+permanece congelado y no aplica cambios del draft actual.
+
+«Resumen descriptivo del banco R06» muestra count/media/min/max/desvío poblacional
+por medio, calendario y métrica. Incluye principal y adicionales. Calendarios
+racional/phi/sqrt2 pueden ser idénticos entre semillas; random y permutations
+cambian según su stream. No asumir ensayos humanos independientes, distribución
+nula, significancia, un ganador ni eficacia HIT. Opción apagada por defecto;
+campo omitido mantiene formato previo.
+
+Si una semilla del banco produce eventos en la misma muestra, R06 rechaza toda
+la configuración antes de crear el job y muestra calendario/semilla/muestras.
+No fusiona eventos ni reemplaza la semilla. Revisar span/count/seed explícitamente
+conservando el criterio del experimento; no interpretar el rechazo como resultado
+favorable/desfavorable de la hipótesis.
+# Recorrido R07 experimental · PR #74
+
+En el workspace de desarrollo, iniciar con el comando habitual documentado
+en este archivo. Abrir **Investigación → R07 · Membrana virtual**. Primero
+necesitás una corrida R05 completa; seleccionarla y elegir `single` o, para
+comparación de mecanismos, `excited`/`mapped`. Ajustar `sample_rate` al reloj
+de ese PCM (no hay remuestreo silencioso) y stop al soporte disponible.
+
+Para empezar: activar **Secuencia causal R07**, ventana/paso de 0.1 segundos
+en muestras, calcular y abrir **Ver figura R07**. Reproducir su audio y activar
+**Seguir audio R07**: sólo se muestra el último frame ya ocurrido. Antes del
+primero se indica ausencia; pause/seek/loop usan el reloj del audio. Desactivar
+seguimiento permite elegir frames manualmente o RMS global. Cambiar escala
+visual no modifica datos RMS. Exportar/importar configuración conserva geometría,
+ventanas, seguimiento, loop y escala, sin copiar fuente ni iniciar reproducción.
+
+Esta membrana es un modelo sound-only, sin presión/material calibrados ni
+dinámica de arena/agua. No altera el instrumento live. Software/backend y
+recorrido Chrome con señales sintéticas verificados; escucha humana, latencia
+física, convergencia modal y recuperación científica de atributos pendientes.
+
+
+## Recorrido R10 experimental · PR #78
+
+En harmonic-weaver-dev, con el arranque de desarrollo documentado arriba, abrir
+Investigación → R10. Este recorrido es opcional: el instrumento cotidiano sigue
+funcionando sin completar ensayos ni responder preguntas.
+
+1. Desde una corrida R05 completa, seleccionar estímulo/arm y editar condiciones,
+   preguntas, escala, slot declarado y rol. Preparar estímulos resueltos R10, revisar
+   fuentes y guardar protocolo R05 R10. Guardar no reproduce automáticamente.
+2. Abrir protocolo congelado R10. Elegir ensayo y preparar reproducción; reproducir,
+   pausar o mover tiempo nominal en pausa. Video original siempre silenciado;
+   el audio viene de R05. Offset positivo adelanta audio; fuera de soporte se pausa.
+3. Guardar transporte R10 en pausa si interesa conservar ese snapshot. Preparar
+   otro ensayo reemplaza la memoria local; guardar/exportar antes. Registros de
+   transporte permiten recuperar envíos pendientes o descargar tres artefactos.
+4. Editar Respuesta JSON R10: trial correcto, todos los items y null para faltantes.
+   Guardar respuesta R10, con ID de transporte opcional del mismo ensayo. Una
+   corrección crea registro nuevo; no reemplaza automáticamente la anterior.
+5. Actualizar selección de respuestas R10, seleccionar una versión por ensayo y
+   analizar. Tablas separan escala/preguntas/rol/condición; exportar o guardar
+   análisis congelado. Pares requieren referencia/destino del mismo protocolo,
+   estímulo/repetición y condiciones distintas: diferencia destino menos referencia.
+6. Listados permiten reabrir y exportar análisis/pares. Tras respuesta de red perdida,
+   recargar y usar Recuperar envío explícitamente: conserva selección/hash original.
+   Exportar/descartar pendiente afecta sólo esa pestaña, no registros del servidor.
+
+Los conteos son registros/pares declarados, no participantes independientes. Fin
+nominal no demuestra exposición completa; volumen/mute no mide nivel físico.
+Preguntas no son escalas validadas. sessionStorage conserva pendientes sólo durante
+la sesión de esa pestaña; exportaciones/manifests son la copia durable elegida.
+Escucha y aceptación humanas de este recorrido siguen pendientes.
+
+Diseños portables de contrastes R10: editar condiciones/dirección en Diseño JSON,
+guardar o importar/exportar sin IDs. Seleccionar respuestas explícitamente, preparar
+y revisar pares disponibles y faltantes. Usar pares del diseño sólo escribe Pares
+JSON; Calcular pares y Guardar pares congelados siguen siendo acciones separadas.
+Importar/aplicar preset conserva respuestas seleccionadas y descarta preview viejo.
+
+El último transporte conserva un borrador en la sesión de pestaña, incluyendo
+closed cuando se desmonta el player. Registros de transporte permite guardarlo o
+exportarlo después de cerrar player/recargar, sin reproducir. Preparar otro ensayo
+lo reemplaza. Cerrar pestaña/crash no garantiza conservación ni evento closed: para
+copia durable guardar en servidor local o exportar antes.
+
+
+## R11 · Inspección cruda experimental (PR #79)
+
+En Investigación → R11, importar un JSON Stream de neuro_observations con
+unidades/referencia/clock y samples explícitos, o editar Observaciones JSON R11.
+Inspeccionar contrato muestra cobertura/gaps y permite exportar inventario+raw.
+No conecta hardware ni interpreta exports Cyton automáticamente: deben adaptarse
+con procedencia explícita. No calcula SNR ni filtra.
+
+Después de inspeccionar, usar Guardar observaciones R11. Actualizar registros
+muestra el estado de verificación; Abrir observaciones guardadas recupera raw y
+cobertura. Descargar request.json/result.json/manifest.json conserva el registro
+fuera de la sesión. Un registro completo significa artefactos publicados, no una
+adquisición física validada.
+
+Si se interrumpe el envío, recargar y elegir Recuperar envío de observaciones R11:
+se reintenta el contenido congelado, sin duplicarlo. También puede exportarse o
+descartarse el pendiente local. No se reenvía automáticamente ni se adquieren datos.
+El pendiente usa sessionStorage: no confiar en cerrar la pestaña para conservarlo;
+exportarlo o completar el guardado del servidor. Si el almacenamiento local falla,
+no se envía. Importación nativa limitada a 16 MiB; rendimiento de sesiones grandes
+pendiente. Fixture Chrome sintética verificada; adquisición humana pendiente.
+
+
+### Control sintético SNR R11
+
+En Investigación → Control de señal/ruido conocido, ajustar cada tono (amplitud,
+frecuencia, fase y DC), rate/count, ventana [inicio,fin), índices faltantes/excluidos
+como arrays JSON y retiro de media. Calcular control SNR muestra potencias sobre
+soporte común y dB/status. El ejemplo inicial amplitudes2:1 da aproximadamente
+6,02dB; poner amplitud de ruido en0 muestra noise_zero y dB no definido. Un offset
+DC cuenta como potencia salvo que se elija retirar media. No es un estimador EEG.
+
+Exportar configuración SNR permite reimportar el control sin depender de un video,
+cuerpo o calibración. Exportar resultado conserva config, componentes originales,
+soporte y métricas. Descarga local solamente; manifest/verificador de servidor
+pendiente. Importación config ≤1MiB, máximo20000 muestras por corrida; no ventana
+continua ni adquisición física. Config inválida se rechaza al calcular.
+
+
+### Comparar el mismo gesto con distintas configuraciones
+
+En Comparar, seleccionar ≥2 presets guardados y un mismo segmento/persona, activar
+Generar WAV y estado de osciladores y correr Comparar presets. Al terminar, Ver
+comparación → Ver video, sonido y figura. Mover el WAV al gesto que interesa y
+alternar **Preset del mismo segmento**: mantiene instante y pausa/reproducción.
+**Pausar comparación** también funciona mientras carga otra versión. No cambia
+los presets live ni el tracking; el cambio de archivo no es un crossfade.
+
+En Legion hay una comparación local de60s y tres variantes para probar este
+recorrido. Su ID y variantes están en
+~/.local/share/harmonic-weaver/laboratory-dev/ab-playback-validation.json;
+abrir la comparación con ese directorio. Sólo es evidencia de software, no
+aceptación auditiva. Arrancar el desarrollo como se documenta arriba:
+
+```sh
+cd ~/Projects/harmonic-weaver-dev
+./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+Web de desarrollo http://127.0.0.1:8875; instalación cotidiana harmonic-weaver-lab
+permanece separada y no contiene automáticamente esta rama.
+
+
+### Hacer audible cada modelo conservando la afinación
+
+En Presets, elegir08–11. Calibrar torso con hombros/caderas visibles para la
+fuente/persona actual. Estos presets sólo rutean intensidad: local escucha error
+de predicción, relacional oposición relativa ponderada por movimiento, angular
+rapidez sin cancelación bilateral, colectivo tres modos más residuo/cambio/
+velocidad en seis voces. Todos los parámetros siguen editables en Modelos/Ruteos.
+Se agregan sin sobrescribir presets existentes ni cambiar configuración activa.
+
+Valores iniciales: realce0, articulación0, smoothing0.03s, techo gain0.45. Local
+usa peso5T⁻¹; angular0.45/180 por deg/s; relacional gain×(1−I)/2. Colectivo normaliza
+amplitudes con0.75porT/s y cambio con1/30porgrado. Son puntos de exploración,
+no escalas físicas ni resultados sobre calidad del movimiento. Las rutas antiguas
+siguen disponibles. T es torso aparente calibrado de esa toma/cuerpo.
+
+También está preparada una comparación local con referencia y los cuatro modelos
+para el mismo minuto. Consultar su ID en
+~/.local/share/harmonic-weaver/laboratory-dev/model-playback-validation.json;
+Comparar → Ver comparación → Ver video, sonido y figura → Preset del mismo segmento.
+La calibración de esa corrida está congelada en su solicitud; no queda aplicada a
+la sesión live. El render/recorrido software pasó; escuchar y dar feedback está
+pendiente. No se publicó ningún video, tracking o resultado corporal.
+
+
+### Prueba de UI completa sin dispositivos
+
+Para verificar el recorrido de video/cache/persona/calibración/presets/loop sin
+abrir salida de audio ni cámara, construir la UI y arrancar la fixture en un
+**directorio nuevo**, separado de la sesión cotidiana:
+
+```sh
+npm --prefix laboratory-ui run build
+HARMOCAP_DIR=../HarMoCAP-lab HARMOCAP_VENV=../HarMoCAP/.venv PYTHONPATH=src \
+  .venv/bin/python tests/laboratory_ui_fixture.py \
+  --root /tmp/weaver-ui-nuevo --ui laboratory-ui/dist \
+  --checkpoint ../HarMoCAP/harmocap-m-pose-ft2.pt --port 8879
+```
+
+Fixture confirma explícitamente audio no disponible; registra targets de control,
+no VoiceFrames ni escucha ficticias. Otro terminal, desde laboratory-ui:
+
+```sh
+LAB_FULL_UI_URL=http://127.0.0.1:8879 LAB_FULL_VIDEO=/ruta/local/clip-con-cache.mp4 \
+  LAB_FULL_PERSON=slot-elegido PLAYWRIGHT_CHANNEL=chrome \
+  npx playwright test tests/fullLaboratoryNetwork.spec.ts --workers=1
+```
+
+Usar clip multipersona de más de7s con cacheCPU compatible; LAB_FULL_PERSON es
+opcional. El test abre desde ruta y exige cache_hit; no upload ni copia del medio.
+Detener fixture con Ctrl+C. Su root contiene estado/datos privados de la prueba:
+no publicarlo. La biblioteca real de desarrollo ya tiene registrado el minuto dúo;
+para jugar usar el launcher de desarrollo y elegirlo en Videos de la biblioteca.
+
+### Exportación opcional de una comparación: video + audio + figura
+
+En desarrollo, abrir una comparación terminada con PCM y elegir **Reproducir**.
+Dentro del reproductor, **Exportar video, audio y figura** exporta el preset y
+segmento elegidos. FPS, tamaño total, CRF, formato y bitrate AAC son editables.
+La figura hereda el preset congelado; **Personalizar figura** permite cambiar
+períodos, puntos, persistencia, grosor, brillo, escala, componentes, color y espejo.
+Guardar/importar configuración sólo transporta esos ajustes, sin fuente/persona/
+calibración/IDs de corrida. El servidor valida límites al exportar.
+
+El trabajo es opcional y separado del transporte: muestra progreso, admite
+cancelación y permite descargar video, manifest y timeline cuando termina.
+La lista persiste tras reiniciar. Un trabajo sin confirmación final queda
+interrumpido; no se presenta su archivo parcial como exportación completa.
+Destino: `$DATA_DIR/comparison-exports/<id>/result/` (desarrollo:
+`~/.local/share/harmonic-weaver/laboratory-dev/comparison-exports/`). No hay subida
+automática. No copia el original ni recalcula tracking.
+
+MKV conserva paquetes PCM del WAV. MP4 usa AAC con pérdida, apto para navegador;
+el WAV original sigue siendo la referencia. Máximo 120s de PCM incluida cola.
+Exportación siempre a 1×, sin offset manual del reproductor. Video a la izquierda,
+suma de todos los osciladores a la derecha, con fase/gain interpolados del archivo
+voice-frames. La cola sostiene el último frame de video. Se excluye audio original.
+No hay esqueletos. La figura está antes del timbre/limitador y no representa una
+membrana física. La persistencia raster depende de FPS; el estilo no es idéntico
+a WebGL. El reloj compartido es digital, no una medición de sincronía física.
+
+Requiere FFmpeg/ffprobe con libx264 y AAC, OpenCV, NumPy y SoundFile (entorno del
+laboratorio). El render compite por CPU si se exporta durante uso live; para probar
+fluidez, empezar con 640×360/10FPS. No se cambian defaults del instrumento, audio,
+R24, ni presets. Inputs se verifican antes/después; outputs y manifest se verifican
+al descargar. El manifest registra ajustes, hashes, versiones, streams y límites.
+
+### R12 · Importar mediciones y comparar intentos
+
+En investigación, abrir **R12 · Mediciones, tarea y cobertura**. La plantilla es
+un control sintético explícito. **Analizar mediciones R12** obtiene HR media85bpm
+(sintética), potencia2W y10J para5s; al bajar gap máximo a0.5s no hay soporte,
+porque las muestras están a1s. Esto verifica software, no mide a una persona.
+
+Importar JSON R12 real con task/constraints, slot, proveedor, reloj y mediciones.
+Canales disponibles: heart_rate/bpm, mechanical_power/W, metabolic_power/W,
+reported_effort/dimensionless y task_error/dimensionless. Watts requieren método,
+incertidumbre y evidencia de medición/calibración declaradas; no derivar de pose.
+Cada null/exclusión lleva causa. El protocolo íntegro y timestamps originales
+quedan en el JSON editable; la UI controla gap, canales comunes, relojes e intentos.
+Guardar/importar configuración portable sólo transporta gap y selección de canales.
+No mueve datos, cuerpos, calibración, reloj o ventanas a una fuente nueva.
+
+**Vincular explícitamente una evaluación local** pide ID e índice de corrida0-based.
+Rechaza slots diferentes, verifica SHA del manifest y fija el nombre del reloj
+común source_time_s; no modifica la transformación ni los timestamps ni inventa
+mediciones. Ajustar/revisar la correspondencia del reloj con evidencia antes de
+analizar. El servidor comprueba límites de trials dentro del segmento/hash/slot
+al inspeccionar y guardar. Un archivo archivado no revalida video físico al abrir.
+
+El resultado muestra cobertura/media/soporte común y energía/trabajo parcial sólo
+paraW. No calcula calorías, ratios de eficiencia, fatiga o correlaciones causales.
+**Guardar corrida R12** congela request/result/manifest bajo
+`$DATA_DIR/research/r12-measurements/<content-id>/`. Código actual recomputa;
+histórico queda identificado como integridad solamente. Descargas locales, sin
+upload. Envío pendiente se conserva en sessionStorage antes del POST; recuperar,
+exportar o descartar explícitamente tras recargar. Fallos de escritura conservan
+staging `.pending-*` diagnóstico; reintento no lo declara completo ni lo sobrescribe.
+
+Ver tabla variable→instrumentación→incertidumbre y experimento vinculado a EVAL en
+`research/laboratory/R12_MEASUREMENT_PROTOCOL.md`. Faltan mediciones/participantes,
+hardware/adapters y evidencia de sincronización; no se inventaron datos para el
+video corporal disponible. No cambia presets/defaults del instrumento ni R24.
+
+### R13 · Predicción en tomas/personas/tareas reservadas
+
+Investigación → **R13 · Predicción en fuentes reservadas**. **Cargar control
+sintético R13** permite correr y comparar baselines sobre dos secuencias conocidas.
+Editar historia, horizonte, componentes, ridge, centrado/z-score train, gap,
+embargo y reserva. Shuffle de objetivos train y prefijo de adaptación opcionales.
+Train+prefijo y sólo prefijo conservan modelos originales y excluyen el prefijo
+para puntuación de todos los modelos. Ningún control cambia las voces/audio live.
+
+Guardar/importar settings portable transporta sólo opciones de análisis/reserva;
+el experimento completo (datos/roles/grupos/tarea/equivalencias) es JSON aparte.
+Import nativo hasta16MiB/20000observaciones. Para features corporales: cargar un
+control, quitar ambas secuencias, **Añadir secuencia desde EVAL verificado**, ID /
+corrida / segmento / señales 2..16 con misma unidad, y grupo/tarea declarados.
+Congelar una secuencia train y otra test, con mismos IDs ordenados y unidades.
+No inventar identidad a partir del person_slot. La equivalencia de tarea se declara
+antes de correr. Dentro de la misma toma, train debe preceder test con embargo;
+dos presets superpuestos no son reserva. Para otras reservas recordings deben
+ser distintos; subject/task requieren también grupos/tareas declarados diferentes.
+
+**Correr transferencia R13** lanza worker separado, muestra estado/métricas/soporte.
+Cancelar, abrir request y descargar outputs o **Repetir corrida R13** (código actual).
+Los artefactos quedan en `$DATA_DIR/research/r13-heldout/<id>/`. Comparar hashes de
+outputs repetidos; integridad al descargar no es recomputación científica. Fixtures
+no son mediciones humanas. Modelos y MSE están en las unidades de features, sin
+ranking de cuerpos, intención, eficacia, aprendizaje, beneficio o prótesis inferidos.
+Histórico indica code_matches_current; no se promueve silenciosamente.
+
+Protocolo completo/controles/dependencias: `research/laboratory/R13_TRANSFER_PROTOCOL.md`.
+La UI carga los bancos de investigación al abrir la pestaña: el bundle cotidiano
+queda separado. No cambia presets/defaults/R24 ni workspaces cotidianos.

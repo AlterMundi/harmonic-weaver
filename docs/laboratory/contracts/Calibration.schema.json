@@ -1,0 +1,55 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "id": {
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "source_id": {
+      "title": "Source Id",
+      "type": "string"
+    },
+    "person_id": {
+      "title": "Person Id",
+      "type": "string"
+    },
+    "torso_scale": {
+      "exclusiveMinimum": 0,
+      "title": "Torso Scale",
+      "type": "number"
+    },
+    "measured_at": {
+      "title": "Measured At",
+      "type": "string"
+    },
+    "provenance": {
+      "title": "Provenance",
+      "type": "string"
+    },
+    "policy": {
+      "default": "new_source",
+      "enum": [
+        "new_source",
+        "reuse_explicit"
+      ],
+      "title": "Policy",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_id",
+    "person_id",
+    "torso_scale",
+    "measured_at",
+    "provenance"
+  ],
+  "title": "Calibration",
+  "type": "object"
+}

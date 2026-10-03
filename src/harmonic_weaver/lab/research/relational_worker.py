@@ -1,0 +1,48 @@
+"""One-shot R04 worker commits a verified result under the common writer lock."""
+import fcntl
+import json
+from pathlib import Path
+from ..cache import atomic_json,sha256_file
+from .relational_bank import run
+
+
+def run_frozen(folder):
+    folder=Path(folder);request=folder/'request.json';lock_path=folder/'worker.lock'
+    if folder.is_symlink() or not folder.is_dir() or request.is_symlink() or not request.is_file() or lock_path.is_symlink():
+        raise ValueError('R04 frozen folder unavailable')
+    with lock_path.open('a+b') as lock:
+        try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError as exc:raise ValueError('R04 worker active') from exc
+        if (folder/'manifest.json').exists():raise ValueError('R04 run already has manifest')
+        names=['request.json']
+        if (folder/'input.json').exists() or (folder/'input.json').is_symlink():names.append('input.json')
+        if any((folder/name).is_symlink() or not (folder/name).is_file() for name in names):raise ValueError('R04 input unavailable')
+        hashes={name:sha256_file(folder/name) for name in names}
+        manifest={'schema_version':1,'line':'R04','status':'running','input_hashes':hashes}
+        atomic_json(folder/'manifest.json',manifest)
+        try:
+            if 'input.json' in names:
+                from .relational_body import run as run_body
+                run_body(json.loads(request.read_text()),json.loads((folder/'input.json').read_text()),folder/'computed')
+            else:run(json.loads(request.read_text()),folder/'computed')
+            if any((folder/name).is_symlink() or sha256_file(folder/name)!=expected for name,expected in hashes.items()):raise ValueError('R04 request or input changed during computation')
+            # A completed internal run does not imply the parent job has committed.
+            computed_manifest=folder/'computed/manifest.json'
+            if computed_manifest.is_symlink() or not computed_manifest.is_file():raise ValueError('R04 computed manifest unavailable')
+            computed=json.loads(computed_manifest.read_text())
+            result=folder/'computed/result.json'
+            if result.is_symlink() or sha256_file(result)!=computed['output_sha256']:raise ValueError('R04 result changed')
+            result.replace(folder/'result.json')
+            manifest.update(status='complete',output={'file':'result.json','sha256':computed['output_sha256']},
+                code_hashes={**computed['code_hashes'],'relational_worker':sha256_file(Path(__file__))},
+                environment=computed['environment'],limits=computed['limits'])
+            atomic_json(folder/'manifest.json',manifest)
+            return manifest
+        except Exception as exc:
+            manifest.update(status='failed',error=str(exc));atomic_json(folder/'manifest.json',manifest);raise
+
+
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--folder',type=Path,required=True)
+    run_frozen(parser.parse_args().folder)

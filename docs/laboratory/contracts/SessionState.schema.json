@@ -1,0 +1,111 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "desired_revision": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Desired Revision",
+      "type": "integer"
+    },
+    "applied_revision": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Applied Revision"
+    },
+    "analysis_epoch": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Analysis Epoch",
+      "type": "integer"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Id"
+    },
+    "person_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Person Id"
+    },
+    "calibration_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Calibration Id"
+    },
+    "position_s": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Position S",
+      "type": "number"
+    },
+    "playing": {
+      "default": false,
+      "title": "Playing",
+      "type": "boolean"
+    },
+    "loop": {
+      "default": true,
+      "title": "Loop",
+      "type": "boolean"
+    },
+    "status": {
+      "default": "idle",
+      "title": "Status",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    }
+  },
+  "title": "SessionState",
+  "type": "object"
+}

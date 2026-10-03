@@ -1,0 +1,30 @@
+import {test,expect} from '@playwright/test';
+test('spatial import clock configuration conversion and export',async({page})=>{
+ test.skip(!process.env.LAB_R09_URL,'isolated fixture required');await page.goto(process.env.LAB_R09_URL!);
+ const panel=page.getByRole('region',{name:'Observaciones espaciales R09'});
+ const frames=[{source_id:'synthetic',stream_id:'test',sequence:0,source_time_s:0.,available_monotonic_s:1.,timestamp_origin:'pts',width:160,height:120,persons:[{person_id:'slot-1',joints:[{index:0,position:[.5,.2],confidence:.9,state:'observed'}]}]}];
+ await panel.getByLabel('Importar JSON local R09').setInputFiles({name:'frames.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(frames))});
+ await panel.getByLabel('Slot explícito R09').fill('slot-1');
+ await panel.getByLabel('Mapeo de reloj JSON R09').fill(JSON.stringify({source_clock:'pts',common_clock:'session',offset_s:.2,rate:1.,uncertainty_s:.01,method:'declared_assumption'}));
+ await panel.getByRole('button',{name:'Procesar observaciones R09'}).click();
+ await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 16/)).toBeVisible();
+ const download=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar resultado R09'}).click();expect((await download).suggestedFilename()).toBe('r09-spatial-result.json');
+ await panel.getByText('Resultado espacial R09',{exact:true}).click();
+ const raw=await panel.locator('pre').textContent();const result=JSON.parse(raw!);expect(result.common_times_s).toEqual([.2]);
+ let firstSave=true;const saveBodies:any[]=[];
+ await page.route('**/api/research/r09/conversions',async r=>{if(r.request().method()!=='POST'){await r.continue();return;}saveBodies.push(r.request().postDataJSON());if(firstSave){firstSave=false;await r.fetch();await r.abort('failed');}else await r.continue();});
+ await panel.getByRole('button',{name:'Guardar conversión declarada R09'}).click();
+ await expect(panel.getByRole('button',{name:'Recuperar guardado R09'})).toBeVisible();await page.reload();await panel.getByRole('button',{name:'Recuperar guardado R09'}).click();expect(saveBodies).toHaveLength(2);expect(saveBodies[1]).toEqual(saveBodies[0]);
+
+ await expect(panel.getByRole('button',{name:'Abrir conversión R09'})).toBeVisible();
+ const saved=await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions`)).json();expect(saved).toHaveLength(1);
+ const before=await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).body();
+ const artifact=page.waitForEvent('download');await panel.getByRole('link',{name:'result.json',exact:true}).click();expect((await artifact).suggestedFilename()).toBe('result.json');
+ await page.reload();await panel.getByRole('button',{name:'Abrir conversión R09'}).click();
+ await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 16/)).toBeVisible();
+ expect((await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions`)).json())).toHaveLength(1);
+ expect(await(await page.request.get(`${process.env.LAB_R09_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).body()).toEqual(before);
+ await panel.getByLabel('Modalidad R09').selectOption('validate');await panel.getByLabel('Observaciones JSON R09').fill(JSON.stringify(result.stream));
+ await panel.getByRole('button',{name:'Procesar observaciones R09'}).click();await expect(panel.getByText(/Contrato validado: image_pose/)).toBeVisible();
+ await panel.getByLabel('Observaciones JSON R09').fill('{}');await panel.getByRole('button',{name:'Procesar observaciones R09'}).click();await expect(panel.getByRole('alert')).toBeVisible();
+});

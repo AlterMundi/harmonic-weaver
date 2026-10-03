@@ -61,7 +61,7 @@ def _build_ranges():
     """Real HarMoCAP channel ranges; derived outputs are produced by the
     engine, NOT pre-installed in base_ranges."""
     ranges = {}
-    for slot in (0, 1):
+    for slot in range(8):
         ranges[f"harmocap.slot_{slot}_focused"] = (0.0, 1.0)
         ranges[f"harmocap.slot_{slot}_present"] = (0.0, 1.0)
         for kp in (
@@ -107,19 +107,19 @@ def test_pads_v2_scene_compiles_cleanly():
     result = compile_scene(scene, _build_ranges(),
                             {"harMoCAP": harmocap, "shaper": shaper},
                             safety_defaults=_safety_defaults())
-    # Two slots × two hands × (x/y/pad) aggregators.
-    assert len(result.aggregators) == 12
-    # Two people × two hands × all 32 harmonics.
-    assert len(result.routes) == 128
+    # 8 slots × two hands × (x/y/pad) aggregators.
+    assert len(result.aggregators) == 48
+    # 8 slots × two hands × all 32 harmonics.
+    assert len(result.routes) == 512
     # Symmetry: equal route count per hand.
     hand_r = sum(1 for r in result.routes if "hand-r" in r.route_id)
     hand_l = sum(1 for r in result.routes if "hand-l" in r.route_id)
-    assert hand_r == hand_l == 64
+    assert hand_r == hand_l == 256
     # Every hand owns the complete harmonic grid through its own source binding.
     for r in result.routes:
         assert r.destination.definition["capability"] == "harmonic_source_envelope"
         assert 1 <= r.destination.definition["bindings"]["N"] <= 32
-        assert 0 <= r.destination.definition["bindings"]["S"] <= 3
+        assert 0 <= r.destination.definition["bindings"]["S"] <= 15
 
 
 def test_peak_detector_triggers_on_synthetic_trajectory():

@@ -40,7 +40,11 @@
 #                                this run; does not modify model.yaml
 #   --scene <name>               Scene to activate; resolved against
 #                                rehearsal/scenes/<name>.scene.json with or
-#                                without the suffix (default: event-demo)
+#                                without the suffix (default: event-demo).
+#                                kinetic-consonance selects the exclusive
+#                                Consonancia kinetica mode (alias: consonance).
+#   --consonance-snap <0..1>     Snap strength (default: 0)
+#   --consonance-f1 <Hz>         Fundamental (default: 40.4)
 #   --no-scene                   Do not push/activate any scene
 #   --lease-ms <ms>              Source presence lease. Live default 300000
 #                                so a camera stall or a person stepping out
@@ -109,8 +113,14 @@ CAMERA="0"
 HARMOCAP_DEVICE="auto"
 HARMOCAP_CHECKPOINT=""
 HARMOCAP_IMGSZ=""
+HARMOCAP_MAX_SLOTS=""   # empty = use config default
 SCENE="event-demo"
 PUSH_SCENE=1
+CONSONANCE=0
+CONSONANCE_SNAP=0.0
+CONSONANCE_F1=40.4
+CONSONANCE_UI_PORT=8766
+CONSONANCE_SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/harmonic-weaver/kinetic-consonance.json"
 LEASE_MS="300000"
 MAX_RUNTIME_S="14400"
 RECORD=""
@@ -122,7 +132,7 @@ SHOW=0
 PADS_VIEW=""
 PADS_VIEW_EXPLICIT=0
 SHAPER_AUDIO=1
-SHAPER_DEVICE="${SHAPER_DEVICE:-R24: USB Audio}"
+SHAPER_DEVICE="${SHAPER_DEVICE:-R24 Analog Stereo}"
 SHAPER_MIDI=1
 ECG_SIM=0
 ECG_BPM="72"
@@ -142,8 +152,13 @@ while [ "$#" -gt 0 ]; do
         --harmocap-device) HARMOCAP_DEVICE="${2:?--harmocap-device needs auto|cpu|cuda}"; shift ;;
         --harmocap-checkpoint) HARMOCAP_CHECKPOINT="${2:?--harmocap-checkpoint needs a path}"; shift ;;
         --harmocap-imgsz) HARMOCAP_IMGSZ="${2:?--harmocap-imgsz needs a value}"; shift ;;
+        --harmocap-max-slots) HARMOCAP_MAX_SLOTS="${2:?--harmocap-max-slots needs 1-8}"; shift ;;
         --scene)         SCENE="${2:?--scene needs a name}"; shift ;;
         --no-scene)      PUSH_SCENE=0 ;;
+        --consonance-snap) CONSONANCE_SNAP="${2:?--consonance-snap needs 0..1}"; shift ;;
+        --consonance-ui-port) CONSONANCE_UI_PORT="${2:?--consonance-ui-port needs a port}"; shift ;;
+        --consonance-settings) CONSONANCE_SETTINGS="${2:?--consonance-settings needs a path}"; shift ;;
+        --consonance-f1) CONSONANCE_F1="${2:?--consonance-f1 needs Hz}"; shift ;;
         --lease-ms)      LEASE_MS="${2:?--lease-ms needs a value}"; shift ;;
         --max-runtime-s) MAX_RUNTIME_S="${2:?--max-runtime-s needs a value}"; shift ;;
         --record)        RECORD="${2:?--record needs a path}"; RECORD_SET=1; shift ;;
@@ -165,6 +180,32 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
+
+case "$SCENE" in
+    kinetic-consonance|consonance)
+        CONSONANCE=1
+        SCENE=kinetic-consonance
+        DO_BEACON=0
+        BEACON_MUTE=0
+        SHAPER_MIDI=0
+        if [ "$ECG_SIM" -eq 1 ]; then
+            echo "[ERROR] kinetic-consonance is isolated; ECG is not supported" >&2
+            exit 2
+        fi
+        if [ "$PUSH_SCENE" -eq 0 ]; then
+            echo "[ERROR] kinetic-consonance cannot be combined with --no-scene" >&2
+            exit 2
+        fi
+        # One controller only: do not start the pads/bands Weaver runtime.
+        PUSH_SCENE=0
+        [ -n "$PADS_VIEW" ] || PADS_VIEW=harmocap
+        case "$PADS_VIEW" in
+            web|both)
+                echo "[ERROR] kinetic-consonance uses --pads-view harmocap (camera + tracking), or none" >&2
+                exit 2 ;;
+        esac
+        ;;
+esac
 
 case "$BEACON_SOURCE" in file|live) ;; *) echo "[ERROR] --beacon-source must be file or live" >&2; exit 2 ;; esac
 case "$HARMOCAP_DEVICE" in auto|cpu|cuda) ;; *) echo "[ERROR] --harmocap-device must be auto, cpu or cuda" >&2; exit 2 ;; esac
@@ -263,7 +304,9 @@ cleanup() {
         fi
     done
 }
-trap cleanup INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 wait_tcp() { # host port name timeout_s
     local deadline=$(( $(date +%s) + $4 ))
@@ -356,12 +399,17 @@ PY
 log "run id: $RUN_ID"
 mkdir -p "$LOG_DIR"
 
-[ -d "$BEACON_DIR" ]  || fail "BEACON_DIR not found: $BEACON_DIR"
+if [ "$CONSONANCE" -eq 0 ]; then
+    [ -d "$BEACON_DIR" ] || fail "BEACON_DIR not found: $BEACON_DIR"
+fi
 [ -d "$SHAPER_DIR" ]  || fail "SHAPER_DIR not found: $SHAPER_DIR"
 [ -d "$HARMOCAP_DIR" ] || fail "HARMOCAP_DIR not found: $HARMOCAP_DIR"
 
 # Weaver venv: bootstrap via uv if incomplete.
-if ! "$WEAVER_VENV/bin/python" -c 'import fastapi, websockets, pythonosc, numpy, scipy' 2>/dev/null; then
+if [ "$CONSONANCE" -eq 1 ]; then
+    # The standalone controller is stdlib-only; no Weaver runtime dependencies.
+    WEAVER_VENV="$HARMOCAP_VENV"
+elif ! "$WEAVER_VENV/bin/python" -c 'import fastapi, websockets, pythonosc, numpy, scipy' 2>/dev/null; then
     log "bootstrapping weaver venv (uv sync --extra rehearsal --extra test)"
     command -v uv >/dev/null || fail "uv not found; create $WEAVER_VENV manually"
     (cd "$WEAVER_DIR" && uv sync --extra rehearsal --extra test) || fail "uv sync failed"
@@ -385,18 +433,26 @@ fi
 
 # Port preflight — reclaim known orphans from crashed runs first, then
 # demand a free port.  The user never sees "port … already in use" again.
+if [ "$CONSONANCE" -eq 0 ]; then
 log "reclaiming any orphaned live-stack processes …"
-reclaim_orphan_port 57120 udp
-reclaim_orphan_port 57110 udp
-reclaim_orphan_port 5050 tcp
-reclaim_orphan_port 9002 udp
-reclaim_orphan_port 8080 tcp
-reclaim_orphan_port 8765 tcp
+if [ "$DO_BEACON" -eq 1 ]; then
+    reclaim_orphan_port 57120 udp
+    reclaim_orphan_port 57110 udp
+    reclaim_orphan_port 5050 tcp
+fi
+if [ "$DO_SHAPER" -eq 1 ]; then
+    reclaim_orphan_port 9002 udp
+    reclaim_orphan_port 8080 tcp
+fi
+[ "$CONSONANCE" -eq 0 ] && reclaim_orphan_port 8765 tcp
 reclaim_orphan_port 9100 udp
 [ "$ECG_SIM" -eq 1 ] && reclaim_orphan_port 5001 udp
+fi
 [ "$DO_BEACON" -eq 1 ] && { check_port_free 57120 udp beacon; check_port_free 57110 udp beacon; check_port_free 5050 tcp beacon-webui; }
 [ "$DO_SHAPER" -eq 1 ] && { check_port_free 9002 udp shaper; check_port_free 8080 tcp shaper-api; }
-check_port_free 8765 tcp weaver-stage
+[ "$CONSONANCE" -eq 0 ] && check_port_free 8765 tcp weaver-stage
+[ "$CONSONANCE" -eq 1 ] && [ "$DO_SHAPER" -eq 1 ] && check_port_free 9003 udp consonance-shaper
+[ "$CONSONANCE" -eq 1 ] && check_port_free "$CONSONANCE_UI_PORT" tcp consonance-ui
 check_port_free 9100 udp harmocap-driver
 [ "$ECG_SIM" -eq 1 ] && check_port_free 5001 udp ecg-driver
 
@@ -449,16 +505,18 @@ fi
 # ---- 2. harmonic-shaper -------------------------------------------------------
 if [ "$DO_SHAPER" -eq 1 ]; then
     SHAPER_ARGS=()
+    # HarMoCAP owns control UDP 9001; use a separate Shaper slave port.
+    [ "$CONSONANCE" -eq 1 ] && SHAPER_ARGS+=(--slave --slave-port 9003)
     [ "$SHAPER_AUDIO" -eq 0 ] && SHAPER_ARGS+=(--no-audio)
     [ "$SHAPER_MIDI" -eq 0 ] && SHAPER_ARGS+=(--no-midi)
-    # Audio goes directly to the ALSA device via sounddevice (no JACK).
-    # The PipeWire ALSA plugin on this host was historically silent but
-    # is verified working as of 2026-07-24 (test tone audible through R24).
+    # Audio goes through JACK over PipeWire (pw-jack), the reliable path
+    # on this host. The PipeWire ALSA plugin renders silence for PortAudio
+    # streams; pw-jack exposes the R24 as a JACK device at 48000 Hz.
     if [ "$SHAPER_AUDIO" -eq 1 ]; then
         SHAPER_ARGS+=(--device "$SHAPER_DEVICE")
     fi
-    log "starting harmonic-shaper${SHAPER_AUDIO:+ --device \"$SHAPER_DEVICE\"} ${SHAPER_ARGS[*]:-(audio+midi)}"
-    (cd "$SHAPER_DIR" && "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
+    log "starting harmonic-shaper under pw-jack${SHAPER_AUDIO:+ --device \"$SHAPER_DEVICE\"} ${SHAPER_ARGS[*]:-(audio+midi)}"
+    (cd "$SHAPER_DIR" && pw-jack "$SHAPER_VENV/bin/python" -m harmonic_shaper "${SHAPER_ARGS[@]}") \
         > "$LOG_DIR/shaper.log" 2>&1 &
     register $! shaper
     wait_http "http://127.0.0.1:8080/api/state" "shaper API" 60
@@ -466,6 +524,33 @@ if [ "$DO_SHAPER" -eq 1 ]; then
 fi
 
 # ---- 3. harmonic-weaver live runtime ------------------------------------------
+if [ "$CONSONANCE" -eq 1 ]; then
+    log "mode: Consonancia kinetica (pads/bands controller disabled)"
+    # The kinetic controller owns the envelope; no second envelope or clock.
+    curl -fsS --max-time 3 -X POST "http://127.0.0.1:8080/api/shaper/global/generator_enable" \
+        -H 'Content-Type: application/json' -d '{"generator_enable":0}' >/dev/null \
+        || fail "could not disable Shaper generators"
+    for param in attack release; do
+        curl -fsS --max-time 3 -X POST "http://127.0.0.1:8080/api/shaper/global/$param" \
+            -H 'Content-Type: application/json' -d "{\"$param\":0}" >/dev/null \
+            || fail "could not disable Shaper $param"
+    done
+    CONSONANCE_STATE="$ARTIFACT_DIR/consonance-state.json"
+    (cd "$WEAVER_DIR" && HARMOCAP_DIR="$HARMOCAP_DIR" "$WEAVER_VENV/bin/python" \
+        research/movement-consonance/consonance/driver.py \
+        --source osc --osc-port 9100 --shaper-port 9003 --f1 "$CONSONANCE_F1" \
+        --snap "$CONSONANCE_SNAP" --state-file "$CONSONANCE_STATE" \
+        --ui-port "$CONSONANCE_UI_PORT" --settings-file "$CONSONANCE_SETTINGS" \
+        --max-runtime-s "$MAX_RUNTIME_S") > "$LOG_DIR/consonance.log" 2>&1 &
+    CONSONANCE_PID=$!
+    register "$CONSONANCE_PID" consonance
+    for _ in $(seq 1 50); do
+        kill -0 "$CONSONANCE_PID" 2>/dev/null || fail "consonance driver exited (see $LOG_DIR/consonance.log)"
+        grep -q 'listening for' "$LOG_DIR/consonance.log" && break
+        sleep 0.1
+    done
+    grep -q 'listening for' "$LOG_DIR/consonance.log" || fail "consonance driver did not become ready"
+else
 log "starting weaver runtime (lease ${LEASE_MS}ms, max ${MAX_RUNTIME_S}s)"
 (cd "$WEAVER_DIR" && \
     PYTHONPATH="$WEAVER_DIR/src:$WEAVER_DIR" "$WEAVER_VENV/bin/python" \
@@ -504,6 +589,8 @@ if [ "$PUSH_SCENE" -eq 1 ]; then
         || fail "scene push failed (see output above)"
 fi
 
+fi
+
 # ---- 5. HarMoCAP realtime --------------------------------------------------------
 if [ "$DO_HARMOCAP" -eq 1 ]; then
     HARMOCAP_ARGS=(--source "$CAMERA" --host 127.0.0.1 --port 9100)
@@ -511,11 +598,22 @@ if [ "$DO_HARMOCAP" -eq 1 ]; then
     [ "$SHOW" -eq 1 ] && HARMOCAP_ARGS+=(--show)
     [ -n "$HARMOCAP_CHECKPOINT" ] && HARMOCAP_ARGS+=(--checkpoint "$HARMOCAP_CHECKPOINT")
     [ -n "$HARMOCAP_IMGSZ" ] && HARMOCAP_ARGS+=(--imgsz "$HARMOCAP_IMGSZ")
+    [ -n "$HARMOCAP_MAX_SLOTS" ] && HARMOCAP_ARGS+=(--max-slots "$HARMOCAP_MAX_SLOTS")
+    # Auto-detect overlay mode from scene name
+    case "$SCENE" in
+        kinetic-consonance) HARMOCAP_ARGS+=(--raw-keypoints --pads-mode none --instrument-state "$CONSONANCE_STATE") ;;
+        bands*) HARMOCAP_ARGS+=(--pads-mode bands) ;;
+        *)      HARMOCAP_ARGS+=(--pads-mode grid) ;;
+    esac
     log "starting HarMoCAP realtime (camera: $CAMERA, device: $HARMOCAP_DEVICE)"
     HARMOCAP_ENV=()
     [ "$HARMOCAP_DEVICE" = "cpu" ] && HARMOCAP_ENV=(CUDA_VISIBLE_DEVICES=)
     # GPU mode: sync crashes for clean recovery + block on kernel errors
-    [ "$HARMOCAP_DEVICE" != "cpu" ] && HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=1)
+    if [ "$CONSONANCE" -eq 1 ]; then
+        HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=0)
+    elif [ "$HARMOCAP_DEVICE" != "cpu" ]; then
+        HARMOCAP_ENV+=(CUDA_LAUNCH_BLOCKING=1)
+    fi
     (cd "$HARMOCAP_DIR" && env "${HARMOCAP_ENV[@]}" "$HARMOCAP_VENV/bin/python" scripts/run_realtime.py "${HARMOCAP_ARGS[@]}") \
         > "$LOG_DIR/harmocap.log" 2>&1 &
     register $! harmocap
@@ -544,12 +642,18 @@ for (( i=0; i<${#PIDS[@]}; i++ )); do
     printf "    %-10s pid %s\n" "${NAMES[$i]}" "${PIDS[$i]}"
 done
 echo
-echo "  patchbay:   http://localhost:8765/"
-echo "  overlay:    http://localhost:8765/static/overlay.html"
-echo "  beacon UI:  http://localhost:5050/"
+if [ "$CONSONANCE" -eq 1 ]; then
+    echo "  mode:       Consonancia kinetica — camera $CAMERA + HarMoCAP tracking"
+    echo "  state:      $CONSONANCE_STATE"
+    echo "  controls:   http://localhost:$CONSONANCE_UI_PORT"
+else
+    echo "  patchbay:   http://localhost:8765/"
+    echo "  overlay:    http://localhost:8765/static/overlay.html"
+fi
+[ "$DO_BEACON" -eq 1 ] && echo "  beacon UI:  http://localhost:5050/"
 echo "  shaper API: http://localhost:8080/api/state"
 echo "  logs:       $LOG_DIR"
-echo "  audit:      $ARTIFACT_DIR/instrument_outputs.jsonl"
+[ "$CONSONANCE" -eq 0 ] && echo "  audit:      $ARTIFACT_DIR/instrument_outputs.jsonl"
 [ -n "$RECORD" ] && echo "  recording:  $RECORD"
 echo
 echo "  Ctrl-C here stops everything; from another shell:"
@@ -577,7 +681,10 @@ while true; do
     PIDS=("${PIDS[@]}")
     NAMES=("${NAMES[@]}")
 
-    if [ "$EXITED" = "harmocap" ]; then
+    if [ "$EXITED" = "harmocap" ] && [ "$CONSONANCE" -eq 1 ] && [ "$EXIT_CODE" -eq 0 ]; then
+        log "HarMoCAP closed; stopping Consonancia kinetica"
+        break
+    elif [ "$EXITED" = "harmocap" ]; then
         HARMOCAP_RESTARTS=$((HARMOCAP_RESTARTS + 1))
         if [ "$HARMOCAP_RESTARTS" -gt "$HARMOCAP_MAX_RESTARTS" ]; then
             log "HarMoCAP crashed $HARMOCAP_RESTARTS times; max $HARMOCAP_MAX_RESTARTS — audio stays, camera lost"
@@ -599,5 +706,5 @@ while true; do
     fi
 done
 
-cleanup
 trap - INT TERM
+# EXIT trap owns cleanup, including failures during startup.

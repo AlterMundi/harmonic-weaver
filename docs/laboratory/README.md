@@ -1,8 +1,13 @@
 # Laboratorio corporal: punto de entrada
 
-Estado: planificación publicada; implementación del laboratorio pendiente. 2026-09-29.
+Estado: primera iteración local disponible; ver [arranque](RUNNING.md),
+[validación y límites](VALIDATION.md) y [estado](IMPLEMENTATION_STATUS.md). 2026-09-29.
+
+Para aportar cambios o presets: [fronteras y flujo de contribución](CONTRIBUTING.md).
 
 Coordinación y seguimiento: [PROGRAM · #7](https://github.com/AlterMundi/harmonic-weaver/issues/7). Este índice reúne el alcance vigente, las tareas ejecutables y las preguntas que siguen abiertas.
+
+Próxima iteración y colaboración: [integración de Sai y goals complementarios](NEXT_ITERATION.md).
 
 ## Qué leer primero
 
@@ -42,7 +47,7 @@ Evaluar después: presets seleccionados contra las mismas fuentes, cálculo y s�
 
 [LAB-09 · #17](https://github.com/AlterMundi/harmonic-weaver/issues/17) es captura opcional y no bloquea las primeras sesiones de [LAB-08 · #16](https://github.com/AlterMundi/harmonic-weaver/issues/16). La validación comparativa comienza después del feedback, no condiciona la operación cotidiana.
 
-No hay colaboradores asignados automáticamente. Cada tarea declara fronteras y aceptación; los cambios necesarios en HarMoCAP/Shaper se publican en sus repos y se enlazan desde la tarea de Weaver. No iniciar modificaciones del instrumento como parte de esta publicación documental.
+No hay colaboradores asignados automáticamente. Cada tarea declara fronteras y aceptación; los cambios necesarios en HarMoCAP/Shaper se publican en sus repos y se enlazan desde la tarea de Weaver. La implementación y su evidencia se siguen en IMPLEMENTATION_STATUS y VALIDATION.
 
 ## Investigación conservada
 
@@ -69,3 +74,7 @@ Estas preguntas tienen seguimiento propio sin prometer implementarlas todas en e
 - Publicar cambios de contratos con fixtures compartidos antes de integrar consumidores en paralelo.
 
 [github-plan.json](github-plan.json) conserva las claves y dependencias; [GITHUB.json](GITHUB.json) registra los números/URLs publicados. Los cuerpos en [issues/](issues/) son el snapshot de publicación; el estado operativo posterior se sigue en GitHub.
+
+Segunda iteración: [comparador reproducible](EVALUATION.md), [arranque y recorrido](RUNNING.md).
+
+Continuidad solicitada 2026-09-30: [roadmap completo y dependencias](ROADMAP_CONTINUATION.md).

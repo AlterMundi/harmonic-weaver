@@ -26,3 +26,44 @@
 El plan largo conserva antecedentes; consultar este registro y la agenda al
 convertirlos en tareas. No heredar el viejo orden que posponía organización
 colectiva fuera del primer milestone.
+
+12. Segunda iteración: el comparador usa el runtime live con reloj lógico,
+    ejecución separada y solicitudes congeladas. Métricas descriptivas sobre
+    soporte común; sin PCM ni afirmación de eficacia/predicción. Ver EVALUATION.
+13. No sobrescribir presets por su nombre: el 01c guardado puede haber sido
+    editado. Referencias nuevas tienen IDs nuevos; la configuración local actual
+    se conserva. Ajustar controles compatibles preserva historia de ruteo.
+14. CPU es recuperación explícita. El cache distingue dispositivo efectivo;
+    fallar/cancelar una generación no borra la anterior válida. CUDA sigue bajo
+    investigación; cambiar a CPU no prueba resuelta su causa.
+15. El aporte independiente de Oliva (#36, para #35) se revisa y contrasta sin
+    modificar su territorio ni hacer merges automáticos. Incorporar precauciones
+    de cobertura/causalidad no equivale a validar las hipótesis de HIT.
+
+16. La selección explícita de cuerpo en video es una preferencia local ligada a
+    media hash, clave de cache y generación; no viaja en presets ni restaura
+    calibración. Sin elección guardada, seleccionar mayor cobertura observada
+    o primero de la lista, configurable en Fuente; reproducción automática
+    configurable cuando el cache está listo. Una generación nueva elige su
+    propio default; la ausencia del cuerpo elegido nunca selecciona otro.
+
+17. PCM offline usa el kernel de producción de Shaper con reloj lógico explícito,
+    controles cuantizados al próximo límite de bloque y motor nuevo por corrida.
+    Preroll calienta síntesis y análisis; recorte por muestra. Configuración de
+    render separada del preset portable y salida física; congelar hash del motor.
+    Estado de osciladores pre-shape y PCM post-limitador son artefactos distintos.
+    Una corrida reproducible no demuestra aceptación ni latencia física.
+
+2026-09-30 — Propagación compara errores de historia propia/añadida sólo en
+objetivos compartidos. Con retardos o disponibilidad diferentes, sus ventanas
+pueden tener distinto número de errores; comparar promedios sin emparejar crea
+un cambio de score aunque las predicciones sean iguales. Se requieren al menos
+cinco timestamps comunes y el diagnóstico registra soporte individual/común y
+extremos del intervalo. Defaults, selección de regiones y baseline sonoro sin
+cambios. El score continúa siendo soporte predictivo, no origen causal/Jpsh.
+
+2026-09-30 — Cambio de número de regiones/dimensiones reinicia entrenamiento y
+scores de propagación. No se apilan vectores de forma incompatible ni se conserva
+un modelo ajustado a otro soporte. Timestamp no finito o soporte vacío se trata
+como missing y limpia la historia. El orden semántico de regiones debe seguir
+siendo estable: la forma de la matriz no identifica articulaciones ni personas.

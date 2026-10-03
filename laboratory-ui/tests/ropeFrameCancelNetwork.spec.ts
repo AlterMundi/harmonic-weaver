@@ -1,0 +1,28 @@
+import {test,expect} from '@playwright/test';
+test('R08 cancel image terminates live process blocks apply and permits retry',async({page})=>{
+ test.skip(!process.env.LAB_R08_FRAME_CANCEL_URL,'slow-first-frame isolated fixture required');
+ const origin=process.env.LAB_R08_FRAME_CANCEL_URL!;
+ await page.goto(origin);
+ await page.getByLabel('Video de biblioteca R08').selectOption('synthetic');
+ await page.getByRole('button',{name:'Preparar anotación R08',exact:true}).click();
+ await expect.poll(async()=> (await(await page.request.get(`${origin}/test/decode-live`)).json()).live).toBe(true);
+ const draft=page.getByLabel('Anotación R08 JSON');
+ await expect(draft).not.toHaveValue('');const before=await draft.inputValue();
+ await expect(page.getByText('Imagen R08: running',{exact:true})).toBeVisible();
+ await expect(page.getByLabel('Video de biblioteca R08')).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Preparar anotación R08',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Guardar revisión R08',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Aplicar frame al borrador',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Cancelar imagen R08',exact:true}).click();
+ await expect(page.getByText('Imagen R08: cancelled',{exact:true})).toBeVisible();
+ await expect(page.getByLabel('Video de biblioteca R08')).toBeEnabled();
+ await expect(page.getByRole('button',{name:'Preparar anotación R08',exact:true})).toBeEnabled();
+ await expect.poll(async()=> (await(await page.request.get(`${origin}/test/decode-live`)).json()).live).toBe(false);
+ await expect(draft).toHaveValue(before);
+ await expect(page.getByRole('button',{name:'Aplicar frame al borrador',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Reintentar imagen R08',exact:true}).click();
+ await expect(page.getByText(/Imagen decodificada/)).toBeVisible();
+ await expect(page.getByRole('button',{name:'Aplicar frame al borrador',exact:true})).toBeEnabled();
+ await expect(draft).toHaveValue(before);
+ expect(await(await page.request.get(`${origin}/api/research/r08`)).json()).toEqual([]);
+});

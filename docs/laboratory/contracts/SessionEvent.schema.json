@@ -1,0 +1,59 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "monotonic_s": {
+      "title": "Monotonic S",
+      "type": "number"
+    },
+    "source_time_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Time S"
+    },
+    "kind": {
+      "enum": [
+        "configuration",
+        "preset_save",
+        "mark",
+        "calibration"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "revision": {
+      "title": "Revision",
+      "type": "integer"
+    },
+    "payload": {
+      "additionalProperties": true,
+      "title": "Payload",
+      "type": "object"
+    }
+  },
+  "required": [
+    "session_id",
+    "monotonic_s",
+    "kind",
+    "revision",
+    "payload"
+  ],
+  "title": "SessionEvent",
+  "type": "object"
+}

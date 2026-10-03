@@ -1,0 +1,21 @@
+import {test,expect} from '@playwright/test';
+test('controlled clock verifies spatial speed pause seek loop and stop',async({page})=>{
+ test.skip(!process.env.LAB_R09_PLAYBACK_URL,'isolated fixture required');
+ await page.clock.install();await page.goto(process.env.LAB_R09_PLAYBACK_URL!);
+ const panel=page.getByRole('region',{name:'Observaciones espaciales R09'});
+ await panel.getByLabel('Modalidad R09').selectOption('validate');
+ const stream={source_id:'synthetic',subject_slot:'slot',provider:'monocular_3d',dimensions:3,coordinate_frame:'model',units:'model_units',clock:{source_clock:'source',common_clock:'session',offset_s:0,rate:1,uncertainty_s:.1,method:'declared_assumption'},frames:[0,1].map(i=>({index:i,source_time_s:i,points:[{label:'hand',state:'inferred',position:[i,.2,.3]}]}))};
+ await panel.getByLabel('Observaciones JSON R09').fill(JSON.stringify(stream));await panel.getByRole('button',{name:'Procesar observaciones R09'}).click();
+ const time=panel.getByLabel('Tiempo de reproducción R09');
+ await panel.getByLabel('Velocidad espacial R09').fill('2');
+ await panel.getByRole('button',{name:'Reproducir observaciones R09'}).click();await page.clock.runFor(250);
+ await panel.getByRole('button',{name:'Pausar observaciones R09'}).click();
+ const paused=Number(await time.inputValue());expect(paused).toBeGreaterThan(.35);expect(paused).toBeLessThan(.7);
+ await page.clock.runFor(300);expect(Number(await time.inputValue())).toBe(paused);
+ await time.fill('0.9');await panel.getByLabel('Loop espacial R09').check();
+ await panel.getByRole('button',{name:'Reproducir observaciones R09'}).click();await page.clock.runFor(200);
+ expect(Number(await time.inputValue())).toBeLessThan(.5);await expect(panel.getByRole('button',{name:'Pausar observaciones R09'})).toBeVisible();
+ await panel.getByRole('button',{name:'Pausar observaciones R09'}).click();await panel.getByLabel('Loop espacial R09').uncheck();await time.fill('0.9');
+ await panel.getByRole('button',{name:'Reproducir observaciones R09'}).click();await page.clock.runFor(200);
+ await expect(panel.getByRole('button',{name:'Reproducir observaciones R09'})).toBeVisible();expect(Number(await time.inputValue())).toBe(1);
+});

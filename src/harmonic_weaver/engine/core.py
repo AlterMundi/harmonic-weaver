@@ -1088,6 +1088,14 @@ class WeaverEngine:
         if destination.argument_type in {"int32", "int64"} and not float(value).is_integer():
             self.metrics["transport_errors"] += 1
             return False
+        # Suppress redundant writes: if the value hasn't changed since the
+        # last send, the instrument already holds it — skip the OSC packet.
+        if (
+            not safety
+            and destination.key in self._last_outputs
+            and float(native_value) == self._last_outputs[destination.key]
+        ):
+            return True
         record = OutputRecord(instrument_id, "capability", now_us, reason, destination.definition["capability"], destination.address, freeze(destination.definition["bindings"]), destination.definition["argument"], native_value)
         try:
             self.transport.send_capability(record)
@@ -1283,12 +1291,19 @@ class WeaverEngine:
             if "routes" in selected:
                 active = self._state.scenes.get(self._state.active_scene_id) if self._state.active_scene_id else None
                 route_snapshots: list[dict[str, Any]] = []
-                if active is not None:
+                if active is not None and self._compiled_scene is not None:
                     compiled_routes = {
                         route.route_id: route
-                        for route in (self._compiled_scene.routes if self._compiled_scene else ())
+                        for route in self._compiled_scene.routes
                     }
-                    for route_definition in thaw(active["routes"]):
+                    if "routes" in active:
+                        route_definitions = thaw(active["routes"])
+                    else:
+                        route_definitions = [
+                            copy.deepcopy(route.definition)
+                            for route in self._compiled_scene.routes
+                        ]
+                    for route_definition in route_definitions:
                         compiled_route = compiled_routes.get(route_definition["route_id"])
                         instrument_ready = False
                         last_output: float | None = None

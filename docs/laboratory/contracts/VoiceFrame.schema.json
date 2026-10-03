@@ -1,0 +1,198 @@
+{
+  "$defs": {
+    "EffectiveVoice": {
+      "additionalProperties": false,
+      "properties": {
+        "voice_id": {
+          "title": "Voice Id",
+          "type": "integer"
+        },
+        "harmonic_n": {
+          "title": "Harmonic N",
+          "type": "integer"
+        },
+        "frequency_hz": {
+          "minimum": 0,
+          "title": "Frequency Hz",
+          "type": "number"
+        },
+        "gain_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gain End"
+        },
+        "phase_offset_delta_rad": {
+          "default": 0,
+          "title": "Phase Offset Delta Rad",
+          "type": "number"
+        },
+        "gain": {
+          "minimum": 0,
+          "title": "Gain",
+          "type": "number"
+        },
+        "phase_rad": {
+          "title": "Phase Rad",
+          "type": "number"
+        },
+        "envelope": {
+          "minimum": 0,
+          "title": "Envelope",
+          "type": "number"
+        },
+        "pan": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Pan",
+          "type": "number"
+        },
+        "shape": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Shape",
+          "type": "number"
+        },
+        "releasing": {
+          "title": "Releasing",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "voice_id",
+        "harmonic_n",
+        "frequency_hz",
+        "gain",
+        "phase_rad",
+        "envelope",
+        "pan",
+        "shape",
+        "releasing"
+      ],
+      "title": "EffectiveVoice",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "sample_index": {
+      "minimum": 0,
+      "title": "Sample Index",
+      "type": "integer"
+    },
+    "sample_rate": {
+      "exclusiveMinimum": 0,
+      "title": "Sample Rate",
+      "type": "integer"
+    },
+    "block_frames": {
+      "exclusiveMinimum": 0,
+      "title": "Block Frames",
+      "type": "integer"
+    },
+    "generated_monotonic_s": {
+      "title": "Generated Monotonic S",
+      "type": "number"
+    },
+    "control_owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Owner"
+    },
+    "control_sequence": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Sequence"
+    },
+    "control_applied_monotonic_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Applied Monotonic S"
+    },
+    "control_sampled_monotonic_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Control Sampled Monotonic S"
+    },
+    "output_dac_time_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Output Dac Time S"
+    },
+    "running": {
+      "title": "Running",
+      "type": "boolean"
+    },
+    "stage": {
+      "const": "oscillators_pre_shape_limiter",
+      "default": "oscillators_pre_shape_limiter",
+      "title": "Stage",
+      "type": "string"
+    },
+    "voices": {
+      "items": {
+        "$ref": "#/$defs/EffectiveVoice"
+      },
+      "title": "Voices",
+      "type": "array"
+    }
+  },
+  "required": [
+    "sample_index",
+    "sample_rate",
+    "block_frames",
+    "generated_monotonic_s",
+    "running",
+    "voices"
+  ],
+  "title": "VoiceFrame",
+  "type": "object"
+}

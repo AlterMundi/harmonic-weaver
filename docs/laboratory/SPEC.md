@@ -286,3 +286,12 @@ Aceptación humana: reproducir y usar cámara, cambiar parámetros y algoritmos,
 guardar un hallazgo y recuperarlo en otra fuente. Marcar lo que se siente bien
 y lo confuso. Las primeras pruebas humanas son parte del desarrollo, no una
 validación de HIT. No exigir éxito científico para entregar el laboratorio.
+
+## Entrega incremental posterior: comparador local v1
+
+El primer corte de EVAL-01 se implementa como módulo de la web y CLI descrito en
+[EVALUATION](EVALUATION.md): presets congelados × segmentos, runtime live compartido,
+reloj lógico, reset/preroll y exportación de features/targets/métricas con soporte
+común. Es opcional para operar el instrumento. No adelanta PCM offline, nuevos
+sensores/3D ni evaluación científica formal. Las decisiones posteriores están en
+[DECISIONS](DECISIONS.md) y la evidencia separada de escucha en [VALIDATION](VALIDATION.md).

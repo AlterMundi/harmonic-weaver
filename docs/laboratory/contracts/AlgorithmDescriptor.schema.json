@@ -1,0 +1,175 @@
+{
+  "$defs": {
+    "ControlDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "number",
+            "integer",
+            "boolean",
+            "choice"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Default"
+        },
+        "unit": {
+          "default": "1",
+          "title": "Unit",
+          "type": "string"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "choices": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Choices",
+          "type": "array"
+        },
+        "help": {
+          "title": "Help",
+          "type": "string"
+        },
+        "application": {
+          "default": "tick",
+          "enum": [
+            "tick",
+            "reset",
+            "visual"
+          ],
+          "title": "Application",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "kind",
+        "default",
+        "help"
+      ],
+      "title": "ControlDescriptor",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "label": {
+      "title": "Label",
+      "type": "string"
+    },
+    "inputs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Inputs",
+      "type": "array"
+    },
+    "outputs": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Outputs",
+      "type": "object"
+    },
+    "controls": {
+      "items": {
+        "$ref": "#/$defs/ControlDescriptor"
+      },
+      "title": "Controls",
+      "type": "array"
+    },
+    "causal": {
+      "default": true,
+      "title": "Causal",
+      "type": "boolean"
+    },
+    "warmup_s": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Warmup S",
+      "type": "number"
+    },
+    "cost": {
+      "default": "light",
+      "enum": [
+        "light",
+        "windowed"
+      ],
+      "title": "Cost",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "label",
+    "inputs",
+    "outputs",
+    "description"
+  ],
+  "title": "AlgorithmDescriptor",
+  "type": "object"
+}

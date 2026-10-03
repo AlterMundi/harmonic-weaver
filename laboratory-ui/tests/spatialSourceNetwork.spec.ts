@@ -1,0 +1,32 @@
+import {test,expect} from '@playwright/test';
+test('explicit completed generation and inclusive segment',async({page})=>{
+ test.skip(!process.env.LAB_R09_SOURCE_URL,'isolated spatial fixture required');await page.goto(process.env.LAB_R09_SOURCE_URL!);
+ const panel=page.getByRole('region',{name:'Observaciones espaciales R09'});
+ let inferenceCalls=0;page.on('request',r=>{if(r.method()==='POST'&&r.url().includes('/api/sources/video'))inferenceCalls++;});
+ await panel.getByLabel('Modalidad R09').selectOption('source');await panel.getByRole('button',{name:'Actualizar tracking R09'}).click();
+ await panel.getByLabel('Tracking completo R09').selectOption('synthetic-spatial');
+ const submit=panel.getByRole('button',{name:'Procesar observaciones R09'});await expect(submit).toBeDisabled();
+ await panel.getByLabel('Slot explícito R09').fill('slot-1-generation-1');await panel.getByLabel('Fin de segmento R09').fill('.2');await submit.click();
+ await expect(panel.getByText(/observados 1; sostenidos 0; inferidos 0; faltantes 33/)).toBeVisible();
+ await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(1);
+ await panel.getByLabel('Tiempo de reproducción R09').fill('0.15');await expect(panel.getByText(/gap: sin puntos vigentes/)).toBeVisible();await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(0);
+ await panel.getByLabel('Frame espacial R09').fill('0');await panel.getByRole('button',{name:'Reproducir observaciones R09'}).click();await expect(panel.getByRole('button',{name:'Reproducir observaciones R09'})).toBeVisible();await expect(panel.getByText(/Reloj fuente de reproducción: 0.200/)).toBeVisible();
+ await panel.getByLabel('Frame espacial R09').fill('1');await expect(panel.getByLabel('Puntos proyectados R09').locator('circle')).toHaveCount(0);
+ await expect(panel.getByText(/Índice original 2/)).toBeVisible();await panel.getByLabel('Frame espacial R09').fill('0');
+ await panel.getByText('Resultado espacial R09',{exact:true}).click();const result=JSON.parse((await panel.locator('pre').textContent())!);
+ expect(result.stream.frames.map((f:any)=>f.index)).toEqual([0,2]);expect(result.tracking_provenance.generation).toBe('fixture-generation');expect(result.tracking_provenance).not.toHaveProperty('path');
+ let firstSave=true;const saveBodies:any[]=[];
+ await page.route('**/api/research/r09/source-conversions',async r=>{if(r.request().method()!=='POST'){await r.continue();return;}saveBodies.push(r.request().postDataJSON());if(firstSave){firstSave=false;await r.fetch();await r.abort('failed');}else await r.continue();});
+ await panel.getByRole('button',{name:'Guardar desde generación R09'}).click();
+ await expect(panel.getByRole('button',{name:'Recuperar guardado R09'})).toBeVisible();await page.reload();await panel.getByRole('button',{name:'Recuperar guardado R09'}).click();expect(saveBodies).toHaveLength(2);expect(saveBodies[1]).toEqual(saveBodies[0]);
+
+ await expect(panel.getByRole('button',{name:'Abrir conversión R09'})).toBeVisible();
+ const saved=await(await page.request.get(`${process.env.LAB_R09_SOURCE_URL}/api/research/r09/conversions`)).json();expect(saved).toHaveLength(1);
+ const frozen=await(await page.request.get(`${process.env.LAB_R09_SOURCE_URL}/api/research/r09/conversions/${saved[0].id}/artifacts/result.json`)).json();
+ expect(frozen.tracking_provenance.generation).toBe('fixture-generation');
+ await page.reload();await panel.getByRole('button',{name:'Abrir conversión R09'}).click();
+ await panel.getByText('Resultado espacial R09',{exact:true}).click();expect(JSON.parse((await panel.locator('pre').textContent())!).tracking_provenance).toEqual(frozen.tracking_provenance);
+ await panel.getByLabel('Modalidad R09').selectOption('source');await panel.getByRole('button',{name:'Actualizar tracking R09'}).click();await panel.getByLabel('Tracking completo R09').selectOption('synthetic-spatial');await panel.getByLabel('Fin de segmento R09').fill('.2');
+ await panel.getByLabel('Slot explícito R09').fill('absent');await submit.click();await expect(panel.getByText(/faltantes 34/)).toBeVisible();
+ await panel.getByLabel('Fin de segmento R09').fill('2');await submit.click();await expect(panel.getByRole('alert')).toBeVisible();expect(inferenceCalls).toBe(0);
+});

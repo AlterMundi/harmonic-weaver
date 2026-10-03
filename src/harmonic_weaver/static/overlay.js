@@ -127,16 +127,33 @@ function drawGrid() {
 
       const isActive = activePads.has(idx);
 
-      // background fill
-      if (isActive) {
-        gctx.fillStyle = activeColors[idx] + '55';  // semi-transparent
+      // Pad fill colour: use the first owning slot's skeleton colour when
+      // active, falling back to the fixed per-pad hue when inactive.
+      let fillColor;
+      if (isActive && padOwners[idx].size > 0) {
+        const firstOwner = padOwners[idx].values().next().value;
+        const slot = firstOwner >> 1;
+        fillColor = SLOT_PALETTE[slot % MAX_SLOTS] + '55';
+      } else if (isActive) {
+        fillColor = activeColors[idx] + '55';
       } else {
-        gctx.fillStyle = 'rgba(10,15,25,0.4)';
+        fillColor = 'rgba(10,15,25,0.4)';
       }
+      gctx.fillStyle = fillColor;
       gctx.fillRect(x, y, cellW, cellH);
 
-      // border
-      gctx.strokeStyle = isActive ? activeColors[idx] + 'cc' : 'rgba(100,140,200,0.35)';
+      // border — use the owning slot's skeleton colour when active
+      let borderColor;
+      if (isActive && padOwners[idx].size > 0) {
+        const firstOwner = padOwners[idx].values().next().value;
+        const slot = firstOwner >> 1;
+        borderColor = SLOT_PALETTE[slot % MAX_SLOTS] + 'cc';
+      } else if (isActive) {
+        borderColor = activeColors[idx] + 'cc';
+      } else {
+        borderColor = 'rgba(100,140,200,0.35)';
+      }
+      gctx.strokeStyle = borderColor;
       gctx.lineWidth = isActive ? 2.5 : 1.5;
       gctx.strokeRect(x, y, cellW, cellH);
 
@@ -190,35 +207,38 @@ function drawGrid() {
 // ---------------------------------------------------------------------------
 // Hand position dots — HarMoCAP detected wrist positions
 // ---------------------------------------------------------------------------
-function drawHandDot(sourceId, color) {
-  const xKey = sourceId.replace(/_[xy]$/, '_x');
-  const yKey = sourceId.replace(/_[xy]$/, '_y');
-  const x = handPos[xKey], y = handPos[yKey];
-  if (x == null || y == null) return;
-  // Camera is flipped (mirror), grid columns flipped to match.
-  // Dot X must be flipped too so it appears where the hand is in the mirror.
-  const px = (1 - x) * W;
-  const py = y * H;
-  const r = 14;
-  gctx.beginPath();
-  gctx.arc(px, py, r, 0, Math.PI * 2);
-  gctx.fillStyle = color + '66';
-  gctx.fill();
-  gctx.strokeStyle = color;
-  gctx.lineWidth = 2.5;
-  gctx.stroke();
-  // crosshair
-  gctx.beginPath();
-  gctx.moveTo(px - r - 4, py); gctx.lineTo(px + r + 4, py);
-  gctx.moveTo(px, py - r - 4); gctx.lineTo(px, py + r + 4);
-  gctx.strokeStyle = '#fff';
-  gctx.lineWidth = 1;
-  gctx.stroke();
+function drawHandDot(color) {
+  // Draw a single dot at (px, py) in the given colour.
+  // (Called inline from drawHandDots below.)
+  return function(px, py) {
+    const r = 14;
+    gctx.beginPath();
+    gctx.arc(px, py, r, 0, Math.PI * 2);
+    gctx.fillStyle = color + '66';
+    gctx.fill();
+    gctx.strokeStyle = color;
+    gctx.lineWidth = 2.5;
+    gctx.stroke();
+    gctx.beginPath();
+    gctx.moveTo(px - r - 4, py); gctx.lineTo(px + r + 4, py);
+    gctx.moveTo(px, py - r - 4); gctx.lineTo(px, py + r + 4);
+    gctx.strokeStyle = '#fff';
+    gctx.lineWidth = 1;
+    gctx.stroke();
+  };
 }
 
 function drawHandDots() {
-  drawHandDot('hand_r_x', '#ff4466');  // red for right hand
-  drawHandDot('hand_l_x', '#44aaff');  // blue for left hand
+  for (let s = 0; s < MAX_SLOTS; s++) {
+    const color = SLOT_PALETTE[s % MAX_SLOTS];
+    const draw = drawHandDot(color);
+    for (const hand of ['r', 'l']) {
+      const x = handPos[s][hand].x, y = handPos[s][hand].y;
+      if (x == null || y == null) continue;
+      const px = (1 - x) * W, py = y * H;
+      draw(px, py);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -294,10 +314,31 @@ let reconnectTimer = null;
 let lastPadMsgAt = 0;  // when we last got real pad data (gates the simulation)
 let requestSeq = 0;
 let stageGated = false;
-// Latest pad index per hand source (null = invalid / unknown).
-const handPads = { hand_r_pad: null, hand_l_pad: null };
-// Latest raw hand positions (0-1 in camera frame) — for drawing dots.
-const handPos = { hand_r_x: null, hand_r_y: null, hand_l_x: null, hand_l_y: null };
+// Per-slot color palette — matches HarMoCAP skeleton colours (BGR→CSS hex).
+const SLOT_PALETTE = [
+  '#4285f4', '#34a853', '#fbbc05', '#ea4335',
+  '#ab47bc', '#00acc1', '#ff7043', '#9e9d24',
+];
+const MAX_SLOTS = 8;
+
+// --- Active-pad tracking per slot+hand ---
+// Each pad (0..31) tracks a Set of (slot << 1 | handBit) owners.
+// handBit: 0 = right, 1 = left.  The Set tells us WHICH slot-hand combos
+// are overlapping this pad.
+const padOwners = new Array(N).fill(null).map(() => new Set());
+
+// Raw hand positions for dot rendering: handPos[slot][hand][axis].
+const handPos = {};
+for (let s = 0; s < MAX_SLOTS; s++) {
+  handPos[s] = {r: {x: null, y: null}, l: {x: null, y: null}};
+}
+
+// Latest pad index per slot+hand, or null if invalid/unknown.
+const handPads = {};
+for (let s = 0; s < MAX_SLOTS; s++) {
+  handPads[`${s}_r`] = null;
+  handPads[`${s}_l`] = null;
+}
 
 function clientId() {
   try {
@@ -339,9 +380,18 @@ function padIndexFromEnvelope(envelope) {
 }
 
 function recomputeWsPadsFromHands() {
+  // Clear all owner sets, then rebuild from current handPads state.
+  for (let i = 0; i < N; i++) padOwners[i].clear();
+  for (const [key, padIdx] of Object.entries(handPads)) {
+    if (padIdx == null) continue;
+    const [slot, hand] = key.split('_');
+    const s = Number(slot), h = (hand === 'r' ? 0 : 1);
+    padOwners[padIdx].add(s << 1 | h);
+  }
+  // Rebuild activePads (union of all pads with at least one owner).
   wsPads.clear();
-  for (const idx of Object.values(handPads)) {
-    if (idx != null) wsPads.add(idx);
+  for (let i = 0; i < N; i++) {
+    if (padOwners[i].size > 0) wsPads.add(i);
   }
   if (wsPads.size) {
     lastPadMsgAt = Date.now();
@@ -350,18 +400,34 @@ function recomputeWsPadsFromHands() {
   recomputeActive();
 }
 
+// Parse a derived source_id like "slot_0_pad_r" → {slot, kind, hand}.
+// pad source:  slot_N_pad_{r,l}
+// pos source:   slot_N_pos_{r,l}_{x,y}
+// Returns null if the pattern doesn't match.
 function applyPadChannel(sourceId, channel, envelope) {
-  // Track raw hand positions for dot rendering
-  if (sourceId in handPos && channel === PAD_SOURCE_CHANNELS[sourceId]) {
+  const parsed = parseSlotSource(sourceId);
+  // Position data: update handPos[slot][hand][axis].
+  if (parsed && parsed.kind === 'pos') {
+    const { slot, hand, axis } = parsed;
     if (envelope && typeof envelope.value === 'number') {
-      handPos[sourceId] = envelope.value;
+      handPos[slot][hand][axis] = envelope.value;
     }
+    return;
   }
-  // Track pad indices for grid highlighting
-  if (!(sourceId in handPads)) return;
-  if (channel !== PAD_SOURCE_CHANNELS[sourceId]) return;
-  handPads[sourceId] = padIndexFromEnvelope(envelope);
-  recomputeWsPadsFromHands();
+  // Pad data: update handPads[slot_hand] and rebuild owners.
+  if (parsed && parsed.kind === 'pad') {
+    const key = `${parsed.slot}_${parsed.hand}`;
+    handPads[key] = padIndexFromEnvelope(envelope);
+    recomputeWsPadsFromHands();
+    return;
+  }
+}
+
+// Parse a derived source_id like "slot_0_pad_r" → {slot, kind, hand}.
+function parseSlotSource(sourceId) {
+  const m = sourceId.match(/^slot_(\d+)_(pad|pos)_(r|l)(?:_([xy]))?$/);
+  if (!m) return null;
+  return { slot: Number(m[1]), kind: m[2], hand: m[3], axis: m[4] || null };
 }
 
 function applySourcesSnapshot(sources) {
@@ -370,18 +436,24 @@ function applySourcesSnapshot(sources) {
   for (const source of sources) {
     if (!source || typeof source !== 'object') continue;
     const sourceId = source.source_id;
+    const parsed = parseSlotSource(sourceId);
+    if (!parsed) continue;
     // Position sources
-    if (sourceId in POS_SOURCE_CHANNELS) {
-      const ch = POS_SOURCE_CHANNELS[sourceId];
+    if (parsed.kind === 'pos') {
+      const ch = parsed.axis || parsed.hand;
       const env = source.channels?.[ch];
-      if (env && typeof env.value === 'number') handPos[sourceId] = env.value;
+      if (env && typeof env.value === 'number') {
+        handPos[parsed.slot][parsed.hand][parsed.axis || parsed.hand] = env.value;
+      }
     }
     // Pad sources
-    if (!(sourceId in handPads)) continue;
-    const channel = PAD_SOURCE_CHANNELS[sourceId];
-    const envelope = source.channels?.[channel];
-    handPads[sourceId] = padIndexFromEnvelope(envelope);
-    touched = true;
+    if (parsed.kind === 'pad') {
+      const ch = 'pad';
+      const envelope = source.channels?.[ch];
+      const key = `${parsed.slot}_${parsed.hand}`;
+      handPads[key] = padIndexFromEnvelope(envelope);
+      touched = true;
+    }
   }
   if (touched) recomputeWsPadsFromHands();
 }
@@ -390,24 +462,27 @@ function applySourceChannelsUpdated(payload) {
   if (!payload || typeof payload !== 'object') return;
   const entity = payload.entity || payload;
   const sourceId = entity.source_id || payload.entity_id;
-  // Handle position sources
-  if (sourceId in POS_SOURCE_CHANNELS) {
-    const channels = entity.channels;
-    if (channels && typeof channels === 'object') {
-      const ch = POS_SOURCE_CHANNELS[sourceId];
-      if (ch in channels) {
-        const env = channels[ch];
-        if (env && typeof env.value === 'number') handPos[sourceId] = env.value;
-      }
-    }
-  }
-  // Handle pad sources
-  if (!(sourceId in handPads)) return;
   const channels = entity.channels;
   if (!channels || typeof channels !== 'object') return;
-  const channel = PAD_SOURCE_CHANNELS[sourceId];
-  if (!(channel in channels)) return;
-  applyPadChannel(sourceId, channel, channels[channel]);
+  const parsed = parseSlotSource(sourceId);
+  if (!parsed) return;
+  // Position sources
+  if (parsed.kind === 'pos') {
+    const ch = parsed.axis;
+    if (ch && ch in channels) {
+      const env = channels[ch];
+      if (env && typeof env.value === 'number') {
+        handPos[parsed.slot][parsed.hand][parsed.axis] = env.value;
+      }
+    }
+    return;
+  }
+  // Pad sources
+  if (parsed.kind === 'pad') {
+    const ch = 'pad';
+    if (!(ch in channels)) return;
+    applyPadChannel(sourceId, ch, channels[ch]);
+  }
 }
 
 // Legacy defensive parsers (route_state / pad_activation) kept as no-ops if a
