@@ -412,16 +412,31 @@ function App() {
       setError(String(e));
     }
   };
+  const inventoryRequests = useRef<Record<string, number>>({});
+  const refreshInventory = async (path: string, accept: (rows: Data[]) => void) => {
+    const request = (inventoryRequests.current[path] ?? 0) + 1;
+    inventoryRequests.current[path] = request;
+    try {
+      const rows = await api(path);
+      if (inventoryRequests.current[path] === request) accept(rows);
+    } catch (e) {
+      if (inventoryRequests.current[path] === request) throw e;
+    }
+  };
+  useEffect(() => () => {
+    // Invalidate in-flight reads without reusing tokens on a StrictMode remount.
+    for (const path of Object.keys(inventoryRequests.current))
+      inventoryRequests.current[path] += 1;
+  }, []);
   const refresh = () =>
     Promise.all([
-      api("media").then(setAssets),
-      api("presets").then(setPresets),
-      api("calibrations").then(setSavedCalibrations),
+      refreshInventory("media", setAssets),
+      refreshInventory("presets", setPresets),
+      refreshInventory("calibrations", setSavedCalibrations),
     ]);
   useEffect(() => {
     if (state.source?.job?.status === "ready")
-      api("media")
-        .then(setAssets)
+      refreshInventory("media", setAssets)
         .catch((e) => setError(String(e)));
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
