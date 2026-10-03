@@ -78,6 +78,7 @@ from .research.membrane_transfer_service import TransferService
 from .research.membrane_controls_service import ControlService
 from .research.membrane_readout_service import ReadoutService
 from .research.membrane_readout import Config as ReadoutConfig, Request as ReadoutRequest
+from .research.membrane_labels import Request as LabelRequest, catalog as label_catalog, calculate as calculate_label
 from .research.membrane_controls import Request as ControlRequest
 from .research.membrane_transfer import Request as TransferRequest
 from .research.membrane_pcm import Request as MembraneRequest
@@ -301,7 +302,6 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
-    readouts = ReadoutService(data_dir, membrane)
     spatial_presets = SpatialViewPresets(data_dir)
     spatial_comparison_presets = SpatialComparisonPresets(data_dir)
     spatial_clock_runs = SpatialClockService(data_dir)
@@ -336,6 +336,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         evaluation = EvaluationService(data_dir, session, runtime.library)
         from .evaluation.video_exports import VideoExports
         comparison_exports = VideoExports(data_dir, evaluation)
+    readouts = ReadoutService(data_dir, membrane, evaluation)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -1012,6 +1013,18 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.post('/api/research/r07-readout/configuration')
     def readout_configuration(body: ReadoutConfig):
         return body.model_dump()
+
+    @app.get('/api/research/r07-readout/projections/{ident}/label-signals')
+    def readout_label_catalog(ident: str):
+        if evaluation is None:
+            raise ValueError('Local evaluation service required')
+        return label_catalog(membrane, evaluation, ident)
+
+    @app.post('/api/research/r07-readout/label')
+    def readout_label(body: LabelRequest):
+        if evaluation is None:
+            raise ValueError('Local evaluation service required')
+        return calculate_label(membrane, evaluation, body)
 
     @app.post('/api/research/r07-readout')
     def readout_start(body: ReadoutRequest):

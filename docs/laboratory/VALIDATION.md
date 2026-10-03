@@ -2119,3 +2119,23 @@ Fixture8903 detenido. Control de ganancia muestra recuperación desde RMS comple
 magnitud y resultado nulo desde shape (valores en README R07). Sólo control de
 canal sintético; faltan atributos corporales/tomas independientes, medios físicos,
 aceptación humana y controles científicos más amplios. Audio/defaults intactos.
+
+## R07: etiquetas de features verificadas — 2026-10-03
+
+Catálogo y agregado ligado a EVAL exacto del PCM. Window=origen R05+índices,
+sin etiquetar colas; métodos mean/rms/std/peak_abs y límites de observaciones/
+cobertura/gap configurables. Unidades y soporte observado común, deduplicación,
+causas y procedencia explícitas. Perfil portable y etiquetas recalculadas al
+congelar casos; edición manual elimina el claim de cálculo verificado.
+
+31 tests de labels/readout/archivos/API/adapter corporal pasan (11.36s), incluyendo
+estadísticas conocidas, missing/gaps/bordes, unidades, vinculación EVAL/PCM,
+targets modificados rechazados y cola sin etiqueta corporal. Build pasa.
+Chrome HTTP real (7.1s): seis figuras de EVAL con poses sintéticas, catálogo,
+perfil/targets/unidades/coverage, respuesta demorada con contexto inmóvil,
+export portable sin casos, congelación con procedencia, figuras byte-idénticas,
+edición manual y reload. Fixture8904 detenido; defaults/sonido cotidiano intactos.
+Una prueba posterior precisa módulo/NumPy del agregador en el resumen; no cambia
+el cálculo. No cuerpo real ni aceptación humana verificados en este corte.
+Las evaluaciones corporales locales existentes se identificaron para reutilizar;
+no se reprocesó tracking ni se inventó identidad/calibración.
