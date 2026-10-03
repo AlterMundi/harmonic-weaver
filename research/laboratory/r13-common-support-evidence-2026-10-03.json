@@ -1,0 +1,1014 @@
+{
+  "cases": {
+    "horizon": {
+      "comparison": {
+        "comparison_code_sha256": "d10ce46afa1dafbd2bf8c1d897074a49560a9049a157dd4282dcee662f963b0b",
+        "comparison_environment": {
+          "numpy": "2.5.1",
+          "python": "3.12.13"
+        },
+        "feature_ids": [
+          "sin",
+          "cos"
+        ],
+        "inputs": [
+          {
+            "artifact_hashes": {
+              "predictions.jsonl": "759b24e1400fcd8fe48ed1a660e1b7293d3c7a037efb4e62a7d2e98e89520431",
+              "request.json": "6b392d2582c29067f1eb603f53a78d0079ad8670c5d8e2234bf011514b91767a",
+              "result.json": "a7560c71898774682671c84579b457b9195fd6734f07b05c79f7b1d1eeef331b"
+            },
+            "code_hashes": {
+              "../contracts.py": "96007f6e66649d694030dd5c411548f86d29c788204588214c9a65552b203b1d",
+              "../evaluation/runner.py": "8021c0146304ee6a856a792000f15d737462811aee6b5cfc366b2e24a14c2d28",
+              "heldout.py": "ffc8b1b8d661a6b7c771375114134f566bd80922dc59dabe068085d09a0753b4",
+              "heldout_run.py": "bc88d5dfb1ebd31cbf8b8c4ac0684ca2364c18f13fa6b0fc65619bff8ba486c6"
+            },
+            "code_matches_current": true,
+            "environment": {
+              "metric": "r13_frozen_forecast_v1",
+              "numpy": "2.5.1",
+              "python": "3.12.13"
+            },
+            "run_id": "a"
+          },
+          {
+            "artifact_hashes": {
+              "predictions.jsonl": "6e98e33ef3b75ceec690cc77ec24ccf5f8fe2337e1d08d6d954bde25246946a4",
+              "request.json": "56cb3ea341b1218125d2bc455a5ea7e3a0288728e83f6270a863f84b738bea1d",
+              "result.json": "ca4c6df2cb8f594098e4f3b0c57dc21a77d32e27e43bcec40f11ff667151d92c"
+            },
+            "code_hashes": {
+              "../contracts.py": "96007f6e66649d694030dd5c411548f86d29c788204588214c9a65552b203b1d",
+              "../evaluation/runner.py": "8021c0146304ee6a856a792000f15d737462811aee6b5cfc366b2e24a14c2d28",
+              "heldout.py": "ffc8b1b8d661a6b7c771375114134f566bd80922dc59dabe068085d09a0753b4",
+              "heldout_run.py": "bc88d5dfb1ebd31cbf8b8c4ac0684ca2364c18f13fa6b0fc65619bff8ba486c6"
+            },
+            "code_matches_current": true,
+            "environment": {
+              "metric": "r13_frozen_forecast_v1",
+              "numpy": "2.5.1",
+              "python": "3.12.13"
+            },
+            "run_id": "b"
+          }
+        ],
+        "kind": "reserved_common_support_comparison",
+        "limits": [
+          "Same frozen sequence values/context; only analysis settings may differ",
+          "Intersection of sequence/origin/target pairs, no gap filling or nearest-time matching",
+          "MSE recalculated from predictions and targets; deltas versus first selected run",
+          "Historical artifact integrity, not model recomputation or environment equivalence",
+          "No shared support means null scores, not zero error",
+          "No statistical inference, body ranking, human acceptance or HIT validation"
+        ],
+        "line": "R13",
+        "reservation": "take",
+        "run_ids": [
+          "a",
+          "b"
+        ],
+        "schema_version": 1,
+        "sequences": [
+          {
+            "common_count": 0,
+            "conditions": [
+              {
+                "eligible_count": 178,
+                "excluded_from_common": 178,
+                "mean_delta_mse_vs_first": {
+                  "full_ridge": null,
+                  "persistence": null,
+                  "subspace_ridge": null,
+                  "training_mean": null
+                },
+                "mean_mse": {
+                  "full_ridge": null,
+                  "persistence": null,
+                  "subspace_ridge": null,
+                  "training_mean": null
+                },
+                "run_id": "a",
+                "settings": {
+                  "adaptation_mode": "pooled_prefix",
+                  "adaptation_prefix_samples": 0,
+                  "components": 2,
+                  "embargo_s": 0.5,
+                  "history_steps": 2,
+                  "horizon_steps": 1,
+                  "max_gap_s": 0.1,
+                  "normalization": "center_train",
+                  "quadratic_control": false,
+                  "ridge": 0.1,
+                  "shuffle_seed": 0,
+                  "shuffle_training_targets": false
+                }
+              },
+              {
+                "eligible_count": 177,
+                "excluded_from_common": 177,
+                "mean_delta_mse_vs_first": {
+                  "full_ridge": null,
+                  "persistence": null,
+                  "subspace_ridge": null,
+                  "training_mean": null
+                },
+                "mean_mse": {
+                  "full_ridge": null,
+                  "persistence": null,
+                  "subspace_ridge": null,
+                  "training_mean": null
+                },
+                "run_id": "b",
+                "settings": {
+                  "adaptation_mode": "pooled_prefix",
+                  "adaptation_prefix_samples": 0,
+                  "components": 2,
+                  "embargo_s": 0.5,
+                  "history_steps": 2,
+                  "horizon_steps": 2,
+                  "max_gap_s": 0.1,
+                  "normalization": "center_train",
+                  "quadratic_control": false,
+                  "ridge": 0.1,
+                  "shuffle_seed": 0,
+                  "shuffle_training_targets": false
+                }
+              }
+            ],
+            "sequence_id": "reserved",
+            "support": [],
+            "support_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          }
+        ],
+        "unit": "dimensionless"
+      },
+      "individual": [
+        [
+          {
+            "adaptation_end_s": null,
+            "adaptation_mode": null,
+            "adaptation_model_sha256": null,
+            "adaptation_prefix_samples": 0,
+            "common_count": 178,
+            "common_support_sha256": "f47cade012da516e72e858fd9ea4d224c77904893db15c45fd3dc71052210453",
+            "contiguous_segments": 1,
+            "horizon_elapsed_max_s": 0.0333333333333341,
+            "horizon_elapsed_min_s": 0.033333333333333215,
+            "input_observations": 180,
+            "mean_mse": {
+              "full_ridge": 1.3584302996826887e-05,
+              "persistence": 0.008970294726561757,
+              "subspace_ridge": 1.3584302996826887e-05,
+              "training_mean": 0.82023725
+            },
+            "missing_observations": 0,
+            "model_sha256": "d9159e9334575b78ea93c4dc878a2560d71b711ccd5dfcf042842a99e6059446",
+            "provider": "synthetic",
+            "sequence_id": "reserved",
+            "subject_group": "reserved",
+            "task_id": "oscillation"
+          }
+        ],
+        [
+          {
+            "adaptation_end_s": null,
+            "adaptation_mode": null,
+            "adaptation_model_sha256": null,
+            "adaptation_prefix_samples": 0,
+            "common_count": 177,
+            "common_support_sha256": "ed5d8dd08756e8c2a5f4421b92b367bd3c09b28b8acf35a3727b00809ddc51bf",
+            "contiguous_segments": 1,
+            "horizon_elapsed_max_s": 0.06666666666666732,
+            "horizon_elapsed_min_s": 0.06666666666666643,
+            "input_observations": 180,
+            "mean_mse": {
+              "full_ridge": 3.374676428530903e-05,
+              "persistence": 0.03577698207800999,
+              "subspace_ridge": 3.374676428530903e-05,
+              "training_mean": 0.8220124999999999
+            },
+            "missing_observations": 0,
+            "model_sha256": "a0ff190b22f9a311ae1c3f77219fd881fc0d402fc75b95458bb49373bb559751",
+            "provider": "synthetic",
+            "sequence_id": "reserved",
+            "subject_group": "reserved",
+            "task_id": "oscillation"
+          }
+        ]
+      ],
+      "read_repeat_identical": true
+    },
+    "prefix": {
+      "comparison": {
+        "comparison_code_sha256": "d10ce46afa1dafbd2bf8c1d897074a49560a9049a157dd4282dcee662f963b0b",
+        "comparison_environment": {
+          "numpy": "2.5.1",
+          "python": "3.12.13"
+        },
+        "feature_ids": [
+          "sin",
+          "cos"
+        ],
+        "inputs": [
+          {
+            "artifact_hashes": {
+              "predictions.jsonl": "759b24e1400fcd8fe48ed1a660e1b7293d3c7a037efb4e62a7d2e98e89520431",
+              "request.json": "6b392d2582c29067f1eb603f53a78d0079ad8670c5d8e2234bf011514b91767a",
+              "result.json": "a7560c71898774682671c84579b457b9195fd6734f07b05c79f7b1d1eeef331b"
+            },
+            "code_hashes": {
+              "../contracts.py": "96007f6e66649d694030dd5c411548f86d29c788204588214c9a65552b203b1d",
+              "../evaluation/runner.py": "8021c0146304ee6a856a792000f15d737462811aee6b5cfc366b2e24a14c2d28",
+              "heldout.py": "ffc8b1b8d661a6b7c771375114134f566bd80922dc59dabe068085d09a0753b4",
+              "heldout_run.py": "bc88d5dfb1ebd31cbf8b8c4ac0684ca2364c18f13fa6b0fc65619bff8ba486c6"
+            },
+            "code_matches_current": true,
+            "environment": {
+              "metric": "r13_frozen_forecast_v1",
+              "numpy": "2.5.1",
+              "python": "3.12.13"
+            },
+            "run_id": "a"
+          },
+          {
+            "artifact_hashes": {
+              "predictions.jsonl": "1a096abd1091f1ceb3ae443be5977121b311a58b011ca13971cdd73595f59b02",
+              "request.json": "350908f51bc5a8cb014de5b5fa0e0b80aba9da81b8990bbc2f9959b34194a2be",
+              "result.json": "ed72d1fcf8fd9d764259ff887a46ad1c3806e657fae1383c15be5750004995f1"
+            },
+            "code_hashes": {
+              "../contracts.py": "96007f6e66649d694030dd5c411548f86d29c788204588214c9a65552b203b1d",
+              "../evaluation/runner.py": "8021c0146304ee6a856a792000f15d737462811aee6b5cfc366b2e24a14c2d28",
+              "heldout.py": "ffc8b1b8d661a6b7c771375114134f566bd80922dc59dabe068085d09a0753b4",
+              "heldout_run.py": "bc88d5dfb1ebd31cbf8b8c4ac0684ca2364c18f13fa6b0fc65619bff8ba486c6"
+            },
+            "code_matches_current": true,
+            "environment": {
+              "metric": "r13_frozen_forecast_v1",
+              "numpy": "2.5.1",
+              "python": "3.12.13"
+            },
+            "run_id": "b"
+          }
+        ],
+        "kind": "reserved_common_support_comparison",
+        "limits": [
+          "Same frozen sequence values/context; only analysis settings may differ",
+          "Intersection of sequence/origin/target pairs, no gap filling or nearest-time matching",
+          "MSE recalculated from predictions and targets; deltas versus first selected run",
+          "Historical artifact integrity, not model recomputation or environment equivalence",
+          "No shared support means null scores, not zero error",
+          "No statistical inference, body ranking, human acceptance or HIT validation"
+        ],
+        "line": "R13",
+        "reservation": "take",
+        "run_ids": [
+          "a",
+          "b"
+        ],
+        "schema_version": 1,
+        "sequences": [
+          {
+            "common_count": 149,
+            "conditions": [
+              {
+                "eligible_count": 178,
+                "excluded_from_common": 29,
+                "mean_delta_mse_vs_first": {
+                  "full_ridge": 0.0,
+                  "persistence": 0.0,
+                  "subspace_ridge": 0.0,
+                  "training_mean": 0.0
+                },
+                "mean_mse": {
+                  "full_ridge": 1.3713609400485372e-05,
+                  "persistence": 0.009546974801143622,
+                  "subspace_ridge": 1.3713609400485372e-05,
+                  "training_mean": 0.8729375
+                },
+                "run_id": "a",
+                "settings": {
+                  "adaptation_mode": "pooled_prefix",
+                  "adaptation_prefix_samples": 0,
+                  "components": 2,
+                  "embargo_s": 0.5,
+                  "history_steps": 2,
+                  "horizon_steps": 1,
+                  "max_gap_s": 0.1,
+                  "normalization": "center_train",
+                  "quadratic_control": false,
+                  "ridge": 0.1,
+                  "shuffle_seed": 0,
+                  "shuffle_training_targets": false
+                }
+              },
+              {
+                "eligible_count": 149,
+                "excluded_from_common": 0,
+                "mean_delta_mse_vs_first": {
+                  "adapted_full_ridge": null,
+                  "adapted_subspace_ridge": null,
+                  "adapted_training_mean": null,
+                  "full_ridge": 0.0,
+                  "persistence": 0.0,
+                  "subspace_ridge": 0.0,
+                  "training_mean": 0.0
+                },
+                "mean_mse": {
+                  "adapted_full_ridge": 9.787184230500148e-06,
+                  "adapted_subspace_ridge": 9.787184230496772e-06,
+                  "adapted_training_mean": 0.8934329288760181,
+                  "full_ridge": 1.3713609400485372e-05,
+                  "persistence": 0.009546974801143622,
+                  "subspace_ridge": 1.3713609400485372e-05,
+                  "training_mean": 0.8729375
+                },
+                "run_id": "b",
+                "settings": {
+                  "adaptation_mode": "pooled_prefix",
+                  "adaptation_prefix_samples": 30,
+                  "components": 2,
+                  "embargo_s": 0.5,
+                  "history_steps": 2,
+                  "horizon_steps": 1,
+                  "max_gap_s": 0.1,
+                  "normalization": "center_train",
+                  "quadratic_control": false,
+                  "ridge": 0.1,
+                  "shuffle_seed": 0,
+                  "shuffle_training_targets": false
+                }
+              }
+            ],
+            "sequence_id": "reserved",
+            "support": [
+              [
+                1.0,
+                1.0333333333333334
+              ],
+              [
+                1.0333333333333334,
+                1.0666666666666667
+              ],
+              [
+                1.0666666666666667,
+                1.1
+              ],
+              [
+                1.1,
+                1.1333333333333333
+              ],
+              [
+                1.1333333333333333,
+                1.1666666666666667
+              ],
+              [
+                1.1666666666666667,
+                1.2
+              ],
+              [
+                1.2,
+                1.2333333333333334
+              ],
+              [
+                1.2333333333333334,
+                1.2666666666666666
+              ],
+              [
+                1.2666666666666666,
+                1.3
+              ],
+              [
+                1.3,
+                1.3333333333333333
+              ],
+              [
+                1.3333333333333333,
+                1.3666666666666667
+              ],
+              [
+                1.3666666666666667,
+                1.4
+              ],
+              [
+                1.4,
+                1.4333333333333333
+              ],
+              [
+                1.4333333333333333,
+                1.4666666666666666
+              ],
+              [
+                1.4666666666666666,
+                1.5
+              ],
+              [
+                1.5,
+                1.5333333333333334
+              ],
+              [
+                1.5333333333333334,
+                1.5666666666666667
+              ],
+              [
+                1.5666666666666667,
+                1.6
+              ],
+              [
+                1.6,
+                1.6333333333333333
+              ],
+              [
+                1.6333333333333333,
+                1.6666666666666667
+              ],
+              [
+                1.6666666666666667,
+                1.7
+              ],
+              [
+                1.7,
+                1.7333333333333334
+              ],
+              [
+                1.7333333333333334,
+                1.7666666666666666
+              ],
+              [
+                1.7666666666666666,
+                1.8
+              ],
+              [
+                1.8,
+                1.8333333333333333
+              ],
+              [
+                1.8333333333333333,
+                1.8666666666666667
+              ],
+              [
+                1.8666666666666667,
+                1.9
+              ],
+              [
+                1.9,
+                1.9333333333333333
+              ],
+              [
+                1.9333333333333333,
+                1.9666666666666666
+              ],
+              [
+                1.9666666666666666,
+                2.0
+              ],
+              [
+                2.0,
+                2.033333333333333
+              ],
+              [
+                2.033333333333333,
+                2.066666666666667
+              ],
+              [
+                2.066666666666667,
+                2.1
+              ],
+              [
+                2.1,
+                2.1333333333333333
+              ],
+              [
+                2.1333333333333333,
+                2.1666666666666665
+              ],
+              [
+                2.1666666666666665,
+                2.2
+              ],
+              [
+                2.2,
+                2.2333333333333334
+              ],
+              [
+                2.2333333333333334,
+                2.2666666666666666
+              ],
+              [
+                2.2666666666666666,
+                2.3
+              ],
+              [
+                2.3,
+                2.3333333333333335
+              ],
+              [
+                2.3333333333333335,
+                2.3666666666666667
+              ],
+              [
+                2.3666666666666667,
+                2.4
+              ],
+              [
+                2.4,
+                2.433333333333333
+              ],
+              [
+                2.433333333333333,
+                2.466666666666667
+              ],
+              [
+                2.466666666666667,
+                2.5
+              ],
+              [
+                2.5,
+                2.533333333333333
+              ],
+              [
+                2.533333333333333,
+                2.566666666666667
+              ],
+              [
+                2.566666666666667,
+                2.6
+              ],
+              [
+                2.6,
+                2.6333333333333333
+              ],
+              [
+                2.6333333333333333,
+                2.6666666666666665
+              ],
+              [
+                2.6666666666666665,
+                2.7
+              ],
+              [
+                2.7,
+                2.7333333333333334
+              ],
+              [
+                2.7333333333333334,
+                2.7666666666666666
+              ],
+              [
+                2.7666666666666666,
+                2.8
+              ],
+              [
+                2.8,
+                2.8333333333333335
+              ],
+              [
+                2.8333333333333335,
+                2.8666666666666667
+              ],
+              [
+                2.8666666666666667,
+                2.9
+              ],
+              [
+                2.9,
+                2.933333333333333
+              ],
+              [
+                2.933333333333333,
+                2.966666666666667
+              ],
+              [
+                2.966666666666667,
+                3.0
+              ],
+              [
+                3.0,
+                3.033333333333333
+              ],
+              [
+                3.033333333333333,
+                3.066666666666667
+              ],
+              [
+                3.066666666666667,
+                3.1
+              ],
+              [
+                3.1,
+                3.1333333333333333
+              ],
+              [
+                3.1333333333333333,
+                3.1666666666666665
+              ],
+              [
+                3.1666666666666665,
+                3.2
+              ],
+              [
+                3.2,
+                3.2333333333333334
+              ],
+              [
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              [
+                3.2666666666666666,
+                3.3
+              ],
+              [
+                3.3,
+                3.3333333333333335
+              ],
+              [
+                3.3333333333333335,
+                3.3666666666666667
+              ],
+              [
+                3.3666666666666667,
+                3.4
+              ],
+              [
+                3.4,
+                3.433333333333333
+              ],
+              [
+                3.433333333333333,
+                3.466666666666667
+              ],
+              [
+                3.466666666666667,
+                3.5
+              ],
+              [
+                3.5,
+                3.533333333333333
+              ],
+              [
+                3.533333333333333,
+                3.566666666666667
+              ],
+              [
+                3.566666666666667,
+                3.6
+              ],
+              [
+                3.6,
+                3.6333333333333333
+              ],
+              [
+                3.6333333333333333,
+                3.6666666666666665
+              ],
+              [
+                3.6666666666666665,
+                3.7
+              ],
+              [
+                3.7,
+                3.7333333333333334
+              ],
+              [
+                3.7333333333333334,
+                3.7666666666666666
+              ],
+              [
+                3.7666666666666666,
+                3.8
+              ],
+              [
+                3.8,
+                3.8333333333333335
+              ],
+              [
+                3.8333333333333335,
+                3.8666666666666667
+              ],
+              [
+                3.8666666666666667,
+                3.9
+              ],
+              [
+                3.9,
+                3.933333333333333
+              ],
+              [
+                3.933333333333333,
+                3.966666666666667
+              ],
+              [
+                3.966666666666667,
+                4.0
+              ],
+              [
+                4.0,
+                4.033333333333333
+              ],
+              [
+                4.033333333333333,
+                4.066666666666666
+              ],
+              [
+                4.066666666666666,
+                4.1
+              ],
+              [
+                4.1,
+                4.133333333333334
+              ],
+              [
+                4.133333333333334,
+                4.166666666666667
+              ],
+              [
+                4.166666666666667,
+                4.2
+              ],
+              [
+                4.2,
+                4.233333333333333
+              ],
+              [
+                4.233333333333333,
+                4.266666666666667
+              ],
+              [
+                4.266666666666667,
+                4.3
+              ],
+              [
+                4.3,
+                4.333333333333333
+              ],
+              [
+                4.333333333333333,
+                4.366666666666666
+              ],
+              [
+                4.366666666666666,
+                4.4
+              ],
+              [
+                4.4,
+                4.433333333333334
+              ],
+              [
+                4.433333333333334,
+                4.466666666666667
+              ],
+              [
+                4.466666666666667,
+                4.5
+              ],
+              [
+                4.5,
+                4.533333333333333
+              ],
+              [
+                4.533333333333333,
+                4.566666666666666
+              ],
+              [
+                4.566666666666666,
+                4.6
+              ],
+              [
+                4.6,
+                4.633333333333334
+              ],
+              [
+                4.633333333333334,
+                4.666666666666667
+              ],
+              [
+                4.666666666666667,
+                4.7
+              ],
+              [
+                4.7,
+                4.733333333333333
+              ],
+              [
+                4.733333333333333,
+                4.766666666666667
+              ],
+              [
+                4.766666666666667,
+                4.8
+              ],
+              [
+                4.8,
+                4.833333333333333
+              ],
+              [
+                4.833333333333333,
+                4.866666666666666
+              ],
+              [
+                4.866666666666666,
+                4.9
+              ],
+              [
+                4.9,
+                4.933333333333334
+              ],
+              [
+                4.933333333333334,
+                4.966666666666667
+              ],
+              [
+                4.966666666666667,
+                5.0
+              ],
+              [
+                5.0,
+                5.033333333333333
+              ],
+              [
+                5.033333333333333,
+                5.066666666666666
+              ],
+              [
+                5.066666666666666,
+                5.1
+              ],
+              [
+                5.1,
+                5.133333333333334
+              ],
+              [
+                5.133333333333334,
+                5.166666666666667
+              ],
+              [
+                5.166666666666667,
+                5.2
+              ],
+              [
+                5.2,
+                5.233333333333333
+              ],
+              [
+                5.233333333333333,
+                5.266666666666667
+              ],
+              [
+                5.266666666666667,
+                5.3
+              ],
+              [
+                5.3,
+                5.333333333333333
+              ],
+              [
+                5.333333333333333,
+                5.366666666666666
+              ],
+              [
+                5.366666666666666,
+                5.4
+              ],
+              [
+                5.4,
+                5.433333333333334
+              ],
+              [
+                5.433333333333334,
+                5.466666666666667
+              ],
+              [
+                5.466666666666667,
+                5.5
+              ],
+              [
+                5.5,
+                5.533333333333333
+              ],
+              [
+                5.533333333333333,
+                5.566666666666666
+              ],
+              [
+                5.566666666666666,
+                5.6
+              ],
+              [
+                5.6,
+                5.633333333333334
+              ],
+              [
+                5.633333333333334,
+                5.666666666666667
+              ],
+              [
+                5.666666666666667,
+                5.7
+              ],
+              [
+                5.7,
+                5.733333333333333
+              ],
+              [
+                5.733333333333333,
+                5.766666666666667
+              ],
+              [
+                5.766666666666667,
+                5.8
+              ],
+              [
+                5.8,
+                5.833333333333333
+              ],
+              [
+                5.833333333333333,
+                5.866666666666666
+              ],
+              [
+                5.866666666666666,
+                5.9
+              ],
+              [
+                5.9,
+                5.933333333333334
+              ],
+              [
+                5.933333333333334,
+                5.966666666666667
+              ]
+            ],
+            "support_sha256": "9e531e4e040a6a1ea1a510deb62b1a48d5042b99f1a30f12d1bffc14c34cc889"
+          }
+        ],
+        "unit": "dimensionless"
+      },
+      "individual": [
+        [
+          {
+            "adaptation_end_s": null,
+            "adaptation_mode": null,
+            "adaptation_model_sha256": null,
+            "adaptation_prefix_samples": 0,
+            "common_count": 178,
+            "common_support_sha256": "f47cade012da516e72e858fd9ea4d224c77904893db15c45fd3dc71052210453",
+            "contiguous_segments": 1,
+            "horizon_elapsed_max_s": 0.0333333333333341,
+            "horizon_elapsed_min_s": 0.033333333333333215,
+            "input_observations": 180,
+            "mean_mse": {
+              "full_ridge": 1.3584302996826887e-05,
+              "persistence": 0.008970294726561757,
+              "subspace_ridge": 1.3584302996826887e-05,
+              "training_mean": 0.82023725
+            },
+            "missing_observations": 0,
+            "model_sha256": "d9159e9334575b78ea93c4dc878a2560d71b711ccd5dfcf042842a99e6059446",
+            "provider": "synthetic",
+            "sequence_id": "reserved",
+            "subject_group": "reserved",
+            "task_id": "oscillation"
+          }
+        ],
+        [
+          {
+            "adaptation_end_s": 0.9666666666666667,
+            "adaptation_mode": "pooled_prefix",
+            "adaptation_model_sha256": "99b37aa29574aed57930eea2e2302c45caa5f56411198ea5fc8e84893024d2b0",
+            "adaptation_prefix_samples": 30,
+            "common_count": 149,
+            "common_support_sha256": "9e531e4e040a6a1ea1a510deb62b1a48d5042b99f1a30f12d1bffc14c34cc889",
+            "contiguous_segments": 1,
+            "horizon_elapsed_max_s": 0.0333333333333341,
+            "horizon_elapsed_min_s": 0.033333333333333215,
+            "input_observations": 180,
+            "mean_mse": {
+              "adapted_full_ridge": 9.787184230500148e-06,
+              "adapted_subspace_ridge": 9.787184230496772e-06,
+              "adapted_training_mean": 0.8934329288760181,
+              "full_ridge": 1.3713609400485372e-05,
+              "persistence": 0.009546974801143622,
+              "subspace_ridge": 1.3713609400485372e-05,
+              "training_mean": 0.8729375
+            },
+            "missing_observations": 0,
+            "model_sha256": "d9159e9334575b78ea93c4dc878a2560d71b711ccd5dfcf042842a99e6059446",
+            "provider": "synthetic",
+            "sequence_id": "reserved",
+            "subject_group": "reserved",
+            "task_id": "oscillation"
+          }
+        ]
+      ],
+      "read_repeat_identical": true
+    }
+  },
+  "kind": "r13_common_support_controls",
+  "limits": [
+    "Synthetic controls, not human or HIT validation",
+    "Settings fixed before scoring; no tuning to reserved results"
+  ],
+  "recipe_sha256": "1ce2e83e4bd70201492486eb929c9608bb79354f8f2d4fa9c0c07c5b4f509556"
+}

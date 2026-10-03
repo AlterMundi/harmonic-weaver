@@ -9,6 +9,7 @@ from typing import Literal
 from .service import ResearchService
 from .heldout import Request,Sequence
 from .heldout_run import verify,FILES
+from .heldout_compare import ComparisonRequest, compare
 from .body import BodyRequest,snapshot
 
 class SequenceSelection(Contract):
@@ -50,6 +51,10 @@ class HeldoutService(ResearchService):
         folder=self.root/ident
         verify(folder)
         return folder/name
+
+    def compare(self,request):
+        request=ComparisonRequest.model_validate(request)
+        return compare([(ident,self.root/ident) for ident in request.run_ids])
 
     def repeat(self,ident):
         return self.start(json.loads(self.artifact(ident,'request.json').read_text()))
