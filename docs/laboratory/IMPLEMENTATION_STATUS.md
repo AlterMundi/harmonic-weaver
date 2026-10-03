@@ -1653,6 +1653,7 @@ y ground truth siguen pendientes, sin cambios de síntesis o borrador manual.
 R09 agrega adaptador DLT de pares 2D/cámaras K/R/t declarados, clocks/estados
 explícitos, controles web/presets/export y visor 3D. Puntos inferidos, missing
 con causas y control de correspondencias incorrectas/reproyección engañosa.
-Core/API/Chrome/CLI sintéticos pasan. Guarda stream como declarado; persistencia
-del cálculo completo/worker/undistorsión/adquisición/calibración reales e IMUs
+Core/API/Chrome/CLI sintéticos pasan. Guarda stream como declarado y ahora también
+cálculos completos en workers propios cancelables, con recibos recuperables, entradas
+congeladas y descargas. Undistorsión/adquisición/calibración reales e IMUs
 siguen pendientes. No profundidad monocular ni cambios de instrumento.

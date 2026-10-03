@@ -77,6 +77,7 @@ from .research.rope_mask_service import RopeMaskService
 from .research.rope_mask_run import Request as RopeMaskRunRequest
 from .research.rope_mask import Settings as RopeMaskSettings
 from .research.rope_jobs import RopeJobs
+from .research.spatial_multiview_service import MultiviewService, StartRequest as MultiviewStartRequest
 from .research.spatial_multiview import Request as MultiviewRequest, Settings as MultiviewSettings, calculate as triangulate_multiview, synthetic_request as multiview_example
 from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
@@ -338,6 +339,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     heldout = HeldoutService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
+    multiview_runs = MultiviewService(data_dir)
     rope = RopeService(data_dir)
     rope_reader = RopeReader()
     rope_jobs = RopeJobs(rope_reader)
@@ -379,6 +381,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             coincidence.close()
             research.close()
             heldout.close()
+            multiview_runs.close()
             if exports is not None:
                 exports.close()
             if capture is not None:
@@ -816,6 +819,27 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r09/convert')
     def spatial_convert(body:SpatialAdapterRequest):return convert_spatial(body)
+
+    @app.post('/api/research/r09/multiview/runs')
+    def multiview_start(body:MultiviewStartRequest):return multiview_runs.start(body)
+
+    @app.get('/api/research/r09/multiview/runs')
+    def multiview_list():return multiview_runs.list()
+
+    @app.get('/api/research/r09/multiview/runs/{ident}')
+    def multiview_report(ident:str):return multiview_runs.report(ident)
+
+    @app.post('/api/research/r09/multiview/runs/{ident}/cancel')
+    def multiview_cancel(ident:str):return multiview_runs.cancel(ident)
+
+    @app.post('/api/research/r09/multiview/runs/{ident}/repeat')
+    def multiview_repeat(ident:str):return multiview_runs.repeat(ident)
+
+    @app.get('/api/research/r09/multiview/runs/{ident}/verification')
+    def multiview_verify(ident:str,recompute:bool=False):return multiview_runs.verification(ident,recompute=recompute)
+
+    @app.get('/api/research/r09/multiview/runs/{ident}/artifacts/{name}')
+    def multiview_artifact(ident:str,name:str):return FileResponse(multiview_runs.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r09/multiview')
     def spatial_multiview(body:MultiviewRequest):return triangulate_multiview(body)

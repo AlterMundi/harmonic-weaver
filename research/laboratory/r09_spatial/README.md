@@ -546,8 +546,8 @@ JSON, modificar umbrales, reconstruir, inspeccionar cobertura/diagnóstico/figur
 3D, exportar resultado completo y ajustes. Preset no contiene datos/cámaras/
 calibración/slot/relojes; importar no ejecuta. Usar stream lo carga como declarado
 en R09 para validar/guardar, sin conservar vínculo autenticado a cálculo/calibración.
-Conservar también resultado completo para repetir el adaptador; no writer persistido
-de triangulación/recibos/worker propio aún. No cambia fuente ni síntesis live.
+Conservar también resultado completo para repetir el adaptador; el guardado en
+worker descrito abajo conserva entradas y resultado. No cambia fuente ni síntesis live.
 
 ```bash
 OPENBLAS_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python \
@@ -571,6 +571,35 @@ ejecución automática, export, visor y guardar stream declarado. Build pasa
 
 Pendientes: adquisición/extracción pareada y undistorsión con modelos de lente,
 calibración y sincronía medidas con referencia independiente, incertidumbre de
-calibración/correspondencias y triangulación robusta/multivista>2; persistencia
-del cálculo completo con procedencia y trabajo cancelable. Adaptador IMU requiere
+calibración/correspondencias y triangulación robusta/multivista>2. Adaptador IMU requiere
 convenciones/export del sensor. No presume que haya cámaras/sensores instalados.
+
+
+### Cálculo persistido y recuperable
+
+Guardar y reconstruir inicia un worker propio cancelable, separado del preview.
+`research/r09-multiview/<id>/` conserva request/result/manifest, hashes de inputs,
+módulos efectivos y entorno Python/NumPy. Recibos en `r09-multiview-starts/`
+vinculan clave de inicio e inputs completos: recuperar la misma clave no relanza,
+y cambiar inputs con esa clave se rechaza. Un recibo sin job queda interrumpido;
+requiere nuevo intento explícito. Sólo se admite un worker propio activo por servicio.
+La cancelación/shutdown termina hijos propios; reabrir no toma control de PIDs históricos.
+
+La web confirma IndexedDB antes del POST (también inputs mayores que sessionStorage).
+Una respuesta perdida permite recuperar exactamente el intento congelado, incluso
+tras recargar; no envía ni recalcula automáticamente al abrir. Cerrar pestaña no
+cancela worker; cerrar servidor sí termina sus hijos. Abrir resultado es explícito,
+y restaura su Request completo: no sobrescribe silenciosamente edición actual.
+Repetir crea otro ID. Descargas locales separadas de request/result/manifest.
+
+Reabrir valida hashes/contrato y vínculo de fuente/slot/marco/calibración. No es
+recomputación ni validación física. Verificar recálculo es explícito y compara el
+resultado con implementación/entorno registrados iguales; una implementación
+cambiada permite lectura histórica íntegra y exige repetir como corrida nueva
+para recalcular. No se exige igualdad de hashes entre entornos diferentes.
+API: `/api/research/r09/multiview/runs`, ID, cancel, repeat, verification y artifacts.
+
+4 pruebas de worker/HTTP pasan, incluida recuperación después de reiniciar servicio,
+cancelación de proceso real propio, freeze de inputs y corrupción. Chrome con API/
+worker reales verifica pérdida de respuesta aceptada, reload sin POST, recuperación
+sin duplicación, apertura, descarga, recálculo y repetición. No cámaras/audio reales.

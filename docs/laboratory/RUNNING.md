@@ -864,3 +864,15 @@ sólo umbrales, sin transferir cámaras/calibración/cuerpo/relojes. Import no c
 Usar stream carga su contrato en R09 como declaración para validar/guardar;
 conservar resultado completo aparte para repetir triangulación. No conexión
 a HarMoCAP live ni dispositivos automática. Ver README R09 para CLI/límites.
+
+
+Para guardar el cálculo multivista completo, usar **Guardar y reconstruir multivista
+R09** bajo el preview. Sigue en worker aunque cierres la pestaña; Cancelar detiene
+el hijo propio y cerrar servidor detiene sus workers. Si se pierde respuesta, usar
+Recuperar inicio: conserva los inputs originales en IndexedDB y la misma clave,
+también al recargar, sin duplicar cálculo. Descartar sólo borra el intento local;
+no cancela una corrida que el servidor haya recibido. Actualizar lista y Abrir
+recuperan resultados sin recalcular. Abrir restaura cámaras/calibración/relojes
+específicos de esa corrida; no es un preset portable. Repetir crea otro ID y
+Verificar recálculo requiere implementación/entorno coincidentes. Descargar
+request.json, result.json y manifest.json mantiene el paquete local completo.

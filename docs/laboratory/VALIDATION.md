@@ -2689,6 +2689,20 @@ Chrome panel/API reales pasa (1.7s): carga explícita de ejemplo, reconstrucció
 figura/diagnóstico, exclusión por umbral, preset sin fuentes y sin cálculo al
 importar, export íntegro y uso/guardado como stream declarado R09. Build pasa
 (1.24s). Servidores propios detenidos; sin datos privados/dispositivos/audio.
-Aún sin writer/worker propios del cálculo; resultado completo se exporta localmente.
+El corte siguiente añade writer/worker propios, documentado abajo.
 Calibración/correspondencias/relojes físicos, undistorsión/adquisición e IMUs siguen
 pendientes; pipeline no prueba HIT, cuerpo 3D real ni aceptación humana.
+
+
+### R09 · Workers y recuperación de cálculos — 2026-10-03
+
+4 tests worker/HTTP pasan (2.05s) tras verificar vínculo del stream a fuente/slot/
+marco/calibración e inferred/missing: freeze, recibos/restart, repetición/recálculo,
+corrupción y cancelación de procesos propios sin matar ajenos. Antes, 33 tests
+incluyendo core y regresiones lifecycle/API R03/R04 pasaron (5.97s).
+Chrome: 2 tests pasan (4.0s total) sobre panel/API/workers reales. Preview previo
+conservado; nuevo recorrido pierde deliberadamente respuesta de POST ya aceptado,
+recarga conservando IndexedDB sin enviar, recupera misma clave/cuerpo y un único ID,
+abre entradas completas, descarga resultado, verifica y repite explícitamente;
+otra recarga no calcula. Build pasa (1.23s). No dispositivos, datos corporales,
+tracking, síntesis ni escucha humana. Calibración/sincronía físicas siguen pendientes.
