@@ -1573,3 +1573,14 @@ Investigación se carga con React.lazy/Suspense al abrir la pestaña: evita suma
 los bancos al bundle cotidiano. Build divide ~292kB inicial/~215kB investigación,
 sin modificar controles o lógica de síntesis. Verificación browser producción y
 regresión del recorrido corporal se registran en VALIDATION.md.
+
+
+## Fourier corporal · diagnóstico de bloques cortos
+
+El consumidor de la biblioteca informa las longitudes de bloques descartados
+por no alcanzar el mínimo y su máximo, respetando límites de identidad/grid.
+UI y servicio verificados con fixtures; backend además ejecutado sobre tracking
+corporal privado ya cacheado, con selección/escala explícitas y repetición local
+idéntica. No se cambiaron defaults, bridge de Oliva ni servicios cotidianos.
+Ver VALIDATION.md para evidencia y límites: recorrido web real y aceptación
+humana siguen pendientes; el banco no valida HIT ni causalidad corporal.

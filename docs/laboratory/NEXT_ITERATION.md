@@ -250,5 +250,14 @@ explica en preparación sin rellenar datos. 3D se excluye explícitamente.
 Persistencia conserva entradas/manifests y descargas verifican integridad sin
 recalcular el banco. Cancelación/cierre afectan sólo procesos propios. La fuente
 es una generación en memoria; no prueba integridad actual de video/cache en
-disco. Pendiente: recorrido con tracking corporal real y feedback, instalación
-de la pila; contraste geométrico restringido y trabajo científico independiente.
+disco. Backend verificado con tracking corporal real desde cache local, sin
+reprocesamiento. Pendiente: recorrido web real y feedback, instalación de la pila; contraste geométrico restringido y trabajo científico independiente.
+
+
+La preparación muestra el bloque descartado más largo para ayudar a distinguir
+un mínimo de longitud excesivo de articulaciones sin soporte. Con tracking real,
+la selección de canales y un mínimo explícito distinto permitieron obtener
+bloques válidos donde el ajuste inicial no los tenía; defaults conservados.
+La evidencia local y sus límites están en VALIDATION.md. Datos privados quedan
+fuera de GitHub. La investigación geométrica restringida de Oliva puede avanzar
+sin cambiar este consumidor ni el instrumento cotidiano.

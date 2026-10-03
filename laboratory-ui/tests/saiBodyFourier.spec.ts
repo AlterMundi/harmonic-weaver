@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('explicit source scale preparation and common-support result without live actions',async({page})=>{
  const requests:any[]=[];let complete=false;
- const preparation={input_frames:32,retained_frames:30,exclusion_counts:{selected_joint_invalid:2},blocks:[{index:0}]};
+ const preparation={longest_short_block:12,short_block_lengths:[12],input_frames:32,retained_frames:30,exclusion_counts:{selected_joint_invalid:2},blocks:[{index:0}]};
  await page.route('**/api/**',async route=>{const path=new URL(route.request().url()).pathname;let value:any=[];
  if(path.endsWith('/r09/sources'))value=[{job_id:'job',effective_device:'cpu',person_ids:['bystander','athlete']}];
  if(path.endsWith('/sai-body-fourier'))value=complete?[{id:'run',status:'complete'}]:[];
@@ -21,6 +21,7 @@ test('explicit source scale preparation and common-support result without live a
  await config.fill(JSON.stringify({...initial,scale:.26,scale_provenance:'explicit synthetic torso',sample_hz:60}));
  await page.getByRole('button',{name:'Preparar bloques Fourier corporales'}).click();
  await expect(page.getByText('Preparación: 30/32 frames',{exact:false})).toBeVisible();
+ await expect(page.getByText('Bloque corto descartado más largo: 12 muestras.',{exact:false})).toBeVisible();
  expect(requests[0].body.person_id).toBe('athlete');expect(requests[0].body.settings.scale).toBe(.26);
  await page.getByRole('button',{name:'Correr Fourier corporal',exact:true}).click();
  await page.getByRole('button',{name:'Abrir Fourier corporal',exact:true}).click();
