@@ -18,7 +18,7 @@ instalación cotidiana y trabajo físico/humano pendiente.
 | R01 | Subespacios y forecasts causales, controles pareados/horizontes; entradas EVAL congeladas y repetición corporal local. Nuevas ramas añaden tendencia, ridge con retardos completo/subespacio y armónicos declarados con causas de soporte/reloj; controles web/JSON y bancos sintéticos reproducidos | Otras familias y splits/tomas reservados; predicción HIT específica; nueva pila aún no instalada |
 | R02 | Modelos local/relacional/angular/colectivo y centros variables en instrumento/EVAL; banco Sai #36/#97 integrado en #98, web sintética #100 y Fourier corporal #107 incorporado y nuevo consumidor biblioteca/worker/API/UI con cobertura/diagnóstico geométrico | Contrastes corporales entre tomas/cuerpos; Contraste geométrico restringido reservado a Oliva; no inferir organización de compresión sola |
 | R03 | Marcas tipadas/contexto/época, filtros y snapshots; candidatos causales y contraste temporal con soporte común, barrido declarado de offset global, worker/API/UI | Marcas humanas nuevas y su incertidumbre temporal; centros/regiones alternativos y reservas; coincidencia no demuestra intención |
-| R04 | Banco relacional sintético/pose congelada, controles proximal/noise, soporte común y summaries; API/UI y repetición HTTP | Corrida corporal con escala explícita y anotación/tarea independiente; ruido de cámara medido |
+| R04 | Banco relacional sintético/pose congelada, controles proximal/noise, soporte común y summaries; API/UI y repetición HTTP | Anotación/tarea y otras tomas independientes; ruido de cámara medido |
 | R05 | Resonadores/excitación y mapeo, PCM/campos de voces, player/source/offset/overlay causal; referencias y recuperación de publicaciones parciales | Escucha/agencia y niveles/latencias físicas; otras variantes/medios y crash del host |
 | R06 | Calendarios/medios/semillas, fases y sondas; #101 añade circular shifts por puerto con potencias conservadas, checks FFT y tabla/traza web | Controles más amplios, observable/hipótesis HIT y ensayo físico/humano; espectro periódico de entrada no fija respuesta finita |
 | R07 | Membrana sound-only/campos/RMS y controles de medio/resolución/transientes. #94–96: lectura histórica, readout reservado, labels EVAL; corrida corporal local 5 train +5 test, repetición byte-idéntica | Tomas/cuerpos independientes y controles ampliados; medio físico/calibración/sensores, escucha/aceptación; una toma no prueba generalización |
@@ -1689,3 +1689,11 @@ existente sin mutadores/copia/retracking y guarda nuevos R05 sólo en root separ
 Datos/evidencia corporal permanecen locales. VALIDATION/RUNNING describen alcance;
 no escucha, precisión 3D, causalidad ni timing físico acreditados. Sonido/defaults
 productivos y workspaces cotidianos intactos.
+
+
+R04 recorrido corporal congelado con escala aparente/procedencia ya archivadas
+verificado en web/reader/workers: dos corridas de60s repetibles, seis condiciones
+sobre soporte común y faltantes preservados. Evaluación sin escala rechazada,
+calibración runtime sigue null. Escala no se infiere/transfiere; datos y artefactos
+quedan locales. Software verificado no sustituye tarea/anotación independiente,
+medición de ruido ni validación física/HIT (VALIDATION/README R04).

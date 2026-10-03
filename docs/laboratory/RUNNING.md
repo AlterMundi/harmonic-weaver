@@ -921,3 +921,12 @@ Con el fixture y UI de producción corriendo, ejecutar desde laboratory-ui:
 con positive_delta para el resonador. Presets/defaults live no cambian. Prueba
 seeks/pausa/offset/cola, video original, pose observada causal y figura para ambos
 brazos con audio muted. Es verificación software, no escucha/sincronía física.
+
+
+R04 puede probarse con el mismo fixture de sólo lectura: seleccionar una EVAL
+que ya contenga torso_scale/calibration_provenance, no completar campos faltantes.
+`LAB_R04_FROZEN_BODY_URL=http://127.0.0.1:<puerto> PLAYWRIGHT_CHANNEL=chrome npx playwright test tests/relationalFrozenBodyNetwork.spec.ts`
+desde laboratory-ui. Segmento configurable por LAB_R04_BODY_START/END; defaults
+usan la fuente completa hasta120s. Para probar bloqueo de otra EVAL sin escala,
+levantarla en fixture separado y añadir LAB_R04_UNSCALED_BODY_URL. Tests necesitan
+inputs explícitos y no calibran cuerpos ni transfieren escala entre evaluaciones.
