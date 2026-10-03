@@ -9,7 +9,7 @@ from pydantic import Field, model_validator
 from ..cache import atomic_json, sha256_file
 from ..contracts import Contract, Number
 from ..evaluation.runner import code_identity
-from .grassmann import Settings, evaluate, pair_controls
+from .grassmann import Settings, evaluate, pair_controls, summarize_harmonic_forecasts
 from .forecast_families import Predictor, DEFAULT_PREDICTORS
 
 
@@ -24,7 +24,9 @@ class BodyRequest(Contract):
     window_s: Number = Field(default=2,ge=.3,le=10)
     noise_threshold: Number = Field(default=.02,ge=.0001,le=2)
     ridge: Number = Field(default=.1,ge=.00001,le=100)
-    predictors: list[Predictor] = Field(default_factory=lambda:list(DEFAULT_PREDICTORS),min_length=1,max_length=6)
+    predictors: list[Predictor] = Field(default_factory=lambda:list(DEFAULT_PREDICTORS),min_length=1,max_length=7)
+    harmonic_fundamental_hz: Number = Field(default=.35,gt=0,le=20)
+    harmonic_ratios: list[Number] = Field(default_factory=lambda:[1,2,3,4,5,6],min_length=1,max_length=12)
     autoregressive_lags: int = Field(default=3,ge=1,le=12)
     horizon_steps: int = Field(default=1,ge=1,le=30)
     max_gap_s: Number = Field(default=.1,ge=.01,le=.5)
@@ -36,6 +38,7 @@ class BodyRequest(Contract):
         if len(set(self.signal_ids))!=len(self.signal_ids):raise ValueError('Signals must be distinct')
         if self.components>len(self.signal_ids):raise ValueError('Components cannot exceed selected signals')
         if len(set(self.predictors))!=len(self.predictors):raise ValueError('Predictors must be distinct')
+        if any(v<=0 or v>32 for v in self.harmonic_ratios) or len(set(self.harmonic_ratios))!=len(self.harmonic_ratios):raise ValueError('Harmonic ratios must be distinct positive values ≤32')
         return self
 
 
@@ -110,7 +113,8 @@ def run(request, output):
     if segment:segments.append(segment)
     config=Settings(dimensions=len(request.signal_ids),signal_rank=1,components=request.components,
         window_s=request.window_s,noise_threshold=request.noise_threshold,ridge=request.ridge,horizon_steps=request.horizon_steps,
-        predictors=request.predictors,autoregressive_lags=request.autoregressive_lags)
+        predictors=request.predictors,autoregressive_lags=request.autoregressive_lags,
+        harmonic_fundamental_hz=request.harmonic_fundamental_hz,harmonic_ratios=request.harmonic_ratios)
     rng=np.random.default_rng(request.seed)
     rotation=np.linalg.qr(rng.normal(size=(config.dimensions,config.dimensions)))[0]
     collected={name:[] for name in ('original','global_rotation','temporal_shuffle')}
@@ -141,6 +145,8 @@ def run(request, output):
             'Missing features and long gaps reset all history and pending forecasts; no imputation',
             'Shuffle permutes within each contiguous valid segment, preserving gap boundaries',
             'Feature geometry and forecast errors do not establish HIT, intention, efficiency or tracking accuracy']}
+    if 'fixed_harmonics' in request.predictors:
+        report['harmonic_diagnostics']={name:summarize_harmonic_forecasts(value) for name,value in collected.items()}
     atomic_json(manifest_path,report);return report
 
 

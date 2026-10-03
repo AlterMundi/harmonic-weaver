@@ -3,7 +3,7 @@ from typing import Literal
 import numpy as np
 
 Predictor = Literal['persistence','full_ridge','subspace_ridge','linear_trend',
-                    'lagged_full_ridge','lagged_subspace_ridge']
+                    'lagged_full_ridge','lagged_subspace_ridge','fixed_harmonics']
 DEFAULT_PREDICTORS = ['persistence','full_ridge','subspace_ridge']
 
 
@@ -26,3 +26,20 @@ def lagged_ridge(past,basis,ridge,horizon,lags):
     # Keep the mean of the target's full coordinates, including complement.
     mean_target = past[lags-1+horizon:].mean(axis=0)
     return mean_target+((z[-lags:].reshape(-1)-mx)@coefficients)@basis.T
+
+
+def fixed_harmonics(past, times, target_time, frequencies_hz, ridge):
+    """Ridge fit of declared sin/cos frequencies, with unpenalized DC."""
+    times = np.asarray(times, dtype=float)
+    frequencies = np.asarray(frequencies_hz, dtype=float)
+    relative = times-times[-1]
+    phases = 2*np.pi*relative[:,None]*frequencies[None,:]
+    x = np.concatenate([np.cos(phases), np.sin(phases)], axis=1)
+    mx = x.mean(axis=0)
+    my = past.mean(axis=0)
+    centered = x-mx
+    coefficients = np.linalg.solve(centered.T@centered+ridge*np.eye(x.shape[1]),
+                                   centered.T@(past-my))
+    phase = 2*np.pi*(target_time-times[-1])*frequencies
+    target = np.concatenate([np.cos(phase), np.sin(phase)])
+    return my+(target-mx)@coefficients

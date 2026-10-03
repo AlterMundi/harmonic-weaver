@@ -806,3 +806,21 @@ Mapa portable exportable/importable; fuentes y calibración se declaran aparte.
 Lista y descargas permiten recuperar originales/conversiones. Ver protocolo
 `research/laboratory/R12_MEASUREMENT_PROTOCOL.md`. La plantilla permanece
 sintética hasta una declaración explícita; importar no conecta un sensor.
+
+R01 sintético o corporal → Predictores: activar Armónicos declarados, fijar
+fundamental de movimiento en Hz y ratios separados por coma; se aplican al salir
+del campo. Ajusta sin/cos + DC con ridge sobre pasado. Para un control positivo
+sintético elegir `Control con ratios armónicos declarados`; sus frecuencias son
+conocidas deliberadamente. En corporal elegir señales de igual unidad como antes;
+clocks/gaps y soporte siguen explícitos. No son frecuencias de síntesis ni cambian
+voces/presets. Configuración JSON porta método. Datos/traces permiten inspeccionar
+el tiempo objetivo estimado frente al observado; no se optimizan frecuencias por
+los errores. Banco y límites en research/laboratory/r01_grassmann/README.md.
+
+Los resultados R01 con armónicos muestran ahora diagnóstico de elegibilidad por
+origen y objetivos puntuados, por control. Ventana insuficiente o frecuencias
+fuera del límite del reloj pasado se explican aparte del MSE Sin soporte. La
+media/máxima diferencia entre tiempo objetivo estimado y observado ayuda a revisar
+relojes irregulares; no mide latencia de tracking/audio ni sincronía física. Un
+commit es una predicción para un objetivo futuro, por lo que no sumar commits y
+objetivos puntuados como observaciones independientes.

@@ -242,3 +242,42 @@ memoria da 0.26641 ridge completo y 0.74338 lagged ridge completo. El segundo
 muestra empeoramiento con más parámetros, pese al subespacio compacto. No se elige un ganador universal.
 No son resultados corporales ni validación de HIT, intención o generalización.
 Siguen pendientes predicciones específicas, otras familias y reservas independientes.
+
+### Predictor de armónicos declarados (2026-10-03)
+
+`fixed_harmonics` ajusta una base sin/cos + DC a los vectores pasados, con ridge
+sobre coeficientes periódicos y DC sin penalizar. Frecuencias = fundamental Hz ×
+ratios declarados (1–12 positivos distintos ≤32); son frecuencias de movimiento,
+independientes de las seis voces musicales o componentes del subespacio. El ajuste
+usa timestamps reales recortados en su origen. Predice en origen + horizonte de
+muestras × mediana de intervalos pasados. Con reloj irregular se puntúa al sample
+objetivo observado, y ambos tiempos quedan en trace: no se conoce el tiempo
+objetivo de antemano ni se interpola para mejorar el resultado. Se requieren al
+menos 2N+1 observaciones; el límite conservador de muestreo usa el intervalo pasado
+más largo. Si no admite las frecuencias, no genera forecast ni un error cero.
+
+Web sintética y corporal comparten los controles de fundamental/ratios/selección;
+ratios se aplican al salir del campo. Configuraciones JSON conservan el método;
+ninguna selección cambia el audio live. Tres predictores default anteriores
+siguen seleccionados. Escenario `harmonic_span` es un **control positivo** que
+entrega deliberadamente las frecuencias del generador al predictor, no una
+frecuencia descubierta en datos reservados. Elegir frecuencias tras mirar errores
+es exploración y debe distinguirse de fijarlas antes de evaluar una toma nueva.
+
+Reproducir controles conocido/incorrecto/shuffle y estocástico:
+
+```bash
+PYTHONPATH=src .venv/bin/python research/laboratory/r01_grassmann/reproduce_harmonics.py --output /tmp/r01-harmonics-new-folder
+```
+
+El directorio debe ser nuevo. Guarda traces y summary; repite cada condición
+armónica y exige igualdad de resultados en la misma invocación. La condición
+incorrecta usa exactamente los mismos datos objetivo que la conocida, con otra
+fundamental. `evidence-harmonics-2026-10-03.json` conserva parámetros/métricas:
+225 slots comunes, MSE armónico conocido 0.0001395223, incorrecto 0.4399455,
+shuffle 15.8073. El blanco estocástico es otro dataset y da 29.5150: la base
+periódica puede extrapolar mal; no se oculta el resultado adverso. Ridge/ventana/
+horizonte influyen. No comparar datasets distintos como si fueran una observación
+pareada. No valida predicción HIT específica, ley de dispersión, intención,
+frecuencias corporales naturales ni percepción/escucha. Faltan tomas independientes
+y una hipótesis física concreta con observable y controles distinguibles.

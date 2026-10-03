@@ -4,7 +4,7 @@ import pytest
 from harmonic_weaver.lab.research.forecast_families import linear_trend, lagged_ridge
 from harmonic_weaver.lab.research.grassmann import Settings, generate, evaluate, predict, run, pair_controls
 
-METHODS=['persistence','full_ridge','subspace_ridge','linear_trend','lagged_full_ridge','lagged_subspace_ridge']
+METHODS=['persistence','full_ridge','subspace_ridge','linear_trend','lagged_full_ridge','lagged_subspace_ridge','fixed_harmonics']
 
 
 def test_linear_trend_extrapolates_vector_drift():
@@ -72,3 +72,68 @@ def test_frozen_body_features_share_families_and_reset_at_gaps(tmp_path):
     forecasts=[row for row in rows if 'predictions' in row]
     assert forecasts and all(set(row['predictions'])==set(METHODS) for row in forecasts)
     assert all(row['prediction_origin_s']>=48/30 for row in forecasts if row['segment_index']==1)
+
+
+def test_fixed_harmonics_recover_declared_vector_oscillations_and_fail_wrong_frequency():
+    from harmonic_weaver.lab.research.forecast_families import fixed_harmonics
+    times=np.arange(180)/30
+    frequencies=[.5,1,1.5]
+    x=np.stack([2+np.sin(2*np.pi*.5*times)+.3*np.cos(2*np.pi*times),
+                -3+np.cos(2*np.pi*1.5*times)],axis=1)
+    target=times[-1]+.2
+    truth=np.array([2+np.sin(2*np.pi*.5*target)+.3*np.cos(2*np.pi*target),-3+np.cos(2*np.pi*1.5*target)])
+    matched=fixed_harmonics(x,times,target,frequencies,1e-5)
+    wrong=fixed_harmonics(x,times,target,[.7,1.4,2.1],1e-5)
+    assert np.mean((matched-truth)**2)<1e-12
+    assert np.mean((wrong-truth)**2)>.01
+
+
+@pytest.mark.parametrize("horizon",[1,4])
+def test_harmonic_family_freezes_clock_as_well_as_vectors_and_reports_past_support(horizon):
+    settings=Settings(samples=100,dimensions=5,signal_rank=2,components=2,predictors=['persistence','fixed_harmonics'],horizon_steps=horizon)
+    t,controls=generate(settings)
+    original=evaluate(settings,t,controls['original'])
+    modified=t.copy();modified[60:]+=.01
+    data=controls['original'].copy();data[60:]*=100
+    changed=evaluate(settings,modified,data)
+    assert original['rows'][:60]==changed['rows'][:60]
+    assert original['rows'][60]['predictions']==changed['rows'][60]['predictions']
+    assert original['rows'][60]['prediction_fit_support']==changed['rows'][60]['prediction_fit_support']
+    support=original['rows'][60]['prediction_fit_support']['fixed_harmonics']
+    assert support['training_pairs']==0 and support['basis_columns']==13
+    assert support['target_time_s']==pytest.approx(t[60])
+    assert support['frequencies_hz']==pytest.approx([.35,.7,1.05,1.4,1.75,2.1])
+
+
+def test_above_sampling_bound_produces_unavailable_forecasts_not_alias_scores():
+    settings=Settings(samples=70,dimensions=4,signal_rank=2,components=2,predictors=['fixed_harmonics'],harmonic_fundamental_hz=5,harmonic_ratios=[1,2,3])
+    t,controls=generate(settings)
+    result=evaluate(settings,t,controls['original'])
+    assert result['metrics']['common_samples']==0
+    assert result['metrics']['mean_prediction_mse']=={}
+    assert any('sampling bound' in row.get('forecast_unavailable_reason','') for row in result['rows'])
+
+
+@pytest.mark.parametrize('ratios',[[0],[1,1],[-1],[float('nan')],[33]])
+def test_invalid_declared_harmonic_ratios_rejected(ratios):
+    with pytest.raises(ValueError):Settings(harmonic_ratios=ratios)
+
+
+def test_harmonic_diagnostics_separate_origin_support_and_target_clock_error():
+    from harmonic_weaver.lab.research.grassmann import summarize_harmonic_forecasts
+    settings=Settings(samples=70,dimensions=4,signal_rank=2,components=2,predictors=['fixed_harmonics'],harmonic_ratios=[1,2],horizon_steps=4)
+    t,controls=generate(settings)
+    t[40:]+=.005
+    result=evaluate(settings,t,controls['original'])
+    diag=summarize_harmonic_forecasts(result['rows'])
+    assert diag['origin_slots']==70 and sum(diag['origin_states'].values())==70
+    assert diag['origin_states']['committed']>0
+    assert diag['origin_states']['geometry_unavailable']>0
+    assert diag['origin_states']['outside_segment']==3
+    assert diag['scored_target_slots']==result['metrics']['common_samples']
+    assert diag['absolute_target_clock_error_s']['max']==pytest.approx(.005)
+    alias=settings.model_copy(update={'harmonic_fundamental_hz':10})
+    unavailable=summarize_harmonic_forecasts(evaluate(alias,t,controls['original'])['rows'])
+    assert unavailable['origin_states']['sampling_bound']>0
+    assert unavailable['scored_target_slots']==0
+    assert unavailable['absolute_target_clock_error_s']=={'mean':None,'max':None}
