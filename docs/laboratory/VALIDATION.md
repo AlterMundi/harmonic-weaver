@@ -2786,3 +2786,15 @@ copia del video, nuevo tracking, audio o calibración. Test reutilizable no cont
 IDs/rutas ni estadísticas corporales. Backend/defaults sin cambios; evidencia build
 previa válida. No tarea/ground truth independientes, ruido de cámara medido,
 eficiencia/intención/HIT, exactitud corporal, escucha ni generalización acreditadas.
+
+
+### Arranque · selección explícita de pila — 2026-10-03
+
+9 pruebas de scripts pasan (0.14s), con executables inertes/npm stub, sin servicios:
+--describe no build/install/exec, defaults cotidianos, seis overrides env inválidos
+rechazados pese a fallback disponible, paths/args con espacios, overrides CLI y
+SHAPER_DIR efectivo, perfil dev con peer/datos separados. bash -n pasa. Describe
+real en Legion resuelve Weaver-dev, Shaper-dev516ebde, HarMoCAP-lab27b8fc2 y entorno/
+modelo existentes sin iniciarlos. No import/readiness de dependencias, R24/cámara,
+CUDA, escucha ni aceptación física verificadas por este comando. No build/UI/backend
+modificados; evidencia anterior conservada. No instalación/merge/migración cotidiana.

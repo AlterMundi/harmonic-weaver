@@ -27,6 +27,34 @@ HarMoCAP #1. Los checkouts cotidianos `harmonic-weaver-lab` y
 Los workspaces originales y el trabajo OSC todavía no publicado permanecen
 preservados. El bridge de Oliva #36 se revisa por separado.
 
+### Pila de desarrollo, separada de la instalación cotidiana
+
+Las PR posteriores de investigación/captura aún no están mergeadas ni instaladas
+en `harmonic-weaver-lab`. Para probar el checkout de desarrollo preparado en Legion:
+
+```sh
+cd /home/nicolas/Projects/harmonic-weaver-dev
+./scripts/start-laboratory-development.sh --describe
+./scripts/start-laboratory-development.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
+```
+
+El primer comando sólo muestra checkouts/heads/intérpretes/modelo; no construye
+web, instala dependencias ni inicia servicios/audio. El segundo construye y
+arranca desde ese checkout, usando `harmonic-shaper-dev`, código `HarMoCAP-lab`
+y el entorno/modelo de `HarMoCAP` explícitos. Datos por default:
+`~/.local/share/harmonic-weaver/laboratory-dev`, independiente del perfil cotidiano.
+`WEAVER_LAB_DATA_DIR` o `--data-dir` eligen otro directorio. No copia/migra sesiones,
+presets, calibraciones ni videos desde el perfil cotidiano. Puertos siguen8765/8085:
+conflictos se informan, no se mata una sesión existente. Ctrl+C termina esta sesión.
+
+Ambos wrappers muestran las rutas/heads efectivos antes de arrancar. `--describe`
+también existe en start-laboratory.sh. Selecciones explícitas por env o
+`--shaper-dir`/`--shaper-python`/`--checkpoint` se conservan; ruta/intérprete/modelo
+inexistente falla en vez de caer silenciosamente en otro workspace/modelo. Defaults
+sin override mantienen el fallback cotidiano anterior. SHAPER_DIR exportado coincide
+con el checkout resuelto. Esto identifica selección; no prueba dependencias Python,
+R24, CUDA, escucha o sincronía. Esos checks físicos se hacen al probar el instrumento.
+
 Entorno Weaver: dependencias del proyecto y extra `lab`. Entorno HarMoCAP:
 dependencias propias + `av>=12,<17` y modelo pose local. Entorno Shaper:
 dependencias propias, dispositivo de audio disponible. Frontend: Node 22.
