@@ -2866,3 +2866,19 @@ No se crearon jobs ni pretendieron reales esos estados de fixture; API y servici
 propios reales sin audio, cerrados al terminar. Build92 módulos pasa (1.28s).
 Backend/PCM/traces/player/defaults intactos; evidencia anterior no repetida sin razón.
 No escucha, sincronía física ni nuevo resultado corporal/científico acreditados.
+
+### Comparador · perfiles portables de procesamiento — 2026-10-03
+
+30 tests backend pasan (1.98s), comparación/captura/runtime: rechazan fuentes,
+persona/calibración, hashes motor/entorno y controles fuera de cotas; validación
+no guarda; persistencia al cerrar/reabrir SQLite y portabilidad entre dos estados;
+snapshot/calibraciones/último video intactos. API save/load/list/validate sin iniciar
+evaluaciones. Cotas control/preroll/presupuesto reutilizadas del contrato Request;
+PCM hereda cotas y excluye identidades.
+
+Chrome producción/API/SQLite reales: 1 test pasa (2.0s), guardar/cargar/reabrir,
+descargar JSON cerrado y aplicar; respuesta real demorada no sobrescribe ajustes
+editados durante la carga. Instrumento/source/calibración intactos; cero POST a
+evaluación y errores JS. Build93 módulos pasa (1.31s). Servicios propios detenidos;
+sin hardware/tracking/datos corporales. Contrato de ejecución/worker/PCM/defaults
+intactos; no escucha/aceptación humana añadida.

@@ -1734,3 +1734,10 @@ visible, progreso anterior conservado, repetir/continuar/iniciar bloqueados hast
 reconciliar y cancelación de corrida conocida disponible. Dos recorridos Chrome
 con fallos/demoras e inventarios explícitos verifican acciones sin nuevos jobs.
 Motor, resultados, reproductor y sonido no cambian; aceptación física sigue pendiente.
+
+EVAL #18: perfiles de procesamiento con nombre, SQLite y JSON portable implementados.
+Controles reloj/preroll/tandas/PCM independientes de selección fuentes/presets/cuerpos/
+calibración e identidad renderer. Cargar no inicia ni modifica requests congeladas;
+carga demorada no sobrescribe ediciones posteriores. 30 tests backend y Chrome
+producción/API pasan. Instrumento/defaults intactos; instalación cotidiana/escucha
+y reservas científicas pendientes.

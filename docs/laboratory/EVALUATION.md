@@ -374,3 +374,24 @@ Chrome verifican captura y evaluación con 503/demoras e inventarios de UI decla
 sin crear trabajos, fuentes ni resultados corporales. Las pruebas del motor y
 repetibilidad previas conservan su alcance; esto sólo verifica diagnóstico/acciones
 del panel, no evaluación científica ni latencia física.
+
+## Perfiles portables de procesamiento (2026-10-03)
+
+En Comparar → **Guardar ajustes de procesamiento**, elegir nombre y guardar.
+El perfil conserva reloj de control, historia previa, presupuesto por tanda y
+render PCM (activación, sample-rate, bloque, master y cola), con las cotas del
+contrato de ejecución. No contiene presets, fuentes, personas, calibraciones,
+segmentos, paths ni hashes de motor/entorno. El renderer efectivo se congela al
+iniciar una nueva comparación, como antes.
+
+Perfiles con nombre viven en SQLite local y sobreviven al reinicio. Seleccionar
+y **Cargar perfil de comparación** aplica sólo controles de próximas corridas;
+no inicia, reanuda, repite ni cambia una request congelada. Selecciones existentes
+quedan intactas. Preparar/descargar JSON permite trasladarlo: pegar y **Aplicar JSON**
+en otra selección/laboratorio, y guardar explícitamente allí si se quiere conservar.
+Una carga demorada no sobrescribe controles editados mientras se esperaba: informa
+el cambio para que la reaplicación sea deliberada. Continuar una evaluación ya
+iniciada conserva su request congelada, independientemente del perfil cargado.
+
+API local GET/POST /api/evaluation-profiles, POST /validate y GET /{id}. Validar no
+guarda ni inicia. No migra sesiones ni registra datos corporales.
