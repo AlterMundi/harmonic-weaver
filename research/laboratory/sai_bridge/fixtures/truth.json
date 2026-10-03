@@ -1,0 +1,9 @@
+{
+  "kind": "synthetic pinhole ambiguity sidecar; not a MotionFrame field",
+  "source": "independent reproduction inspired by Sai proyeccion_2d_ambigua.py at f6b96da041bbe95e35ab865d2a07d082d2adba29",
+  "projection": "u=x/z, v=y/z; focal=1, positive depth",
+  "image_uv": [0.2, 0.0],
+  "world_a_xyz": [0.4, 0.0, 2.0],
+  "world_b_xyz": [0.52, 0.0, 2.6],
+  "note": "Two 3D truths have one 2D observation. The sidecar is simulation truth, never reconstructed pose."
+}

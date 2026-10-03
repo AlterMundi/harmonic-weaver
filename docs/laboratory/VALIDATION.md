@@ -2139,3 +2139,37 @@ Una prueba posterior precisa módulo/NumPy del agregador en el resumen; no cambi
 el cálculo. No cuerpo real ni aceptación humana verificados en este corte.
 Las evaluaciones corporales locales existentes se identificaron para reutilizar;
 no se reprocesó tracking ni se inventó identidad/calibración.
+
+## R07: primera corrida corporal local del readout — 2026-10-03
+
+Recorrido real EVAL archivado → candidato R05 → PCM → diez figuras R07 →
+etiquetas verificadas → readout congelado. Cinco ventanas de entrenamiento y
+cinco reservadas de dos segundos, fijadas antes del ajuste, con embargo temporal.
+Dos features de velocidad, agregadas por media, comparten 60 observaciones
+válidas por ventana; holds deduplicados. Calibración existente conservada,
+sin recomputar tracking ni copiar videos. Repetición desde el dataset congelado
+y verificación explícita de ambos resultados pasan; result.json byte-idéntico.
+
+Artefactos y resultados corporales quedan exclusivamente en el directorio local
+`laboratory-dev/research/r07-body-checks/` bajo el data root. No se publican los
+valores, medios, identidades ni hashes privados. Un cuerpo/toma; la reserva
+temporal no equivale a sujetos o tomas independientes. Etiquetas derivadas del
+mismo movimiento que origina el PCM: recuperación no demuestra HIT ni un
+mecanismo biológico. Sí verifica el recorrido técnico con datos corporales.
+Síntesis R05 experimental; audio cotidiano, defaults y servicios preservados.
+Escucha y aceptación humana de este recorrido siguen pendientes.
+
+## Sai/Oliva: integración del banco Fourier — 2026-10-03
+
+Commits de #36 (`eda50d2`, `2767df1`) y #97 (`3734d50`) incorporados conservando
+autoría en una rama sobre #96; sin cambios al runtime/UI/modelos productivos.
+34 tests del bridge pasan contra Weaver actual (18.90s): espectros individuales,
+espectro cruzado complejo compartido, soporte común de tres condiciones,
+contraejemplos, carácter offline y procedencia de módulos realmente importados.
+
+El I implementado normaliza direcciones y usa historia temporal acotada;
+preservar estadísticas Fourier globales de segundo orden no exige preservar esa
+traza no lineal. El residuo distingue el ejemplo acoplado y no se promueve a
+objetivo universal. El informe conserva resultados sin distinción y límites.
+No se exige equivalencia de hashes con el entorno de Oliva; el digest contiene
+metadatos. No se valida HIT, eficiencia corporal ni aceptación perceptual.
