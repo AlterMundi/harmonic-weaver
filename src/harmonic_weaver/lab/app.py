@@ -24,6 +24,7 @@ from .research.service import ResearchService
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.sai_fourier import FourierService, Settings as FourierSettings
 from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial, SourceRequest as SpatialSourceRequest, from_library as spatial_from_library
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
@@ -300,6 +301,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     relational = RelationalService(data_dir)
     resonators = ResonatorService(data_dir)
     activation = ActivationService(data_dir)
+    sai_fourier = FourierService(data_dir)
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
@@ -351,6 +353,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             rope_flow.close()
             rope_jobs.close()
             activation.close()
+            sai_fourier.close()
             membrane.close()
             controls.close()
             resonators.close()
@@ -1120,6 +1123,22 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def activation_configuration(body:ActivationConfig):
         activation_schedules(body.settings)
         return body.model_dump()
+
+    @app.get('/api/research/sai-fourier')
+    def sai_fourier_jobs(): return sai_fourier.list()
+
+    @app.post('/api/research/sai-fourier')
+    def sai_fourier_start(body: FourierSettings): return sai_fourier.start(body)
+
+    @app.get('/api/research/sai-fourier/{ident}')
+    def sai_fourier_report(ident: str): return sai_fourier.report(ident)
+
+    @app.post('/api/research/sai-fourier/{ident}/cancel')
+    def sai_fourier_cancel(ident: str): return sai_fourier.cancel(ident)
+
+    @app.get('/api/research/sai-fourier/{ident}/artifacts/{name}')
+    def sai_fourier_artifact(ident: str, name: str):
+        return FileResponse(sai_fourier.artifact(ident, name), filename=name)
 
     @app.post("/api/research/r06")
     def activation_start(body:ActivationSettings):return activation.start(body.model_dump())

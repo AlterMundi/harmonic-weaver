@@ -681,3 +681,27 @@ R07** lo restaura. Agregar casos recalcula/verifica sus etiquetas al congelar el
 dataset; editar targets manualmente retira la etiqueta de procedencia calculada.
 Una cola de audio no se convierte en datos corporales. Esta operación es opcional
 y conserva el juego live; no cambia selección corporal ni calibración.
+
+## Sai–Oliva · Controles Fourier offline
+
+Investigación → Controles Fourier Sai: ajustar muestras, Hz y semillas; Correr
+banco ejecuta un worker separado del instrumento. Abrir banco recupera su
+configuración y tablas; elegir escenario, semilla y descriptor. Exportar/importar
+configuración guarda un preset JSON portable y no inicia una corrida al importarlo.
+Cancelar detiene sólo el worker propio. Tres artefactos por corrida se descargan
+y se conservan bajo `research/sai-fourier/` del data root.
+
+Este corte usa los tres escenarios sintéticos de #97, escala torso .26 y defaults
+del facade actual; no usa videos ni filtra movimiento live. Variar Hz/muestras
+cambia frecuencias físicas (los tonos tienen 3/7/10 ciclos por bloque). Fases
+compartidas conservan espectro cruzado global, pero no necesariamente I local.
+Las tablas comparan medias/MAE sobre la intersección observada de tres condiciones;
+sin soporte se muestra faltante. No usar MAE como pérdida monotónica de organización.
+
+Requiere checkout del repositorio con `research/laboratory/sai_bridge/` disponible.
+El instrumento puede arrancar sin ese bridge; intentar correr el banco informa la
+ausencia. El loader usa namespace propio y no modifica sys.path ni los módulos
+de tests. El verificador comprueba integridad/configuración/inventario/soporte;
+no vuelve a ejecutar el banco ni autentica resultados rehasheados arbitrariamente.
+Fuentes efectivamente importadas y versiones quedan en el manifest, sin exigir
+igualdad de hashes entre entornos. Fourier corporal es el siguiente aporte de Oliva.

@@ -2198,3 +2198,23 @@ Build TypeScript/Vite pasa. Chrome real (3.5s), HTTP en fixture8905: conversión
 publicación seguida de 503 simulado, listado/reintento sin duplicado, reload,
 reapertura, descarga original byte-exacta y recálculo. Fixture detenido después.
 Sólo CSV sintético; no adquisición real, hardware ni sincronización física.
+
+## Sai–Oliva: banco Fourier configurable desde la web — 2026-10-03
+
+Wrapper nuevo en src/ y panel web, sin modificar el bridge reservado a Oliva.
+Muestras/Hz/semillas configurables y preset JSON portable; tres escenarios del
+aporte #97. Worker propio, una corrida activa por instancia, cancelación, restore,
+artifact allowlist y procedencia de módulos realmente importados. Loader lazy
+desde checkout en namespace propio, sin alterar sys.path ni tests/research.
+Lectura completa verifica hashes, configuración, inventario y soporte; no rerun
+implícito ni afirmación de autenticidad numérica para archivos rehasheados.
+
+11 pruebas service/API pasan (21.00s); prueba adicional de cancelación real pasa
+(0.36s). Incluyen dos workers con resultados byte-idénticos, reopen sin nuevo
+worker, corrupción, presupuestos, soporte modificado y request alterado durante
+cálculo. Build TypeScript/Vite pasa. Chrome HTTP real (21.5s): dos bancos con
+dos semillas, comparación byte-idéntica, escenario estático sin soporte, selectors,
+reload, recuperación y preset portable sin iniciar nueva corrida al importar.
+Selectors tienen nombres accesibles estables. Fixture8908 detenido después. Banco sintético, torso .26/modelo fijo; no Fourier corporal,
+HIT, aceptación humana ni cambios al sonido cotidiano. Oliva tiene encomendada
+la extensión corporal según NEXT_ITERATION.md.

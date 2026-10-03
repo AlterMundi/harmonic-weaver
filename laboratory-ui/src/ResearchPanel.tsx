@@ -1,4 +1,5 @@
 import {HeldoutPanel} from './HeldoutPanel';
+import {SaiFourierPanel} from './SaiFourierPanel';
 import {PhysiologyPanel} from './PhysiologyPanel';
 import {NeuroPanel} from './NeuroPanel';
 import {ExperiencePanel} from './ExperiencePanel';
@@ -45,6 +46,7 @@ export function ResearchPanel({api,run}:Data){
   <p>Original, rotación global y orden temporal mezclado usan las mismas muestras. El residuo de reconstrucción y el error de predicción son observables distintos. Compará métodos dentro del soporte común de cada control.</p>
   <label><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)}/>Comparar controles sobre instantes comunes</label>
   <RelationalPanel api={api} run={run}/>
+  <SaiFourierPanel api={api}/>
   <ResonatorPanel api={api} run={run}/>
   <ActivationPanel api={api} run={run}/>
   <MembranePanel api={api}/>
