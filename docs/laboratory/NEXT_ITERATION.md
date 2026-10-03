@@ -240,7 +240,7 @@ Abrir muestra condición/descriptor sobre soporte común, espectros y geometría
 al lado. Ausencia de soporte queda como Sin soporte, nunca cero.
 
 Descargar/importar ajustes valida Settings y permite portabilidad de métodos;
-importar limpia persona seleccionada y no inicia el cálculo. Escala/procedencia
+importar limpia persona y escala/procedencia, y no inicia el cálculo. Escala/procedencia
 son declaraciones explícitas del análisis, no calibración recuperada ni inferida.
 No se modifica instrumento, fuente, tracking o síntesis. Hasta 4800 frames y
 14400 frames × semillas, con 1–4 semillas; el segmento de biblioteca admite
@@ -251,7 +251,8 @@ Persistencia conserva entradas/manifests y descargas verifican integridad sin
 recalcular el banco. Cancelación/cierre afectan sólo procesos propios. La fuente
 es una generación en memoria; no prueba integridad actual de video/cache en
 disco. Backend verificado con tracking corporal real desde cache local, sin
-reprocesamiento. Pendiente: recorrido web real y feedback, instalación de la pila; contraste geométrico restringido y trabajo científico independiente.
+reprocesamiento. Recorrido web de producción con cache real verificado (audio desconectado).
+Pendiente: feedback humano, instalación de la pila; contraste geométrico restringido y trabajo científico independiente.
 
 
 La preparación muestra el bloque descartado más largo para ayudar a distinguir
@@ -261,3 +262,9 @@ bloques válidos donde el ajuste inicial no los tenía; defaults conservados.
 La evidencia local y sus límites están en VALIDATION.md. Datos privados quedan
 fuera de GitHub. La investigación geométrica restringida de Oliva puede avanzar
 sin cambiar este consumidor ni el instrumento cotidiano.
+
+
+La UI limpia escala/procedencia al cambiar fuente o persona, conservando método;
+una edición JSON incompleta no se pierde al intentar cambiar selección. El
+recorrido web real del consumidor está verificado, no la escucha ni la apertura
+física de dispositivos. Ver VALIDATION.md y RUNNING.md.

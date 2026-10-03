@@ -2410,3 +2410,32 @@ el nuevo diagnóstico; no constituye un recorrido web con tracking real.
 Estos controles comprueban funcionamiento y repetibilidad local; no validan
 HIT, intención, eficiencia ni aceptación perceptual humana. Recorrido web real,
 escucha y aceptación continúan pendientes.
+
+
+## Fourier corporal · web de producción y escala por selección — 2026-10-03
+
+Chrome headless recorrió el build de producción con FastAPI, VideoLibrary y
+worker reales sobre la generación de cache corporal privada ya verificada.
+Instancia aislada, sin abrir dispositivo de audio ni cámara. La generación se
+cargó del cache verificado en memoria; no se probó la apertura/probe del video
+ni se ejecutó tracking nuevo. Persona/escala de la selección manual previa.
+
+Desde la pestaña Investigación: elegir fuente/persona, configurar intervalo y
+canales, preparar, correr, abrir la corrida creada, cambiar descriptor y
+exportar/importar ajustes. Preparación retuvo un bloque y el resultado mostró
+soporte común colectivo y las tres condiciones con medias presentes. Sin errores
+JavaScript ni mutaciones de transporte, fuente, calibración o síntesis. Los
+POST de validación de configuración de otros paneles son consultas sin cambios
+al instrumento. Entradas, resultados y evidencia del navegador permanecen locales.
+
+Se corrigió conservación silenciosa de escala/procedencia al cambiar fuente o
+persona e importar ajustes: se limpian esos campos y se preservan los del método.
+Un JSON incompleto bloquea el cambio de selección y conserva el texto editado.
+Dos pruebas Chrome con red simulada pasan (1.9 s); build TypeScript/Vite pasa.
+El recorrido de producción/API/cache real también pasó con el cambio, incluyendo
+importación sin escala anterior y parámetros del método preservados.
+
+Esto cubre el recorrido web del análisis con tracking real congelado; no escucha,
+aceptación humana ni adquisición en vivo. La salida de audio desconectada es una
+condición de prueba explícita, no evidencia de funcionamiento de la R24. Defaults
+sonoros y servicios cotidianos intactos. Sin validación científica de HIT.

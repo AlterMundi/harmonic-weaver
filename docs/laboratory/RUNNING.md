@@ -704,7 +704,7 @@ ausencia. El loader usa namespace propio y no modifica sys.path ni los módulos
 de tests. El verificador comprueba integridad/configuración/inventario/soporte;
 no vuelve a ejecutar el banco ni autentica resultados rehasheados arbitrariamente.
 Fuentes efectivamente importadas y versiones quedan en el manifest, sin exigir
-igualdad de hashes entre entornos. Fourier corporal es el siguiente aporte de Oliva.
+igualdad de hashes entre entornos. El consumidor de Fourier corporal se describe abajo.
 
 ## R06 · Activación con espectros conservados
 
@@ -715,3 +715,33 @@ conserva vectores sin correr. Tabla de desplazamientos compara espectros de entr
 y respuesta; selector Desplazamiento de traza muestra la traza del control elegido.
 Esto rota tiempos dentro de un bloque offline, no pitch ni fases del audio live.
 [Referencia y límites](../../research/laboratory/r06_activation/README.md#r06--desplazamientos-circulares-por-puerto--2026-10-03).
+
+
+## Fourier corporal · tracking congelado de biblioteca
+
+En Investigación → Sai–Oliva · Fourier corporal congelado, actualizar fuentes y
+seleccionar una generación de tracking terminada y una persona. La identidad del
+slot debe verificarse en el video; el selector no identifica quién es cada cuerpo.
+Definir intervalo y ajustes JSON: canales [COCO-17, x/y], sample_hz, mínimo de
+muestras, tolerancias, confianza, semillas y preset descriptivo sin plucks.
+Declarar scale, scale_unit y scale_provenance para esa selección. Una escala de
+torso aparente en frame_height no es una medida física en metros.
+
+Preparar informa cobertura, exclusiones, bloques válidos y el bloque corto
+descartado más largo. Si no hay bloques, revisar causas y elegir explícitamente
+canales/intervalo/mínimo; no se rellenan gaps. Correr congela sus propias entradas
+y ejecuta un worker cancelable separado del instrumento. Abrir la corrida muestra
+bloque/semilla/descriptor, medias de las tres condiciones sobre soporte común,
+espectros y cambios de longitudes. Sin soporte significa ausencia, no valor cero.
+
+Descargar/importar conserva parámetros del método y no inicia un cálculo.
+Cambiar fuente/persona limpia scale y scale_provenance; importar también los
+limpia y exige volver a elegir persona. Completar esos dos campos para la
+selección actual antes de preparar/correr. Si el JSON está incompleto, el cambio
+de selección informa el error y conserva las ediciones, sin descartarlas.
+
+Los artefactos bajo research/sai-body-fourier/ del data root incluyen tracking y
+resultados privados; mantenerlos locales. El banco es offline y no modifica
+tracking, transporte ni síntesis. Requiere el bridge integrado del checkout.
+Ver VALIDATION.md para el recorrido automático con cache corporal real y sus
+límites: salida de audio desconectada en esa instancia, sin aceptación humana.
