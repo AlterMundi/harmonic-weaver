@@ -2929,3 +2929,17 @@ NaN/Infinity excluidos siguen rechazados; potencia mecánica negativa sigue vál
 con SHAPER_DIR/PYTHONPATH del checkout de desarrollo. CSV sin exclusión conserva
 su rechazo de HR negativo. No cambios UI ni nuevo recorrido Chrome requerido;
 no servicios/dispositivos, datos privados ni aceptación fisiológica/perceptual.
+
+### R12 · cargas demoradas no reemplazan el protocolo actual — 2026-10-03
+
+`physiologyContextNetwork.spec.ts`: **1 Chrome producción passed (3.2s)** con
+fixture LaboratoryRuntime/control recorder, SQLite/servicio CSV/mediciones reales.
+Tres respuestas HTTP reales retenidas por el test: carga CSV frente a edición,
+inspect nativo frente a aplicación CSV, y apertura nativa frente a aplicación CSV.
+Edición/protocolo reciente permanece; inspección/apertura obsoleta no publica
+resultado guardable; reintentos sin cambio aplican y muestran media esperada.
+State preset/source/calibration sin cambios; cero errores JS. Vínculo EVAL comparte
+guard de contexto, sin nueva adquisición/revalidación física de sincronía.
+
+Build TypeScript/Vite **93 módulos, 1.30s**. Fixture aislado detenido; sin dispositivos,
+video/pose privados ni aceptación humana. No cambios backend ni defaults musicales.

@@ -659,6 +659,11 @@ al inspeccionar y guardar. Un archivo archivado no revalida video físico al abr
 
 El resultado muestra cobertura/media/soporte común y energía/trabajo parcial sólo
 paraW. No calcula calorías, ratios de eficiencia, fatiga o correlaciones causales.
+R12: si cambiás el protocolo mientras llega una inspección o una carga archivada,
+la respuesta anterior no se aplica y aparece un aviso para repetir la operación.
+Esto también protege la reapertura CSV y el vínculo de manifest EVAL. Guardados
+ya publicados permanecen en la lista; no se cambia su contenido por editar la web.
+
 R12 JSON: una lectura raw negativa de frecuencia cardíaca o potencia metabólica
 requiere `excluded_causes` en la misma muestra y canal para poder conservarse.
 Ejemplo: `"values":{"hr":-999},"excluded_causes":{"hr":"sensor_error_code"}`

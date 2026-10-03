@@ -1760,3 +1760,9 @@ sin causa y no finitos rechazados. Potencia mecánica firmada sigue válida.
 29 tests R12/CSV pasan, incluyendo API, archivo/reapertura/recomputación y soporte
 común. JSON/web actuales permiten declarar la causa; CSV no tiene exclusiones por
 fila. Sin cambios de controles/defaults/audio ni datos humanos nuevos.
+
+R12 web: resultados de inspección, reapertura de corridas, vínculo EVAL y carga
+CSV archivada comprueban que el protocolo no cambió durante el await. Cambios
+posteriores conservados con aviso; repetir aplica normalmente. Chrome producción
+con API/archivos reales y respuestas demoradas verifica tres cruces, incluida
+ausencia de resultado guardable obsoleto; build pasa. Instrumento/defaults intactos.
