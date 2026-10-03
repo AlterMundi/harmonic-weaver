@@ -1822,3 +1822,8 @@ LAB-09: control digital AAC preview independiente del MKV exacto, tres bitrates 
 offsets±100ms, transiente/PTS decodificados y receta sintética repetida.38 pruebas
 capture/export/timeline y3 Chrome (audio offline, frame HTML presentado, muted)
 pasan. No equivale a sincronía física/escucha ni cambia defaults o instrumento.
+
+EVAL: cambio de cuerpo en un segmento descarta su calibration_id anterior; otras
+copias y ediciones del intervalo conservan sus escalas. Dos regresiones de payload
+web reproducidas/corregidas y build pasan. Backend conserva rechazo de calibración
+ajena; sin defaults/instrumento/medidas nuevos.

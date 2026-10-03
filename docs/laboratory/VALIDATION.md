@@ -3209,3 +3209,18 @@ No cambios de producción/UI/defaults/audio, build nuevo ni servicios iniciados;
 bundle anterior sigue válido. Sin medios/datos corporales, R24 física, latencia
 acústica/display/cámara, escucha o aceptación humana nuevas. AAC sigue siendo
 lossy con padding posible; no reemplaza el MKV exacto ni mide sincronía física.
+
+### EVAL · cambio de cuerpo descarta calibración del segmento — 2026-10-03
+
+Regresión reproducida: cambiar person_id ocultaba la opción de calibración anterior
+pero conservaba calibration_id en el POST. El backend ya rechaza ese cruce; UI ahora
+limpia sólo el segmento modificado y explica que debe elegirse escala del nuevo
+cuerpo. Editar límites temporales no descarta una escala válida; copiar un segmento
+del mismo cuerpo conserva su selección. Sin cambios de backend, medidas o defaults.
+
+**2 Chrome passed (2.3s)**; ambos fallan antes en calibration_id viejo (original y
+segmento copiado). Bundle productivo/API de fixture, inventarios de fuente/escala
+sintéticos y POST EVAL interceptado: comprueba payload/selección, no escala corporal
+medida ni una evaluación real. Otra copia queda intacta; selección nueva explícita
+y edición de inicio conservan nueva escala. TypeScript/Vite94 módulos **1.31s**.
+Fixture detenida; sin datos corporales, síntesis/R24/escucha ni aceptación nuevas.
