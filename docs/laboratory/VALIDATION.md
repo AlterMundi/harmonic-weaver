@@ -2599,3 +2599,21 @@ Investigación; no se atribuye ese intento a evidencia del recorrido live. El pa
 real y servicios HTTP fueron verificados sin dispositivos; build pasa (1.31 s).
 Servidores API/Vite de prueba detenidos, sólo fixtures sintéticos. No nuevas mediciones
 humanas, reloj físico sincronizado ni aceptación perceptual; no cambios de síntesis.
+
+### Shell completo con video privado y cache existente — 2026-10-03
+
+Chrome sobre el build de producción, LaboratoryRuntime y VideoLibrary reales:
+video avanza durante la corrida R01 con armónicos declarados y al reseleccionar
+la misma Persona explícita; resultados y diagnósticos visibles; seis targets,
+al menos uno activo; cero errores JavaScript. Tracking existente verificado, sin
+reprocesarlo ni copiar video. Audio reemplazado por registro de controles: no
+abre dispositivos ni acredita escucha humana. Evidencia corporal sólo local.
+
+Fixture reutilizable: `tests/laboratory_ui_fixture.py` admite
+`--frozen-evaluation-request <request.json> --frozen-cache-root <data-dir>`
+y `--source-index 0`, además de `--root <directorio-nuevo> --ui laboratory-ui/dist`
+y `--checkpoint <checkpoint-local>`. Ejecutar con `PYTHONPATH=src:tests` usando
+el Python del proyecto. Conserva la persona explícita del request; no traslada
+calibración. Reproduce el medio completo desde start_s, sin recortar en end_s.
+Sirve el build y los servicios reales con controles sin audio; Ctrl+C lo detiene.
+Los paths e inventarios privados no deben publicarse.
