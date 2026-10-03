@@ -2080,3 +2080,17 @@ siguen fase/medio/semilla sobre800 muestras de cola (1test,5.9s). Build pasa.
 CLI reference_spectral.json ejecutado y verify pasa; números descriptivos en README.
 Fixture8901 detenido; no hardware/audio cotidiano/medios privados ni escucha nueva.
 No control de espectro igualado ni validación HIT; dependencias permanecen explícitas.
+
+## R07: lectura histórica y recálculo explícito — 2026-10-03
+
+Las lecturas del banco transiente comprueban integridad, binding del request y
+soporte sin rerender. La API/UI informa código/entorno coincidente o distinto y
+ofrece recálculo separado; compara estructura exacta y floats con rel1e-12/abs1e-15.
+El recálculo no sobrescribe el registro y sigue rechazando diferencias numéricas.
+
+23 tests de membrana/núcleo de controles/runner/servicio/API pasan (3.93s).
+La prueba API ampliada pasa (1.51s): lectura y recálculo diferenciados, resultado
+sin sobrescritura. Build TypeScript/Vite pasa. Chrome HTTP real verifica lectura
+de procedencia histórica simulada, recálculo y conservación de bytes de resultado
+y manifest (1 test). Fixture aislado8902; datos sintéticos, sin hardware ni audio.
+Recuperación de atributos reservados y ensayo físico/humano siguen pendientes.

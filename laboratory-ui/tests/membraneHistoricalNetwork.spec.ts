@@ -1,0 +1,32 @@
+import {test,expect} from '@playwright/test';
+import {readFile,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+
+test('historical controls remain readable and explicit recomputation preserves archive',async({page})=>{
+ test.skip(!process.env.LAB_R07_HISTORY_URL||!process.env.LAB_R07_HISTORY_ROOT,'isolated fixture URL/root required');
+ const url=process.env.LAB_R07_HISTORY_URL!;
+ await page.goto(url);await page.getByRole('button',{name:'Investigación',exact:true}).click();
+ const preset=page.getByLabel('Preset portable de controles R07',{exact:true});
+ await expect(preset).not.toHaveValue('');
+ const config=JSON.parse(await preset.inputValue());config.settings.duration_samples=800;config.settings.forcing_samples=400;
+ await preset.fill(JSON.stringify(config));
+ const started=page.waitForResponse(r=>r.url()===url+'/api/research/r07-controls'&&r.request().method()==='POST');
+ await page.getByRole('button',{name:'Calcular controles R07',exact:true}).click();
+ const ident=(await(await started).json()).id;
+ await expect.poll(async()=>{const row=await(await page.request.get(url+`/api/research/r07-controls/${ident}`)).json();return row.status==='complete'&&!row.worker_active;}).toBe(true);
+ const folder=join(process.env.LAB_R07_HISTORY_ROOT!,'research','r07-controls',ident,'computed');
+ const resultPath=join(folder,'result.json');const manifestPath=join(folder,'manifest.json');
+ const original=await readFile(resultPath);
+ const manifest=JSON.parse(await readFile(manifestPath,'utf8'));
+ manifest.environment.numpy='different-environment';manifest.code_hashes={'historical':'a'.repeat(64)};
+ await writeFile(manifestPath,JSON.stringify(manifest));const frozenManifest=await readFile(manifestPath);
+ const panel=page.getByRole('heading',{name:'R07 · Controles transientes',exact:true}).locator('..');
+ await panel.locator(':scope > div').filter({hasText:ident}).getByRole('button',{name:'Ver controles R07',exact:true}).click();
+ const status=page.getByLabel('Verificación de controles R07',{exact:true});
+ await expect(status).toContainText('Integridad verificada; sin recalcular');await expect(status).toContainText('código distinto');await expect(status).toContainText('entorno distinto');
+ await page.getByRole('button',{name:'Recalcular verificación de controles R07',exact:true}).click();
+ await expect(status).toContainText('Recalculado numéricamente con código actual');
+ expect((await readFile(resultPath)).equals(original)).toBe(true);expect((await readFile(manifestPath)).equals(frozenManifest)).toBe(true);
+ const report=await page.request.get(url+`/api/research/r07-controls/${ident}/verification?recompute=true`);expect(report.status()).toBe(200);
+ expect((await report.json()).environment_matches).toBe(false);
+});

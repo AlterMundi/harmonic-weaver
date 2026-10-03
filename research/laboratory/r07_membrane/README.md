@@ -287,17 +287,29 @@ backend/API: 52 passed en 10.76 s. IMPLEMENTATION_STATUS actualizado. No prueba
 corte de energía ni todos los puntos de fallo; recuperación de atributos y
 validación humana/física continúan pendientes.
 
-## Próximos cortes, necesarios para la entrega
+## Recuperar controles históricos
 
-- Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
-  causal, preroll/reset y soporte temporal explícitos; no alimentar pose.
-- Campo de desplazamiento y RMS temporal, nodos y controles con señales
-  conocidas. Límites de memoria y duración; prueba de truncamiento modal.
-- Worker, artifacts/manifest verificables, cancelación y recuperación de
-  interrupciones siguiendo contratos R05/R06.
-- API/UI con todos los parámetros, presets portables, visualización sincronizada
-  y contraste entre estado de voces, mezcla final y membrana. No confundir estas
-  rutas ni aplicar parámetros a live silenciosamente.
+Abrir un banco transiente conserva el resultado archivado: comprueba inventario,
+hashes, request congelado y soporte, sin renderizar de nuevo. La web indica
+`Integridad verificada; sin recalcular` y muestra por separado si coinciden código
+y entorno. Una diferencia de procedencia no impide leer la corrida.
+
+`Recalcular verificación de controles R07` compara contra la implementación actual
+sin sobrescribir artifacts. Exige estructura y soporte exactos, con tolerancia
+relativa 1e-12 y absoluta 1e-15 para floats; int/float equivalentes se admiten sólo
+con valor exactamente igual, sin convertir bools. El endpoint es
+`GET /api/research/r07-controls/{id}/verification?recompute=true`; sin ese parámetro
+informa integridad solamente. `membrane_controls_run.verify` conserva recálculo
+por defecto para workers y llamados explícitos existentes.
+
+Código/entorno coincidentes no son una prueba numérica; hashes locales no son
+custodia firmada. El banco sigue siendo sintético y no valida una membrana física.
+No se cambian defaults del instrumento ni se aplica nada al audio live.
+
+## Pendientes de entrega e investigación
+
+El adaptador PCM R05, campos/RMS, workers, recuperación, API/UI y controles
+transientes están implementados; sus cortes y pruebas se registran arriba.
 - Banco reproducible de señales/control y recuperación de atributos reservados.
   Las semejanzas de figuras no demuestran información conservada ni HIT.
 - Medio físico: faltan actuador, membrana/material/bordes caracterizados,
