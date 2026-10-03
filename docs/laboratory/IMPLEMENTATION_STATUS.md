@@ -1697,3 +1697,11 @@ sobre soporte común y faltantes preservados. Evaluación sin escala rechazada,
 calibración runtime sigue null. Escala no se infiere/transfiere; datos y artefactos
 quedan locales. Software verificado no sustituye tarea/anotación independiente,
 medición de ruido ni validación física/HIT (VALIDATION/README R04).
+
+
+Arranque de desarrollo explícito disponible: start-laboratory-development.sh usa
+Shaper-dev y perfil de datos separado, conservando comando cotidiano. Ambos wrappers
+muestran checkout/head/interpreter/modelo y --describe permite revisar sin servicios.
+Selecciones explícitas inválidas no caen en otro workspace/modelo. Scripts verificados
+con executables inertes y resolución real; R24/readiness/escucha son pendientes físicos.
+RUNNING distingue comandos/perfiles; no nueva pila instalada ni merges realizados.
