@@ -3278,3 +3278,27 @@ Cuatro corridas corporales históricas existentes comparadas read-only localment
 sobre soporte observado; informe repetido idéntico y hashes originales conservados.
 Informe/IDs/resultados corporales quedan locales; ninguna nueva inferencia, toma,
 R24, escucha/aceptación humana ni validación HIT/generalización.
+
+### R03 · centros/señales candidatos sobre soporte común — 2026-10-03
+
+Comparador web/API read-only de2–6 corridas R03 completas: mismo corte de marcas,
+cuerpo/generación/contexto, cobertura declarada, tolerancia y offset. Intersecta
+soportes y usa compare_events sobre todos los candidatos originales, sin repetir
+extracción. Preserva scores disponibles y pareados, unidades/umbrales, candidatos
+y procedencia. Nuevos manifests añaden resumen de señal/crop/conteo para elegir.
+
+**45 backend/temporal passed (2.26s)**: comparación, worker/archive/lifecycle, API,
+matching y sensibilidad temporal. Conservación byte-a-byte de archivos, igualdad
+de marcas elegibles pese a cobertura distinta, precisión1/.5 sobre mismos eventos
+anotados, soporte disjunto sin score, cambios de matching/coverage rechazados,
+artefactos alterados e IDs inválidos. Warning Starlette/AnyIO conocido.
+
+**2 Chrome passed (3.0s)**: bundle/API productivos con tres archivos sintéticos;
+soporte0.4s, denominadores iguales y originales distintos, señal/unidad, caso
+sin intersección con score null, download JSON, limpieza de selección y estado
+live/preset/revisión intactos. TypeScript/Vite97 módulos **1.38s**.
+
+Receta r03_centers/controls.py y evidencia sintética pública: matching repetido
+idéntico en dos archivos nuevos por condición. Marcas/señales/identidades son
+sintéticas; no cuerpo real, anotaciones humanas, pose nueva, R24/cámara, síntesis
+o escucha/aceptación. No ranking causal de centros ni validación Jpsh/HIT.

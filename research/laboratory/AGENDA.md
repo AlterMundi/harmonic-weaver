@@ -960,3 +960,10 @@ objetivo/origen-objetivo, separación por control y familias comunes.
 Cuatro archivos corporales históricos comparados read-only localmente; informe
 privado y artefactos originales conservados. No nueva toma, refit ni predicción
 HIT específica; cambiar horizonte cambia información del origen.
+
+R03 — 2026-10-03: [comparador de señales/centros candidatos](r03_centers/README.md)
+web/API sobre corridas archivadas con mismo corte de marcas/contexto y matching.
+Todas usan soporte observado común, con métricas individuales y denominadores
+retenidos. Control sintético de cobertura desigual/disjunta repetido; no marcas
+humanas inventadas ni centro causal descubierto. Marcas, incertidumbre temporal y
+reservas nuevas conservan su dependencia humana.

@@ -91,7 +91,11 @@ def run_frozen(folder):
             if any((folder/name).is_symlink() or sha256_file(folder/name)!=value for name,value in hashes.items()):
                 raise ValueError('Frozen inputs changed during comparison')
             atomic_json(folder/'result.json',result)
-            manifest.update(status='complete',output={'file':'result.json','sha256':sha256_file(folder/'result.json')})
+            manifest.update(status='complete',output={'file':'result.json','sha256':sha256_file(folder/'result.json')},
+                candidate_summary={'signal_id':result['candidate_request']['signal_id'],
+                    'start_s':result['candidate_request']['start_s'],
+                    'end_s':result['candidate_request']['end_s'],
+                    'events':len(result['candidates']['events'])})
             atomic_json(folder/'manifest.json',manifest)
             return manifest
         except Exception as exc:

@@ -25,6 +25,7 @@ from .capture_profiles import CaptureProfile
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.grassmann_compare import ComparisonRequest as R01ComparisonRequest
+from .research.coincidence_compare import ComparisonRequest as R03ComparisonRequest
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
@@ -1102,6 +1103,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def research_body(body: BodyRequest):
         if evaluation is None:raise ValueError('No comparison library available')
         return research.start_body(body.model_dump(),evaluation)
+
+    @app.post("/api/research/r03/compare")
+    def coincidence_compare(body: R03ComparisonRequest):return coincidence.compare(body.model_dump())
 
     @app.get("/api/research/r03")
     def coincidence_jobs():return coincidence.list()
