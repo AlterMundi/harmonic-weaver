@@ -67,3 +67,11 @@ scores de propagación. No se apilan vectores de forma incompatible ni se conser
 un modelo ajustado a otro soporte. Timestamp no finito o soporte vacío se trata
 como missing y limpia la historia. El orden semántico de regiones debe seguir
 siendo estable: la forma de la matriz no identifica articulaciones ni personas.
+### Límite de calibración al resolver selección automática — 2026-10-03
+
+Terminar un tracking puede cambiar la elección automática provisional de persona.
+Ese cambio tiene el mismo límite corporal que una selección manual: se limpia
+calibración y se reinicia historia/ruteo; un modelo con escala previa se reemplaza
+por uno sin escala, porque reset() conserva el valor de escala. No se borra la
+calibración histórica guardada. Si la persona explícita continúa al completar,
+no se invalida su medición sólo por pasar de prefijo a generación completa.

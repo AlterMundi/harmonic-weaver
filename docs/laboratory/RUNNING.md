@@ -192,6 +192,12 @@ la generación válida. Si la extracción falla, esa elección parcial no reempl
 la preferencia de la generación anterior. Si el cuerpo elegido deja de verse,
 el instrumento espera sus datos y no cambia a otro cuerpo automáticamente.
 
+Si al finalizar tracking la elección automática cambia respecto del cuerpo visto
+en el prefijo, descarta la calibración de ese cuerpo y reinicia historia/ruteo.
+Los modelos que requieren escala muestran «Calibrá» para el nuevo cuerpo; no
+heredan la escala anterior. Si sigue el cuerpo elegido explícitamente, conserva
+su calibración/historia. La medición anterior permanece en el inventario local.
+
 El modo `--no-audio` muestra «Modo diagnóstico sin audio» en la web: los controles
 pueden ser aceptados, pero no hay telemetría/figura de voces efectivas ni sonido.
 La API de Shaper devuelve 503 para esa telemetría; Weaver no la consulta en este
