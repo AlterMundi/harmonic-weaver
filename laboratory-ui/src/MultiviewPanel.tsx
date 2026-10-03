@@ -3,7 +3,7 @@ import {MultiviewRuns} from './MultiviewRuns';
 import {SpatialView} from './SpatialView';
 type Data=Record<string,any>;
 const defaults={max_time_difference_s:.01,max_clock_uncertainty_s:.01,min_ray_angle_deg:1,max_reprojection_error_px:2};
-export function MultiviewPanel({api,onStream}:{api:any,onStream:(stream:Data)=>void}){
+export function MultiviewPanel({api,onStream,onConversion}:{api:any,onStream:(stream:Data)=>void,onConversion:(result:Data)=>void}){
  const [revision,setRevision]=useState(0);
  const [text,setText]=useState('{}'),[result,setResult]=useState<Data|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  let request:Data|null=null;try{request=JSON.parse(text);if(!request||Array.isArray(request)||typeof request!=='object')request=null}catch{}
@@ -26,7 +26,7 @@ export function MultiviewPanel({api,onStream}:{api:any,onStream:(stream:Data)=>v
  <label>Importar ajustes multivista R09<input type="file" accept=".json,application/json" disabled={busy||!request} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void act(async()=>{if(file.size>65536)throw Error('Máximo 64 KiB');const config=JSON.parse(await file.text());if(config.schema_version!==1||!config.settings||Object.keys(config).some(k=>!['schema_version','settings'].includes(k)))throw Error('Preset multivista v1 requerido');const validated=await api('research/r09/multiview/configuration',config.settings);edit(JSON.stringify({...request,settings:validated},null,2))})}}/></label>
  <p>Ajustes portables contienen sólo umbrales; no cámaras, calibración, identidad, relojes ni observaciones. Cargar un preset no ejecuta el cálculo.</p>
  <button disabled={busy||!request} onClick={()=>void act(async()=>{setResult(null);if(text.length>16*1024*1024)throw Error('Máximo 16 MiB');setResult(await api('research/r09/multiview',request))})}>Reconstruir pares multivista R09</button>
- <MultiviewRuns api={api} request={request} revision={revision} onOpen={r=>{setRevision(v=>v+1);setText(JSON.stringify(r.request,null,2));setResult(r);setError('')}}/>
+ <MultiviewRuns onConversion={onConversion} api={api} request={request} revision={revision} onOpen={r=>{setRevision(v=>v+1);setText(JSON.stringify(r.request,null,2));setResult(r);setError('')}}/>
  {error&&<p role="alert">{error}</p>}
  {result&&<><p>Multivista R09: {result.coverage.inferred} puntos inferidos; {result.coverage.missing} faltantes. Calibración {result.request.calibration_kind}. Baja reproyección no valida profundidad.</p>
  <SpatialView stream={result.stream} api={api}/>

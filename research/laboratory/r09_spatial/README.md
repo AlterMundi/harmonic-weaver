@@ -611,3 +611,36 @@ tras recarga y cancelar sólo el hijo propio del servicio. Intento IndexedDB
 inválido se puede descartar y nunca recuperar/enviar automáticamente. Prueba Chrome
 retiene respuesta real y edita, luego retoma/cancela cálculo real de 43200 pares
 sintéticos; detalles en VALIDATION. No benchmark físico ni nuevos defaults.
+
+
+### Stream derivado por ID de cálculo multivista
+
+`POST /api/research/r09/multiview-conversions` recibe run_id,
+expected_manifest_sha256 e idempotency_key opcional. Resuelve sólo una corrida
+completa íntegra, conserva stream exacto (inferred/missing, metros, fuente/slot/
+marco/calibración/clock) sin recalcular DLT, y verifica los tres artefactos antes
+y después de publicar la conversión. Cambiar el manifest esperado se rechaza;
+fallo/cambio durante publicación elimina sólo la nueva conversión.
+
+Input/result incluyen multiview_origin: ID y hashes de request/result/manifest,
+digest del stream normalizado y verification=local_artifact_integrity. Lectura
+verifica el vínculo stream/origin y el resultado; no requiere disponer del worker
+original después de publicar. Guardar por la ruta declarada rechaza procedencia
+multivista proporcionada por el caller. No custodia firmada ni autenticación física.
+Recomputar esta conversión verifica el stream congelado y cobertura, no vuelve a
+triangular: hacerlo requiere la acción explícita en el cálculo multivista original.
+
+Web ofrece Guardar stream con procedencia junto a cada cálculo completo. Reintentos
+usan el mismo ID/manifest/clave, también tras recarga, sin nuevas conversiones.
+Aparece en inventario R09 y puede seleccionarse desde Comparación espacial →
+Conversiones guardadas. La comparación conserva ID/hash de conversión y ésta el
+origen multivista; no equiparar esa cadena con validación de calibración, pairing,
+identidad biométrica ni sincronía. Inferidos siguen excluidos por default del
+comparador; admitirlos es explícito. Guardar stream declarado/importar JSON siguen
+siendo opciones independientes sin procedencia resuelta.
+
+15 tests backend/HTTP/regresiones pasan (3.74s), incluidos cambio de fuente durante
+publicación, recuperación sin volver a resolver fuente y rechazo de origen
+forjado. Dos Chrome pasan (10.6s): respuesta aceptada de conversión perdida,
+reintento idéntico y comparación por IDs con control identidad de 5 puntos. Build
+pasa (1.34s). Todo sintético, no resultado corporal ni exactitud física.

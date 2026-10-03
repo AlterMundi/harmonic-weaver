@@ -77,6 +77,7 @@ from .research.rope_mask_service import RopeMaskService
 from .research.rope_mask_run import Request as RopeMaskRunRequest
 from .research.rope_mask import Settings as RopeMaskSettings
 from .research.rope_jobs import RopeJobs
+from .research.spatial_service import MultiviewSaveRequest as MultiviewConversionRequest
 from .research.spatial_multiview_service import MultiviewService, StartRequest as MultiviewStartRequest
 from .research.spatial_multiview import Request as MultiviewRequest, Settings as MultiviewSettings, calculate as triangulate_multiview, synthetic_request as multiview_example
 from .research.rope_reader import RopeReader
@@ -804,8 +805,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def spatial_preset_export(ident:str):
         return JSONResponse(spatial_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="r09-view-{ident}.json"'})
 
+    @app.post('/api/research/r09/multiview-conversions')
+    def spatial_multiview_conversion(body:MultiviewConversionRequest):return spatial_runs.from_multiview(multiview_runs,body)
+
     @app.post('/api/research/r09/conversions')
     def spatial_run_start(body:SpatialSaveRequest):
+        if body.multiview_origin is not None:raise ValueError('Resolve multiview origin through saved run IDs')
         if body.clock_application is not None:raise ValueError('Resolve clock application through saved IDs')
         if body.tracking_provenance is not None:raise ValueError('Resolve tracking provenance through the library source route')
         return spatial_runs.start(body)

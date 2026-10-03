@@ -2,10 +2,11 @@ import {useEffect,useRef,useState} from 'react';
 import {multiviewPending} from './multiviewPending';
 type Data=Record<string,any>;
 const root='research/r09/multiview/runs';
-export function MultiviewRuns({api,request,revision,onOpen}:{api:any,request:Data|null,revision:number,onOpen:(result:Data)=>void}){
+export function MultiviewRuns({api,request,revision,onOpen,onConversion}:{api:any,request:Data|null,revision:number,onOpen:(result:Data)=>void,onConversion:(result:Data)=>void}){
  const context=useRef(revision);context.current=revision;
  const mounted=useRef(true);useEffect(()=>{mounted.current=true;return()=>{mounted.current=false}},[]);
  const [rows,setRows]=useState<Data[]>([]),[pending,setPending]=useState<Data|null>(null),[loaded,setLoaded]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [conversion,setConversion]=useState('');
  const [id,setId]=useState(''),[report,setReport]=useState<Data|null>(null),[attempt,setAttempt]=useState(0);
  const running=report&&['queued','running'].includes(report.status);
  const refresh=async()=>setRows(await api(root));
@@ -30,9 +31,11 @@ export function MultiviewRuns({api,request,revision,onOpen}:{api:any,request:Dat
  {pending&&<><p role="status">Inicio multivista pendiente de confirmar; recuperar usa el mismo cuerpo y clave, sin iniciar otra corrida.</p><button disabled={busy||!loaded} onClick={()=>void act(async()=>start(pending.body,true))}>Recuperar inicio multivista R09</button><button disabled={busy} onClick={()=>void act(async()=>{await multiviewPending(null);setPending(null);setLoaded(true)})}>Descartar intento multivista pendiente</button></>}
  {report&&<p role="status">Cálculo multivista {report.id}: {report.status}. {report.error||''}<button disabled={busy} onClick={()=>{setError('');setAttempt(a=>a+1)}}>Retomar consulta multivista R09</button>{running&&<button disabled={busy} onClick={()=>void act(async()=>setReport(await api(`${root}/${id}/cancel`,{})))}>Cancelar cálculo multivista R09</button>}</p>}
  {error&&<p role="alert">{error}</p>}
+ {conversion&&<p role="status">Stream multivista guardado con procedencia: {conversion}. Disponible en conversiones R09; actualizar su inventario para comparar. No recalcula triangulación.</p>}
  {rows.map(row=><div key={row.id}>{row.id} · {row.status} · {row.read_verification==='recomputed'?'Recálculo verificado':row.read_verification==='integrity_only'?'Integridad, sin recálculo':'Sin resultado completo'}
  {['queued','running'].includes(row.status)&&<button disabled={busy} onClick={()=>{setError('');setId(row.id);setReport(row);setAttempt(a=>a+1)}}>Seguir cálculo multivista {row.id}</button>}
  {row.status==='complete'&&<><button disabled={busy} onClick={()=>void act(async()=>{const selected=context.current;const result=await api(`${root}/${row.id}/artifacts/result.json`);if(!mounted.current)return;if(context.current!==selected){setError('Apertura descartada: las entradas cambiaron mientras se descargaba el cálculo. Abrir nuevamente para reemplazarlas explícitamente.');return}onOpen(result)})}>Abrir cálculo multivista {row.id}</button>
+ <button disabled={busy} onClick={()=>void act(async()=>{const r=await api('research/r09/multiview-conversions',{run_id:row.id,expected_manifest_sha256:row.manifest_sha256,idempotency_key:row.id});if(!mounted.current)return;setConversion(r.id);onConversion(r)})}>Guardar stream con procedencia multivista {row.id}</button>
  <button disabled={busy||!!pending||!!running} onClick={()=>void act(async()=>start(await api(`${root}/${row.id}/artifacts/request.json`)))}>Repetir cálculo multivista {row.id}</button>
  <button disabled={busy} onClick={()=>void act(async()=>{const verified=await api(`${root}/${row.id}/verification?recompute=true`);setRows(current=>current.map(r=>r.id===row.id?{...r,...verified}:r))})}>Verificar recálculo multivista {row.id}</button>
  {['request.json','result.json','manifest.json'].map(name=><a key={name} download href={`/api/${root}/${row.id}/artifacts/${name}`}>{name} </a>)}</>}

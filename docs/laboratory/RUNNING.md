@@ -883,3 +883,12 @@ en el inventario para retomar su estado y acceder a Cancelar. No inicia otra cor
 Si editás inputs durante Abrir, la apertura tardía se descarta; volver a abrir
 explícitamente reemplaza la edición. Un intento local inválido permite Descartar;
 esto sólo limpia IndexedDB, no cancela cálculos del servidor.
+
+
+Para comparar un cálculo multivista sin perder su origen: en la fila completa,
+**Guardar stream con procedencia multivista ID**. Si falla la respuesta, repetir
+ese botón recupera la misma conversión (también tras reload). Se muestra el ID y
+aparece en conversiones R09. En Comparación espacial elegir Conversiones guardadas,
+Actualizar conversiones y seleccionar referencia/candidato. Admitir puntos inferidos
+es opt-in; relojes/marcos deben ser compatibles. La conversión conserva hashes del
+cálculo completo; guardarla/reabrirla no recalcula DLT ni valida cámaras físicas.
