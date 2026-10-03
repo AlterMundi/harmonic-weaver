@@ -50,6 +50,13 @@ helpers are not copied; tests build wire packets via the kit when needed.
 
 Usage
 -----
+For an opt-in per-slot event preserving capture/receipt clocks::
+
+    driver = HarMoCAPDriver(on_observation=my_observation_callback)
+
+See ``docs/laboratory/OSC_OBSERVATIONS.md`` for version, lifecycle and migration.
+Do not connect that partial event directly to the historical engine callback.
+
 Feed raw UDP datagrams (preferred for tests)::
 
     driver = HarMoCAPDriver(on_frame=my_callback)
@@ -63,6 +70,9 @@ Or bind a socket::
 
 from __future__ import annotations
 
+from .observations import ObservationEvent
+
+from collections import deque
 import hashlib
 import socket
 import struct
@@ -78,7 +88,7 @@ OSC_NAMESPACE = "/harmocap/v1"
 SOURCE_ID_DEFAULT = "harmocap"
 N_SLOTS = 8
 N_KEYPOINTS = 17
-N_FEATURES = 24     # contrato 1.3 (feature_set 1.1): +tempo_bpm/beat_phase/tempo_conf
+N_FEATURES = 24  # contrato 1.3 (feature_set 1.1): +tempo_bpm/beat_phase/tempo_conf
 N_CALIB_PARAMS = 6
 LEASE_MS_DEFAULT = 2000.0
 LAYOUT_VERSION = "1"
@@ -283,6 +293,8 @@ class _SlotState:
     features: list[float] | None = None
     feat_state: list[int] | None = None
     last_data_ms: float = 0.0
+    captured_frame_id: int = -1
+    captured_at_us: int | None = None
 
 
 @dataclass
@@ -315,6 +327,7 @@ class DriverStats:
     tombstones: int = 0
     decode_errors: int = 0
     callback_errors: int = 0
+    dropped_slot_frame: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -323,28 +336,33 @@ class DriverStats:
 
 
 class HarMoCAPDriver:
-    """Receive HarMoCAP OSC 1.1 and emit Weaver source-channel snapshots."""
+    """Receive OSC and emit legacy snapshots or opt-in per-slot observations."""
 
     def __init__(
         self,
         on_frame: OnFrame | None = None,
         *,
+        on_observation: Callable[[ObservationEvent], None] | None = None,
         source_id: str = SOURCE_ID_DEFAULT,
         lease_ms: float = LEASE_MS_DEFAULT,
         include_kinetic_energy_alias: bool = True,
     ) -> None:
+        if on_frame is not None and on_observation is not None:
+            raise ValueError(
+                "Choose legacy on_frame or versioned on_observation, not both"
+            )
         self.on_frame = on_frame
+        self.on_observation = on_observation
         self.source_id = source_id
         self.lease_ms = float(lease_ms)
         self.include_kinetic_energy_alias = include_kinetic_energy_alias
 
+        self._retired_streams = deque(maxlen=64)
         self.stream_id: str | None = None
         self.hello: _Hello | None = None
         self.calibration: _Calibration | None = None
         self.last_seq: int = -1
-        self.slots: dict[int, _SlotState] = {
-            s: _SlotState() for s in range(N_SLOTS)
-        }
+        self.slots: dict[int, _SlotState] = {s: _SlotState() for s in range(N_SLOTS)}
         self.stats = DriverStats()
         self._channel_catalogue = channel_names(
             include_kinetic_energy_alias=include_kinetic_energy_alias
@@ -362,13 +380,26 @@ class HarMoCAPDriver:
             return
         if not msgs:
             return
+        if (
+            self.on_observation is not None
+            and msgs[0][1]
+            and msgs[0][1][0] in self._retired_streams
+        ):
+            self.stats.dropped_old += 1
+            self._expire_leases(now)
+            return
         addr0 = msgs[0][0]
-        if addr0.endswith("/hello"):
-            self._on_hello(msgs[0][1])
-        elif addr0.endswith("/calibration"):
-            self._on_calibration(msgs[0][1])
-        elif addr0.endswith("/meta"):
-            self._on_person_bundle(msgs, now_ms=now)
+        try:
+            if addr0.endswith("/hello"):
+                self._on_hello(msgs[0][1], now_ms=now)
+            elif addr0.endswith("/calibration"):
+                self._on_calibration(msgs[0][1], now_ms=now)
+            elif addr0.endswith("/meta"):
+                self._on_person_bundle(msgs, now_ms=now)
+        except (ValueError, TypeError, IndexError, OverflowError, struct.error):
+            if self.on_observation is None:
+                raise
+            self.stats.decode_errors += 1
         # Lease sweep after any packet so silence is observed even without tick().
         self._expire_leases(now)
 
@@ -378,6 +409,9 @@ class HarMoCAPDriver:
 
     def reset(self) -> None:
         """Clear all receiver state (as if the process restarted)."""
+        self._invalidate_observations("receiver_reset", self._now_ms(None))
+        if self.on_observation is not None and self.stream_id is not None:
+            self._retired_streams.append(self.stream_id)
         self.stream_id = None
         self.hello = None
         self.calibration = None
@@ -417,7 +451,10 @@ class HarMoCAPDriver:
     def _now_ms(self, now_ms: float | None) -> float:
         return time.monotonic() * 1000.0 if now_ms is None else float(now_ms)
 
-    def _reset_stream(self, stream_id: str) -> None:
+    def _reset_stream(self, stream_id: str, *, now_ms: float | None = None) -> None:
+        self._invalidate_observations("stream_changed", self._now_ms(now_ms))
+        if self.on_observation is not None and self.stream_id is not None:
+            self._retired_streams.append(self.stream_id)
         self.stream_id = stream_id
         self.hello = None
         self.calibration = None
@@ -435,13 +472,27 @@ class HarMoCAPDriver:
             return True
         return False
 
-    def _on_hello(self, args: list) -> None:
+    def _on_hello(self, args: list, *, now_ms: float | None = None) -> None:
         # /hello: stream_id, schema, feature_set, producer, model, config_hash,
         # contract_id, layout, calib_gen, calib_state, calib_hash, eff_from(h),
         # frame_w, frame_h
+        if self.on_observation is not None:
+            if len(args) < 14 or not isinstance(args[0], str) or not args[0]:
+                raise ValueError("invalid observation hello")
+            for index in (8, 12, 13):
+                if type(args[index]) is not int or args[index] < 0:
+                    raise ValueError("invalid observation hello integer")
         stream_id = args[0]
         if stream_id != self.stream_id:
-            self._reset_stream(stream_id)
+            self._reset_stream(stream_id, now_ms=now_ms)
+        if self.hello is not None and (
+            self.hello.contract_id != args[6]
+            or self.hello.calibration_generation != int(args[8])
+            or self.hello.calibration_hash != str(args[10])
+        ):
+            self._invalidate_observations(
+                "contract_or_calibration_changed", self._now_ms(now_ms)
+            )
         self.hello = _Hello(
             stream_id=stream_id,
             schema_version=args[1],
@@ -454,16 +505,27 @@ class HarMoCAPDriver:
             frame_h=int(args[13]),
         )
 
-    def _on_calibration(self, args: list) -> None:
+    def _on_calibration(self, args: list, *, now_ms: float | None = None) -> None:
         # /calibration: stream_id, generation, hash, effective_from(h), params_blob
+        if self.on_observation is not None:
+            if len(args) < 5 or not isinstance(args[0], str) or not args[0]:
+                raise ValueError("invalid observation calibration")
+            if type(args[1]) is not int or args[1] < 0:
+                raise ValueError("invalid observation calibration generation")
+            unpack_calibration_params(args[4])
         stream_id = args[0]
         if stream_id != self.stream_id:
-            self._reset_stream(stream_id)
+            self._reset_stream(stream_id, now_ms=now_ms)
         params_blob = args[4]
         expected = calibration_hash(params_blob)
         if expected != args[2]:
             # Corrupt / mismatched calibration — reject, keep previous if any.
             return
+        if self.calibration is not None and (
+            self.calibration.generation != int(args[1])
+            or self.calibration.hash != str(args[2])
+        ):
+            self._invalidate_observations("calibration_changed", self._now_ms(now_ms))
         self.calibration = _Calibration(
             generation=int(args[1]),
             hash=str(args[2]),
@@ -472,23 +534,31 @@ class HarMoCAPDriver:
 
     # -- person bundles -----------------------------------------------------
 
-    def _on_person_bundle(
-        self, msgs: list[tuple[str, list]], *, now_ms: float
-    ) -> None:
+    def _on_person_bundle(self, msgs: list[tuple[str, list]], *, now_ms: float) -> None:
         meta = msgs[0][1]
+        if len(meta) < 11:
+            self.stats.decode_errors += 1
+            return
+        if self.on_observation is not None:
+            if not isinstance(meta[0], str) or not meta[0]:
+                raise ValueError("invalid observation stream")
+            for index in (1, 2, 6, 8, 9, 10):
+                if type(meta[index]) is not int or meta[index] < 0:
+                    raise ValueError("invalid observation metadata integer")
         stream_id = meta[0]
-        # captured_frame_id = meta[1]
+        captured_frame_id = int(meta[1])
         seq = int(meta[2])
         contract_id = meta[5]
         calibration_generation = int(meta[6])
 
         if stream_id != self.stream_id:
-            self._reset_stream(stream_id)
+            self._reset_stream(stream_id, now_ms=now_ms)
 
         if seq <= self.last_seq:
             self.stats.dropped_old += 1
             return
-        self.last_seq = seq
+        if self.on_observation is None:
+            self.last_seq = seq
 
         if self._is_gated():
             self.stats.gated += 1
@@ -510,10 +580,22 @@ class HarMoCAPDriver:
         slot = person["slot"]
         if not (0 <= slot < N_SLOTS):
             return
-
+        if self.on_observation is not None and (
+            captured_frame_id <= self.slots[slot].captured_frame_id
+            or (
+                self.slots[slot].captured_at_us is not None
+                and int(meta[8]) <= self.slots[slot].captured_at_us
+            )
+        ):
+            self.stats.dropped_slot_frame += 1
+            return
         if not person["present"]:
             self.stats.tombstones += 1
+            self.last_seq = seq
             self.slots[slot] = _SlotState(present=False, last_data_ms=now_ms)
+            self.slots[slot].captured_frame_id = captured_frame_id
+            self.slots[slot].captured_at_us = int(meta[8])
+            self._emit_observation(slot, now_ms, meta, "tombstone")
             self._emit(now_ms)
             return
 
@@ -525,13 +607,20 @@ class HarMoCAPDriver:
             features=person["features"],
             feat_state=person["feat_state"],
             last_data_ms=now_ms,
+            captured_frame_id=captured_frame_id,
+            captured_at_us=int(meta[8]),
+        )
+        event = (
+            self._make_observation(slot, st, now_ms, meta, "person_bundle")
+            if self.on_observation is not None
+            else None
         )
         self.slots[slot] = st
+        self.last_seq = seq
+        self._emit_observation(slot, now_ms, meta, "person_bundle", event=event)
         self._emit(now_ms)
 
-    def _parse_person_messages(
-        self, msgs: Iterable[tuple[str, list]]
-    ) -> dict | None:
+    def _parse_person_messages(self, msgs: Iterable[tuple[str, list]]) -> dict | None:
         persons: dict[int, dict] = {}
         for addr, args in msgs:
             # /harmocap/v1/person/{slot}/{field}
@@ -560,6 +649,9 @@ class HarMoCAPDriver:
 
         if not persons:
             return None
+        if self.on_observation is not None and len(persons) != 1:
+            self.stats.decode_errors += 1
+            return None
         # One person per bundle (contract 1.1); take the only entry.
         p = next(iter(persons.values()))
         if not p.get("present", False):
@@ -580,13 +672,63 @@ class HarMoCAPDriver:
             if not st.present:
                 continue
             if now_ms - st.last_data_ms > self.lease_ms:
-                self.slots[slot] = _SlotState(present=False, last_data_ms=now_ms)
+                self.slots[slot] = _SlotState(
+                    present=False,
+                    last_data_ms=now_ms,
+                    captured_frame_id=st.captured_frame_id,
+                    captured_at_us=st.captured_at_us,
+                )
+                self._emit_observation(slot, now_ms, None, "lease_expired")
                 self.stats.lease_expiries += 1
                 changed = True
         if changed:
             self._emit(now_ms)
 
     # -- emit ---------------------------------------------------------------
+
+    def _invalidate_observations(self, reason, now_ms):
+        if self.on_observation is None:
+            return
+        for slot, state in list(self.slots.items()):
+            if state.present:
+                self.slots[slot] = _SlotState(present=False, last_data_ms=now_ms)
+                self._emit_observation(slot, now_ms, None, reason)
+
+    def _make_observation(self, slot, state, now_ms, meta, reason):
+        channels = (
+            self._channels_for_present_slot(slot, state)
+            if state.present
+            else self._channels_for_absent_slot(slot)
+        )
+        return ObservationEvent(
+            source_id=self.source_id,
+            stream_id=self.stream_id or "",
+            slot=slot,
+            event_kind="slot_update" if state.present else "slot_invalidated",
+            reason=reason,
+            contract_id=self.hello.contract_id if self.hello else None,
+            calibration_generation=self.hello.calibration_generation
+            if self.hello
+            else None,
+            calibration_hash=self.hello.calibration_hash if self.hello else None,
+            captured_frame_id=int(meta[1]) if meta else None,
+            bundle_seq=int(meta[2]) if meta else None,
+            captured_at_us=int(meta[8]) if meta else None,
+            processed_at_us=int(meta[9]) if meta else None,
+            queued_for_send_at_us=int(meta[10]) if meta else None,
+            received_at_us=round(now_ms * 1000),
+            channel_values=channels,
+        )
+
+    def _emit_observation(self, slot, now_ms, meta, reason, *, event=None):
+        if self.on_observation is None:
+            return
+        if event is None:
+            event = self._make_observation(slot, self.slots[slot], now_ms, meta, reason)
+        try:
+            self.on_observation(event)
+        except Exception:
+            self.stats.callback_errors += 1
 
     def _emit(self, now_ms: float) -> None:
         if self.on_frame is None:

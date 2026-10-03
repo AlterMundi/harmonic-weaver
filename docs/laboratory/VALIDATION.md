@@ -1929,3 +1929,27 @@ El follow-up de Oliva #36 (2767df1) pasa 18 tests en su base y 18 al importar
 Weaver actual; revisión publicada en la PR con observaciones de trazabilidad y
 digest histórico no reproducido. Su código permanece separado, al igual que el
 prototipo OSC todavía no publicado (#77).
+
+
+### Contrato OSC opt-in por slot (#77) — 2026-10-02
+
+Se implementa ObservationEvent v2 con captura/recepción en dominios separados,
+IDs originales y canales exclusivamente del slot actualizado. Estados held y
+invalid no generan muestras observadas en el consumidor de referencia.
+Tombstone/expiración conservan watermark; cambios de stream/contrato/calibración
+invalidan historia. Metadata malformada, varios slots en un único payload, NaN
+y versiones/relojes falsamente etiquetados se rechazan. Payload inválido no
+reemplaza el estado ni envenena la secuencia aceptada. Streams retirados se
+recuerdan hasta 64 por sesión, límite declarado.
+
+29 pruebas seleccionadas de driver/consumidor, engine y pads E2E pasan (69,06 s).
+Tras añadir la regresión de captura tardía que no reemplaza la base de derivada,
+21 pruebas específicas del driver pasan (0,93 s). Export JSON de eventos preserva
+IDs, clocks y causas de invalidación. La interfaz legacy continúa siendo el
+default de los launchers y el laboratorio cotidiano no se reinicia ni modifica.
+
+OSC_OBSERVATIONS documenta compatibilidad y adopción pendiente: ingreso parcial
+al motor/launchers, identidad de su contrato instalado frente al del productor y
+traza de ambos relojes sin confundirlos con el reloj operativo del engine.
+No se declara #77 completa. Fixtures sintéticos; sin datos privados, sincronía
+física ni escucha/aceptación humana acreditadas.

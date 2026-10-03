@@ -78,3 +78,7 @@ Estas preguntas tienen seguimiento propio sin prometer implementarlas todas en e
 Segunda iteración: [comparador reproducible](EVALUATION.md), [arranque y recorrido](RUNNING.md).
 
 Continuidad solicitada 2026-09-30: [roadmap completo y dependencias](ROADMAP_CONTINUATION.md).
+
+Contrato opt-in de transporte OSC por persona y fronteras de reloj/migración:
+[observaciones OSC v2](OSC_OBSERVATIONS.md), seguimiento #77. Este receptor no
+reemplaza el contrato espacial R09 ni cambia el instrumento cotidiano.
