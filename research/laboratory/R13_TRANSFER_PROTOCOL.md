@@ -177,3 +177,29 @@ variantes relacionales/HIT específicas y más predictores, intervención/retenc
 sensores/cargas/metabolismo y colaboración usuario–dispositivo. PR de Oliva permanece
 sin cambios de head y sin merge; directorios reservados no se tocaron. No se cierra
 #27 al completar este banco de software ni se sustituye el roadmap completo.
+
+## Contraste local de recordings congelados (2026-10-03)
+
+Un primer recorrido corporal ya reserva un segundo archivo respecto de dos
+segmentos train del primero: seis descriptores de velocidad de zona, mismo
+baseline, sin transferir calibración. Prefijo0/60 conserva modelos originales;
+al comparar condiciones se usa la intersección exacta de (secuencia, origen,
+objetivo) de sus predictions, no sus medias individuales de distinto soporte.
+Requests/resultados/repeticiones/receta e identidades corporales quedan locales.
+Dos tests Chrome verifican import nativo, worker, repetición, resultados frente
+al CLI y ausencia de modificación del instrumento. Ver VALIDATION para alcance.
+
+Se puede repetir cualquier request archivado sin abrir video o recalcular pose:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python \
+  -m harmonic_weaver.lab.research.heldout_run \
+  --request /ruta/local/request.json --output /ruta/local/corrida-nueva
+```
+
+También puede importarse ese request en R13 y repetirse desde la web. Una
+normalización JSON float/int en metadatos puede cambiar el request digest aunque
+los valores y modelos numéricos coincidan; comprobar binding/integridad dentro
+de cada archivo y comparar resultados por separado. No trasladar datos privados
+al repo como requisito de reproducibilidad. Reserva de recording por hash no
+certifica adquisición independiente, homología corporal ni escala física.

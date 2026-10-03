@@ -3105,3 +3105,39 @@ video cache hit, calibración, cuatro modelos/seis targets, ruteos, referencias/
 componentes/joints, preset portable y cambios de cuerpo/loop. Cache original
 manifest/frames intactos; fixtures detenidas, puerto cerrado. Targets solamente,
 sin abrir R24 ni validar escucha/aceptación humana. Medios/poses/resultados locales.
+
+### R13 · dos recordings corporales congelados, reserva por toma — 2026-10-03
+
+Usadas dos grabaciones ya evaluadas, individual y dúo; selección del cuerpo a la
+derecha en dúo conservada del snapshot explícito anterior. Dos segmentos train
+no solapados del primer archivo y test del segundo. No copia ni lectura de video,
+tracking nuevo, calibración inferida/transferida o identidad biométrica atribuida.
+Adapter productivo HeldoutService.freeze/EvaluationService verifica traces y
+conserva IDs/unidades/contextos. Seis zone-speed ordenadas; igualdad de configuración
+baseline comprobada antes de puntuar. Misma unidad nominal no prueba misma escala
+anatómica/perspectiva. Los grupos se declaran sin identidad establecida.
+
+Parámetros fijados antes del score: historia2, horizonte6 muestras, componentes2,
+ridge0.1, z-score train-only, shuffle train semilla17 y control cuadrático. Condiciones
+prefijo0 y prefijo60, con train+prefijo sólo para modelos adicionales. Pesos/scaler/
+base originales congelados. Comparación de ambas condiciones recortada a intersección
+de pares (secuencia, origen, objetivo); no compara medias de soportes distintos.
+Cada condición ejecutada dos veces con outputs idénticos en este entorno y
+recomputación integral de request/result/predictions. Todos los números, features,
+IDs/hashes/resultados corporales y receta concreta permanecen sólo locales.
+
+`heldoutFrozenRecordingsNetwork.spec.ts`: **2 Chrome passed (17.2s)** con producción,
+import JSON nativo, API y workers reales, descarga y repetición de ambos experiments.
+Comparación de modelos/resultados numéricos con ejecución CLI local; requests
+almacenados iguales en valores, binding digest→manifest comprobado por separado.
+Import JS normaliza float/int de metadata (p.ej.0.0→0); recorrido inicial detectó
+únicamente esa diferencia de digest. Comparación recursiva confirmó valores
+idénticos y cambios de tipo sólo float/int. No se exige hash CLI=browser; sí igualdad
+de outputs al repetir cada request congelado dentro del mismo entorno.
+
+Preset/revisión del instrumento permanecen iguales antes/después del banco;
+cero errores JS. Caches seleccionados originales intactos; fixture detenida y
+puerto cerrado. Sin modificación productiva/build nuevo necesarios: bundle
+verificado de #144 reutilizado. Sin R24, escucha, aceptación ni captura física.
+Esta reserva contrasta recordings; no demuestra generalización entre sujetos,
+eficiencia/causalidad/HIT, equivalencia de escalas o mejora perceptual.
