@@ -31,9 +31,13 @@ def verify(folder):
     return manifest
 
 
-def validate_report(report,settings):
+def validate_report(report,settings, *, excitation_phases_rad=None):
     if report.get('schema_version')!=1 or report.get('line')!='R06' or report['settings']!=settings.model_dump():
         raise ValueError('R06 report differs from frozen configuration')
+    if excitation_phases_rad is None:
+        if 'excitation_phases_rad' in report:raise ValueError('Unexpected excitation phases')
+    elif report.get('excitation_phases_rad')!=excitation_phases_rad:
+        raise ValueError('Excitation phases differ from frozen control')
     sr=settings.medium.sample_rate;span=math.ceil(settings.excitation_span_s*sr);total=span+math.ceil(settings.tail_s*sr)
     if report['clock']!={'sample_rate':sr,'excitation_frames':span,'total_frames':total}:raise ValueError('R06 clock mismatch')
     events=schedules(settings)
@@ -69,15 +73,29 @@ def validate_report(report,settings):
         for index,(medium,output) in enumerate(zip(controls,outputs)):
             if type(output['index']) is not int or output['index']!=index or output['medium']!=medium.model_dump():
                 raise ValueError('Medium control differs from frozen configuration')
-            child=settings.model_copy(update={'medium':medium,'medium_controls':None,'replicate_seeds':None})
-            validate_report({'schema_version':1,'line':'R06','settings':child.model_dump(),
-                'clock':report['clock'],'impulse_vector':report['impulse_vector'],'conditions':output['conditions']},child)
+            child=settings.model_copy(update={'medium':medium,'medium_controls':None,'replicate_seeds':None,'phase_controls':None})
+            validate_report({**({'excitation_phases_rad':excitation_phases_rad} if excitation_phases_rad is not None else {}),
+                'schema_version':1,'line':'R06','settings':child.model_dump(),
+                'clock':report['clock'],'impulse_vector':report['impulse_vector'],'conditions':output['conditions']},child,excitation_phases_rad=excitation_phases_rad)
             expected={name:{key:(value-report['conditions'][name]['metrics'][key] if value is not None else None)
                 for key,value in condition['metrics'].items()} for name,condition in output['conditions'].items()}
             if output['metric_difference_vs_base']!=expected:raise ValueError('Medium control metric differences mismatch')
+    if settings.phase_controls is None:
+        if 'phase_controls' in report:raise ValueError('Unexpected phase controls')
+    else:
+        outputs=report.get('phase_controls',[])
+        if len(outputs)!=len(settings.phase_controls):raise ValueError('Phase control inventory mismatch')
+        for index,(phases,output) in enumerate(zip(settings.phase_controls,outputs)):
+            if type(output['index']) is not int or output['index']!=index or output['phases_rad']!=phases:
+                raise ValueError('Phase control differs from frozen configuration')
+            child=settings.model_copy(update={'phase_controls':None,'replicate_seeds':None})
+            validate_report(output['report'],child,excitation_phases_rad=phases)
+            expected={name:{key:(value-report['conditions'][name]['metrics'][key] if value is not None else None)
+                for key,value in condition['metrics'].items()} for name,condition in output['report']['conditions'].items()}
+            if output['metric_difference_vs_base']!=expected:raise ValueError('Phase control metric differences mismatch')
     seeds=settings.replicate_seeds
     if seeds is None:
-        if 'replicates' in report or 'replicate_summary' in report:raise ValueError('Unexpected replicate bank')
+        if 'replicates' in report or 'replicate_summary' in report or 'phase_replicate_summary' in report:raise ValueError('Unexpected replicate bank')
     else:
         outputs=report.get('replicates',[])
         if [item['seed'] for item in outputs]!=seeds or any(type(item['seed']) is not int for item in outputs):
@@ -86,3 +104,9 @@ def validate_report(report,settings):
             validate_report(item['report'],settings.model_copy(update={'seed':item['seed'],'replicate_seeds':None}))
         from .activation_bank import replicate_summary
         if report.get('replicate_summary')!=replicate_summary(report):raise ValueError('Replicate descriptive summary mismatch')
+        if settings.phase_controls is not None:
+            expected={str(index):replicate_summary({**report['phase_controls'][index]['report'],
+                'replicates':[{'report':r['report']['phase_controls'][index]['report']} for r in report['replicates']]})
+                for index in range(len(settings.phase_controls))}
+            if report.get('phase_replicate_summary')!=expected:raise ValueError('Phase replicate summary mismatch')
+        elif 'phase_replicate_summary' in report:raise ValueError('Unexpected phase replicate summary')

@@ -95,3 +95,32 @@ deterministas pueden repetirse. UI checkbox/JSON/preset y selector que cambia
 tablas y trace conjuntamente. 29 tests + Chrome real + build pasan. Campo None
 omitido conserva formatos anteriores. Pendientes controles fase/espectro con
 observable definido, hipótesis HIT y protocolos físicos/humanos.
+
+## R06 · Fases explícitas de excitación — 2026-10-02
+
+`phase_controls` opcional: hasta cuatro vectores, un ángulo en radianes por voz
+(−1000..1000). Cada impulso real se rota por exp(i·fase) antes del paso del medio.
+Se mantienen magnitudes/dosis L2, calendarios, cero inicial, portadoras y medio.
+No equivale a iniciar el medio con energía ni a desplazar tiempos de eventos.
+Un vector cero reproduce exactamente la base; el campo omitido mantiene formatos
+y comportamiento anteriores. Fases son declaradas, no estimadas del cuerpo.
+
+ActivationPanel ofrece checkbox/lista JSON, import/export portable, selector de
+fase por resultado/semilla, tablas de diferencias frente a base cero y trazas
+del medio elegido. Se cruza con medios, interval_shuffle y semillas adicionales;
+phase_replicate_summary conserva el resumen descriptivo de cada fase/medio.
+El límite agregado de144000 puntos incluye estos cruces para evitar bancos enormes.
+Importar configuración no ejecuta ni cambia audio live.
+
+En medio aislado la rotación por voz conserva norma de estado pero puede cambiar
+RMS/pico de la mezcla; en medio acoplado las fases relativas pueden cambiar también
+la respuesta interna. Las métricas distinguen composición audible de norma interna,
+que sigue sin ser energía física ni eficacia corporal. No se normaliza output.
+
+El verificador reconstruye inventario/fases/calendarios/dosis/soporte/deltas/resumen,
+no rerenderiza cada métrica ni certifica autoría de valores arbitrarios rehasheados.
+Controles de software sobre fixtures sintéticos: 48 tests pasan, incluido legado,
+workers/API/render y siete tests nuevos; Chrome real repite dos bancos byte-idénticos,
+recupera preset y selecciona fase/medio/semilla (1test,5.8s). Build pasa.
+Pendientes espectro, observable/hipótesis HIT concreta y protocolos físicos/humanos.
+No valida HIT ni modifica fases/ratios del instrumento cotidiano aceptado.

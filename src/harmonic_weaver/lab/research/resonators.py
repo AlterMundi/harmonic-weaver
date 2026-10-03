@@ -56,11 +56,17 @@ class Resonators:
     def reset(self):
         self.state.fill(0);self.sample_index=0
 
-    def render(self,impulses):
+    def render(self,impulses, *, excitation_phases_rad=None):
         impulses=np.asarray(impulses,dtype=float)
         n=len(self.state)
         if impulses.ndim!=2 or impulses.shape[1]!=n or not np.isfinite(impulses).all():raise ValueError('Finite frames × voice impulses required')
         if len(impulses)>self.settings.sample_rate*120:raise ValueError('Render at most 120 seconds per call')
+        if excitation_phases_rad is not None:
+            phases=np.asarray(excitation_phases_rad,dtype=float)
+            if phases.shape!=(n,) or not np.isfinite(phases).all():
+                raise ValueError('One finite excitation phase per voice required')
+            if np.any(phases!=0):impulses=impulses*np.exp(1j*phases)
+
         output=np.empty((len(impulses),n),dtype=float)
         quadrature=np.empty((len(impulses),n),dtype=float)
         norms=np.empty(len(impulses),dtype=float)

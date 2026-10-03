@@ -2047,3 +2047,19 @@ expansión por64 canales faltantes. Build TypeScript/Vite pasa. Chrome UI/API re
 procedencia, convertir→guardar→reabrir y rechazo NaN sin resultado viejo. Fixture
 aislado8899 detenido; datos sintéticos, sin audio/hardware ni cambios cotidianos.
 No se certifica un formato OpenBCI real, acquisition clock físico ni EEG/SNR.
+
+## R06: controles explícitos de fase de excitación — 2026-10-02
+
+Extensión opt-in del render experimental para rotar impulsos complejos por voz,
+con cero inicial, eventos/magnitudes/L2/portadoras/medio preservados. phase_controls
+cruza medios/semillas/surrogates, añade tablas/deltas y resumen por fase; UI/presets/
+verificador conservan compatibilidad con campo omitido. No fase corporal inferida.
+
+48 tests R06/resonadores/render/API pasan (7.87s; deprecación AnyIO sin fallo).
+Siete nuevos: cero exacto, norma aislada invariante y mezcla diferente, particiones,
+cruces/resúmenes, vector inválido/budget y corrupción de fases/dosis/deltas aun con
+hash rehecho. Chrome API/UI/worker real: dos resultados byte-idénticos, preset
+export/import sin corrida implícita, tabla/trace por fase/medio/semilla (5.8s).
+Build pasa. Fixture8900 detenido; no audio/hardware/medios privados ni escucha nueva.
+Fases acopladas pueden cambiar norma interna; no es energía física. Espectro,
+hipótesis HIT específica y protocolo físico/humano permanecen pendientes.
