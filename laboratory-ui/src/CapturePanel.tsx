@@ -5,7 +5,9 @@ export function CapturePanel({api,run}:Data){
  const [state,setState]=useState<Data>({current:{status:'idle'},jobs:[]});
  useEffect(()=>{let live=true;const poll=()=>api('captures').then((s:Data)=>{if(live)setState(s)}).catch(()=>{});
  void poll();const id=setInterval(poll,500);return()=>{live=false;clearInterval(id)};},[api]);
- const [exportSettings,setExportSettings]=useState<Data>({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'collector_monotonic_s',browser_preview:false,preview_audio_kbps:192,skeleton_overlay:false,skeleton_people:'selected',skeleton_confidence:0,skeleton_max_offset_s:.1,skeleton_line_px:2});
+ const [exportSettings,setExportSettings]=useState<Data>({fps:30,width:1280,height:720,offset_s:0,max_gap_s:.25,camera_clock:'collector_monotonic_s',browser_preview:false,preview_audio_kbps:192,harmonic_figure:false,figure_window_hz:40.4,skeleton_overlay:false,skeleton_people:'selected',skeleton_confidence:0,skeleton_max_offset_s:.1,skeleton_line_px:2});
+ const [figureVisual,setFigureVisual]=useState('{}');
+ const exportPayload=()=>({...exportSettings,figure_visual:JSON.parse(figureVisual)});
  const [preview,setPreview]=useState<string|null>(null);
  const [exportJobs,setExportJobs]=useState<Data[]>([]);
  const [exportState,setExportState]=useState<Data>({status:'idle'});
@@ -40,6 +42,7 @@ export function CapturePanel({api,run}:Data){
    ['fps','Fotogramas por segundo',1,120,1],['width','Ancho de exportación',64,1920,2],
    ['height','Alto de exportación',64,1080,2],['offset_s','Offset de alineación (s)',-5,5,.01],
    ['max_gap_s','Edad máxima de observación (s)',.001,5,.01],
+   ['figure_window_hz','Frecuencia de referencia de la ventana de figura (Hz)',.001,20000,.1],
    ['skeleton_confidence','Confianza mínima del esqueleto',0,1,.05],
    ['skeleton_max_offset_s','Desfase máximo pose/video (s)',0,1,.01],
    ['skeleton_line_px','Grosor del esqueleto (px)',1,12,1],
@@ -56,11 +59,15 @@ export function CapturePanel({api,run}:Data){
   <label><input type="checkbox" checked={exportSettings.skeleton_overlay} disabled={exporting} onChange={e=>setExportSettings({...exportSettings,skeleton_overlay:e.target.checked})}/>Incluir esqueleto observado en la exportación</label>
   <label>Personas en el esqueleto<select value={exportSettings.skeleton_people} disabled={exporting} onChange={e=>setExportSettings({...exportSettings,skeleton_people:e.target.value})}><option value="selected">Persona seleccionada en cada observación</option><option value="all">Todas las personas observadas</option></select></label>
   <small>Sin interpolar poses. Omite huecos, cambios de época, coordenadas sin proyección y poses que no coincidan con el video.</small>
+  <label><input type="checkbox" checked={exportSettings.harmonic_figure} disabled={exporting} onChange={e=>setExportSettings({...exportSettings,harmonic_figure:e.target.checked})}/>Incluir figura de todos los osciladores grabados</label>
+  <label>Estilo de figura exportada (JSON)<textarea value={figureVisual} disabled={exporting} onChange={e=>setFigureVisual(e.target.value)}/></label>
+  <small>Panel junto al video. JSON acepta window_periods, samples, persistence, line_width, brightness, scale, auto_scale, components y color (ice/gold/violet). La frecuencia de referencia determina la ventana visual; no cambia la afinación. Usa fase y ganancia del bloque PCM, antes de waveshaping/limiter; no es una medición de cymatics físico.</small>
   <p>Preview con audio AAC comprimido; el MKV conserva PCM exacto. No se reproduce automáticamente.</p>
   <p>Exportación: {exportState.status} · {exportState.frames || 0} frames · {exportState.error || ''}</p>
   {exportState.directory && <small>Salida local: {exportState.directory}</small>}
   <button disabled={!exporting} onClick={()=>run(async()=>{setExportState(await api('capture-exports/cancel',{}));})}>Cancelar exportación</button>
   {exportJobs.map((j:Data)=><div key={j.id}><p>Exportación {j.id.slice(0,8)} · {j.status} · {j.error || ''}</p>
+    {j.harmonic_figure?.enabled && <p>Figura: {j.harmonic_figure.frames} frames · omisiones: {JSON.stringify(j.harmonic_figure.omissions)}</p>}
     {j.skeleton_overlay?.enabled && <p>Esqueleto: {j.skeleton_overlay.frames} frames · omisiones: {JSON.stringify(j.skeleton_overlay.omissions)}</p>}
     {j.capture_completeness==='recovered_partial' && <p>Exportación de prefijo recuperado: captura parcial; sólo incluye imágenes recuperadas verificadas.</p>}
     {j.status==='complete' && <><a href={`/api/capture-exports/${j.id}/artifacts/capture.mkv`} download>Descargar video + PCM</a>{' · '}
@@ -82,11 +89,11 @@ export function CapturePanel({api,run}:Data){
   {recovery.camera?.error && <p>Imágenes no recuperadas: {recovery.camera.error}. El audio recuperado se conserva.</p>}
   {state.jobs.map((j:Data)=><div key={j.id}><p>{j.status} · {j.events || 0} eventos · {j.timeline_rows || 0} observaciones · {j.error}</p>
     <button disabled={j.status!=='complete' || exporting} onClick={()=>run(async()=>{
-      setExportState(await api(`captures/${j.id}/export`,exportSettings));
+      setExportState(await api(`captures/${j.id}/export`,exportPayload()));
     })}>Exportar captura {j.id.slice(0,8)}</button>
     {['failed','interrupted'].includes(j.status) && j.recovery?.result && j.recovery?.journal?.status==='partial' &&
       <button disabled={exporting || j.recovery.status==='recovering'} onClick={()=>run(async()=>{
-        setExportState(await api(`captures/${j.id}/export`,{...exportSettings,recovered_prefix:true}));
+        setExportState(await api(`captures/${j.id}/export`,{...exportPayload(),recovered_prefix:true}));
       })}>Exportar prefijo recuperado {j.id.slice(0,8)}</button>}
     {['failed','interrupted'].includes(j.status) && <button disabled={recovery.status==='recovering' || j.recovery?.status==='recovering' || !j.shaper?.id}
       onClick={()=>run(async()=>setRecovery(await api(`captures/${j.id}/recover`,{})))}>Recuperar audio {j.id.slice(0,8)}</button>}

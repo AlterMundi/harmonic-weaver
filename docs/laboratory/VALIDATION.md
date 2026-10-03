@@ -2290,3 +2290,19 @@ Build TypeScript/Vite pasa. Chrome: un test de controles reales de CapturePanel
 y recuperado, sin iniciar captura. No demuestra adquisición ni sincronía física.
 Servidor de prueba detenido al terminar; servicios cotidianos/R24 preservados.
 Sin escucha ni aceptación humana nuevas. Figura armónica exportada pendiente.
+
+## LAB-09: figura desde bloques PCM efectivos — 2026-10-03
+
+47 pruebas figure/skeleton/export/timeline pasan (7.31 s). Un corte posterior
+añade una prueba integrada con Shaper real: seis voces generadas sin dispositivo
+se capturan y se leen con el reloj/fases efectivos (las seis pruebas del módulo
+figure pasan en 1.36 s). Renders FFmpeg completos y recuperados conservan PCM
+exacto y muestran seis voces en el panel MP4. Se cubren corte final de callback,
+rampas, fases, cambio de bloque, silencio confirmado, ausencia/NaN de telemetría
+y capturas históricas sin datos de osciladores. Datos exclusivamente sintéticos.
+
+Build TypeScript/Vite pasa. Chrome, red simulada: controles de esqueleto y
+figura, estilo JSON y frecuencia de ventana llegan a exportación de prefijo.
+Sin dispositivo R24 ni servicios cotidianos modificados. Sin aceptación humana
+ni medición de sincronía física. El resultado es una figura pre-shape/limiter,
+no un cymatic observado ni una prueba de HIT.

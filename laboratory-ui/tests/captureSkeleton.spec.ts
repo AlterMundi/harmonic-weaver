@@ -23,5 +23,11 @@ test('skeleton controls reach complete and recovered exports without starting ca
  await page.getByRole('button',{name:'Exportar prefijo recuperado partial',exact:true}).click();
  await expect.poll(()=>posted.length).toBe(2);
  expect(posted[1].body).toMatchObject({skeleton_overlay:true,recovered_prefix:true,browser_preview:true});
- expect(posted.map(p=>p.path)).toEqual(['/api/captures/complete/export','/api/captures/partial/export']);
+ await page.getByRole('checkbox',{name:'Incluir figura de todos los osciladores grabados'}).check();
+ await page.getByLabel('Estilo de figura exportada (JSON)').fill('{"color":"gold","components":true}');
+ await page.getByLabel('Frecuencia de referencia de la ventana de figura (Hz)').fill('55');
+ await page.getByRole('button',{name:'Exportar prefijo recuperado partial',exact:true}).click();
+ await expect.poll(()=>posted.length).toBe(3);
+ expect(posted[2].body).toMatchObject({harmonic_figure:true,figure_window_hz:55,figure_visual:{color:'gold',components:true},recovered_prefix:true});
+ expect(posted.slice(0,2).map(p=>p.path)).toEqual(['/api/captures/complete/export','/api/captures/partial/export']);
 });
