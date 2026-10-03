@@ -1,0 +1,4695 @@
+{
+  "artifact_hashes": [
+    {
+      "global_rotation.jsonl": "1e9a179fd18df0d1b7a3a8793a6f4d6b88788cfe17bba9fd349d1e4f3661f954",
+      "original.jsonl": "ef95036125c79a96731a017d735ff9f69876161380245e0a0183b9957fe7dd2b",
+      "paired.jsonl": "4cb1b1cb06deb9d00e7be8ed25a5feb55cc2d2803c78f875153720da8ee4c102",
+      "temporal_shuffle.jsonl": "fc239609d2bd129e81adc4f45f29841a3956421eab5fb62742fe97b6d5f8690d"
+    },
+    {
+      "global_rotation.jsonl": "ae798c471ec9afbc7319f55c934eff44d691fc21f1c2f5494520764b26620d13",
+      "original.jsonl": "9ad61762ef8c42be8766b6482dc9d717a581113a6d7b1c59dbfdae686d922d06",
+      "paired.jsonl": "5bdc414bc8b98af3a7be8cf671c1ebab68a3c177d97e5987d713c6bc705d70fc",
+      "temporal_shuffle.jsonl": "3ba9bd7cd89320090639df9d5dc8923da4101f6055b4d132dafddaa28d1e28c3"
+    },
+    {
+      "global_rotation.jsonl": "4dcc32c5e1bbf953b1a249a54a99e70f4ab686f21e7f709d0318fe75adaab468",
+      "original.jsonl": "59068e36a43e73cbddfbc898ff9c8ddbace10d6b60f26f4d5dbec0d785d842af",
+      "paired.jsonl": "b0fdde8f460b8c0defdeff2d3b68ff95750d914e5b57ea0884fe7163841173a2",
+      "temporal_shuffle.jsonl": "707135a3bae558c68218cae8630e4eb90cfe4a8d934cfabce62710c2e45b022c"
+    }
+  ],
+  "cases": {
+    "horizon_pairs": {
+      "controls": [
+        {
+          "common_count": 0,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 94,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "mean_mse": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "origins_s": [],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 87,
+              "excluded_from_common": 87,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "mean_mse": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "origins_s": [],
+              "run_id": "cccccccccccccccccccccccccccccccc",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 6,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            }
+          ],
+          "control": "original",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [],
+          "support_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "common_count": 0,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 94,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "mean_mse": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "origins_s": [],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 87,
+              "excluded_from_common": 87,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "mean_mse": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "origins_s": [],
+              "run_id": "cccccccccccccccccccccccccccccccc",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 6,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            }
+          ],
+          "control": "global_rotation",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [],
+          "support_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        {
+          "common_count": 0,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 94,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "mean_mse": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "origins_s": [],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 87,
+              "excluded_from_common": 87,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "mean_mse": {
+                "full_ridge": null,
+                "persistence": null,
+                "subspace_ridge": null
+              },
+              "origins_s": [],
+              "run_id": "cccccccccccccccccccccccccccccccc",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 6,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            }
+          ],
+          "control": "temporal_shuffle",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [],
+          "support_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      ],
+      "support_columns": [
+        "segment_index",
+        "target_s",
+        "origin_s"
+      ],
+      "support_mode": "origin_target"
+    },
+    "horizon_targets": {
+      "controls": [
+        {
+          "common_count": 87,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 7,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.0,
+                "persistence": 0.0,
+                "subspace_ridge": 0.0
+              },
+              "mean_mse": {
+                "full_ridge": 0.004618605055656352,
+                "persistence": 0.003352984323983223,
+                "subspace_ridge": 0.004614669221265897
+              },
+              "origins_s": [
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 87,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.1980417279857855,
+                "persistence": 0.10183787755927394,
+                "subspace_ridge": 0.1981087026391559
+              },
+              "mean_mse": {
+                "full_ridge": 0.20266033304144185,
+                "persistence": 0.10519086188325713,
+                "subspace_ridge": 0.20272337186042177
+              },
+              "origins_s": [
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1
+              ],
+              "run_id": "cccccccccccccccccccccccccccccccc",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 6,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            }
+          ],
+          "control": "original",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [
+            [
+              0,
+              0.43333333333333335
+            ],
+            [
+              0,
+              0.4666666666666667
+            ],
+            [
+              0,
+              0.5
+            ],
+            [
+              0,
+              0.5333333333333333
+            ],
+            [
+              0,
+              0.5666666666666667
+            ],
+            [
+              0,
+              0.6
+            ],
+            [
+              0,
+              0.6333333333333333
+            ],
+            [
+              0,
+              0.6666666666666666
+            ],
+            [
+              0,
+              0.7
+            ],
+            [
+              0,
+              0.7333333333333333
+            ],
+            [
+              0,
+              0.7666666666666667
+            ],
+            [
+              0,
+              0.8
+            ],
+            [
+              0,
+              0.8333333333333334
+            ],
+            [
+              0,
+              0.8666666666666667
+            ],
+            [
+              0,
+              0.9
+            ],
+            [
+              0,
+              0.9333333333333333
+            ],
+            [
+              0,
+              0.9666666666666667
+            ],
+            [
+              0,
+              1.0
+            ],
+            [
+              0,
+              1.0333333333333334
+            ],
+            [
+              0,
+              1.0666666666666667
+            ],
+            [
+              0,
+              1.1
+            ],
+            [
+              0,
+              1.1333333333333333
+            ],
+            [
+              0,
+              1.1666666666666667
+            ],
+            [
+              0,
+              1.2
+            ],
+            [
+              0,
+              1.2333333333333334
+            ],
+            [
+              0,
+              1.2666666666666666
+            ],
+            [
+              0,
+              1.3
+            ],
+            [
+              0,
+              1.3333333333333333
+            ],
+            [
+              0,
+              1.3666666666666667
+            ],
+            [
+              0,
+              1.4
+            ],
+            [
+              0,
+              1.4333333333333333
+            ],
+            [
+              0,
+              1.4666666666666666
+            ],
+            [
+              0,
+              1.5
+            ],
+            [
+              0,
+              1.5333333333333334
+            ],
+            [
+              0,
+              1.5666666666666667
+            ],
+            [
+              0,
+              1.6
+            ],
+            [
+              0,
+              1.6333333333333333
+            ],
+            [
+              0,
+              1.6666666666666667
+            ],
+            [
+              0,
+              1.7
+            ],
+            [
+              0,
+              1.7333333333333334
+            ],
+            [
+              0,
+              1.7666666666666666
+            ],
+            [
+              0,
+              1.8
+            ],
+            [
+              0,
+              1.8333333333333333
+            ],
+            [
+              0,
+              1.8666666666666667
+            ],
+            [
+              0,
+              1.9
+            ],
+            [
+              0,
+              1.9333333333333333
+            ],
+            [
+              0,
+              1.9666666666666666
+            ],
+            [
+              0,
+              2.0
+            ],
+            [
+              0,
+              2.033333333333333
+            ],
+            [
+              0,
+              2.066666666666667
+            ],
+            [
+              0,
+              2.1
+            ],
+            [
+              0,
+              2.1333333333333333
+            ],
+            [
+              0,
+              2.1666666666666665
+            ],
+            [
+              0,
+              2.2
+            ],
+            [
+              0,
+              2.2333333333333334
+            ],
+            [
+              0,
+              2.2666666666666666
+            ],
+            [
+              0,
+              2.3
+            ],
+            [
+              0,
+              2.3333333333333335
+            ],
+            [
+              0,
+              2.3666666666666667
+            ],
+            [
+              0,
+              2.4
+            ],
+            [
+              0,
+              2.433333333333333
+            ],
+            [
+              0,
+              2.466666666666667
+            ],
+            [
+              0,
+              2.5
+            ],
+            [
+              0,
+              2.533333333333333
+            ],
+            [
+              0,
+              2.566666666666667
+            ],
+            [
+              0,
+              2.6
+            ],
+            [
+              0,
+              2.6333333333333333
+            ],
+            [
+              0,
+              2.6666666666666665
+            ],
+            [
+              0,
+              2.7
+            ],
+            [
+              0,
+              2.7333333333333334
+            ],
+            [
+              0,
+              2.7666666666666666
+            ],
+            [
+              0,
+              2.8
+            ],
+            [
+              0,
+              2.8333333333333335
+            ],
+            [
+              0,
+              2.8666666666666667
+            ],
+            [
+              0,
+              2.9
+            ],
+            [
+              0,
+              2.933333333333333
+            ],
+            [
+              0,
+              2.966666666666667
+            ],
+            [
+              0,
+              3.0
+            ],
+            [
+              0,
+              3.033333333333333
+            ],
+            [
+              0,
+              3.066666666666667
+            ],
+            [
+              0,
+              3.1
+            ],
+            [
+              0,
+              3.1333333333333333
+            ],
+            [
+              0,
+              3.1666666666666665
+            ],
+            [
+              0,
+              3.2
+            ],
+            [
+              0,
+              3.2333333333333334
+            ],
+            [
+              0,
+              3.2666666666666666
+            ],
+            [
+              0,
+              3.3
+            ]
+          ],
+          "support_sha256": "f5016d62b38c056824c1e78eed14ac9015d7b2d42eda7ea6747c0b33b0e527fd"
+        },
+        {
+          "common_count": 87,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 7,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.0,
+                "persistence": 0.0,
+                "subspace_ridge": 0.0
+              },
+              "mean_mse": {
+                "full_ridge": 0.004618605055656358,
+                "persistence": 0.003352984323983224,
+                "subspace_ridge": 0.0046146692212659
+              },
+              "origins_s": [
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 87,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.19804172798578568,
+                "persistence": 0.10183787755927398,
+                "subspace_ridge": 0.19810870263915592
+              },
+              "mean_mse": {
+                "full_ridge": 0.20266033304144204,
+                "persistence": 0.10519086188325717,
+                "subspace_ridge": 0.20272337186042189
+              },
+              "origins_s": [
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1
+              ],
+              "run_id": "cccccccccccccccccccccccccccccccc",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 6,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            }
+          ],
+          "control": "global_rotation",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [
+            [
+              0,
+              0.43333333333333335
+            ],
+            [
+              0,
+              0.4666666666666667
+            ],
+            [
+              0,
+              0.5
+            ],
+            [
+              0,
+              0.5333333333333333
+            ],
+            [
+              0,
+              0.5666666666666667
+            ],
+            [
+              0,
+              0.6
+            ],
+            [
+              0,
+              0.6333333333333333
+            ],
+            [
+              0,
+              0.6666666666666666
+            ],
+            [
+              0,
+              0.7
+            ],
+            [
+              0,
+              0.7333333333333333
+            ],
+            [
+              0,
+              0.7666666666666667
+            ],
+            [
+              0,
+              0.8
+            ],
+            [
+              0,
+              0.8333333333333334
+            ],
+            [
+              0,
+              0.8666666666666667
+            ],
+            [
+              0,
+              0.9
+            ],
+            [
+              0,
+              0.9333333333333333
+            ],
+            [
+              0,
+              0.9666666666666667
+            ],
+            [
+              0,
+              1.0
+            ],
+            [
+              0,
+              1.0333333333333334
+            ],
+            [
+              0,
+              1.0666666666666667
+            ],
+            [
+              0,
+              1.1
+            ],
+            [
+              0,
+              1.1333333333333333
+            ],
+            [
+              0,
+              1.1666666666666667
+            ],
+            [
+              0,
+              1.2
+            ],
+            [
+              0,
+              1.2333333333333334
+            ],
+            [
+              0,
+              1.2666666666666666
+            ],
+            [
+              0,
+              1.3
+            ],
+            [
+              0,
+              1.3333333333333333
+            ],
+            [
+              0,
+              1.3666666666666667
+            ],
+            [
+              0,
+              1.4
+            ],
+            [
+              0,
+              1.4333333333333333
+            ],
+            [
+              0,
+              1.4666666666666666
+            ],
+            [
+              0,
+              1.5
+            ],
+            [
+              0,
+              1.5333333333333334
+            ],
+            [
+              0,
+              1.5666666666666667
+            ],
+            [
+              0,
+              1.6
+            ],
+            [
+              0,
+              1.6333333333333333
+            ],
+            [
+              0,
+              1.6666666666666667
+            ],
+            [
+              0,
+              1.7
+            ],
+            [
+              0,
+              1.7333333333333334
+            ],
+            [
+              0,
+              1.7666666666666666
+            ],
+            [
+              0,
+              1.8
+            ],
+            [
+              0,
+              1.8333333333333333
+            ],
+            [
+              0,
+              1.8666666666666667
+            ],
+            [
+              0,
+              1.9
+            ],
+            [
+              0,
+              1.9333333333333333
+            ],
+            [
+              0,
+              1.9666666666666666
+            ],
+            [
+              0,
+              2.0
+            ],
+            [
+              0,
+              2.033333333333333
+            ],
+            [
+              0,
+              2.066666666666667
+            ],
+            [
+              0,
+              2.1
+            ],
+            [
+              0,
+              2.1333333333333333
+            ],
+            [
+              0,
+              2.1666666666666665
+            ],
+            [
+              0,
+              2.2
+            ],
+            [
+              0,
+              2.2333333333333334
+            ],
+            [
+              0,
+              2.2666666666666666
+            ],
+            [
+              0,
+              2.3
+            ],
+            [
+              0,
+              2.3333333333333335
+            ],
+            [
+              0,
+              2.3666666666666667
+            ],
+            [
+              0,
+              2.4
+            ],
+            [
+              0,
+              2.433333333333333
+            ],
+            [
+              0,
+              2.466666666666667
+            ],
+            [
+              0,
+              2.5
+            ],
+            [
+              0,
+              2.533333333333333
+            ],
+            [
+              0,
+              2.566666666666667
+            ],
+            [
+              0,
+              2.6
+            ],
+            [
+              0,
+              2.6333333333333333
+            ],
+            [
+              0,
+              2.6666666666666665
+            ],
+            [
+              0,
+              2.7
+            ],
+            [
+              0,
+              2.7333333333333334
+            ],
+            [
+              0,
+              2.7666666666666666
+            ],
+            [
+              0,
+              2.8
+            ],
+            [
+              0,
+              2.8333333333333335
+            ],
+            [
+              0,
+              2.8666666666666667
+            ],
+            [
+              0,
+              2.9
+            ],
+            [
+              0,
+              2.933333333333333
+            ],
+            [
+              0,
+              2.966666666666667
+            ],
+            [
+              0,
+              3.0
+            ],
+            [
+              0,
+              3.033333333333333
+            ],
+            [
+              0,
+              3.066666666666667
+            ],
+            [
+              0,
+              3.1
+            ],
+            [
+              0,
+              3.1333333333333333
+            ],
+            [
+              0,
+              3.1666666666666665
+            ],
+            [
+              0,
+              3.2
+            ],
+            [
+              0,
+              3.2333333333333334
+            ],
+            [
+              0,
+              3.2666666666666666
+            ],
+            [
+              0,
+              3.3
+            ]
+          ],
+          "support_sha256": "f5016d62b38c056824c1e78eed14ac9015d7b2d42eda7ea6747c0b33b0e527fd"
+        },
+        {
+          "common_count": 87,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 7,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.0,
+                "persistence": 0.0,
+                "subspace_ridge": 0.0
+              },
+              "mean_mse": {
+                "full_ridge": 0.31147302937413895,
+                "persistence": 0.5902309035487258,
+                "subspace_ridge": 0.31162267172898933
+              },
+              "origins_s": [
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 87,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.007802941003102128,
+                "persistence": 0.005503615131191615,
+                "subspace_ridge": 0.0073915269705979595
+              },
+              "mean_mse": {
+                "full_ridge": 0.31927597037724104,
+                "persistence": 0.5957345186799173,
+                "subspace_ridge": 0.3190141986995873
+              },
+              "origins_s": [
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1
+              ],
+              "run_id": "cccccccccccccccccccccccccccccccc",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 6,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            }
+          ],
+          "control": "temporal_shuffle",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [
+            [
+              0,
+              0.43333333333333335
+            ],
+            [
+              0,
+              0.4666666666666667
+            ],
+            [
+              0,
+              0.5
+            ],
+            [
+              0,
+              0.5333333333333333
+            ],
+            [
+              0,
+              0.5666666666666667
+            ],
+            [
+              0,
+              0.6
+            ],
+            [
+              0,
+              0.6333333333333333
+            ],
+            [
+              0,
+              0.6666666666666666
+            ],
+            [
+              0,
+              0.7
+            ],
+            [
+              0,
+              0.7333333333333333
+            ],
+            [
+              0,
+              0.7666666666666667
+            ],
+            [
+              0,
+              0.8
+            ],
+            [
+              0,
+              0.8333333333333334
+            ],
+            [
+              0,
+              0.8666666666666667
+            ],
+            [
+              0,
+              0.9
+            ],
+            [
+              0,
+              0.9333333333333333
+            ],
+            [
+              0,
+              0.9666666666666667
+            ],
+            [
+              0,
+              1.0
+            ],
+            [
+              0,
+              1.0333333333333334
+            ],
+            [
+              0,
+              1.0666666666666667
+            ],
+            [
+              0,
+              1.1
+            ],
+            [
+              0,
+              1.1333333333333333
+            ],
+            [
+              0,
+              1.1666666666666667
+            ],
+            [
+              0,
+              1.2
+            ],
+            [
+              0,
+              1.2333333333333334
+            ],
+            [
+              0,
+              1.2666666666666666
+            ],
+            [
+              0,
+              1.3
+            ],
+            [
+              0,
+              1.3333333333333333
+            ],
+            [
+              0,
+              1.3666666666666667
+            ],
+            [
+              0,
+              1.4
+            ],
+            [
+              0,
+              1.4333333333333333
+            ],
+            [
+              0,
+              1.4666666666666666
+            ],
+            [
+              0,
+              1.5
+            ],
+            [
+              0,
+              1.5333333333333334
+            ],
+            [
+              0,
+              1.5666666666666667
+            ],
+            [
+              0,
+              1.6
+            ],
+            [
+              0,
+              1.6333333333333333
+            ],
+            [
+              0,
+              1.6666666666666667
+            ],
+            [
+              0,
+              1.7
+            ],
+            [
+              0,
+              1.7333333333333334
+            ],
+            [
+              0,
+              1.7666666666666666
+            ],
+            [
+              0,
+              1.8
+            ],
+            [
+              0,
+              1.8333333333333333
+            ],
+            [
+              0,
+              1.8666666666666667
+            ],
+            [
+              0,
+              1.9
+            ],
+            [
+              0,
+              1.9333333333333333
+            ],
+            [
+              0,
+              1.9666666666666666
+            ],
+            [
+              0,
+              2.0
+            ],
+            [
+              0,
+              2.033333333333333
+            ],
+            [
+              0,
+              2.066666666666667
+            ],
+            [
+              0,
+              2.1
+            ],
+            [
+              0,
+              2.1333333333333333
+            ],
+            [
+              0,
+              2.1666666666666665
+            ],
+            [
+              0,
+              2.2
+            ],
+            [
+              0,
+              2.2333333333333334
+            ],
+            [
+              0,
+              2.2666666666666666
+            ],
+            [
+              0,
+              2.3
+            ],
+            [
+              0,
+              2.3333333333333335
+            ],
+            [
+              0,
+              2.3666666666666667
+            ],
+            [
+              0,
+              2.4
+            ],
+            [
+              0,
+              2.433333333333333
+            ],
+            [
+              0,
+              2.466666666666667
+            ],
+            [
+              0,
+              2.5
+            ],
+            [
+              0,
+              2.533333333333333
+            ],
+            [
+              0,
+              2.566666666666667
+            ],
+            [
+              0,
+              2.6
+            ],
+            [
+              0,
+              2.6333333333333333
+            ],
+            [
+              0,
+              2.6666666666666665
+            ],
+            [
+              0,
+              2.7
+            ],
+            [
+              0,
+              2.7333333333333334
+            ],
+            [
+              0,
+              2.7666666666666666
+            ],
+            [
+              0,
+              2.8
+            ],
+            [
+              0,
+              2.8333333333333335
+            ],
+            [
+              0,
+              2.8666666666666667
+            ],
+            [
+              0,
+              2.9
+            ],
+            [
+              0,
+              2.933333333333333
+            ],
+            [
+              0,
+              2.966666666666667
+            ],
+            [
+              0,
+              3.0
+            ],
+            [
+              0,
+              3.033333333333333
+            ],
+            [
+              0,
+              3.066666666666667
+            ],
+            [
+              0,
+              3.1
+            ],
+            [
+              0,
+              3.1333333333333333
+            ],
+            [
+              0,
+              3.1666666666666665
+            ],
+            [
+              0,
+              3.2
+            ],
+            [
+              0,
+              3.2333333333333334
+            ],
+            [
+              0,
+              3.2666666666666666
+            ],
+            [
+              0,
+              3.3
+            ]
+          ],
+          "support_sha256": "f5016d62b38c056824c1e78eed14ac9015d7b2d42eda7ea6747c0b33b0e527fd"
+        }
+      ],
+      "support_columns": [
+        "segment_index",
+        "target_s"
+      ],
+      "support_mode": "target"
+    },
+    "window": {
+      "controls": [
+        {
+          "common_count": 94,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.0,
+                "persistence": 0.0,
+                "subspace_ridge": 0.0
+              },
+              "mean_mse": {
+                "full_ridge": 0.004348415006082582,
+                "persistence": 0.003134664328492261,
+                "subspace_ridge": 0.0043451442238679186
+              },
+              "origins_s": [
+                0.16666666666666666,
+                0.2,
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": -0.0013749504342482114,
+                "persistence": 0.0,
+                "subspace_ridge": -0.0013762711701950402
+              },
+              "mean_mse": {
+                "full_ridge": 0.0029734645718343697,
+                "persistence": 0.003134664328492261,
+                "subspace_ridge": 0.0029688730536728773
+              },
+              "origins_s": [
+                0.16666666666666666,
+                0.2,
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 0.5
+              }
+            }
+          ],
+          "control": "original",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [
+            [
+              0,
+              0.2,
+              0.16666666666666666
+            ],
+            [
+              0,
+              0.23333333333333334,
+              0.2
+            ],
+            [
+              0,
+              0.26666666666666666,
+              0.23333333333333334
+            ],
+            [
+              0,
+              0.3,
+              0.26666666666666666
+            ],
+            [
+              0,
+              0.3333333333333333,
+              0.3
+            ],
+            [
+              0,
+              0.36666666666666664,
+              0.3333333333333333
+            ],
+            [
+              0,
+              0.4,
+              0.36666666666666664
+            ],
+            [
+              0,
+              0.43333333333333335,
+              0.4
+            ],
+            [
+              0,
+              0.4666666666666667,
+              0.43333333333333335
+            ],
+            [
+              0,
+              0.5,
+              0.4666666666666667
+            ],
+            [
+              0,
+              0.5333333333333333,
+              0.5
+            ],
+            [
+              0,
+              0.5666666666666667,
+              0.5333333333333333
+            ],
+            [
+              0,
+              0.6,
+              0.5666666666666667
+            ],
+            [
+              0,
+              0.6333333333333333,
+              0.6
+            ],
+            [
+              0,
+              0.6666666666666666,
+              0.6333333333333333
+            ],
+            [
+              0,
+              0.7,
+              0.6666666666666666
+            ],
+            [
+              0,
+              0.7333333333333333,
+              0.7
+            ],
+            [
+              0,
+              0.7666666666666667,
+              0.7333333333333333
+            ],
+            [
+              0,
+              0.8,
+              0.7666666666666667
+            ],
+            [
+              0,
+              0.8333333333333334,
+              0.8
+            ],
+            [
+              0,
+              0.8666666666666667,
+              0.8333333333333334
+            ],
+            [
+              0,
+              0.9,
+              0.8666666666666667
+            ],
+            [
+              0,
+              0.9333333333333333,
+              0.9
+            ],
+            [
+              0,
+              0.9666666666666667,
+              0.9333333333333333
+            ],
+            [
+              0,
+              1.0,
+              0.9666666666666667
+            ],
+            [
+              0,
+              1.0333333333333334,
+              1.0
+            ],
+            [
+              0,
+              1.0666666666666667,
+              1.0333333333333334
+            ],
+            [
+              0,
+              1.1,
+              1.0666666666666667
+            ],
+            [
+              0,
+              1.1333333333333333,
+              1.1
+            ],
+            [
+              0,
+              1.1666666666666667,
+              1.1333333333333333
+            ],
+            [
+              0,
+              1.2,
+              1.1666666666666667
+            ],
+            [
+              0,
+              1.2333333333333334,
+              1.2
+            ],
+            [
+              0,
+              1.2666666666666666,
+              1.2333333333333334
+            ],
+            [
+              0,
+              1.3,
+              1.2666666666666666
+            ],
+            [
+              0,
+              1.3333333333333333,
+              1.3
+            ],
+            [
+              0,
+              1.3666666666666667,
+              1.3333333333333333
+            ],
+            [
+              0,
+              1.4,
+              1.3666666666666667
+            ],
+            [
+              0,
+              1.4333333333333333,
+              1.4
+            ],
+            [
+              0,
+              1.4666666666666666,
+              1.4333333333333333
+            ],
+            [
+              0,
+              1.5,
+              1.4666666666666666
+            ],
+            [
+              0,
+              1.5333333333333334,
+              1.5
+            ],
+            [
+              0,
+              1.5666666666666667,
+              1.5333333333333334
+            ],
+            [
+              0,
+              1.6,
+              1.5666666666666667
+            ],
+            [
+              0,
+              1.6333333333333333,
+              1.6
+            ],
+            [
+              0,
+              1.6666666666666667,
+              1.6333333333333333
+            ],
+            [
+              0,
+              1.7,
+              1.6666666666666667
+            ],
+            [
+              0,
+              1.7333333333333334,
+              1.7
+            ],
+            [
+              0,
+              1.7666666666666666,
+              1.7333333333333334
+            ],
+            [
+              0,
+              1.8,
+              1.7666666666666666
+            ],
+            [
+              0,
+              1.8333333333333333,
+              1.8
+            ],
+            [
+              0,
+              1.8666666666666667,
+              1.8333333333333333
+            ],
+            [
+              0,
+              1.9,
+              1.8666666666666667
+            ],
+            [
+              0,
+              1.9333333333333333,
+              1.9
+            ],
+            [
+              0,
+              1.9666666666666666,
+              1.9333333333333333
+            ],
+            [
+              0,
+              2.0,
+              1.9666666666666666
+            ],
+            [
+              0,
+              2.033333333333333,
+              2.0
+            ],
+            [
+              0,
+              2.066666666666667,
+              2.033333333333333
+            ],
+            [
+              0,
+              2.1,
+              2.066666666666667
+            ],
+            [
+              0,
+              2.1333333333333333,
+              2.1
+            ],
+            [
+              0,
+              2.1666666666666665,
+              2.1333333333333333
+            ],
+            [
+              0,
+              2.2,
+              2.1666666666666665
+            ],
+            [
+              0,
+              2.2333333333333334,
+              2.2
+            ],
+            [
+              0,
+              2.2666666666666666,
+              2.2333333333333334
+            ],
+            [
+              0,
+              2.3,
+              2.2666666666666666
+            ],
+            [
+              0,
+              2.3333333333333335,
+              2.3
+            ],
+            [
+              0,
+              2.3666666666666667,
+              2.3333333333333335
+            ],
+            [
+              0,
+              2.4,
+              2.3666666666666667
+            ],
+            [
+              0,
+              2.433333333333333,
+              2.4
+            ],
+            [
+              0,
+              2.466666666666667,
+              2.433333333333333
+            ],
+            [
+              0,
+              2.5,
+              2.466666666666667
+            ],
+            [
+              0,
+              2.533333333333333,
+              2.5
+            ],
+            [
+              0,
+              2.566666666666667,
+              2.533333333333333
+            ],
+            [
+              0,
+              2.6,
+              2.566666666666667
+            ],
+            [
+              0,
+              2.6333333333333333,
+              2.6
+            ],
+            [
+              0,
+              2.6666666666666665,
+              2.6333333333333333
+            ],
+            [
+              0,
+              2.7,
+              2.6666666666666665
+            ],
+            [
+              0,
+              2.7333333333333334,
+              2.7
+            ],
+            [
+              0,
+              2.7666666666666666,
+              2.7333333333333334
+            ],
+            [
+              0,
+              2.8,
+              2.7666666666666666
+            ],
+            [
+              0,
+              2.8333333333333335,
+              2.8
+            ],
+            [
+              0,
+              2.8666666666666667,
+              2.8333333333333335
+            ],
+            [
+              0,
+              2.9,
+              2.8666666666666667
+            ],
+            [
+              0,
+              2.933333333333333,
+              2.9
+            ],
+            [
+              0,
+              2.966666666666667,
+              2.933333333333333
+            ],
+            [
+              0,
+              3.0,
+              2.966666666666667
+            ],
+            [
+              0,
+              3.033333333333333,
+              3.0
+            ],
+            [
+              0,
+              3.066666666666667,
+              3.033333333333333
+            ],
+            [
+              0,
+              3.1,
+              3.066666666666667
+            ],
+            [
+              0,
+              3.1333333333333333,
+              3.1
+            ],
+            [
+              0,
+              3.1666666666666665,
+              3.1333333333333333
+            ],
+            [
+              0,
+              3.2,
+              3.1666666666666665
+            ],
+            [
+              0,
+              3.2333333333333334,
+              3.2
+            ],
+            [
+              0,
+              3.2666666666666666,
+              3.2333333333333334
+            ],
+            [
+              0,
+              3.3,
+              3.2666666666666666
+            ]
+          ],
+          "support_sha256": "ed4f023d8cd1d44ab44198c8185802c772825ae66c41437359bb1a7d67e9250b"
+        },
+        {
+          "common_count": 94,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.0,
+                "persistence": 0.0,
+                "subspace_ridge": 0.0
+              },
+              "mean_mse": {
+                "full_ridge": 0.004348415006082585,
+                "persistence": 0.003134664328492261,
+                "subspace_ridge": 0.004345144223867921
+              },
+              "origins_s": [
+                0.16666666666666666,
+                0.2,
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": -0.0013749504342482146,
+                "persistence": 0.0,
+                "subspace_ridge": -0.0013762711701950409
+              },
+              "mean_mse": {
+                "full_ridge": 0.002973464571834371,
+                "persistence": 0.003134664328492261,
+                "subspace_ridge": 0.0029688730536728803
+              },
+              "origins_s": [
+                0.16666666666666666,
+                0.2,
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 0.5
+              }
+            }
+          ],
+          "control": "global_rotation",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [
+            [
+              0,
+              0.2,
+              0.16666666666666666
+            ],
+            [
+              0,
+              0.23333333333333334,
+              0.2
+            ],
+            [
+              0,
+              0.26666666666666666,
+              0.23333333333333334
+            ],
+            [
+              0,
+              0.3,
+              0.26666666666666666
+            ],
+            [
+              0,
+              0.3333333333333333,
+              0.3
+            ],
+            [
+              0,
+              0.36666666666666664,
+              0.3333333333333333
+            ],
+            [
+              0,
+              0.4,
+              0.36666666666666664
+            ],
+            [
+              0,
+              0.43333333333333335,
+              0.4
+            ],
+            [
+              0,
+              0.4666666666666667,
+              0.43333333333333335
+            ],
+            [
+              0,
+              0.5,
+              0.4666666666666667
+            ],
+            [
+              0,
+              0.5333333333333333,
+              0.5
+            ],
+            [
+              0,
+              0.5666666666666667,
+              0.5333333333333333
+            ],
+            [
+              0,
+              0.6,
+              0.5666666666666667
+            ],
+            [
+              0,
+              0.6333333333333333,
+              0.6
+            ],
+            [
+              0,
+              0.6666666666666666,
+              0.6333333333333333
+            ],
+            [
+              0,
+              0.7,
+              0.6666666666666666
+            ],
+            [
+              0,
+              0.7333333333333333,
+              0.7
+            ],
+            [
+              0,
+              0.7666666666666667,
+              0.7333333333333333
+            ],
+            [
+              0,
+              0.8,
+              0.7666666666666667
+            ],
+            [
+              0,
+              0.8333333333333334,
+              0.8
+            ],
+            [
+              0,
+              0.8666666666666667,
+              0.8333333333333334
+            ],
+            [
+              0,
+              0.9,
+              0.8666666666666667
+            ],
+            [
+              0,
+              0.9333333333333333,
+              0.9
+            ],
+            [
+              0,
+              0.9666666666666667,
+              0.9333333333333333
+            ],
+            [
+              0,
+              1.0,
+              0.9666666666666667
+            ],
+            [
+              0,
+              1.0333333333333334,
+              1.0
+            ],
+            [
+              0,
+              1.0666666666666667,
+              1.0333333333333334
+            ],
+            [
+              0,
+              1.1,
+              1.0666666666666667
+            ],
+            [
+              0,
+              1.1333333333333333,
+              1.1
+            ],
+            [
+              0,
+              1.1666666666666667,
+              1.1333333333333333
+            ],
+            [
+              0,
+              1.2,
+              1.1666666666666667
+            ],
+            [
+              0,
+              1.2333333333333334,
+              1.2
+            ],
+            [
+              0,
+              1.2666666666666666,
+              1.2333333333333334
+            ],
+            [
+              0,
+              1.3,
+              1.2666666666666666
+            ],
+            [
+              0,
+              1.3333333333333333,
+              1.3
+            ],
+            [
+              0,
+              1.3666666666666667,
+              1.3333333333333333
+            ],
+            [
+              0,
+              1.4,
+              1.3666666666666667
+            ],
+            [
+              0,
+              1.4333333333333333,
+              1.4
+            ],
+            [
+              0,
+              1.4666666666666666,
+              1.4333333333333333
+            ],
+            [
+              0,
+              1.5,
+              1.4666666666666666
+            ],
+            [
+              0,
+              1.5333333333333334,
+              1.5
+            ],
+            [
+              0,
+              1.5666666666666667,
+              1.5333333333333334
+            ],
+            [
+              0,
+              1.6,
+              1.5666666666666667
+            ],
+            [
+              0,
+              1.6333333333333333,
+              1.6
+            ],
+            [
+              0,
+              1.6666666666666667,
+              1.6333333333333333
+            ],
+            [
+              0,
+              1.7,
+              1.6666666666666667
+            ],
+            [
+              0,
+              1.7333333333333334,
+              1.7
+            ],
+            [
+              0,
+              1.7666666666666666,
+              1.7333333333333334
+            ],
+            [
+              0,
+              1.8,
+              1.7666666666666666
+            ],
+            [
+              0,
+              1.8333333333333333,
+              1.8
+            ],
+            [
+              0,
+              1.8666666666666667,
+              1.8333333333333333
+            ],
+            [
+              0,
+              1.9,
+              1.8666666666666667
+            ],
+            [
+              0,
+              1.9333333333333333,
+              1.9
+            ],
+            [
+              0,
+              1.9666666666666666,
+              1.9333333333333333
+            ],
+            [
+              0,
+              2.0,
+              1.9666666666666666
+            ],
+            [
+              0,
+              2.033333333333333,
+              2.0
+            ],
+            [
+              0,
+              2.066666666666667,
+              2.033333333333333
+            ],
+            [
+              0,
+              2.1,
+              2.066666666666667
+            ],
+            [
+              0,
+              2.1333333333333333,
+              2.1
+            ],
+            [
+              0,
+              2.1666666666666665,
+              2.1333333333333333
+            ],
+            [
+              0,
+              2.2,
+              2.1666666666666665
+            ],
+            [
+              0,
+              2.2333333333333334,
+              2.2
+            ],
+            [
+              0,
+              2.2666666666666666,
+              2.2333333333333334
+            ],
+            [
+              0,
+              2.3,
+              2.2666666666666666
+            ],
+            [
+              0,
+              2.3333333333333335,
+              2.3
+            ],
+            [
+              0,
+              2.3666666666666667,
+              2.3333333333333335
+            ],
+            [
+              0,
+              2.4,
+              2.3666666666666667
+            ],
+            [
+              0,
+              2.433333333333333,
+              2.4
+            ],
+            [
+              0,
+              2.466666666666667,
+              2.433333333333333
+            ],
+            [
+              0,
+              2.5,
+              2.466666666666667
+            ],
+            [
+              0,
+              2.533333333333333,
+              2.5
+            ],
+            [
+              0,
+              2.566666666666667,
+              2.533333333333333
+            ],
+            [
+              0,
+              2.6,
+              2.566666666666667
+            ],
+            [
+              0,
+              2.6333333333333333,
+              2.6
+            ],
+            [
+              0,
+              2.6666666666666665,
+              2.6333333333333333
+            ],
+            [
+              0,
+              2.7,
+              2.6666666666666665
+            ],
+            [
+              0,
+              2.7333333333333334,
+              2.7
+            ],
+            [
+              0,
+              2.7666666666666666,
+              2.7333333333333334
+            ],
+            [
+              0,
+              2.8,
+              2.7666666666666666
+            ],
+            [
+              0,
+              2.8333333333333335,
+              2.8
+            ],
+            [
+              0,
+              2.8666666666666667,
+              2.8333333333333335
+            ],
+            [
+              0,
+              2.9,
+              2.8666666666666667
+            ],
+            [
+              0,
+              2.933333333333333,
+              2.9
+            ],
+            [
+              0,
+              2.966666666666667,
+              2.933333333333333
+            ],
+            [
+              0,
+              3.0,
+              2.966666666666667
+            ],
+            [
+              0,
+              3.033333333333333,
+              3.0
+            ],
+            [
+              0,
+              3.066666666666667,
+              3.033333333333333
+            ],
+            [
+              0,
+              3.1,
+              3.066666666666667
+            ],
+            [
+              0,
+              3.1333333333333333,
+              3.1
+            ],
+            [
+              0,
+              3.1666666666666665,
+              3.1333333333333333
+            ],
+            [
+              0,
+              3.2,
+              3.1666666666666665
+            ],
+            [
+              0,
+              3.2333333333333334,
+              3.2
+            ],
+            [
+              0,
+              3.2666666666666666,
+              3.2333333333333334
+            ],
+            [
+              0,
+              3.3,
+              3.2666666666666666
+            ]
+          ],
+          "support_sha256": "ed4f023d8cd1d44ab44198c8185802c772825ae66c41437359bb1a7d67e9250b"
+        },
+        {
+          "common_count": 94,
+          "conditions": [
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.0,
+                "persistence": 0.0,
+                "subspace_ridge": 0.0
+              },
+              "mean_mse": {
+                "full_ridge": 0.3041879059288656,
+                "persistence": 0.571121366383168,
+                "subspace_ridge": 0.3043376770479859
+              },
+              "origins_s": [
+                0.16666666666666666,
+                0.2,
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 2.0
+              }
+            },
+            {
+              "eligible_count": 94,
+              "excluded_from_common": 0,
+              "mean_delta_mse_vs_first": {
+                "full_ridge": 0.052124617215610285,
+                "persistence": 0.0,
+                "subspace_ridge": 0.051965653747048014
+              },
+              "mean_mse": {
+                "full_ridge": 0.3563125231444758,
+                "persistence": 0.571121366383168,
+                "subspace_ridge": 0.35630333079503385
+              },
+              "origins_s": [
+                0.16666666666666666,
+                0.2,
+                0.23333333333333334,
+                0.26666666666666666,
+                0.3,
+                0.3333333333333333,
+                0.36666666666666664,
+                0.4,
+                0.43333333333333335,
+                0.4666666666666667,
+                0.5,
+                0.5333333333333333,
+                0.5666666666666667,
+                0.6,
+                0.6333333333333333,
+                0.6666666666666666,
+                0.7,
+                0.7333333333333333,
+                0.7666666666666667,
+                0.8,
+                0.8333333333333334,
+                0.8666666666666667,
+                0.9,
+                0.9333333333333333,
+                0.9666666666666667,
+                1.0,
+                1.0333333333333334,
+                1.0666666666666667,
+                1.1,
+                1.1333333333333333,
+                1.1666666666666667,
+                1.2,
+                1.2333333333333334,
+                1.2666666666666666,
+                1.3,
+                1.3333333333333333,
+                1.3666666666666667,
+                1.4,
+                1.4333333333333333,
+                1.4666666666666666,
+                1.5,
+                1.5333333333333334,
+                1.5666666666666667,
+                1.6,
+                1.6333333333333333,
+                1.6666666666666667,
+                1.7,
+                1.7333333333333334,
+                1.7666666666666666,
+                1.8,
+                1.8333333333333333,
+                1.8666666666666667,
+                1.9,
+                1.9333333333333333,
+                1.9666666666666666,
+                2.0,
+                2.033333333333333,
+                2.066666666666667,
+                2.1,
+                2.1333333333333333,
+                2.1666666666666665,
+                2.2,
+                2.2333333333333334,
+                2.2666666666666666,
+                2.3,
+                2.3333333333333335,
+                2.3666666666666667,
+                2.4,
+                2.433333333333333,
+                2.466666666666667,
+                2.5,
+                2.533333333333333,
+                2.566666666666667,
+                2.6,
+                2.6333333333333333,
+                2.6666666666666665,
+                2.7,
+                2.7333333333333334,
+                2.7666666666666666,
+                2.8,
+                2.8333333333333335,
+                2.8666666666666667,
+                2.9,
+                2.933333333333333,
+                2.966666666666667,
+                3.0,
+                3.033333333333333,
+                3.066666666666667,
+                3.1,
+                3.1333333333333333,
+                3.1666666666666665,
+                3.2,
+                3.2333333333333334,
+                3.2666666666666666
+              ],
+              "run_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              "settings": {
+                "autoregressive_lags": 3,
+                "components": 2,
+                "control_hz": 30,
+                "dimensions": 4,
+                "harmonic_fundamental_hz": 0.35,
+                "harmonic_ratios": [
+                  1.0,
+                  2.0,
+                  3.0,
+                  4.0,
+                  5.0,
+                  6.0
+                ],
+                "horizon_steps": 1,
+                "noise_std": 0.01,
+                "noise_threshold": 0.0001,
+                "predictors": [
+                  "persistence",
+                  "full_ridge",
+                  "subspace_ridge"
+                ],
+                "ridge": 0.1,
+                "rotation_deg_s": 30.0,
+                "samples": 100,
+                "scenario": "fixed_span",
+                "seed": 17,
+                "signal_rank": 2,
+                "temporal_memory": 0.95,
+                "window_s": 0.5
+              }
+            }
+          ],
+          "control": "temporal_shuffle",
+          "methods": [
+            "full_ridge",
+            "persistence",
+            "subspace_ridge"
+          ],
+          "support": [
+            [
+              0,
+              0.2,
+              0.16666666666666666
+            ],
+            [
+              0,
+              0.23333333333333334,
+              0.2
+            ],
+            [
+              0,
+              0.26666666666666666,
+              0.23333333333333334
+            ],
+            [
+              0,
+              0.3,
+              0.26666666666666666
+            ],
+            [
+              0,
+              0.3333333333333333,
+              0.3
+            ],
+            [
+              0,
+              0.36666666666666664,
+              0.3333333333333333
+            ],
+            [
+              0,
+              0.4,
+              0.36666666666666664
+            ],
+            [
+              0,
+              0.43333333333333335,
+              0.4
+            ],
+            [
+              0,
+              0.4666666666666667,
+              0.43333333333333335
+            ],
+            [
+              0,
+              0.5,
+              0.4666666666666667
+            ],
+            [
+              0,
+              0.5333333333333333,
+              0.5
+            ],
+            [
+              0,
+              0.5666666666666667,
+              0.5333333333333333
+            ],
+            [
+              0,
+              0.6,
+              0.5666666666666667
+            ],
+            [
+              0,
+              0.6333333333333333,
+              0.6
+            ],
+            [
+              0,
+              0.6666666666666666,
+              0.6333333333333333
+            ],
+            [
+              0,
+              0.7,
+              0.6666666666666666
+            ],
+            [
+              0,
+              0.7333333333333333,
+              0.7
+            ],
+            [
+              0,
+              0.7666666666666667,
+              0.7333333333333333
+            ],
+            [
+              0,
+              0.8,
+              0.7666666666666667
+            ],
+            [
+              0,
+              0.8333333333333334,
+              0.8
+            ],
+            [
+              0,
+              0.8666666666666667,
+              0.8333333333333334
+            ],
+            [
+              0,
+              0.9,
+              0.8666666666666667
+            ],
+            [
+              0,
+              0.9333333333333333,
+              0.9
+            ],
+            [
+              0,
+              0.9666666666666667,
+              0.9333333333333333
+            ],
+            [
+              0,
+              1.0,
+              0.9666666666666667
+            ],
+            [
+              0,
+              1.0333333333333334,
+              1.0
+            ],
+            [
+              0,
+              1.0666666666666667,
+              1.0333333333333334
+            ],
+            [
+              0,
+              1.1,
+              1.0666666666666667
+            ],
+            [
+              0,
+              1.1333333333333333,
+              1.1
+            ],
+            [
+              0,
+              1.1666666666666667,
+              1.1333333333333333
+            ],
+            [
+              0,
+              1.2,
+              1.1666666666666667
+            ],
+            [
+              0,
+              1.2333333333333334,
+              1.2
+            ],
+            [
+              0,
+              1.2666666666666666,
+              1.2333333333333334
+            ],
+            [
+              0,
+              1.3,
+              1.2666666666666666
+            ],
+            [
+              0,
+              1.3333333333333333,
+              1.3
+            ],
+            [
+              0,
+              1.3666666666666667,
+              1.3333333333333333
+            ],
+            [
+              0,
+              1.4,
+              1.3666666666666667
+            ],
+            [
+              0,
+              1.4333333333333333,
+              1.4
+            ],
+            [
+              0,
+              1.4666666666666666,
+              1.4333333333333333
+            ],
+            [
+              0,
+              1.5,
+              1.4666666666666666
+            ],
+            [
+              0,
+              1.5333333333333334,
+              1.5
+            ],
+            [
+              0,
+              1.5666666666666667,
+              1.5333333333333334
+            ],
+            [
+              0,
+              1.6,
+              1.5666666666666667
+            ],
+            [
+              0,
+              1.6333333333333333,
+              1.6
+            ],
+            [
+              0,
+              1.6666666666666667,
+              1.6333333333333333
+            ],
+            [
+              0,
+              1.7,
+              1.6666666666666667
+            ],
+            [
+              0,
+              1.7333333333333334,
+              1.7
+            ],
+            [
+              0,
+              1.7666666666666666,
+              1.7333333333333334
+            ],
+            [
+              0,
+              1.8,
+              1.7666666666666666
+            ],
+            [
+              0,
+              1.8333333333333333,
+              1.8
+            ],
+            [
+              0,
+              1.8666666666666667,
+              1.8333333333333333
+            ],
+            [
+              0,
+              1.9,
+              1.8666666666666667
+            ],
+            [
+              0,
+              1.9333333333333333,
+              1.9
+            ],
+            [
+              0,
+              1.9666666666666666,
+              1.9333333333333333
+            ],
+            [
+              0,
+              2.0,
+              1.9666666666666666
+            ],
+            [
+              0,
+              2.033333333333333,
+              2.0
+            ],
+            [
+              0,
+              2.066666666666667,
+              2.033333333333333
+            ],
+            [
+              0,
+              2.1,
+              2.066666666666667
+            ],
+            [
+              0,
+              2.1333333333333333,
+              2.1
+            ],
+            [
+              0,
+              2.1666666666666665,
+              2.1333333333333333
+            ],
+            [
+              0,
+              2.2,
+              2.1666666666666665
+            ],
+            [
+              0,
+              2.2333333333333334,
+              2.2
+            ],
+            [
+              0,
+              2.2666666666666666,
+              2.2333333333333334
+            ],
+            [
+              0,
+              2.3,
+              2.2666666666666666
+            ],
+            [
+              0,
+              2.3333333333333335,
+              2.3
+            ],
+            [
+              0,
+              2.3666666666666667,
+              2.3333333333333335
+            ],
+            [
+              0,
+              2.4,
+              2.3666666666666667
+            ],
+            [
+              0,
+              2.433333333333333,
+              2.4
+            ],
+            [
+              0,
+              2.466666666666667,
+              2.433333333333333
+            ],
+            [
+              0,
+              2.5,
+              2.466666666666667
+            ],
+            [
+              0,
+              2.533333333333333,
+              2.5
+            ],
+            [
+              0,
+              2.566666666666667,
+              2.533333333333333
+            ],
+            [
+              0,
+              2.6,
+              2.566666666666667
+            ],
+            [
+              0,
+              2.6333333333333333,
+              2.6
+            ],
+            [
+              0,
+              2.6666666666666665,
+              2.6333333333333333
+            ],
+            [
+              0,
+              2.7,
+              2.6666666666666665
+            ],
+            [
+              0,
+              2.7333333333333334,
+              2.7
+            ],
+            [
+              0,
+              2.7666666666666666,
+              2.7333333333333334
+            ],
+            [
+              0,
+              2.8,
+              2.7666666666666666
+            ],
+            [
+              0,
+              2.8333333333333335,
+              2.8
+            ],
+            [
+              0,
+              2.8666666666666667,
+              2.8333333333333335
+            ],
+            [
+              0,
+              2.9,
+              2.8666666666666667
+            ],
+            [
+              0,
+              2.933333333333333,
+              2.9
+            ],
+            [
+              0,
+              2.966666666666667,
+              2.933333333333333
+            ],
+            [
+              0,
+              3.0,
+              2.966666666666667
+            ],
+            [
+              0,
+              3.033333333333333,
+              3.0
+            ],
+            [
+              0,
+              3.066666666666667,
+              3.033333333333333
+            ],
+            [
+              0,
+              3.1,
+              3.066666666666667
+            ],
+            [
+              0,
+              3.1333333333333333,
+              3.1
+            ],
+            [
+              0,
+              3.1666666666666665,
+              3.1333333333333333
+            ],
+            [
+              0,
+              3.2,
+              3.1666666666666665
+            ],
+            [
+              0,
+              3.2333333333333334,
+              3.2
+            ],
+            [
+              0,
+              3.2666666666666666,
+              3.2333333333333334
+            ],
+            [
+              0,
+              3.3,
+              3.2666666666666666
+            ]
+          ],
+          "support_sha256": "ed4f023d8cd1d44ab44198c8185802c772825ae66c41437359bb1a7d67e9250b"
+        }
+      ],
+      "support_columns": [
+        "segment_index",
+        "target_s",
+        "origin_s"
+      ],
+      "support_mode": "origin_target"
+    }
+  },
+  "comparison_code_sha256": "22bb3bd5f3d58e49a0df4537fbf8076905b7c8fa8caa82baf8c0d0c0e8ade40d",
+  "comparison_environment": {
+    "numpy": "2.5.1",
+    "python": "3.12.13"
+  },
+  "input_hashes": {
+    "global_rotation": "734a828782f7b4a2e70ac254ba8624b77d1a1ec3e3f07aec9a3fe557acce4aa7",
+    "original": "ea0b677a265f66017a74b7eabacf8b38dabb8b3bb0fda9bfbe9f03580c28bd69",
+    "temporal_shuffle": "23bebc637ef4b4a3bd594c12ded73a234631fd9457fea16bb3832378e261956e"
+  },
+  "kind": "r01_saved_comparison_controls",
+  "limits": [
+    "Archived per-target squared errors on identical support; no refit or gap filling",
+    "Target-only matching may compare forecasts committed at different origins; origins retained",
+    "Only predictor families present in all selected runs are scored",
+    "No shared support means null scores; no common families means no method scores",
+    "Each control is compared separately, not pooled with differently ordered vectors",
+    "No HIT validation, statistical inference, environment equivalence or human acceptance"
+  ],
+  "numerical_controls_and_trace_hashes_repeat_identical": true,
+  "producer_code_sha256": "c1def453449b025b302fa03607b43f90d7bb294097d9a9dd4dd4465e69453d0a",
+  "producer_packages": {
+    "numpy": "2.5.1",
+    "pydantic": "2.13.4"
+  },
+  "recipe_sha256": "89a585285d116266aec9312ccc5386ffbdc8e8657cd42cbfb2d87a1d3ae5d291",
+  "settings": [
+    {
+      "autoregressive_lags": 3,
+      "components": 2,
+      "control_hz": 30,
+      "dimensions": 4,
+      "harmonic_fundamental_hz": 0.35,
+      "harmonic_ratios": [
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0
+      ],
+      "horizon_steps": 1,
+      "noise_std": 0.01,
+      "noise_threshold": 0.0001,
+      "predictors": [
+        "persistence",
+        "full_ridge",
+        "subspace_ridge"
+      ],
+      "ridge": 0.1,
+      "rotation_deg_s": 30.0,
+      "samples": 100,
+      "scenario": "fixed_span",
+      "seed": 17,
+      "signal_rank": 2,
+      "temporal_memory": 0.95,
+      "window_s": 2.0
+    },
+    {
+      "autoregressive_lags": 3,
+      "components": 2,
+      "control_hz": 30,
+      "dimensions": 4,
+      "harmonic_fundamental_hz": 0.35,
+      "harmonic_ratios": [
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0
+      ],
+      "horizon_steps": 1,
+      "noise_std": 0.01,
+      "noise_threshold": 0.0001,
+      "predictors": [
+        "persistence",
+        "full_ridge",
+        "subspace_ridge"
+      ],
+      "ridge": 0.1,
+      "rotation_deg_s": 30.0,
+      "samples": 100,
+      "scenario": "fixed_span",
+      "seed": 17,
+      "signal_rank": 2,
+      "temporal_memory": 0.95,
+      "window_s": 0.5
+    },
+    {
+      "autoregressive_lags": 3,
+      "components": 2,
+      "control_hz": 30,
+      "dimensions": 4,
+      "harmonic_fundamental_hz": 0.35,
+      "harmonic_ratios": [
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0
+      ],
+      "horizon_steps": 6,
+      "noise_std": 0.01,
+      "noise_threshold": 0.0001,
+      "predictors": [
+        "persistence",
+        "full_ridge",
+        "subspace_ridge"
+      ],
+      "ridge": 0.1,
+      "rotation_deg_s": 30.0,
+      "samples": 100,
+      "scenario": "fixed_span",
+      "seed": 17,
+      "signal_rank": 2,
+      "temporal_memory": 0.95,
+      "window_s": 2.0
+    }
+  ]
+}

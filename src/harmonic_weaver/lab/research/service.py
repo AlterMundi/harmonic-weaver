@@ -45,7 +45,13 @@ class ResearchService:
         if name=='manifest.json':return path
         if report.get('status')!='complete':raise ValueError('Research job is not complete')
         if name=='request.json':
-            if json.dumps(json.loads(path.read_text()),sort_keys=True,allow_nan=False)!=json.dumps(report['settings'],sort_keys=True,allow_nan=False):raise ValueError('Research request changed')
+            from .body import BodyRequest
+            contract = BodyRequest if report.get('input_kind') == 'evaluation_features' else Settings
+            # The worker validates numeric fields again: JSON 0 and 0.0 may
+            # differ in spelling while describing the same typed request.
+            actual = contract.model_validate_json(path.read_text()).model_dump()
+            expected = contract.model_validate(report['settings']).model_dump()
+            if actual != expected:raise ValueError('Research request changed')
         else:
             expected=report.get('artifact_hashes',{}).get(name)
             if expected is None:raise ValueError('No verified artifact hash')
@@ -54,6 +60,10 @@ class ResearchService:
                 if sha256_file(path)!=expected:raise ValueError('Research artifact changed')
                 self.verified[fingerprint]=expected
         return path
+
+    def compare(self, request):
+        from .grassmann_compare import compare
+        return compare(self, request)
 
     def start(self,settings):
         settings=Settings.model_validate(settings)

@@ -3248,3 +3248,33 @@ Fixture ControlRecorder, no síntesis ni dispositivo. TypeScript/Vite95 módulos
 Cache original SHA verificado sin cambios; fixture detenido/puerto cerrado.
 Sin video nuevo, inferencia, datos corporales publicados, R24, escucha o aceptación
 humana nuevas. No demuestra HIT/positividad/KP ni resuelve investigación R01/R02.
+
+### R01 · comparación de corridas archivadas — 2026-10-03
+
+API/UI de2–6 corridas con inputs/clock/unidades/transformaciones iguales,
+soporte objetivo u origen-objetivo explícito. Cada control/familia común se
+puntúa sobre su intersección exacta; conserva orígenes, exclusiones y procedencia.
+No refit, aproximación de timestamps, relleno de gaps ni cambios live. Corridas
+sin origen archivado tienen rechazo explícito. Valores de request se normalizan
+por contrato para resolver rechazo espurio0/0.0; diferencias reales se rechazan.
+
+**49 pruebas R01/backend passed (11.32s)**: comparación nueva, geometría/
+predicción/familias y snapshots corporales. Caso nuevo histórico de defaults/
+origen ausente verificado en suite comparador **12 passed (3.65s)**. Prueban
+lectura sin mutación, errores archivados sobre soporte común, horizontes con/
+sin pares, ausencia de familias, inputs/reloj distintos, artefactos alterados,
+IDs, cuerpo con gaps, HTTP y request tipado. Warning Starlette/AnyIO existente.
+
+**2 Chrome passed (4.1s)**, bundle productivo/API real y tres corridas sintéticas
+archivadas: pares vacíos entre horizontes1/6, objetivos comunes al cambiar soporte,
+orígenes diferentes conservados, download JSON, limpieza al cambiar selección,
+422 por inputs distintos y preset/revisión live intactos. TypeScript/Vite96 módulos
+**1.78s**. Fixture sólo controles, ningún dispositivo; detenido/puerto cerrado.
+
+Receta saved_comparison_controls.py: tres condiciones, cada una ejecutada dos
+veces; comparación read-only repetida, controles numéricos y traces idénticos en
+el entorno registrado. Evidencia sintética pública en r01_grassmann.
+Cuatro corridas corporales históricas existentes comparadas read-only localmente
+sobre soporte observado; informe repetido idéntico y hashes originales conservados.
+Informe/IDs/resultados corporales quedan locales; ninguna nueva inferencia, toma,
+R24, escucha/aceptación humana ni validación HIT/generalización.

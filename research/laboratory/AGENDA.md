@@ -952,3 +952,11 @@ residuo y ángulos. Preset guarda vista y recorte visual. Recorrido web sobre
 tracking corporal privado de sólo lectura; ninguna nueva inferencia ni
 resultado corporal publicado. No añade geometría positiva, KP ni predicciones
 específicas HIT; esos experimentos siguen separados del dibujo de features.
+
+R01 — 2026-10-03: comparación de corridas guardadas con soporte configurable
+objetivo/origen-objetivo, separación por control y familias comunes.
+[Receta sintética](r01_grassmann/saved_comparison_controls.py) y
+[evidencia repetida](r01_grassmann/evidence-saved-comparison-2026-10-03.json).
+Cuatro archivos corporales históricos comparados read-only localmente; informe
+privado y artefactos originales conservados. No nueva toma, refit ni predicción
+HIT específica; cambiar horizonte cambia información del origen.
