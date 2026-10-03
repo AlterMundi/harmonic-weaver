@@ -109,6 +109,16 @@ reproducible, manteniendo la exploración libre como operación principal.
    después de revisar definiciones y resultados. No bloquear el laboratorio si
    ese aporte todavía no existe.
 
+Actualización 2026-10-03: #36 y su extensión Fourier #97 están incorporadas en
+la rama `feat/sai-fourier-integration`, sobre #96, sin merge automático.
+Los generadores compartidos/independientes y el banco permanecen en research;
+no son filtros live ni cambian el instrumento. Véase
+[informe de Oliva](../../research/laboratory/sai_bridge/FOURIER_REPORT.md) y
+[evidencia de integración](VALIDATION.md#saioliva-integración-del-banco-fourier--2026-10-03).
+El siguiente uso pertinente es un contraste sobre canales corporales regulares
+con soporte/missingness declarados, antes de atribuir cambios de I a acoplamiento.
+No hace falta otra ronda de revisión ni igualdad de digest entre entornos.
+
 Aceptación: un comando de arranque; mismo preset entre fuentes; explicación
 visible de silencios; sesión local de 60 s con seis voces y sin reataques por
 actualización; pruebas de resets/cache/audio/UI pertinentes; corrida repetible
