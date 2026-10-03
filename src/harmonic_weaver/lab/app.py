@@ -39,6 +39,8 @@ from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
 from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic
 from .research.physiology_service import PhysiologyService
+from .research.physiology_csv import Request as PhysiologyCSVRequest, convert as convert_physiology_csv
+from .research.physiology_csv_archive import CSVService as PhysiologyCSVService
 from .research.physiology import Request as PhysiologyRequest, calculate as calculate_physiology
 from .research.neuro_observations import Stream as NeuroStream, inspect as inspect_neuro
 from .research.neuro_snr import Config as NeuroSNRConfig, calculate as calculate_neuro_snr
@@ -331,6 +333,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     neuro_snr_records = SNRService(data_dir)
     neuro_csv_records = CSVService(data_dir)
     physiology_measurements = PhysiologyService(data_dir)
+    physiology_csv = PhysiologyCSVService(data_dir)
     heldout = HeldoutService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
@@ -567,6 +570,25 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def heldout_sequence(body: SequenceSelection):
         if evaluation is None:raise ValueError('Evaluation runtime required')
         return heldout.freeze(evaluation,body.model_dump())
+
+    @app.post('/api/research/r12/csv/inspect')
+    def physiology_csv_inspect(body: PhysiologyCSVRequest):
+        result = convert_physiology_csv(body)
+        validate_physiology_binding(PhysiologyRequest.model_validate(result['request']))
+        return result
+
+    @app.post('/api/research/r12/csv/imports')
+    def physiology_csv_save(body: PhysiologyCSVRequest):
+        result = convert_physiology_csv(body)
+        validate_physiology_binding(PhysiologyRequest.model_validate(result['request']))
+        return physiology_csv.start(body)
+
+    @app.get('/api/research/r12/csv/imports')
+    def physiology_csv_list():return physiology_csv.list()
+
+    @app.get('/api/research/r12/csv/imports/{ident}/artifacts/{name}')
+    def physiology_csv_artifact(ident: str, name: str):
+        return FileResponse(physiology_csv.artifact(ident, name), filename=name)
 
     @app.post('/api/research/r12/inspect')
     def physiology_inspect(body: PhysiologyRequest):
