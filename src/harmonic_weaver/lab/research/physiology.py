@@ -101,8 +101,9 @@ class Request(Contract):
                 raise ValueError('Sample channel inventory differs')
             for channel in self.channels:
                 value = sample.values[channel.id]
-                if value is not None and channel.kind in ('heart_rate','metabolic_power') and value < 0:
-                    raise ValueError('Heart rate/metabolic power cannot be negative')
+                if (value is not None and channel.kind in ('heart_rate','metabolic_power')
+                        and value < 0 and channel.id not in sample.excluded_causes):
+                    raise ValueError('Negative heart rate/metabolic power requires an explicit exclusion cause')
         if len(self.model_dump_json().encode()) > 16*1024*1024:
             raise ValueError('R12 frozen request exceeds 16 MiB budget')
         if self.evaluation_binding:
