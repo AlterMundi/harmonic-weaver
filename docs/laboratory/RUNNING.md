@@ -1029,3 +1029,20 @@ Pueden variar parámetros/prefijo, pero no observaciones, unidades, grupos o tar
 sobre esos pares; no compara promedios de tiempos distintos. Sin pares idénticos
 no hay puntuación. **Guardar comparación R13** descarga soporte/procedencia/settings
 localmente; no recalcula tracking, ajusta modelos ni modifica el instrumento.
+
+### Ver la geometría colectiva en vivo
+
+En **Figura → Geometría del movimiento**, elegir **Proyector del subespacio**
+o **Base y modos**. Usar un modelo local, relacional, angular o colectivo y
+calibrar el cuerpo; baseline no calcula este subespacio. La vista explica si
+falta soporte o la ventana está calentando, sin inventar una matriz.
+
+**Ejes visibles de la geometría** permite mostrar2–34 ejes del vector de
+velocidades seleccionado en Modelos. Recortar la imagen no cambia el cálculo.
+El proyector muestra relaciones entre ejes; la base muestra ejes×componentes.
+Colores con escala fija[-1,+1], sin normalizar cada frame; amplitudes/residuo y
+ángulos quedan visibles junto a los valores originales. No representa posición
+3D del cuerpo ni demuestra HIT. Las seis voces siguen siendo independientes
+del número de componentes. Guardar el preset conserva vista y límite de ejes
+para otra fuente, sin incluir escala corporal. Default **Apagada**; no cambia
+audio, fases, ruteos ni historial.

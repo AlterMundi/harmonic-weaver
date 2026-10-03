@@ -945,3 +945,10 @@ settings variables. Controles sintéticos de prefijo/soporte vacío publicados e
 r13-common-support-evidence-2026-10-03.json y receta r13_common_support_controls.py.
 23 pruebas backend y4 Chrome; contraste corporal privado anterior coincide.
 No reentrena ni resuelve generalización entre sujetos/tareas o hipótesis HIT.
+
+R01/R02 — 2026-10-03: la pestaña Figura permite explorar en vivo base/proyector
+del subespacio causal existente, con colores de escala fija, amplitudes,
+residuo y ángulos. Preset guarda vista y recorte visual. Recorrido web sobre
+tracking corporal privado de sólo lectura; ninguna nueva inferencia ni
+resultado corporal publicado. No añade geometría positiva, KP ni predicciones
+específicas HIT; esos experimentos siguen separados del dibujo de features.

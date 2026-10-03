@@ -4,7 +4,7 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from harmonic_weaver.lab.contracts import Calibration, MotionFrame, Preset
+from harmonic_weaver.lab.contracts import Calibration, MotionFrame, Preset, VisualSettings
 from harmonic_weaver.lab.store import RevisionConflict, SessionStore
 
 
@@ -104,3 +104,12 @@ def test_motion_contract_preserves_shape_and_missingness():
     frame["persons"][0]["joints"][0]["position"].append(.9)
     with pytest.raises(ValidationError, match="dimension differs"):
         MotionFrame.model_validate(frame)
+
+
+@pytest.mark.parametrize("patch", [
+    {"collective_view":"unknown"}, {"collective_max_axes":1},
+    {"collective_max_axes":35}, {"collective_max_axes":2.5},
+])
+def test_collective_display_rejects_unsupported_view_or_dimensions(patch):
+    with pytest.raises(ValidationError):
+        VisualSettings.model_validate(patch)

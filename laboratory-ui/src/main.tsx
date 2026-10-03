@@ -1,3 +1,4 @@
+import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 
 import { CapturePanel } from "./CapturePanel";
@@ -82,6 +83,8 @@ const labels: Record<string, string> = {
   window_periods: "Ventana de dibujo (períodos)",
   samples: "Muestras de la figura",
   persistence: "Persistencia visual",
+  collective_view: "Geometría del movimiento",
+  collective_max_axes: "Ejes visibles de la geometría",
   line_width: "Grosor del trazo (px)",
   brightness: "Brillo",
   scale: "Escala",
@@ -318,7 +321,8 @@ function Fields({
           onChange={(e) => onChange(e.target.value)}
         >
           {schema.enum.map((v: any) => (
-            <option key={v}>{v}</option>
+            <option key={v} value={v}>{name === "collective_view"
+              ? ({off:"Apagada",projector:"Proyector del subespacio",basis:"Base y modos"} as Data)[v] : v}</option>
           ))}
         </select>
       </label>
@@ -850,6 +854,7 @@ function App() {
           {figureError && <p role="alert">{figureError}</p>}
         </section>
       </div>
+      <CollectiveGeometry features={state.features} visual={draft.visual} algorithm={draft.algorithm.id}/>
       {state.shaper?.audio_disabled && (
         <aside role="status">
           Modo diagnóstico sin audio (--no-audio). Reiniciá sin esa opción para
