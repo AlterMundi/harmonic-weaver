@@ -11,6 +11,7 @@ from .analysis_math import AngularMode, RelativeMode
 from .collective import CausalSubspace, DeploymentEvents, LaggedPropagation
 from .contracts import FeatureFrame, Signal
 from .kinematics import Kinematics, PARENTS, ZONES
+from .joint_filter import JointMotionFilter
 from .legacy import FrozenBaseline, baseline_module
 
 
@@ -28,6 +29,9 @@ class MotionModel:
     def reset(self):
         settings = self.preset.algorithm
         self.baseline = FrozenBaseline(self.preset) if settings.id == "baseline" else None
+        self.joint_filter = JointMotionFilter(settings, self.scale)
+        self.conditioned_frame = None
+        self.filter_diagnostics = {"enabled": False}
         self.kinematics = Kinematics(settings, self.scale)
         self.relative = [[RelativeMode(settings) for _ in range(2)] for _ in ZONES]
         self.angular = [[AngularMode(settings) for _ in range(2)] for _ in ZONES]
@@ -49,8 +53,12 @@ class MotionModel:
             if discontinuity:
                 self.reset()
         self.frame, self.person_id = frame, person_id
+        frame, self.filter_diagnostics = self.joint_filter.push(frame, person_id)
+        self.conditioned_frame = frame if self.preset.algorithm.tracking_filter_enabled else None
         if self.baseline:
-            return self.baseline.observe(frame, person_id, now)
+            features = self.baseline.observe(frame, person_id, now)
+            features.diagnostics["tracking_filter"] = self.filter_diagnostics
+            return features
         person = next((p for p in frame.persons if p.person_id == person_id), None)
         kin = self.kinematics.push(frame.source_time_s, person)
         t, settings = frame.source_time_s, self.preset.algorithm
@@ -152,12 +160,15 @@ class MotionModel:
 
     def tick(self, now):
         if self.baseline:
-            return self.baseline.tick(now)
+            features = self.baseline.tick(now)
+            features.diagnostics["tracking_filter"] = self.filter_diagnostics
+            return features
         if self.features is None:
             return FeatureFrame(source_time_s=0., available_monotonic_s=now, person_id=None,
                                 algorithm_id=self.preset.algorithm.id)
         features = self.features.model_copy(deep=True)
         features.available_monotonic_s = now
+        features.diagnostics["tracking_filter"] = self.filter_diagnostics
         for z, (gain, drive) in self.responses.items():
             if gain is not None and self.preset.response.pluck_enabled:
                 gain = self.plucks[z].gain(now, gain)

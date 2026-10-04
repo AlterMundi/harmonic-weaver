@@ -1029,3 +1029,13 @@ sin rellenar huecos. Figura indica ejes excluidos. `fixed` conserva la exigencia
 todas las articulaciones seleccionadas. Cambiar a colectivo desde Modelos propone
 `observed`; ambos modos se pueden elegir desde ese panel. La velocidad global
 usa articulaciones observadas en ese instante y no se presenta como modo PCA.
+
+### Filtrar saltos de tracking
+
+En Modelos, activar **Filtrar glitches de tracking**. Ajustar mediana causal,
+suavizado y aceleración máxima por articulación. La sesión actual de Nicolás lo
+prueba con mediana de 3 cuadros, respuesta de 50 ms, caderas 35 y muñecas 240 T/s².
+El control de corrección de caderas atiende intercambios de etiquetas, no cambios
+reales de cuerpo. Figura permite **Ver esqueleto crudo en vez del filtrado**.
+Los ajustes se guardan con el preset; apagar el filtro recupera la entrada original.
+No se recalcula ni sobrescribe tracking. [Funcionamiento y opciones 3D](TRACKING.md).

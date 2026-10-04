@@ -387,6 +387,7 @@ class LaboratoryRuntime:
             return {"source": {"kind":self.kind, "job":self.library.snapshot(self.job_id) if self.job_id else None,
                                "camera":self.camera.snapshot() if self.kind == "camera" else None},
                     "motion_frame":self.frame.model_dump() if self.frame else None,
+                    "conditioned_motion_frame":self.model.conditioned_frame.model_dump() if self.model and self.model.conditioned_frame else None,
                     "features":self.features.model_dump() if self.features else None,
                     "calibration":self.calibration.model_dump() if self.calibration else None,
                     "calibration_notice":self.calibration_notice,

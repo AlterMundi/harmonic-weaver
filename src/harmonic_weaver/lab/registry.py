@@ -32,6 +32,6 @@ def algorithm_descriptors():
     return [AlgorithmDescriptor(id=key, label=label, description=description,
         inputs=["MotionFrame/camera_isotropic/2D", "source time", "selected person", "explicit torso calibration" if key != "baseline" else "adaptive original scale"],
         outputs=signal_catalog() if key != "baseline" else {k:v for k,v in signal_catalog().items() if k.endswith((".gain", ".detune", ".phase_deg", ".speed", ".acceleration")) and k.startswith("zone.")},
-        controls=controls if key != "baseline" else [c for c in controls if c.key in {"horizon_s","max_gap_s"}],
+        controls=controls if key != "baseline" else [c for c in controls if c.key in {"horizon_s","max_gap_s"} or c.key.startswith("tracking_")],
         warmup_s=2. if key == "collective" else .25, cost="windowed" if key == "collective" else "light")
         for key,(label,description) in DESCRIPTIONS.items()]

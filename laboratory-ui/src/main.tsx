@@ -48,6 +48,12 @@ const labels: Record<string, string> = {
   fixed_x: "Origen fijo X",
   fixed_y: "Origen fijo Y",
   joints: "Joints para análisis colectivo y velocidad global",
+  tracking_filter_enabled: "Filtrar glitches de tracking",
+  tracking_hip_swap_guard: "Corregir intercambios de caderas por continuidad",
+  tracking_median_frames: "Mediana causal (cuadros)",
+  tracking_smoothing_s: "Suavizado del tracking (s)",
+  tracking_joint_accel_limits: "Aceleración máxima por joint (T/s²)",
+  show_raw_tracking: "Ver esqueleto crudo en vez del filtrado",
   smoothing_s: "Suavizado (s)",
   derivative_window_s: "Ventana de derivada (s)",
   horizon_s: "Horizonte de predicción (s)",
@@ -179,7 +185,7 @@ function Fields({
             ([key]) =>
               schema.title !== "AlgorithmSettings" ||
               value?.id !== "baseline" ||
-              ["id", "version", "horizon_s", "max_gap_s"].includes(key),
+              (["id", "version", "horizon_s", "max_gap_s"].includes(key) || key.startsWith("tracking_")),
           )
           .map(([key, sub]) => (
             <Fields
@@ -246,6 +252,11 @@ function Fields({
         </div>
       </fieldset>
     );
+  if (schema.type === "array" && name === "tracking_joint_accel_limits")
+    return <fieldset><legend>{labels[name]}</legend><div className="fields">
+      {["Nariz","Ojo izquierdo","Ojo derecho","Oreja izquierda","Oreja derecha","Hombro izquierdo","Hombro derecho","Codo izquierdo","Codo derecho","Muñeca izquierda","Muñeca derecha","Cadera izquierda","Cadera derecha","Rodilla izquierda","Rodilla derecha","Tobillo izquierdo","Tobillo derecho"].map((label,index) =>
+        <label key={index}>{label}<input aria-label={`Aceleración máxima ${label}`} type="number" min="0.1" max="2000" step="1" value={value[index]} onChange={e => {const next=clone(value);next[index]=Number(e.target.value);onChange(next);}}/></label>)}</div>
+      <p>T = torso proyectado; son límites ajustables del filtro, no límites anatómicos.</p></fieldset>;
   if (schema.type === "array")
     return (
       <fieldset>
@@ -675,6 +686,7 @@ function App() {
     props = schemas.Preset.properties,
     job = state.source?.job,
     session = state.session || {};
+  const displayedMotion = (draft.visual.show_raw_tracking ? state.motion_frame : state.conditioned_motion_frame) || state.motion_frame;
   const form = (key: string) => (
     <Fields
       name={key}
@@ -759,13 +771,13 @@ function App() {
                 <p>Abrí un video o encendé la cámara para explorar.</p>
               </div>
             )}
-            {draft.visual.show_skeleton && state.motion_frame && (
+            {draft.visual.show_skeleton && displayedMotion && (
               <svg
                 className="skeleton"
-                viewBox={`0 0 ${state.motion_frame.width / state.motion_frame.height} 1`}
+                viewBox={`0 0 ${displayedMotion.width / displayedMotion.height} 1`}
                 preserveAspectRatio="xMidYMid meet"
               >
-                {state.motion_frame.persons.map((p: Data) => (
+                {displayedMotion.persons.map((p: Data) => (
                   <g
                     key={p.person_id}
                     opacity={p.person_id === session.person_id ? 1 : 0.3}
@@ -1338,6 +1350,11 @@ function App() {
                   }
                 </p>
                 {form("algorithm")}
+                {draft.algorithm.tracking_filter_enabled && <p role="status">
+                  Filtro causal activo. {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped ? "Intercambio de caderas corregido en este cuadro. " : ""}
+                  Joints limitados ahora: {(state.features?.diagnostics?.tracking_filter?.acceleration_limited_joints || []).join(", ") || "ninguno"}.
+                  En Figura podés alternar el esqueleto crudo y el filtrado.
+                </p>}
               </>
             )}
             {tab === "Ruteos" && (

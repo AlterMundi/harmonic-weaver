@@ -146,6 +146,14 @@ class AlgorithmSettings(Contract):
     fixed_x: Number = Field(default=0, ge=-10, le=10)
     fixed_y: Number = Field(default=0, ge=-10, le=10)
     joints: list[int] = Field(default_factory=lambda: list(range(5, 17)), min_length=2, max_length=17)
+    tracking_filter_enabled: bool = False
+    tracking_hip_swap_guard: bool = True
+    tracking_median_frames: int = Field(default=3, ge=1, le=9)
+    tracking_smoothing_s: Number = Field(default=.05, ge=0, le=.5)
+    tracking_joint_accel_limits: list[Annotated[float, Field(ge=.1, le=2000, allow_inf_nan=False)]] = Field(
+        default_factory=lambda: [80.,100.,100.,100.,100.,60.,60.,120.,120.,240.,240.,35.,35.,100.,100.,180.,180.],
+        min_length=17, max_length=17,
+        description="Per COCO-17 joint acceleration limits in projected torso lengths/s²; tuning parameters, not anatomical bounds.")
     smoothing_s: Number = Field(default=0, ge=0, le=2)
     derivative_window_s: Number = Field(default=.12, ge=.02, le=.5)
     horizon_s: Number = Field(default=.15, ge=.01, le=2)
@@ -245,6 +253,7 @@ class VisualSettings(Contract):
     color: Literal["ice", "gold", "violet"] = "ice"
     mirror_video: bool = False
     show_skeleton: bool = True
+    show_raw_tracking: bool = False
     collective_view: Literal["off", "projector", "basis"] = "off"
     collective_max_axes: int = Field(default=12, ge=2, le=34)
     on_disconnect: Literal["clear", "freeze"] = "clear"
