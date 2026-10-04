@@ -1,0 +1,157 @@
+{
+  "conditions": [
+    {
+      "measurements": [
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003233884231312,
+          "audio_peak_s": 0.5000208333333334,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.5
+        },
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003233884231312,
+          "audio_peak_s": 0.5000208333333334,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.5
+        }
+      ],
+      "offset_s": 0,
+      "preview_audio_kbps": 64,
+      "repeat_measurements_identical": true
+    },
+    {
+      "measurements": [
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230750129479,
+          "audio_peak_s": 0.500625,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.5
+        },
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230750129479,
+          "audio_peak_s": 0.500625,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.5
+        }
+      ],
+      "offset_s": 0,
+      "preview_audio_kbps": 192,
+      "repeat_measurements_identical": true
+    },
+    {
+      "measurements": [
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230583659292,
+          "audio_peak_s": 0.5004375,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.5
+        },
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230583659292,
+          "audio_peak_s": 0.5004375,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.5
+        }
+      ],
+      "offset_s": 0,
+      "preview_audio_kbps": 320,
+      "repeat_measurements_identical": true
+    },
+    {
+      "measurements": [
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230750129479,
+          "audio_peak_s": 0.500625,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.4
+        },
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230750129479,
+          "audio_peak_s": 0.500625,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.4
+        }
+      ],
+      "offset_s": 0.1,
+      "preview_audio_kbps": 192,
+      "repeat_measurements_identical": true
+    },
+    {
+      "measurements": [
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230750129479,
+          "audio_peak_s": 0.500625,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.6
+        },
+        {
+          "analysis_window_s": [
+            0.45,
+            0.55
+          ],
+          "audio_energy_centroid_s": 0.5003230750129479,
+          "audio_peak_s": 0.500625,
+          "decoded_audio_samples": 48128,
+          "video_flash_pts_s": 0.6
+        }
+      ],
+      "offset_s": -0.1,
+      "preview_audio_kbps": 192,
+      "repeat_measurements_identical": true
+    }
+  ],
+  "control_tolerance_s": 0.002,
+  "environment": {
+    "ffmpeg": "ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers",
+    "numpy": "2.5.1",
+    "opencv": "4.14.0",
+    "python": "3.12.13"
+  },
+  "export_code_sha256": "6c54d846a4840113d726926017eee69b74631d118be4af10205bc214c90b6218",
+  "fixture_sha256": "d404e29aa33815a136e6d7dab78d31870f8df358aae74bdcf6c26c8234dd2dd9",
+  "kind": "capture_aac_preview_transient_control",
+  "limits": [
+    "Fixed synthetic transient and 100ms analysis window, not general codec error bound",
+    "Energy centroid/peak are timing controls, not perceptual onset",
+    "Decoded lossy AAC is not exact archive PCM",
+    "No hardware, acoustics or human synchrony/acceptance measured"
+  ],
+  "recipe_sha256": "eb93777d4ffd0562e4861e4c9211e04bfda204983ee583e9a5a2d41193c10113",
+  "reference_energy_centroid_s": 0.5003229166666666
+}

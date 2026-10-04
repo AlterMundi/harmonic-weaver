@@ -44,7 +44,7 @@ test('R12 real API controls, missing support, immutable save retry and portable 
  await expect(page.getByRole('button',{name:'Abrir corrida R12'})).toHaveCount(1);
  await page.getByRole('button',{name:'Abrir corrida R12'}).click();
  await expect(table.getByRole('row').nth(1)).toContainText('85');
- const manifest=page.locator('a').filter({hasText:'manifest.json'});
+ const manifest=page.locator('a[href^="/api/research/r12/measurements/"]').filter({hasText:'manifest.json'});
  const response=await page.request.get(origin+(await manifest.getAttribute('href') || ''));expect(response.ok()).toBe(true);
  expect((await response.json()).line).toBe('R12');
  await expect(page.getByRole('alert')).toHaveCount(0);

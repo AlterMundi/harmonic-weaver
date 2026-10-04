@@ -33,6 +33,11 @@ Cada experimento añade una nota fechada con fuente, configuración, condiciones
 evidencia, resultado (también nulo/negativo), límites y siguiente pregunta.
 Cerrar una issue de software no resuelve automáticamente la pregunta científica.
 
+R12 — 2026-10-03: [sensibilidad al reloj declarado](r12_clock/README.md) en
+web/API/CLI con archivos reproducibles. Intersección entre offsets y canales
+observados, cobertura original/pareada, dos controles sintéticos repetidos y
+caso sin soporte. No estima sincronía; mediciones físicas/participantes pendientes.
+
 ## Antecedentes primarios
 
 - HIT, capítulos 8 y 10, manuscrito local citado en el plan.
@@ -55,7 +60,9 @@ sintética real/repetida, controles y límites preservados. Incluye soporte pare
 entre controles y horizontes configurables con forecasts congelados en su origen.
 Incluye entrada de features desde comparaciones congeladas, con unidades,
 procedencia, deduplicación y gaps explícitos; repetición corporal local sin publicar
-datos privados. Falta comparación amplia entre familias de predictores y
+datos privados. El corte de 2026-10-03 agrega tendencia y ridge con retardos completo/subespacio,
+selección web para sintéticos/EVAL y tres casos reproducibles con mejora y
+empeoramiento (README y evidence-families-2026-10-03.json). Falta ampliar familias/reservas y
 predicción específica HIT. R01 sigue abierto;
 R02–R13 conservan sus experimentos/dependencias de esta agenda.
 
@@ -922,3 +929,41 @@ Dentro de toma real: validación de pipeline, no transferencia independiente.
 Intervención, aprendizaje, persona–prótesis y beneficio requieren diseños/datos
 propios y dependencias explícitas; Anni P3–P6 no se sustituyen por un score ni se
 cierra #27. Direcciones compartidas con Oliva siguen reservadas/intactas.
+
+R13 — 2026-10-03: contraste local entre dos recordings corporales congelados,
+seis zone-speed del mismo baseline, dos segmentos train y otro archivo reservado.
+Prefijo0/60, pesos/scalers/bases train-only, shuffle/control cuadrático y scores
+sobre soporte común entre condiciones; outputs repetidos/recomputados. Import/repeat
+web/API/worker verificado con dos Chrome y sin cambiar preset/revisión live.
+Evidencia numérica/poses/IDs/hashes sólo local; VALIDATION describe alcance sin
+publicarla. No infiere identidad entre videos, equivalencia anatómica de escala,
+transferencia entre sujetos/tareas, causalidad/eficiencia/HIT ni aceptación.
+
+R13 — comparador de corridas guardadas: web/API sobre pares comunes de origen y
+objetivo, MSE/deltas pareados/exclusiones/JSON con procedencia, mismos inputs y
+settings variables. Controles sintéticos de prefijo/soporte vacío publicados en
+r13-common-support-evidence-2026-10-03.json y receta r13_common_support_controls.py.
+23 pruebas backend y4 Chrome; contraste corporal privado anterior coincide.
+No reentrena ni resuelve generalización entre sujetos/tareas o hipótesis HIT.
+
+R01/R02 — 2026-10-03: la pestaña Figura permite explorar en vivo base/proyector
+del subespacio causal existente, con colores de escala fija, amplitudes,
+residuo y ángulos. Preset guarda vista y recorte visual. Recorrido web sobre
+tracking corporal privado de sólo lectura; ninguna nueva inferencia ni
+resultado corporal publicado. No añade geometría positiva, KP ni predicciones
+específicas HIT; esos experimentos siguen separados del dibujo de features.
+
+R01 — 2026-10-03: comparación de corridas guardadas con soporte configurable
+objetivo/origen-objetivo, separación por control y familias comunes.
+[Receta sintética](r01_grassmann/saved_comparison_controls.py) y
+[evidencia repetida](r01_grassmann/evidence-saved-comparison-2026-10-03.json).
+Cuatro archivos corporales históricos comparados read-only localmente; informe
+privado y artefactos originales conservados. No nueva toma, refit ni predicción
+HIT específica; cambiar horizonte cambia información del origen.
+
+R03 — 2026-10-03: [comparador de señales/centros candidatos](r03_centers/README.md)
+web/API sobre corridas archivadas con mismo corte de marcas/contexto y matching.
+Todas usan soporte observado común, con métricas individuales y denominadores
+retenidos. Control sintético de cobertura desigual/disjunta repetido; no marcas
+humanas inventadas ni centro causal descubierto. Marcas, incertidumbre temporal y
+reservas nuevas conservan su dependencia humana.

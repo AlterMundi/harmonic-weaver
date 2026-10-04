@@ -109,6 +109,16 @@ reproducible, manteniendo la exploración libre como operación principal.
    después de revisar definiciones y resultados. No bloquear el laboratorio si
    ese aporte todavía no existe.
 
+Actualización 2026-10-03: #36 y su extensión Fourier #97 están incorporadas en
+la rama `feat/sai-fourier-integration`, sobre #96, sin merge automático.
+Los generadores compartidos/independientes y el banco permanecen en research;
+no son filtros live ni cambian el instrumento. Véase
+[informe de Oliva](../../research/laboratory/sai_bridge/FOURIER_REPORT.md) y
+[evidencia de integración](VALIDATION.md#saioliva-integración-del-banco-fourier--2026-10-03).
+El siguiente uso pertinente es un contraste sobre canales corporales regulares
+con soporte/missingness declarados, antes de atribuir cambios de I a acoplamiento.
+No hace falta otra ronda de revisión ni igualdad de digest entre entornos.
+
 Aceptación: un comando de arranque; mismo preset entre fuentes; explicación
 visible de silencios; sesión local de 60 s con seis voces y sin reataques por
 actualización; pruebas de resets/cache/audio/UI pertinentes; corrida repetible
@@ -166,3 +176,119 @@ contratos fijados; al menos un control negativo y un contraejemplo informativo;
 tests de causalidad/missingness; informe separa esperado, observado, límite y
 propuesta. PR revisable contra base declarada, sin datos privados ni afirmación
 de validación humana/HIT. No depende del comparador que CompAII aún construirá.
+
+## Siguiente aporte de Oliva: Fourier corporal — 2026-10-03
+
+Nicolás confirmó que le pasó el goal para extender #97 a trayectorias corporales
+congeladas: bloques por persona/articulaciones, continuidad y muestreo regular
+explícitos; sin rellenar gaps, calibración inventada ni resampling silencioso.
+Original/fases compartidas/independientes sobre igual soporte; diagnóstico de
+longitudes de segmentos/plausibilidad para separar cambios geométricos de los
+descriptores. Fixtures sintéticas y contraejemplos, comando/JSON reproducibles;
+datos corporales privados no requeridos para desarrollar.
+
+Reservados para ese aporte: `research/laboratory/sai_bridge/body_fourier.py`,
+`BODY_FOURIER_REPORT.md`, nuevas fixtures dentro del bridge y
+`tests/research/test_sai_bridge_body_fourier*.py`. Mantener funciones existentes
+compatibles. CompAII implementa servicio/UI en `src/` y `laboratory-ui/`, sin
+editar esos archivos reservados ni esperar la entrega para avanzar. Encomienda
+confirmada por Nicolás; no se infiere que el trabajo esté ejecutándose ni terminado.
+
+### Aporte recibido e incorporado: Fourier corporal (#107)
+
+La PR de Oliva #107, head f424981, fue revisada como consumidor e incorporada
+por cherry-pick con autoría preservada sobre la pila actual (#108). No se
+modificaron sus cinco archivos reservados; no hay merge automático ni cambios
+de runtime. 58 tests del bridge pasan y el comando completo ejecuta contra
+los imports actuales. Procedencia efectiva identifica nueve productores del
+checkout integrado, separada de la referencia histórica #98.
+
+Retiene 800/910 frames de upper_body y 128/128 del control one_scalar, con
+exclusiones explicadas. Original/shared/independent se puntúan sobre la misma
+intersección observada por descriptor. No valida poses humanas: todas las
+fixtures de esta verificación son sintéticas. Preservar el espectro cruzado
+no conserva necesariamente longitudes articuladas ni descriptores no lineales.
+
+Siguiente integración de software: servicio/UI consumidor en src/ y
+laboratory-ui/, usando prepare_blocks/control_frames/compare_blocks sobre
+MotionFrames congelados. Selección, Hz/tolerancias, unidades/escala/procedencia,
+semillas y preset descriptivo deben ser explícitos. Mostrar cobertura, causas
+de exclusión, soporte común y diagnóstico geométrico junto a spectra/resultados.
+Nunca usar FFT de bloque completo como filtro causal de la operación live.
+No inventar calibración ni aplicar controles a tracking/audio en producción.
+
+El contraste sintético de geometría restringida/espacio angular propuesto por
+Oliva queda como investigación posterior, midiendo su trade-off espectral; no
+se atribuyen cambios de descriptores únicamente a relaciones. Sin nuevo encargo
+ni mensajes a personas por esta incorporación.
+
+### Consumidor Fourier corporal de biblioteca — 2026-10-03
+
+Nueva rama implementa worker/API/UI en src/ y laboratory-ui/ sin modificar
+archivos reservados del bridge. Usa spatial_segment para congelar una generación
+completa en memoria: no reabre/copia el video ni recalcula tracking. Preparación
+es rápida y separada del cálculo cancelable. request.json/input.json contienen
+selección y MotionFrames privados; result/manifest conservan cobertura, espectros,
+longitudes, soporte común por descriptor y productores efectivos. Todo local.
+
+En Investigación → Sai–Oliva · Fourier corporal congelado: Actualizar fuentes,
+elegir fuente/persona, intervalo y ajustes JSON. Completar scale y
+scale_provenance; declarar sample_hz, canales [COCO-17, x/y], tolerancias, semillas
+y preset descriptivo con plucks desactivados. Preparar muestra exclusiones y
+bloques; Correr usa su propio snapshot vigente, no una preparación vieja.
+Abrir muestra condición/descriptor sobre soporte común, espectros y geometría
+al lado. Ausencia de soporte queda como Sin soporte, nunca cero.
+
+Descargar/importar ajustes valida Settings y permite portabilidad de métodos;
+importar limpia persona y escala/procedencia, y no inicia el cálculo. Escala/procedencia
+son declaraciones explícitas del análisis, no calibración recuperada ni inferida.
+No se modifica instrumento, fuente, tracking o síntesis. Hasta 4800 frames y
+14400 frames × semillas, con 1–4 semillas; el segmento de biblioteca admite
+hasta 120 segundos. PTS irregulares/tolerancias pueden dejar cero bloques: se
+explica en preparación sin rellenar datos. 3D se excluye explícitamente.
+
+Persistencia conserva entradas/manifests y descargas verifican integridad sin
+recalcular el banco. Cancelación/cierre afectan sólo procesos propios. La fuente
+es una generación en memoria; no prueba integridad actual de video/cache en
+disco. Backend verificado con tracking corporal real desde cache local, sin
+reprocesamiento. Recorrido web de producción con cache real verificado (audio desconectado).
+Pendiente: feedback humano, instalación de la pila; contraste geométrico restringido y trabajo científico independiente.
+
+
+La preparación muestra el bloque descartado más largo para ayudar a distinguir
+un mínimo de longitud excesivo de articulaciones sin soporte. Con tracking real,
+la selección de canales y un mínimo explícito distinto permitieron obtener
+bloques válidos donde el ajuste inicial no los tenía; defaults conservados.
+La evidencia local y sus límites están en VALIDATION.md. Datos privados quedan
+fuera de GitHub. La investigación geométrica restringida de Oliva puede avanzar
+sin cambiar este consumidor ni el instrumento cotidiano.
+
+
+La UI limpia escala/procedencia al cambiar fuente o persona, conservando método;
+una edición JSON incompleta no se pierde al intentar cambiar selección. El
+recorrido web real del consumidor está verificado, no la escucha ni la apertura
+física de dispositivos. Ver VALIDATION.md y RUNNING.md.
+
+
+### EVAL #18 · continuación por corridas completas — 2026-10-03
+
+Web/API/CLI permiten presupuesto por tanda y continuación de matriz congelada,
+sin repetir corridas completas ni transportar estado de otra corrida. Ver
+EVALUATION.md/VALIDATION.md: pruebas y contraste corporal local con PCM pasan.
+Presupuesto mide corridas, no tiempo/recursos internos; cambios de método/entradas
+requieren corrida nueva. Publicación seleccionada con revisión de privacidad,
+sincronía física y feedback humano siguen pendientes concretos. Los datos
+corporales permanecen locales; no afecta el bridge reservado ni los defaults.
+
+
+### EVAL #18 · paquete seleccionable — 2026-10-03
+
+Implementados selector de corridas/contenidos, resumen sin nombres/rutas/identidad,
+preferencias portables, preview y writer ZIP propio. Ver EVALUATION/VALIDATION:
+pruebas y contraste local con resultados corporales guardados. Conserva soporte
+común original; no infiere nueva intersección desde los presets exportados.
+
+La preparación de archivo local está cubierta; publicación externa, corpus con
+inputs públicos/consentidos, protocolos/feedback humanos y medición física siguen
+pendientes. Un resumen sin IDs sigue pudiendo contener resultados sensibles.
+Ningún video/tracking se copia al paquete ni se publica automáticamente.

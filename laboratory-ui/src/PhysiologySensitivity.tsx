@@ -1,0 +1,26 @@
+import {useEffect,useRef,useState} from 'react';
+type Data=Record<string,any>;
+function download(value:unknown,name:string){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+export function PhysiologySensitivity({api,protocol}:{api:any,protocol:Data|null}){
+ const [deltas,setDeltas]=useState('[-0.1, 0, 0.1]'),[result,setResult]=useState<Data|null>(null),[rows,setRows]=useState<Data[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const context=JSON.stringify([protocol,deltas]);const current=useRef(context);current.current=context;
+ const act=async(work:()=>Promise<void>)=>{setBusy(true);setError('');try{await work()}catch(e){setError(String(e))}finally{setBusy(false)}};
+ const refresh=async()=>setRows(await api('research/r12/clock-sensitivity'));
+ useEffect(()=>{void refresh().catch(e=>setError(String(e)))},[api]);
+ useEffect(()=>{setResult(null)},[context]);
+ const confirm=(value:string)=>{if(value!==current.current)throw Error('El contexto R12 cambió durante la sensibilidad; repetir sobre el protocolo actual')};
+ return <details><summary>Sensibilidad del reloj R12</summary>
+ <p>Desplazamientos declarados respecto del offset actual, en segundos del reloj común. Incluí cero; hasta nueve valores únicos entre −60 y 60. No estima sincronización ni elige el offset que mejor puntúa. Rate, muestras, exclusiones e intentos se conservan. La intersección usa todos los offsets y los canales seleccionados para soporte común.</p>
+ <label>Deltas de offset R12 (JSON)<input aria-label="Deltas de offset R12 (JSON)" disabled={busy} value={deltas} onChange={e=>setDeltas(e.target.value)}/></label>
+ <button disabled={busy||!protocol} onClick={()=>void act(async()=>{const captured=current.current;setResult(null);const value=await api('research/r12/clock-sensitivity/inspect',{measurements:protocol,offset_deltas_s:JSON.parse(deltas)});confirm(captured);setResult(value)})}>Comparar offsets R12</button>
+ <button disabled={busy} onClick={()=>void act(async()=>download({schema_version:1,kind:'r12-clock-sensitivity-settings',offset_deltas_s:JSON.parse(deltas)},'r12-clock-settings.json'))}>Exportar offsets R12</button>
+ <label>Importar offsets R12<input type="file" accept=".json,application/json" disabled={busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void act(async()=>{const captured=current.current;if(file.size>65536)throw Error('Máximo 64 KiB');const value=JSON.parse(await file.text());if(value.schema_version!==1||value.kind!=='r12-clock-sensitivity-settings'||Object.keys(value).some(k=>!['schema_version','kind','offset_deltas_s'].includes(k))||!Array.isArray(value.offset_deltas_s))throw Error('Configuración incompatible');confirm(captured);setDeltas(JSON.stringify(value.offset_deltas_s))})}}/></label>
+ <button disabled={busy||!result} onClick={()=>void act(async()=>{await api('research/r12/clock-sensitivity',result!.request);await refresh()})}>Guardar sensibilidad R12</button>
+ <button disabled={busy} onClick={()=>void act(refresh)}>Actualizar sensibilidades R12</button>
+ {rows.map(row=><div key={row.id}>{row.id} · {row.read_verification}<button disabled={busy} onClick={()=>void act(async()=>{const captured=current.current;const value=await api(`research/r12/clock-sensitivity/${row.id}/artifacts/result.json`);confirm(captured);setResult(value)})}>Ver sensibilidad R12 {row.id}</button>{['request.json','result.json','manifest.json'].map(name=><a key={name} download href={`/api/research/r12/clock-sensitivity/${row.id}/artifacts/${name}`}>{name} </a>)}</div>)}
+ {error&&<p role="alert">{error}</p>}
+ {result&&<><p>Protocolo congelado del resultado: {result.request.measurements.task} · slot {result.request.measurements.subject_slot}. Ver un archivo no aplica su protocolo al editor.</p>
+ {result.conditions.map((condition:Data)=><div key={condition.offset_delta_s}><h3>Delta {condition.offset_delta_s}s · offset efectivo {condition.effective_offset_s}s</h3>{condition.native_trials.map((trial:Data,i:number)=><table key={trial.trial.id} aria-label={`Sensibilidad R12 ${condition.offset_delta_s} ${trial.trial.id}`}><caption>{trial.trial.condition}: cobertura original vs intersección de offsets/canales</caption><thead><tr><th>Canal/unidad</th><th>Duración original (s)</th><th>Media original</th><th>Duración pareada (s)</th><th>Media pareada</th><th>Trabajo/energía pareada parcial (J)</th></tr></thead><tbody>{trial.channels.map((channel:Data,j:number)=>{const paired=condition.paired_trials[i].channels[j];return <tr key={channel.channel.id}><td>{channel.channel.id}/{channel.channel.units}</td><td>{channel.duration_s}</td><td>{channel.mean??'Sin soporte'}</td><td>{paired.duration_s}</td><td>{paired.mean??'Sin soporte'}</td><td>{paired.energy_or_work_J??'No calculado'}</td></tr>})}</tbody></table>)}</div>)}
+ <button onClick={()=>download(result,'r12-clock-sensitivity.json')}>Exportar sensibilidad R12</button><details><summary>Soporte, causas y límites de sensibilidad R12</summary><pre>{JSON.stringify(result,null,2)}</pre></details></>}
+ </details>;
+}

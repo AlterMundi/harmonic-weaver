@@ -11,6 +11,7 @@ from pydantic import Field, model_validator
 from ..cache import atomic_json, sha256_file
 from ..collective import CausalSubspace
 from ..contracts import AlgorithmSettings, Contract, Number
+from .forecast_families import Predictor, DEFAULT_PREDICTORS, linear_trend, lagged_ridge, fixed_harmonics
 
 
 class Settings(Contract):
@@ -24,8 +25,12 @@ class Settings(Contract):
     noise_std: Number = Field(default=.01,ge=0,le=1)
     noise_threshold: Number = Field(default=.02,ge=.0001,le=2)
     ridge: Number = Field(default=.1,ge=.00001,le=100)
+    predictors: list[Predictor] = Field(default_factory=lambda:list(DEFAULT_PREDICTORS),min_length=1,max_length=7)
+    harmonic_fundamental_hz: Number = Field(default=.35,gt=0,le=20)
+    harmonic_ratios: list[Number] = Field(default_factory=lambda:[1,2,3,4,5,6],min_length=1,max_length=12)
+    autoregressive_lags: int = Field(default=3,ge=1,le=12)
     horizon_steps: int = Field(default=1,ge=1,le=30)
-    scenario: Literal['fixed_span','rotating_span','stochastic_span'] = 'fixed_span'
+    scenario: Literal['fixed_span','rotating_span','stochastic_span','harmonic_span'] = 'fixed_span'
     temporal_memory: Number = Field(default=.95,ge=0,le=.999)
     rotation_deg_s: Number = Field(default=30,ge=0,le=360)
 
@@ -33,6 +38,10 @@ class Settings(Contract):
     def valid_rank(self):
         if self.signal_rank>=self.dimensions or self.components>self.dimensions:
             raise ValueError('signal_rank must be below dimensions; components cannot exceed dimensions')
+        if len(set(self.predictors))!=len(self.predictors):raise ValueError('Predictors must be distinct')
+        if any(v<=0 or v>32 for v in self.harmonic_ratios) or len(set(self.harmonic_ratios))!=len(self.harmonic_ratios):raise ValueError('Harmonic ratios must be distinct positive values ≤32')
+        if self.scenario=='harmonic_span' and len(self.harmonic_ratios)<self.signal_rank:raise ValueError('Harmonic generator needs at least signal_rank ratios')
+        if self.scenario=='harmonic_span' and self.harmonic_fundamental_hz*max(self.harmonic_ratios)>=self.control_hz/2:raise ValueError('Harmonic generator frequencies must be below Nyquist')
         return self
 
 
@@ -42,6 +51,8 @@ def generate(settings):
     t=np.arange(settings.samples)/settings.control_hz
     latent=np.stack([np.sin(2*np.pi*(.35+.23*i)*t)+.3*np.cos(2*np.pi*(.71+.17*i)*t)
                      for i in range(settings.signal_rank)],axis=1)
+    if settings.scenario=='harmonic_span':
+        latent=np.stack([np.sin(2*np.pi*settings.harmonic_fundamental_hz*ratio*t+.17*i) for i,ratio in enumerate(settings.harmonic_ratios[:settings.signal_rank])],axis=1)
     if settings.scenario=='stochastic_span':
         latent=rng.normal(size=latent.shape)
         for i in range(1,len(latent)):
@@ -67,12 +78,16 @@ def predict(past, basis, ridge, horizon_steps=1):
 def evaluate(settings, t, data):
     model=CausalSubspace(AlgorithmSettings(id='collective',components=settings.components,
         window_s=settings.window_s,noise_velocity=settings.noise_threshold,max_gap_s=.5))
-    history=[];rows=[];pending={};ids=[f'synthetic.{i}' for i in range(settings.dimensions)]
+    history=[];harmonic_history=[];rows=[];pending={};ids=[f'synthetic.{i}' for i in range(settings.dimensions)]
     for index,(stamp,value) in enumerate(zip(t,data)):
+        if harmonic_history:
+            cutoff=harmonic_history[-1][0]-settings.window_s
+            harmonic_history=[item for item in harmonic_history if item[0]>=cutoff]
         history=[item for item in history if item[0]>=stamp-settings.window_s]
         state=model.push(float(stamp),value,ids)
         row={'time_s':float(stamp),'state':state['state'],'reason':state.get('reason'),
              'past_samples':state['past_samples'],'history_end_s':state.get('history_end_s')}
+        if 'fixed_harmonics' in settings.predictors:row['shared_forecast_commit_state']='geometry_unavailable'
         if state['state']=='observed':
             past=np.stack([item[1] for item in history]);basis=np.array(state['basis'])
             row.update(rank=state['rank'],components=state['components'],
@@ -80,44 +95,104 @@ def evaluate(settings, t, data):
             # Commit the forecast at its origin. Subsequent observations cannot
             # update its fitted basis, coefficients or predicted vectors.
             target=index+settings.horizon_steps-1
-            if len(past)-settings.horizon_steps>=2 and target<len(t):
-                predictions={'persistence':past[-1].copy(),
-                    'full_ridge':predict(past,np.eye(settings.dimensions),settings.ridge,settings.horizon_steps),
-                    'subspace_ridge':predict(past,basis,settings.ridge,settings.horizon_steps)}
+            lags=settings.autoregressive_lags if any(k.startswith('lagged_') for k in settings.predictors) else 1
+            needs_ridge=any('ridge' in key for key in settings.predictors)
+            required=max(2 if 'linear_trend' in settings.predictors else 1,
+                         settings.horizon_steps+lags+1 if needs_ridge else 1,
+                         2*len(settings.harmonic_ratios)+1 if 'fixed_harmonics' in settings.predictors else 1)
+            harmonic_times=np.array([item[0] for item in harmonic_history])
+            harmonic_frequencies=[settings.harmonic_fundamental_hz*v for v in settings.harmonic_ratios]
+            harmonic_ok=('fixed_harmonics' not in settings.predictors or
+                         (len(harmonic_times)>=2*len(harmonic_frequencies)+1 and max(harmonic_frequencies)*np.max(np.diff(harmonic_times))<.5))
+            if not harmonic_ok:row['forecast_unavailable_reason']=('Insufficient past observations for declared harmonic basis' if len(harmonic_times)<2*len(harmonic_frequencies)+1 else 'Declared harmonics exceed conservative sampling bound of past clock')
+            if 'fixed_harmonics' in settings.predictors:
+                if len(past)<required or len(harmonic_times)<2*len(harmonic_frequencies)+1:reason='insufficient_past'
+                elif not harmonic_ok:reason='sampling_bound'
+                elif target>=len(t):reason='outside_segment'
+                else:reason='committed'
+                row['shared_forecast_commit_state']=reason
+            if len(past)>=required and target<len(t) and harmonic_ok:
+                predictions={}
+                for key in settings.predictors:
+                    if key=='persistence':value_prediction=past[-1].copy()
+                    elif key=='fixed_harmonics':
+                        harmonic_target=harmonic_history[-1][0]+settings.horizon_steps*float(np.median(np.diff(harmonic_times)))
+                        value_prediction=fixed_harmonics(np.stack([item[1] for item in harmonic_history]),harmonic_times,harmonic_target,harmonic_frequencies,settings.ridge)
+                    elif key=='linear_trend':value_prediction=linear_trend(past,settings.horizon_steps)
+                    elif key.startswith('lagged_'):
+                        selected_basis=np.eye(settings.dimensions) if key=='lagged_full_ridge' else basis
+                        value_prediction=lagged_ridge(past,selected_basis,settings.ridge,settings.horizon_steps,settings.autoregressive_lags)
+                    else:
+                        selected_basis=np.eye(settings.dimensions) if key=='full_ridge' else basis
+                        value_prediction=predict(past,selected_basis,settings.ridge,settings.horizon_steps)
+                    predictions[key]=value_prediction
                 pending[target]={'predictions':predictions,'origin_s':history[-1][0],
-                    'fit_end_s':history[-1][0],'training_pairs':len(past)-settings.horizon_steps}
+                    'fit_end_s':history[-1][0],'training_pairs':len(past)-settings.horizon_steps-lags+1 if needs_ridge else 0,
+                    'fit_support':{key:({'past_observations':len(past),'training_pairs':len(past)-settings.horizon_steps-(settings.autoregressive_lags-1 if key.startswith('lagged_') else 0)} if 'ridge' in key else {'past_observations':len(past) if key=='linear_trend' else 1,'training_pairs':0}) for key in settings.predictors}}
+                if 'fixed_harmonics' in predictions:
+                    pending[target]['fit_support']['fixed_harmonics']={
+                        'past_observations':len(harmonic_history),'training_pairs':0,
+                        'frequencies_hz':harmonic_frequencies,'basis_columns':2*len(harmonic_frequencies)+1,
+                        'target_time_s':harmonic_target,'clock_estimator':'past_median_sample_interval'}
         forecast=pending.pop(index,None)
         if forecast is not None and state['state']=='observed':
             row.update(prediction_origin_s=forecast['origin_s'],prediction_fit_end_s=forecast['fit_end_s'],
-                prediction_training_pairs=forecast['training_pairs'],horizon_steps=settings.horizon_steps,
+                prediction_training_pairs=forecast['training_pairs'],prediction_fit_support=forecast['fit_support'],horizon_steps=settings.horizon_steps,
                 predictions={key:prediction.tolist() for key,prediction in forecast['predictions'].items()},
                 prediction_mse={key:float(np.mean((prediction-value)**2)) for key,prediction in forecast['predictions'].items()})
         else:
             row['prediction_reason']='No valid forecast from the required past origin' if forecast is None else 'Current reconstruction support unavailable'
-        rows.append(row);history.append((float(stamp),value.copy()))
+        rows.append(row);history.append((float(stamp),value.copy()));harmonic_history.append((float(stamp),value.copy()))
     common=[row for row in rows if 'prediction_mse' in row]
     metrics={key:float(np.mean([row['prediction_mse'][key] for row in common])) for key in
-             ('persistence','full_ridge','subspace_ridge')} if common else {}
+             settings.predictors} if common else {}
     return {'rows':rows,'metrics':{'common_samples':len(common),'mean_prediction_mse':metrics,
         'mean_reconstruction_residual':float(np.mean([row['reconstruction_residual'] for row in common])) if common else None}}
+
+
+def summarize_harmonic_forecasts(rows):
+    """Origin eligibility and scoring coverage are different inventories."""
+    from collections import Counter
+    commits=Counter(row['shared_forecast_commit_state'] for row in rows
+                    if 'shared_forecast_commit_state' in row)
+    errors=[]
+    for row in rows:
+        fit=row.get('prediction_fit_support',{}).get('fixed_harmonics')
+        if fit is not None:
+            errors.append(abs(row['time_s']-fit['target_time_s']))
+    return {'origin_slots':sum(commits.values()),'origin_states':dict(sorted(commits.items())),
+            'scored_target_slots':len(errors),
+            'absolute_target_clock_error_s':{
+                'mean':float(np.mean(errors)) if errors else None,
+                'max':float(np.max(errors)) if errors else None},
+            'limits':['Origin states describe shared eligibility of all selected families',
+                      'Origin commits and scored targets are distinct; tails/gaps may remove targets',
+                      'Clock errors compare estimated vs observed feature timestamps, not measured physical latency']}
 
 
 def pair_controls(evaluations):
     if not evaluations:raise ValueError('No controls to pair')
     indexed={name:{row['time_s']:row for row in evaluation['rows'] if 'prediction_mse' in row}
              for name,evaluation in evaluations.items()}
+    methods=None
+    for rows in indexed.values():
+        for row in rows.values():
+            keys=list(row['prediction_mse'])
+            if methods is None:methods=keys
+            elif set(keys)!=set(methods):raise ValueError('Controls must contain the same predictor families')
+    methods=methods or []
     times=sorted(set.intersection(*(set(rows) for rows in indexed.values())))
     traces=[{'time_s':stamp,'controls':{name:rows[stamp] for name,rows in indexed.items()}} for stamp in times]
     results={}
     for name,rows in indexed.items():
         errors={key:float(np.mean([rows[stamp]['prediction_mse'][key] for stamp in times]))
-                for key in ('persistence','full_ridge','subspace_ridge')} if times else {}
+                for key in methods} if times else {}
         results[name]={'common_samples':len(times),'mean_prediction_mse':errors,
             'mean_reconstruction_residual':float(np.mean([rows[stamp]['reconstruction_residual'] for stamp in times])) if times else None}
     deltas={}
     if times and 'original' in results:
         deltas={name:{key:float(np.mean([rows[stamp]['prediction_mse'][key]-indexed['original'][stamp]['prediction_mse'][key]
-                        for stamp in times])) for key in ('persistence','full_ridge','subspace_ridge')}
+                        for stamp in times])) for key in methods}
                 for name,rows in indexed.items() if name!='original'}
     return {'common_samples':len(times),'results':results,'mean_mse_delta_vs_original':deltas,
             'eligible_by_control':{name:len(rows) for name,rows in indexed.items()},
@@ -151,6 +226,8 @@ def run(settings, output):
                   'Unpaired control summaries may differ in support; paired summaries use shared clock slots',
                   'Global rotation control shares exact samples; shuffle retains vectors but changes chronology',
                   'No physical constraint, intention or particle-scattering law is inferred']}
+    if 'fixed_harmonics' in settings.predictors:
+        report['harmonic_diagnostics']={name:summarize_harmonic_forecasts(value['rows']) for name,value in evaluations.items()}
     atomic_json(output/'manifest.json',report);return report
 
 

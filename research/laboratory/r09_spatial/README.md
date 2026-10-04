@@ -516,3 +516,131 @@ una nueva conversión (dos totales), descarga nativa con IDs y frames preservado
 clock original offset0/nuevo offset2. Servidor apagado. Sin medios privados ni
 hardware, defaults/audio intactos. Retención al cerrar tab/coordinación multipestaña
 no garantizadas; exactitud física/calibración/proveedores 3D reales siguen pendientes.
+
+## Corte 35 · Adaptador de pares de cámaras calibradas
+
+`spatial_multiview.py` calcula DLT lineal offline con dos cámaras K[R|t],
+R mundo→cámara ortonormal propia y t en metros. Convención de proyección y
+triangulación: [documentación primaria OpenCV](https://docs.opencv.org/4.11.0/d9/d0c/group__calib3d.html).
+Sólo píxeles explícitamente sin distorsión; no corrige lentes ni convierte
+coordenadas frame_height/normalizadas. Baseline no nulo y calibración/evidencia/
+marco/unidades/slot declarados. No estima identidad, cámaras ni escala.
+
+Cada fila declara índice y tiempos de las dos vistas y etiquetas correspondientes;
+no matching/interpolación automático. Dos Clock deben compartir common_clock.
+Settings portables ajustan diferencia temporal, suma de incertidumbres declaradas,
+paralaje agudo mínimo y reproyección máxima de cualquiera de las dos cámaras.
+Rechaza matriz/orden/presupuesto inválidos; conserva missing ante píxeles ausentes/
+held/inferred, separación temporal, paralaje bajo, reproyección alta, punto infinito
+o detrás del plano de cámara. Hasta 48000 pares seleccionados por solicitud.
+
+Todos los puntos 3D admitidos permanecen **inferred**, sin confianza 3D inventada.
+Salida en metros/marco declarados; reloj de salida es media de los tiempos comunes
+pareados, con método declared_assumption. Inputs conservan tiempos/relojes/cámaras
+y estados/causas originales. Incertidumbre derivada de declaraciones y separación
+no es una cota medida; no afirma disponibilidad causal ni calibración física.
+
+POST /r09/multiview, GET /example y POST /configuration (sólo Settings) permiten
+web/CLI. Panel dentro de R09: cargar control sintético explícitamente o importar
+JSON, modificar umbrales, reconstruir, inspeccionar cobertura/diagnóstico/figura
+3D, exportar resultado completo y ajustes. Preset no contiene datos/cámaras/
+calibración/slot/relojes; importar no ejecuta. Usar stream lo carga como declarado
+en R09 para validar/guardar, sin conservar vínculo autenticado a cálculo/calibración.
+Conservar también resultado completo para repetir el adaptador; el guardado en
+worker descrito abajo conserva entradas y resultado. No cambia fuente ni síntesis live.
+
+```bash
+OPENBLAS_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python \
+  research/laboratory/r09_spatial/reproduce_multiview.py --output /tmp/r09-multiview-new
+```
+
+Directorio nuevo: request/result por condición y summary. Cada cálculo se repite
+con inputs/entorno iguales. [Evidencia sintética](evidence-multiview-2026-10-03.json):
+known tiene 5/5 inferidos y máximo error 3D ~7.1e-15 m; offset de50 ms y mínimo
+deparalaje89° dejan 5 missing. **Wrong pairing sigue admitiendo 5 puntos, máximo
+reproyección0.595 px pero error contra verdad sintética0.484 m**. Por eso reproyección
+pequeña no certifica correspondencias/profundidad. Ninguno es resultado corporal
+ni exactitud de cámaras reales. Comparar números con tolerancias, no hashes de
+entorno/procedencia como criterio de equivalencia.
+
+26 pruebas core/HTTP/regresión R09 pasan (2.16 s), incluyendo rotación/traslación
+no trivial, soporte y entradas inválidas. Chrome sobre SpatialPanel/API reales
+pasa (1.7 s): control conocido, rechazo por paralaje, presets sin datos/no
+ejecución automática, export, visor y guardar stream declarado. Build pasa
+(1.24 s); servidores propios detenidos, sólo fixtures sintéticos.
+
+Pendientes: adquisición/extracción pareada y undistorsión con modelos de lente,
+calibración y sincronía medidas con referencia independiente, incertidumbre de
+calibración/correspondencias y triangulación robusta/multivista>2. Adaptador IMU requiere
+convenciones/export del sensor. No presume que haya cámaras/sensores instalados.
+
+
+### Cálculo persistido y recuperable
+
+Guardar y reconstruir inicia un worker propio cancelable, separado del preview.
+`research/r09-multiview/<id>/` conserva request/result/manifest, hashes de inputs,
+módulos efectivos y entorno Python/NumPy. Recibos en `r09-multiview-starts/`
+vinculan clave de inicio e inputs completos: recuperar la misma clave no relanza,
+y cambiar inputs con esa clave se rechaza. Un recibo sin job queda interrumpido;
+requiere nuevo intento explícito. Sólo se admite un worker propio activo por servicio.
+La cancelación/shutdown termina hijos propios; reabrir no toma control de PIDs históricos.
+
+La web confirma IndexedDB antes del POST (también inputs mayores que sessionStorage).
+Una respuesta perdida permite recuperar exactamente el intento congelado, incluso
+tras recargar; no envía ni recalcula automáticamente al abrir. Cerrar pestaña no
+cancela worker; cerrar servidor sí termina sus hijos. Abrir resultado es explícito,
+y restaura su Request completo: no sobrescribe silenciosamente edición actual.
+Repetir crea otro ID. Descargas locales separadas de request/result/manifest.
+
+Reabrir valida hashes/contrato y vínculo de fuente/slot/marco/calibración. No es
+recomputación ni validación física. Verificar recálculo es explícito y compara el
+resultado con implementación/entorno registrados iguales; una implementación
+cambiada permite lectura histórica íntegra y exige repetir como corrida nueva
+para recalcular. No se exige igualdad de hashes entre entornos diferentes.
+API: `/api/research/r09/multiview/runs`, ID, cancel, repeat, verification y artifacts.
+
+4 pruebas de worker/HTTP pasan, incluida recuperación después de reiniciar servicio,
+cancelación de proceso real propio, freeze de inputs y corrupción. Chrome con API/
+worker reales verifica pérdida de respuesta aceptada, reload sin POST, recuperación
+sin duplicación, apertura, descarga, recálculo y repetición. No cámaras/audio reales.
+
+
+Apertura de cálculo ahora invalida respuesta tardía si la edición cambió durante
+la descarga o el panel se desmontó. Inventario ofrece seguir workers activos
+tras recarga y cancelar sólo el hijo propio del servicio. Intento IndexedDB
+inválido se puede descartar y nunca recuperar/enviar automáticamente. Prueba Chrome
+retiene respuesta real y edita, luego retoma/cancela cálculo real de 43200 pares
+sintéticos; detalles en VALIDATION. No benchmark físico ni nuevos defaults.
+
+
+### Stream derivado por ID de cálculo multivista
+
+`POST /api/research/r09/multiview-conversions` recibe run_id,
+expected_manifest_sha256 e idempotency_key opcional. Resuelve sólo una corrida
+completa íntegra, conserva stream exacto (inferred/missing, metros, fuente/slot/
+marco/calibración/clock) sin recalcular DLT, y verifica los tres artefactos antes
+y después de publicar la conversión. Cambiar el manifest esperado se rechaza;
+fallo/cambio durante publicación elimina sólo la nueva conversión.
+
+Input/result incluyen multiview_origin: ID y hashes de request/result/manifest,
+digest del stream normalizado y verification=local_artifact_integrity. Lectura
+verifica el vínculo stream/origin y el resultado; no requiere disponer del worker
+original después de publicar. Guardar por la ruta declarada rechaza procedencia
+multivista proporcionada por el caller. No custodia firmada ni autenticación física.
+Recomputar esta conversión verifica el stream congelado y cobertura, no vuelve a
+triangular: hacerlo requiere la acción explícita en el cálculo multivista original.
+
+Web ofrece Guardar stream con procedencia junto a cada cálculo completo. Reintentos
+usan el mismo ID/manifest/clave, también tras recarga, sin nuevas conversiones.
+Aparece en inventario R09 y puede seleccionarse desde Comparación espacial →
+Conversiones guardadas. La comparación conserva ID/hash de conversión y ésta el
+origen multivista; no equiparar esa cadena con validación de calibración, pairing,
+identidad biométrica ni sincronía. Inferidos siguen excluidos por default del
+comparador; admitirlos es explícito. Guardar stream declarado/importar JSON siguen
+siendo opciones independientes sin procedencia resuelta.
+
+15 tests backend/HTTP/regresiones pasan (3.74s), incluidos cambio de fuente durante
+publicación, recuperación sin volver a resolver fuente y rechazo de origen
+forjado. Dos Chrome pasan (10.6s): respuesta aceptada de conversión perdida,
+reintento idéntico y comparación por IDs con control identidad de 5 puntos. Build
+pasa (1.34s). Todo sintético, no resultado corporal ni exactitud física.

@@ -16,22 +16,37 @@ from pydantic import Field
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
 from .store import RevisionConflict, SessionStore
 from .evaluation.pcm import PCMSettings
+from .evaluation.profiles import EvaluationProfile
+from .evaluation.packages import PackageService, Selection as PackageSelection, CreateRequest as PackageCreateRequest, preview as package_preview
 from .evaluation.video_export import Settings as ComparisonExportSettings
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
+from .capture_profiles import CaptureProfile
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
+from .research.grassmann_compare import ComparisonRequest as R01ComparisonRequest
+from .research.coincidence_compare import ComparisonRequest as R03ComparisonRequest
 from .research.relational_bank import Settings as RelationalSettings
 from .research.relational_service import RelationalService
 from .research.activation_service import ActivationService
+from .research.sai_fourier import FourierService, Settings as FourierSettings
+from .research.sai_body_fourier import BodyFourierService, SourceRequest as BodyFourierRequest, Settings as BodyFourierSettings, freeze as freeze_body_fourier
 from .research.spatial_adapter import Request as SpatialAdapterRequest, convert as convert_spatial, SourceRequest as SpatialSourceRequest, from_library as spatial_from_library
 from .research.spatial_observations import Stream as SpatialStream
 from .research.spatial_compare_service import SpatialCompareService, Selection as SpatialCompareSelection, SaveRequest as SpatialComparisonSaveRequest
 from .research.spatial_compare_run import Input as SpatialComparisonInput
+from .research.neuro_csv import Request as NeuroCSVRequest, convert as convert_neuro_csv
+from .research.neuro_csv_archive import CSVService
 from .research.neuro_service import NeuroService
+from .research.neuro_snr_run import SNRService
 from .research.heldout_service import HeldoutService, SequenceSelection
-from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic
+from .research.heldout_compare import ComparisonRequest as HeldoutComparisonRequest
+from .research.heldout import Request as HeldoutRequest, synthetic as heldout_synthetic, nonlinear_synthetic as heldout_nonlinear
+from .research.physiology_sensitivity import Request as PhysiologySensitivityRequest, calculate as calculate_physiology_sensitivity
+from .research.physiology_sensitivity_service import SensitivityService as PhysiologySensitivityService
 from .research.physiology_service import PhysiologyService
+from .research.physiology_csv import Request as PhysiologyCSVRequest, convert as convert_physiology_csv
+from .research.physiology_csv_archive import CSVService as PhysiologyCSVService
 from .research.physiology import Request as PhysiologyRequest, calculate as calculate_physiology
 from .research.neuro_observations import Stream as NeuroStream, inspect as inspect_neuro
 from .research.neuro_snr import Config as NeuroSNRConfig, calculate as calculate_neuro_snr
@@ -68,12 +83,18 @@ from .research.rope_mask_service import RopeMaskService
 from .research.rope_mask_run import Request as RopeMaskRunRequest
 from .research.rope_mask import Settings as RopeMaskSettings
 from .research.rope_jobs import RopeJobs
+from .research.spatial_service import MultiviewSaveRequest as MultiviewConversionRequest
+from .research.spatial_multiview_service import MultiviewService, StartRequest as MultiviewStartRequest
+from .research.spatial_multiview import Request as MultiviewRequest, Settings as MultiviewSettings, calculate as triangulate_multiview, synthetic_request as multiview_example
 from .research.rope_reader import RopeReader
 from .research.rope_service import RopeService
 from .research.rope_annotations import Annotation as RopeAnnotation
 from .research.membrane_service import MembraneService
 from .research.membrane_transfer_service import TransferService
 from .research.membrane_controls_service import ControlService
+from .research.membrane_readout_service import ReadoutService
+from .research.membrane_readout import Config as ReadoutConfig, Request as ReadoutRequest
+from .research.membrane_labels import Request as LabelRequest, catalog as label_catalog, calculate as calculate_label
 from .research.membrane_controls import Request as ControlRequest
 from .research.membrane_transfer import Request as TransferRequest
 from .research.membrane_pcm import Request as MembraneRequest
@@ -130,6 +151,11 @@ class EvaluationRequest(Contract):
     control_hz: int = Field(default=60, ge=10, le=240)
     preroll_s: Number = Field(default=2, ge=0, le=30)
     pcm: PCMSettings = Field(default_factory=PCMSettings)
+    max_runs_per_invocation: int = Field(default=1024, ge=1, le=1024)
+
+
+class EvaluationResumeRequest(Contract):
+    max_runs: int | None = Field(default=None, ge=1, le=1024)
 
 
 class CoincidenceRequest(Contract):
@@ -144,6 +170,8 @@ class CoincidenceRequest(Contract):
     control_offsets_s: list[Number] = Field(default_factory=list, max_length=16)
     tolerance_s: Number = Field(default=.2, ge=0, le=10)
     mark_offset_s: Number = Field(default=0, ge=-10, le=10)
+    timing_half_width_s: Number = Field(default=0, ge=0, le=5)
+    timing_steps_per_side: int = Field(default=2, ge=1, le=8)
 
 
 class RelationalBodyRequest(Contract):
@@ -294,6 +322,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     relational = RelationalService(data_dir)
     resonators = ResonatorService(data_dir)
     activation = ActivationService(data_dir)
+    sai_fourier = FourierService(data_dir)
+    sai_body_fourier = BodyFourierService(data_dir)
+    evaluation_packages = PackageService(data_dir)
     membrane = MembraneService(data_dir)
     transfer = TransferService(data_dir)
     controls = ControlService(data_dir)
@@ -308,10 +339,15 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     experience_pairs = PairService(data_dir)
     pair_design_presets = PairDesignPresets(data_dir)
     neuro_observations = NeuroService(data_dir)
+    neuro_snr_records = SNRService(data_dir)
+    neuro_csv_records = CSVService(data_dir)
+    physiology_sensitivity = PhysiologySensitivityService(data_dir)
     physiology_measurements = PhysiologyService(data_dir)
+    physiology_csv = PhysiologyCSVService(data_dir)
     heldout = HeldoutService(data_dir)
     spatial_comparisons = SpatialCompareService(data_dir)
     spatial_runs = SpatialService(data_dir)
+    multiview_runs = MultiviewService(data_dir)
     rope = RopeService(data_dir)
     rope_reader = RopeReader()
     rope_jobs = RopeJobs(rope_reader)
@@ -330,6 +366,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         evaluation = EvaluationService(data_dir, session, runtime.library)
         from .evaluation.video_exports import VideoExports
         comparison_exports = VideoExports(data_dir, evaluation)
+    readouts = ReadoutService(data_dir, membrane, evaluation)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -342,6 +379,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             rope_flow.close()
             rope_jobs.close()
             activation.close()
+            sai_fourier.close()
+            sai_body_fourier.close()
+            evaluation_packages.close()
             membrane.close()
             controls.close()
             resonators.close()
@@ -349,6 +389,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             coincidence.close()
             research.close()
             heldout.close()
+            multiview_runs.close()
             if exports is not None:
                 exports.close()
             if capture is not None:
@@ -519,13 +560,17 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('Trial outside selected evaluation segment')
 
     @app.get('/api/research/r13/template')
-    def heldout_template():return heldout_synthetic().model_dump()
+    def heldout_template(kind: Literal['oscillator','quadratic']='oscillator'):
+        return (heldout_nonlinear() if kind=='quadratic' else heldout_synthetic()).model_dump()
 
     @app.post('/api/research/r13')
     def heldout_start(body: HeldoutRequest):return heldout.start(body)
 
     @app.get('/api/research/r13')
     def heldout_list():return heldout.list()
+
+    @app.post('/api/research/r13/compare')
+    def heldout_compare(body: HeldoutComparisonRequest):return heldout.compare(body)
 
     @app.post('/api/research/r13/{ident}/cancel')
     def heldout_cancel(ident: str):return heldout.cancel(ident)
@@ -541,6 +586,42 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def heldout_sequence(body: SequenceSelection):
         if evaluation is None:raise ValueError('Evaluation runtime required')
         return heldout.freeze(evaluation,body.model_dump())
+
+    @app.post('/api/research/r12/csv/inspect')
+    def physiology_csv_inspect(body: PhysiologyCSVRequest):
+        result = convert_physiology_csv(body)
+        validate_physiology_binding(PhysiologyRequest.model_validate(result['request']))
+        return result
+
+    @app.post('/api/research/r12/csv/imports')
+    def physiology_csv_save(body: PhysiologyCSVRequest):
+        result = convert_physiology_csv(body)
+        validate_physiology_binding(PhysiologyRequest.model_validate(result['request']))
+        return physiology_csv.start(body)
+
+    @app.get('/api/research/r12/csv/imports')
+    def physiology_csv_list():return physiology_csv.list()
+
+    @app.get('/api/research/r12/csv/imports/{ident}/artifacts/{name}')
+    def physiology_csv_artifact(ident: str, name: str):
+        return FileResponse(physiology_csv.artifact(ident, name), filename=name)
+
+    @app.post('/api/research/r12/clock-sensitivity/inspect')
+    def physiology_sensitivity_inspect(body: PhysiologySensitivityRequest):
+        validate_physiology_binding(body.measurements)
+        return calculate_physiology_sensitivity(body)
+
+    @app.post('/api/research/r12/clock-sensitivity')
+    def physiology_sensitivity_save(body: PhysiologySensitivityRequest):
+        validate_physiology_binding(body.measurements)
+        return physiology_sensitivity.start(body)
+
+    @app.get('/api/research/r12/clock-sensitivity')
+    def physiology_sensitivity_list():return physiology_sensitivity.list()
+
+    @app.get('/api/research/r12/clock-sensitivity/{ident}/artifacts/{name}')
+    def physiology_sensitivity_artifact(ident: str,name: str):
+        return FileResponse(physiology_sensitivity.artifact(ident,name),filename=name)
 
     @app.post('/api/research/r12/inspect')
     def physiology_inspect(body: PhysiologyRequest):
@@ -570,8 +651,40 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def neuro_observation_artifact(ident:str,name:str):
         return FileResponse(neuro_observations.artifact(ident,name),filename=name)
 
+    @app.post('/api/research/r11/snr-records')
+    def neuro_snr_save(body: NeuroSNRConfig):
+        return neuro_snr_records.start(body)
+
+    @app.get('/api/research/r11/snr-records')
+    def neuro_snr_list():
+        return neuro_snr_records.list()
+
+    @app.get('/api/research/r11/snr-records/{ident}/artifacts/{name}')
+    def neuro_snr_artifact(ident: str, name: str):
+        return FileResponse(neuro_snr_records.artifact(ident, name), filename=name)
+
     @app.post('/api/research/r11/synthetic-snr')
     def neuro_synthetic_snr(body:NeuroSNRConfig):return calculate_neuro_snr(body)
+
+    @app.post('/api/research/r11/import-csv')
+    def neuro_csv_import(body: NeuroCSVRequest):
+        return convert_neuro_csv(body)
+
+    @app.post('/api/research/r11/csv-imports')
+    def neuro_csv_save(body: NeuroCSVRequest):
+        return neuro_csv_records.start(body)
+
+    @app.get('/api/research/r11/csv-imports')
+    def neuro_csv_list():
+        return neuro_csv_records.list()
+
+    @app.get('/api/research/r11/csv-imports/{ident}/verification')
+    def neuro_csv_verify(ident: str, recompute: bool = False):
+        return neuro_csv_records.read(ident, recompute=recompute)
+
+    @app.get('/api/research/r11/csv-imports/{ident}/artifacts/{name}')
+    def neuro_csv_artifact(ident: str, name: str):
+        return FileResponse(neuro_csv_records.artifact(ident, name), filename=name)
 
     @app.post('/api/research/r11/inspect')
     def neuro_inspect(body:NeuroStream):return inspect_neuro(body)
@@ -720,8 +833,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def spatial_preset_export(ident:str):
         return JSONResponse(spatial_presets.load(ident).model_dump(),headers={'Content-Disposition':f'attachment; filename="r09-view-{ident}.json"'})
 
+    @app.post('/api/research/r09/multiview-conversions')
+    def spatial_multiview_conversion(body:MultiviewConversionRequest):return spatial_runs.from_multiview(multiview_runs,body)
+
     @app.post('/api/research/r09/conversions')
     def spatial_run_start(body:SpatialSaveRequest):
+        if body.multiview_origin is not None:raise ValueError('Resolve multiview origin through saved run IDs')
         if body.clock_application is not None:raise ValueError('Resolve clock application through saved IDs')
         if body.tracking_provenance is not None:raise ValueError('Resolve tracking provenance through the library source route')
         return spatial_runs.start(body)
@@ -735,6 +852,36 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.post('/api/research/r09/convert')
     def spatial_convert(body:SpatialAdapterRequest):return convert_spatial(body)
+
+    @app.post('/api/research/r09/multiview/runs')
+    def multiview_start(body:MultiviewStartRequest):return multiview_runs.start(body)
+
+    @app.get('/api/research/r09/multiview/runs')
+    def multiview_list():return multiview_runs.list()
+
+    @app.get('/api/research/r09/multiview/runs/{ident}')
+    def multiview_report(ident:str):return multiview_runs.report(ident)
+
+    @app.post('/api/research/r09/multiview/runs/{ident}/cancel')
+    def multiview_cancel(ident:str):return multiview_runs.cancel(ident)
+
+    @app.post('/api/research/r09/multiview/runs/{ident}/repeat')
+    def multiview_repeat(ident:str):return multiview_runs.repeat(ident)
+
+    @app.get('/api/research/r09/multiview/runs/{ident}/verification')
+    def multiview_verify(ident:str,recompute:bool=False):return multiview_runs.verification(ident,recompute=recompute)
+
+    @app.get('/api/research/r09/multiview/runs/{ident}/artifacts/{name}')
+    def multiview_artifact(ident:str,name:str):return FileResponse(multiview_runs.artifact(ident,name),filename=name)
+
+    @app.post('/api/research/r09/multiview')
+    def spatial_multiview(body:MultiviewRequest):return triangulate_multiview(body)
+
+    @app.get('/api/research/r09/multiview/example')
+    def spatial_multiview_example():return multiview_example()
+
+    @app.post('/api/research/r09/multiview/configuration')
+    def spatial_multiview_configuration(body:MultiviewSettings):return body.model_dump()
 
     @app.post('/api/research/r09/validate')
     def spatial_validate(body:SpatialStream):
@@ -863,9 +1010,37 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def state():
         return snapshot()
 
+    @app.get('/api/capture-profiles')
+    def capture_profile_list():return session.list_capture_profiles()
+
+    @app.post('/api/capture-profiles/validate')
+    def capture_profile_validate(body:CaptureProfile):return body.model_dump()
+
+    @app.post('/api/capture-profiles')
+    def capture_profile_save(body:CaptureProfile):return session.save_capture_profile(body)
+
+    @app.get('/api/capture-profiles/{ident}')
+    def capture_profile_load(ident:str):
+        return JSONResponse(session.load_capture_profile(ident).model_dump(),headers={
+            'Content-Disposition':'attachment; filename="capture-profile.json"'})
+
     @app.get("/api/captures")
     def captures():
         return {"current":capture.snapshot(), "jobs":capture.list()} if capture else {"current":{"status":"idle"}, "jobs":[]}
+
+    @app.get('/api/evaluation-profiles')
+    def evaluation_profile_list():return session.list_evaluation_profiles()
+
+    @app.post('/api/evaluation-profiles/validate')
+    def evaluation_profile_validate(body:EvaluationProfile):return body.model_dump()
+
+    @app.post('/api/evaluation-profiles')
+    def evaluation_profile_save(body:EvaluationProfile):return session.save_evaluation_profile(body)
+
+    @app.get('/api/evaluation-profiles/{ident}')
+    def evaluation_profile_load(ident:str):
+        return JSONResponse(session.load_evaluation_profile(ident).model_dump(),headers={
+            'Content-Disposition':'attachment; filename="evaluation-profile.json"'})
 
     @app.post("/api/captures/start")
     def start_capture(body: CaptureSettings):
@@ -915,6 +1090,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def research_artifact(ident: str, name: str):
         return FileResponse(research.artifact(ident,name),filename=name)
 
+    @app.post("/api/research/r01/compare")
+    def research_compare(body: R01ComparisonRequest):return research.compare(body.model_dump())
+
     @app.post("/api/research/r01")
     def research_r01(body: GrassmannSettings):return research.start(body.model_dump())
 
@@ -925,6 +1103,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def research_body(body: BodyRequest):
         if evaluation is None:raise ValueError('No comparison library available')
         return research.start_body(body.model_dump(),evaluation)
+
+    @app.post("/api/research/r03/compare")
+    def coincidence_compare(body: R03ComparisonRequest):return coincidence.compare(body.model_dump())
 
     @app.get("/api/research/r03")
     def coincidence_jobs():return coincidence.list()
@@ -947,6 +1128,12 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             from .research.temporal_controls import compare_shifts
             compare_shifts([],[],body.mark_support,[],offsets_s=body.control_offsets_s,
                            tolerance_s=body.tolerance_s,mark_offset_s=body.mark_offset_s)
+        if body.timing_half_width_s:
+            from .research.temporal_controls import timing_sensitivity
+            timing_sensitivity([], [], body.mark_support, [],
+                               half_width_s=body.timing_half_width_s,
+                               steps_per_side=body.timing_steps_per_side,
+                               tolerance_s=body.tolerance_s, mark_offset_s=body.mark_offset_s)
         context={name:getattr(body,name) for name in
                  ('source_id','person_id','session_id','observed_epoch','category')}
         marks=session.marks_snapshot(**context,through_sequence=body.through_sequence)
@@ -957,7 +1144,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             raise ValueError('Replay person differs from annotation person')
         request={'feature_sha256':content_hash(features),'context':context,
                  'mark_support':body.mark_support,'tolerance_s':body.tolerance_s,
-                 'mark_offset_s':body.mark_offset_s,'control_offsets_s':body.control_offsets_s}
+                 'mark_offset_s':body.mark_offset_s,'control_offsets_s':body.control_offsets_s,
+                 'timing_half_width_s':body.timing_half_width_s,
+                 'timing_steps_per_side':body.timing_steps_per_side}
         return coincidence.start(request,marks,features)
 
     @app.get("/api/research/r04")
@@ -987,6 +1176,38 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r07-transfer')
     def transfer_jobs():return transfer.list()
 
+    @app.post('/api/research/r07-readout/configuration')
+    def readout_configuration(body: ReadoutConfig):
+        return body.model_dump()
+
+    @app.get('/api/research/r07-readout/projections/{ident}/label-signals')
+    def readout_label_catalog(ident: str):
+        if evaluation is None:
+            raise ValueError('Local evaluation service required')
+        return label_catalog(membrane, evaluation, ident)
+
+    @app.post('/api/research/r07-readout/label')
+    def readout_label(body: LabelRequest):
+        if evaluation is None:
+            raise ValueError('Local evaluation service required')
+        return calculate_label(membrane, evaluation, body)
+
+    @app.post('/api/research/r07-readout')
+    def readout_start(body: ReadoutRequest):
+        return readouts.start(body)
+
+    @app.get('/api/research/r07-readout')
+    def readout_jobs():
+        return readouts.list()
+
+    @app.get('/api/research/r07-readout/{ident}/verification')
+    def readout_verification(ident: str, recompute: bool = False):
+        return readouts.verification(ident, recompute=recompute)
+
+    @app.get('/api/research/r07-readout/{ident}/artifacts/{name}')
+    def readout_artifact(ident: str, name: str):
+        return FileResponse(readouts.artifact(ident, name), filename=name)
+
     @app.get('/api/research/r07-controls')
     def control_jobs():return controls.list()
 
@@ -998,6 +1219,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
     @app.get('/api/research/r07-controls/{ident}')
     def control_report(ident:str):return controls.report(ident)
+
+    @app.get('/api/research/r07-controls/{ident}/verification')
+    def control_verification(ident: str, recompute: bool = False):
+        return controls.verification(ident, recompute=recompute)
 
     @app.post('/api/research/r07-controls/{ident}/cancel')
     def control_cancel(ident:str):return controls.cancel(ident)
@@ -1043,6 +1268,45 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     def activation_configuration(body:ActivationConfig):
         activation_schedules(body.settings)
         return body.model_dump()
+
+    @app.get('/api/research/sai-body-fourier')
+    def sai_body_jobs():return sai_body_fourier.list()
+
+    @app.post('/api/research/sai-body-fourier/settings')
+    def sai_body_settings(body:BodyFourierSettings):return body.model_dump()
+
+    @app.post('/api/research/sai-body-fourier/prepare')
+    def sai_body_prepare(body:BodyFourierRequest):
+        if runtime is None:raise ValueError('Tracking library required')
+        request,document,support=freeze_body_fourier(runtime.library,body)
+        return {'request':request.model_dump(),'provenance':document['provenance'],'preparation':support}
+
+    @app.post('/api/research/sai-body-fourier')
+    def sai_body_start(body:BodyFourierRequest):
+        if runtime is None:raise ValueError('Tracking library required')
+        return sai_body_fourier.start(runtime.library,body)
+
+    @app.post('/api/research/sai-body-fourier/{ident}/cancel')
+    def sai_body_cancel(ident:str):return sai_body_fourier.cancel(ident)
+
+    @app.get('/api/research/sai-body-fourier/{ident}/artifacts/{name}')
+    def sai_body_artifact(ident:str,name:str):return FileResponse(sai_body_fourier.artifact(ident,name),filename=name)
+
+    @app.get('/api/research/sai-fourier')
+    def sai_fourier_jobs(): return sai_fourier.list()
+
+    @app.post('/api/research/sai-fourier')
+    def sai_fourier_start(body: FourierSettings): return sai_fourier.start(body)
+
+    @app.get('/api/research/sai-fourier/{ident}')
+    def sai_fourier_report(ident: str): return sai_fourier.report(ident)
+
+    @app.post('/api/research/sai-fourier/{ident}/cancel')
+    def sai_fourier_cancel(ident: str): return sai_fourier.cancel(ident)
+
+    @app.get('/api/research/sai-fourier/{ident}/artifacts/{name}')
+    def sai_fourier_artifact(ident: str, name: str):
+        return FileResponse(sai_fourier.artifact(ident, name), filename=name)
 
     @app.post("/api/research/r06")
     def activation_start(body:ActivationSettings):return activation.start(body.model_dump())
@@ -1194,6 +1458,24 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return {"ok": True}
 
     if runtime is not None:
+        @app.post('/api/evaluations/{ident}/package-preview')
+        def evaluation_package_preview(ident: str, body: PackageSelection):
+            return package_preview(evaluation,ident,body)
+
+        @app.post('/api/evaluations/{ident}/packages')
+        def evaluation_package_start(ident: str, body: PackageCreateRequest):
+            return evaluation_packages.start(evaluation,ident,body)
+
+        @app.get('/api/evaluation-packages')
+        def evaluation_package_list():return evaluation_packages.list()
+
+        @app.post('/api/evaluation-packages/{ident}/cancel')
+        def evaluation_package_cancel(ident: str):return evaluation_packages.cancel(ident)
+
+        @app.get('/api/evaluation-packages/{ident}/artifacts/{name}')
+        def evaluation_package_artifact(ident: str, name: str):
+            return FileResponse(evaluation_packages.artifact(ident,name),filename=name)
+
         @app.post("/api/evaluations/{ident}/exports/{run_index}")
         def export_comparison(ident: str, run_index: int, body: ComparisonExportSettings):
             return comparison_exports.start(ident, run_index, body)
@@ -1218,7 +1500,8 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         @app.post("/api/evaluations")
         def start_evaluation(body: EvaluationRequest):
             return evaluation.start(body.preset_ids, [s.model_dump() for s in body.segments],
-                                    control_hz=body.control_hz, preroll_s=body.preroll_s, pcm=body.pcm.model_dump())
+                                    control_hz=body.control_hz, preroll_s=body.preroll_s, pcm=body.pcm.model_dump(),
+                                    max_runs_per_invocation=body.max_runs_per_invocation)
 
         @app.get("/api/evaluations")
         def list_evaluations():
@@ -1231,6 +1514,10 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         @app.post("/api/evaluations/{ident}/cancel")
         def cancel_evaluation(ident: str):
             return evaluation.cancel(ident)
+
+        @app.post("/api/evaluations/{ident}/resume")
+        def resume_evaluation(ident: str, body: EvaluationResumeRequest):
+            return evaluation.resume(ident, max_runs=body.max_runs)
 
         @app.post("/api/evaluations/{ident}/repeat")
         def repeat_evaluation(ident: str):

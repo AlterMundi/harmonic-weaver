@@ -1,0 +1,12 @@
+{
+  "medium": {"sample_rate": 8000},
+  "event_count": 4,
+  "excitation_span_s": 0.05,
+  "tail_s": 0.025,
+  "trace_stride": 32,
+  "circular_shift_controls": [
+    [0, 0, 0, 0, 0, 0],
+    [100, 100, 100, 100, 100, 100],
+    [0, 7, 11, 19, 23, 29]
+  ]
+}

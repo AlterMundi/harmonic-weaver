@@ -1,0 +1,160 @@
+{
+  "cases": {
+    "declared_quadratic": {
+      "results": [
+        {
+          "adaptation_end_s": null,
+          "adaptation_mode": null,
+          "adaptation_model_sha256": null,
+          "adaptation_prefix_samples": 0,
+          "common_count": 239,
+          "common_support_sha256": "0c10f0921c49fc6208efe79b9309d26e8a3a4e79d05b30e39a0abf9e26138734",
+          "contiguous_segments": 1,
+          "horizon_elapsed_max_s": 0.0333333333333341,
+          "horizon_elapsed_min_s": 0.033333333333333215,
+          "input_observations": 240,
+          "mean_mse": {
+            "full_ridge": 0.47265656812131757,
+            "persistence": 0.9772815052875321,
+            "quadratic_ridge": 6.269068292926422e-16,
+            "subspace_ridge": 0.47265656812131757,
+            "training_mean": 0.4707201363599157
+          },
+          "missing_observations": 0,
+          "model_sha256": "73c0cba3d7a98cb939520a3dd9ff699d79be840e2c0d97ca6b17922f8fd77a00",
+          "provider": "synthetic",
+          "sequence_id": "reserved",
+          "subject_group": "reserved",
+          "task_id": "quadratic_recurrence"
+        }
+      ],
+      "same_environment_repeat": true,
+      "settings": {
+        "adaptation_mode": "pooled_prefix",
+        "adaptation_prefix_samples": 0,
+        "components": 1,
+        "embargo_s": 0.5,
+        "history_steps": 1,
+        "horizon_steps": 1,
+        "max_gap_s": 0.1,
+        "normalization": "center_train",
+        "quadratic_control": true,
+        "ridge": 1e-06,
+        "shuffle_seed": 0,
+        "shuffle_training_targets": false
+      },
+      "verification": "recomputed"
+    },
+    "iid_noise": {
+      "results": [
+        {
+          "adaptation_end_s": null,
+          "adaptation_mode": null,
+          "adaptation_model_sha256": null,
+          "adaptation_prefix_samples": 0,
+          "common_count": 239,
+          "common_support_sha256": "0c10f0921c49fc6208efe79b9309d26e8a3a4e79d05b30e39a0abf9e26138734",
+          "contiguous_segments": 1,
+          "horizon_elapsed_max_s": 0.0333333333333341,
+          "horizon_elapsed_min_s": 0.033333333333333215,
+          "input_observations": 240,
+          "mean_mse": {
+            "full_ridge": 1.1426470925655405,
+            "persistence": 2.2818164131226624,
+            "quadratic_ridge": 1.1406162230645551,
+            "subspace_ridge": 1.1426470925655405,
+            "training_mean": 1.1216688346879806
+          },
+          "missing_observations": 0,
+          "model_sha256": "fab23d97555223d522225b398f017cc58113958b7b51848d1595279eceb087ec",
+          "provider": "synthetic",
+          "sequence_id": "reserved",
+          "subject_group": "reserved",
+          "task_id": "iid_noise"
+        }
+      ],
+      "same_environment_repeat": true,
+      "settings": {
+        "adaptation_mode": "pooled_prefix",
+        "adaptation_prefix_samples": 0,
+        "components": 1,
+        "embargo_s": 0.5,
+        "history_steps": 1,
+        "horizon_steps": 1,
+        "max_gap_s": 0.1,
+        "normalization": "center_train",
+        "quadratic_control": true,
+        "ridge": 0.1,
+        "shuffle_seed": 0,
+        "shuffle_training_targets": false
+      },
+      "verification": "recomputed"
+    },
+    "linear_oscillator": {
+      "results": [
+        {
+          "adaptation_end_s": null,
+          "adaptation_mode": null,
+          "adaptation_model_sha256": null,
+          "adaptation_prefix_samples": 0,
+          "common_count": 178,
+          "common_support_sha256": "f47cade012da516e72e858fd9ea4d224c77904893db15c45fd3dc71052210453",
+          "contiguous_segments": 1,
+          "horizon_elapsed_max_s": 0.0333333333333341,
+          "horizon_elapsed_min_s": 0.033333333333333215,
+          "input_observations": 180,
+          "mean_mse": {
+            "full_ridge": 1.5771371041886228e-07,
+            "persistence": 0.0054781046317266624,
+            "quadratic_ridge": 1.578288022528478e-07,
+            "subspace_ridge": 1.5771371041886228e-07,
+            "training_mean": 0.5
+          },
+          "missing_observations": 0,
+          "model_sha256": "807b06c0664d62a07c8cdbf56f658a2403482e930e238c62166aa942935facaf",
+          "provider": "synthetic",
+          "sequence_id": "reserved",
+          "subject_group": "reserved",
+          "task_id": "oscillation"
+        }
+      ],
+      "same_environment_repeat": true,
+      "settings": {
+        "adaptation_mode": "pooled_prefix",
+        "adaptation_prefix_samples": 0,
+        "components": 2,
+        "embargo_s": 0.5,
+        "history_steps": 2,
+        "horizon_steps": 1,
+        "max_gap_s": 0.1,
+        "normalization": "center_train",
+        "quadratic_control": true,
+        "ridge": 0.1,
+        "shuffle_seed": 0,
+        "shuffle_training_targets": false
+      },
+      "verification": "recomputed"
+    }
+  },
+  "implementation": {
+    "code_hashes": {
+      "../contracts.py": "96007f6e66649d694030dd5c411548f86d29c788204588214c9a65552b203b1d",
+      "../evaluation/runner.py": "8021c0146304ee6a856a792000f15d737462811aee6b5cfc366b2e24a14c2d28",
+      "heldout.py": "ffc8b1b8d661a6b7c771375114134f566bd80922dc59dabe068085d09a0753b4",
+      "heldout_run.py": "bc88d5dfb1ebd31cbf8b8c4ac0684ca2364c18f13fa6b0fc65619bff8ba486c6"
+    },
+    "environment": {
+      "metric": "r13_frozen_forecast_v1",
+      "numpy": "2.5.1",
+      "python": "3.12.13"
+    }
+  },
+  "kind": "r13_public_quadratic_controls",
+  "limits": [
+    "Synthetic positive/negative software controls, not bodies or HIT evidence",
+    "Coefficients and transforms fit train only; settings are fixed by recipe",
+    "Exact repeats compare the same frozen inputs and local environment only",
+    "Shared ridge does not equate capacity; quadratic is not guaranteed superior"
+  ],
+  "recipe_sha256": "dfdb25bb74148cddb94340d38d35860c309508cc9851907d6653768198f9ba39"
+}

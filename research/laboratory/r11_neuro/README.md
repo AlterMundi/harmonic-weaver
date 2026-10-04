@@ -141,3 +141,90 @@ tabla anterior. Servidor de prueba detenido. Datos sintéticos, sin escucha huma
 Pendientes manifests/verificación de corridas SNR, controles adicionales, datos
 reales/adaptador, inventario hardware, protocolo/estimador sobre señal física y sync.
 Roadmap R01–R13 abierto; sin resultados sobre estados mentales o fisiología.
+
+## Corridas SNR recuperables — 2026-10-02
+
+Investigación → R11 → control sintético: calcular, **Guardar corrida SNR R11**,
+actualizar listado y abrir una corrida. Recupera parámetros y resultado congelados;
+request/result/manifest se descargan por separado. Cambiar parámetros invalida el
+resultado visible. El cálculo exploratorio sigue sin guardar por defecto.
+
+POST/GET `/api/research/r11/snr-records` y GET
+`/api/research/r11/snr-records/{id}/artifacts/{request.json|result.json|manifest.json}`
+usan identidad de configuración para reintento/reinicio sin duplicar resultados.
+Publicación en staging; una interrupción previa a promoción no publica un registro
+parcial. El navegador conserva el envío en sessionStorage antes del POST y permite
+recuperación explícita, exportarlo o descartarlo. No reenvía automáticamente;
+conservar el JSON exportado sigue siendo necesario para persistencia entre sesiones
+de navegador. Máximo del control: 20000 muestras, artifacts de lectura hasta 32 MiB.
+
+El manifest separa hashes de artefactos, hashes de módulos efectivamente importados
+y entorno. `verify(recompute=True)` recalcula componentes/soporte/métricas; exige
+estructura, índices y configuración exactos, y compara floats con rel_tol=1e-12,
+abs_tol=1e-12. Diferencias de entorno/procedencia aparecen como flags, no bloquean
+un resultado numéricamente equivalente. `recompute=False` declara sólo integridad,
+no recomputación. Los hashes no son firmas ni validación de hardware/EEG.
+
+Evidencia: 18 tests núcleo/API/archivo pasan y Chrome contra API/UI reales prueba
+respuesta POST perdida después de guardar, reload/reintento idéntico, un solo
+registro y reapertura de configuración/resultados. Build pasa. Fixture sintético
+sin hardware ni audio. Quedan adaptador/export real, inventario de placa, adquisición,
+control de señal física y sincronización medida; esto no resuelve #25 científicamente.
+
+## Importación CSV explícita — 2026-10-02
+
+Investigación → R11 → Importar tabla CSV: cargar UTF-8 o pegar tabla, declarar
+metadatos y mapeo, convertir, exportar conversión/procedencia y usar observaciones
+en R11 para guardarlas con el recorrido existente. Metadatos exigen source/slot/
+provider/hardware/rate/clock/channels completos; no se deducen del archivo.
+El mapeo portable se importa/exporta separado de cuerpo/fuente/calibración.
+
+POST `/api/research/r11/import-csv` recibe schema_version1, csv_text, metadata y
+mapping. Mapping declara delimiter (coma/punto y coma/tab), skip_rows, index_column,
+time_column, time_units(seconds/milliseconds/microseconds), channel_columns por ID
+y missing_tokens/missing_cause. Todos los canales requieren columnas distintas.
+Preamble explícito, header único, filas completas y contador/time estrictamente
+crecientes. Un contador de paquete que se reinicia o envuelve NO es un índice
+monótono: se rechaza, sin inventar pérdida/tiempo ni unwrap de una placa supuesta.
+No es un parser automático de cualquier export OpenBCI; hay que conocer su formato.
+
+Conserva cero/null/gaps/unidades; tokens faltantes son literales elegidos. Convierte
+sólo la unidad de timestamp a segundos, sin filtrado ni conversión de amplitud.
+Digest SHA256 del UTF-8 completo incluye BOM/newlines originales de archivo;
+parser ignora BOM inicial. Browser usa decodificación UTF-8 estricta y conserva
+BOM al enviar, sin inferir otro encoding. Editar texto puede cambiar el digest.
+Ignorados y mapping quedan en import_provenance del resultado exportable.
+
+Guardar observaciones conserva Stream y raw_source_sha256; **no archiva el CSV ni
+el mapeo** en el registro nativo. El archivo separado de importación descrito abajo
+conserva ambos; no atribuir al registro Stream una procedencia que no guarda.
+Raw CSV hasta16MiB, samples decodificados hasta16MiB y120000 filas; se rechaza
+expansión excesiva de etiquetas de faltantes antes de construir un registro enorme.
+
+Evidencia: 13 controles importer (incluida expansión bounded), integración API
+convertir→guardar→reabrir y Chrome UI/API real con BOM/CRLF, digest exacto, null/
+cero/tiempo, descarga de procedencia y recuperación desde archivo R11. No CSV de
+hardware ni medición humana verificados; hardware/clocks físicos siguen pendientes.
+
+## Archivo local de importaciones CSV — 2026-10-03
+
+Después de convertir, **Guardar importación CSV R11** conserva en
+`research/r11-csv-imports/` del data root: `source.csv` (bytes UTF-8 completos,
+incluyendo BOM/CRLF), `request.json` (original, metadatos y mapeo normalizado),
+`result.json` y `manifest.json`. No se archiva automáticamente al convertir.
+Contenido idéntico recupera el mismo registro; editar el CSV o su mapeo crea otro.
+Una publicación interrumpida queda oculta y no impide un reintento nuevo.
+
+Actualizar/Abrir importación restaura texto, metadatos, mapeo y conversión desde
+el servidor después de recargar. Descargas de los cuatro artefactos disponibles.
+Recalcular importación compara conversión actual con la archivada sin sobrescribir
+ni exigir igualdad del entorno o hashes de código. Lecturas ordinarias verifican
+integridad y binding del original; no ejecutan conversión implícita.
+Si se pierde la respuesta del guardado, actualizar el listado o repetir la misma
+entrada recupera el registro publicado. No depende de guardar un CSV grande en
+sessionStorage; el servidor es local y el navegador no reenvía al recargar.
+
+API: POST/GET `/api/research/r11/csv-imports`, GET `/{id}/artifacts/{name}` y
+`/{id}/verification` (integridad), `?recompute=true` (conversión explícita).
+El registro Stream existente sigue compatible y separado. Esto conserva la
+fuente declarada; no autentica adquisición, hardware, sujetos o sincronización.

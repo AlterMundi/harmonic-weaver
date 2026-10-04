@@ -110,6 +110,45 @@ comunes; outputs repetidos tienen hashes idénticos. Receipt sólo local. Es
 entre cuerpos/tareas, ni predicción prospectiva independiente, ni beneficio/HIT.
 No se publican métricas corporales privadas, frames, tracking o receipt.
 
+## Control cuadrático opcional (2026-10-03)
+
+`quadratic_control=false` conserva los cuatro predictores anteriores. Al activarlo,
+`quadratic_ridge` recibe la misma historia centrada/normalizada con entrenamiento:
+coordenadas en orden historia row-major, seguidas de productos de todos los pares
+de coordenadas en triángulo superior, incluyendo cuadrados. Se ajustan medias de
+regresores/objetivos e intercepto con train; la regularización ridge común no penaliza
+el intercepto. No se seleccionan hiperparámetros con test ni se añade información
+sensorial. No hay términos cúbicos, frecuencias elegidas ni reajuste online.
+
+El modelo queda congelado y comparte objetivos/causas/gaps/soporte con los anteriores.
+Si se eligen prefijo y shuffle, aparecen también adapted_quadratic_ridge y
+shuffled_quadratic_ridge bajo sus mismas restricciones. Máximo features × history_steps
+de24 (324 regresores); se rechaza exceso antes de encolar, sin reducir dimensiones
+silenciosamente. Más capacidad no garantiza generalización y un ridge igual no iguala
+complejidad. El usuario puede explorarlo sin cambiar el instrumento ni sus voces.
+
+Web: **Control no lineal: ridge cuadrático R13**, portable por el mismo JSON. El botón
+**Cargar recurrencia cuadrática R13** prepara un positivo sintético explícito
+`x_next=1-2*x*x`, train/test con distintas condiciones iniciales; no es una nueva
+toma corporal. API template acepta `kind=quadratic`; default oscillator sigue igual.
+
+Banco público reproducible con positivo cuadrático, oscilador lineal y ruido IID:
+
+```bash
+lab_r13_output="$(mktemp -d /tmp/weaver-r13-public-XXXXXX)"
+PYTHONPATH=src:. OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 \
+  .venv/bin/python -m research.laboratory.r13_quadratic_controls \
+  --output "$lab_r13_output/runs"
+```
+
+[Evidencia sintética](r13-quadratic-evidence-2026-10-03.json): positivo MSE cuadrático
+~6.27e-16 frente a lineal ~0.473; oscilador ambos ~1.58e-7; ruido IID ambos peores
+que la media train. Cada caso repetido bajo entradas/entorno congelados y recomputado.
+Son controles positivos/negativos de software, no transferencia/HIT ni superioridad
+general. Dieciséis tests de R13 pasan, incluidos prefijo/targets futuros/gaps/shuffle;
+Chrome sobre producción/worker real verifica opción, configuración portable, soporte
+común y repetición. Nuevas reservas corporales y selección independiente siguen pendientes.
+
 ## Experimento siguiente, antes de intervención
 
 1. Definir con participante tarea, resultado útil, restricciones y equivalencias.
@@ -138,3 +177,62 @@ variantes relacionales/HIT específicas y más predictores, intervención/retenc
 sensores/cargas/metabolismo y colaboración usuario–dispositivo. PR de Oliva permanece
 sin cambios de head y sin merge; directorios reservados no se tocaron. No se cierra
 #27 al completar este banco de software ni se sustituye el roadmap completo.
+
+## Contraste local de recordings congelados (2026-10-03)
+
+Un primer recorrido corporal ya reserva un segundo archivo respecto de dos
+segmentos train del primero: seis descriptores de velocidad de zona, mismo
+baseline, sin transferir calibración. Prefijo0/60 conserva modelos originales;
+al comparar condiciones se usa la intersección exacta de (secuencia, origen,
+objetivo) de sus predictions, no sus medias individuales de distinto soporte.
+Requests/resultados/repeticiones/receta e identidades corporales quedan locales.
+Dos tests Chrome verifican import nativo, worker, repetición, resultados frente
+al CLI y ausencia de modificación del instrumento. Ver VALIDATION para alcance.
+
+Se puede repetir cualquier request archivado sin abrir video o recalcular pose:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python \
+  -m harmonic_weaver.lab.research.heldout_run \
+  --request /ruta/local/request.json --output /ruta/local/corrida-nueva
+```
+
+También puede importarse ese request en R13 y repetirse desde la web. Una
+normalización JSON float/int en metadatos puede cambiar el request digest aunque
+los valores y modelos numéricos coincidan; comprobar binding/integridad dentro
+de cada archivo y comparar resultados por separado. No trasladar datos privados
+al repo como requisito de reproducibilidad. Reserva de recording por hash no
+certifica adquisición independiente, homología corporal ni escala física.
+
+## Comparación web sobre soporte común
+
+En R13, seleccionar 2–6 corridas completas en **Comparar corridas R13 sobre soporte
+común**. El orden de selección fija la primera como referencia. Los requests deben
+conservar las mismas secuencias (observaciones, roles, grabación, grupos, tarea y
+procedencia), features/unidades/reserva/equivalencias; sólo settings pueden variar.
+No remapea cuerpos ni secuencias por posición o nombre parecido.
+
+**Comparar soporte común R13** intersecta exactamente (secuencia, origen, objetivo).
+Recalcula MSE desde predictions/actual sobre esa intersección y diferencias MSE
+pareadas frente a la primera, sólo para métodos presentes en ambas. Mantiene pares
+elegibles/excluidos por condición y los promedios originales de cada corrida aparte.
+Prefijos distintos pueden compartir objetivos posteriores; horizontes distintos
+pueden no compartir ningún par. Sin soporte devuelve null, no cero ni éxito.
+
+**Guardar comparación R13** descarga JSON local con soporte, settings, hashes de
+artefactos, código/entorno de cada input y del comparador. Lee y verifica integridad
+antes/después; no refit ni recomputación de modelos históricos. No exige igualdad
+de entornos, no estima significancia ni transforma diferencias en ranking corporal.
+Cambiar selección descarta la comparación mostrada. No cambia fuente/audio/preset.
+API POST `/api/research/r13/compare`: `{"run_ids":["…","…"]}`.
+
+Controles públicos reales/repetidos en `r13-common-support-evidence-2026-10-03.json`:
+prefijo30 conserva149 pares, excluye29 de la condición sin prefijo; con deriva de
+amplitud el promedio individual difiere del pareado. Horizonte1/2 no comparte
+pares y queda sin score. Receta independiente de los datos corporales:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/r13_common_support_controls.py \
+  --output /tmp/r13-common-support-nueva > /tmp/r13-common-support-evidence.json
+```

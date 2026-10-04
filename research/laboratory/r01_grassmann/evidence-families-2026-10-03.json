@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "runs": {
+    "periodic": {
+      "settings": {
+        "seed": 17,
+        "samples": 120,
+        "control_hz": 30,
+        "dimensions": 4,
+        "signal_rank": 1,
+        "components": 1,
+        "window_s": 2,
+        "noise_std": 0.0,
+        "noise_threshold": 0.02,
+        "ridge": 0.1,
+        "predictors": [
+          "persistence",
+          "full_ridge",
+          "subspace_ridge",
+          "linear_trend",
+          "lagged_full_ridge",
+          "lagged_subspace_ridge"
+        ],
+        "autoregressive_lags": 4,
+        "horizon_steps": 6,
+        "scenario": "fixed_span",
+        "temporal_memory": 0.95,
+        "rotation_deg_s": 30
+      },
+      "paired": {
+        "common_samples": 104,
+        "results": {
+          "original": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.026059232040870732,
+              "full_ridge": 0.06426450209049407,
+              "subspace_ridge": 0.0642645020904941,
+              "linear_trend": 0.2129122358180307,
+              "lagged_full_ridge": 0.02108155152641841,
+              "lagged_subspace_ridge": 0.0210815515264184
+            },
+            "mean_reconstruction_residual": 4.0385124596276373e-16
+          },
+          "global_rotation": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.026059232040870732,
+              "full_ridge": 0.06426450209049404,
+              "subspace_ridge": 0.06426450209049404,
+              "linear_trend": 0.21291223581803068,
+              "lagged_full_ridge": 0.021081551526418378,
+              "lagged_subspace_ridge": 0.0210815515264184
+            },
+            "mean_reconstruction_residual": 4.830631701383228e-16
+          },
+          "temporal_shuffle": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.2418815497648141,
+              "full_ridge": 0.1268167362143472,
+              "subspace_ridge": 0.12681673621434716,
+              "linear_trend": 0.13366744558920882,
+              "lagged_full_ridge": 0.1568892071721993,
+              "lagged_subspace_ridge": 0.1568892071721993
+            },
+            "mean_reconstruction_residual": 3.823317110828615e-16
+          }
+        },
+        "mean_mse_delta_vs_original": {
+          "global_rotation": {
+            "persistence": -8.523761363284061e-19,
+            "full_ridge": -1.2321391237014282e-17,
+            "subspace_ridge": -5.858876196349373e-17,
+            "linear_trend": -1.80753247343137e-17,
+            "lagged_full_ridge": -3.305911308714988e-17,
+            "lagged_subspace_ridge": -5.977802167314993e-18
+          },
+          "temporal_shuffle": {
+            "persistence": 0.2158223177239434,
+            "full_ridge": 0.0625522341238531,
+            "subspace_ridge": 0.06255223412385308,
+            "linear_trend": -0.0792447902288219,
+            "lagged_full_ridge": 0.1358076556457809,
+            "lagged_subspace_ridge": 0.1358076556457809
+          }
+        },
+        "eligible_by_control": {
+          "original": 104,
+          "global_rotation": 104,
+          "temporal_shuffle": 104
+        },
+        "excluded_by_control": {
+          "original": 0,
+          "global_rotation": 0,
+          "temporal_shuffle": 0
+        },
+        "pairing": "Same logical clock slots; shuffled vectors are not the same observation"
+      },
+      "input_hashes": {
+        "original": "2969ccb747fa7664a097889fd1eed4c5cb4f6199fb8e8d3394cf64f844989a50",
+        "global_rotation": "a172dd2561c0f8889d86de26be88488c59d6af62effa73f34c36f8b475e574a0",
+        "temporal_shuffle": "1704d2e9d4ff6ddc464db5010f0c940010ef569f14aa8ed74bfc1de8a47d0846"
+      }
+    },
+    "memoryless": {
+      "settings": {
+        "seed": 17,
+        "samples": 120,
+        "control_hz": 30,
+        "dimensions": 4,
+        "signal_rank": 1,
+        "components": 1,
+        "window_s": 2,
+        "noise_std": 0.0,
+        "noise_threshold": 0.02,
+        "ridge": 0.1,
+        "predictors": [
+          "persistence",
+          "full_ridge",
+          "subspace_ridge",
+          "linear_trend",
+          "lagged_full_ridge",
+          "lagged_subspace_ridge"
+        ],
+        "autoregressive_lags": 4,
+        "horizon_steps": 6,
+        "scenario": "stochastic_span",
+        "temporal_memory": 0.0,
+        "rotation_deg_s": 30
+      },
+      "paired": {
+        "common_samples": 104,
+        "results": {
+          "original": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.5354041626718467,
+              "full_ridge": 0.26640591449079365,
+              "subspace_ridge": 0.26640591449079365,
+              "linear_trend": 0.3298815732864873,
+              "lagged_full_ridge": 0.7433822455521255,
+              "lagged_subspace_ridge": 0.7433822455521251
+            },
+            "mean_reconstruction_residual": 3.666659497234397e-16
+          },
+          "global_rotation": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.5354041626718467,
+              "full_ridge": 0.26640591449079365,
+              "subspace_ridge": 0.2664059144907936,
+              "linear_trend": 0.3298815732864873,
+              "lagged_full_ridge": 0.7433822455521253,
+              "lagged_subspace_ridge": 0.743382245552125
+            },
+            "mean_reconstruction_residual": 3.3684757769479824e-16
+          },
+          "temporal_shuffle": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.6363751457883743,
+              "full_ridge": 0.24837143737167272,
+              "subspace_ridge": 0.24837143737167275,
+              "linear_trend": 0.31217625182820186,
+              "lagged_full_ridge": 0.30727837770027566,
+              "lagged_subspace_ridge": 0.3072783777002756
+            },
+            "mean_reconstruction_residual": 3.184906333692454e-16
+          }
+        },
+        "mean_mse_delta_vs_original": {
+          "global_rotation": {
+            "persistence": -5.832903437763121e-17,
+            "full_ridge": -2.869460937223114e-17,
+            "subspace_ridge": -2.698777282713317e-17,
+            "linear_trend": -3.088516688659188e-17,
+            "lagged_full_ridge": -3.344026131889864e-16,
+            "lagged_subspace_ridge": -1.6840839370071116e-16
+          },
+          "temporal_shuffle": {
+            "persistence": 0.10097098311652761,
+            "full_ridge": -0.01803447711912095,
+            "subspace_ridge": -0.018034477119120942,
+            "linear_trend": -0.017705321458285427,
+            "lagged_full_ridge": -0.43610386785184996,
+            "lagged_subspace_ridge": -0.4361038678518497
+          }
+        },
+        "eligible_by_control": {
+          "original": 104,
+          "global_rotation": 104,
+          "temporal_shuffle": 104
+        },
+        "excluded_by_control": {
+          "original": 0,
+          "global_rotation": 0,
+          "temporal_shuffle": 0
+        },
+        "pairing": "Same logical clock slots; shuffled vectors are not the same observation"
+      },
+      "input_hashes": {
+        "original": "e0299cf5bac5cce071ff320c862e5985809ef463b3b950c87a0422126a0b8e69",
+        "global_rotation": "472ac76a52e7db686c94633e444b26b590ef6409950a2ac9488aeca85f52e4f6",
+        "temporal_shuffle": "c28d7b63c16ad5fa898d293da699bc5deda249adc1f6a114d29a7f035fd4d390"
+      }
+    },
+    "rotating": {
+      "settings": {
+        "seed": 17,
+        "samples": 120,
+        "control_hz": 30,
+        "dimensions": 4,
+        "signal_rank": 1,
+        "components": 1,
+        "window_s": 2,
+        "noise_std": 0.0,
+        "noise_threshold": 0.02,
+        "ridge": 0.1,
+        "predictors": [
+          "persistence",
+          "full_ridge",
+          "subspace_ridge",
+          "linear_trend",
+          "lagged_full_ridge",
+          "lagged_subspace_ridge"
+        ],
+        "autoregressive_lags": 4,
+        "horizon_steps": 6,
+        "scenario": "rotating_span",
+        "temporal_memory": 0.95,
+        "rotation_deg_s": 30
+      },
+      "paired": {
+        "common_samples": 104,
+        "results": {
+          "original": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.0273797424544156,
+              "full_ridge": 0.06705599039782022,
+              "subspace_ridge": 0.07464093856855404,
+              "linear_trend": 0.20975915143742904,
+              "lagged_full_ridge": 0.023713401617264575,
+              "lagged_subspace_ridge": 0.03721141988497198
+            },
+            "mean_reconstruction_residual": 0.38801742238461945
+          },
+          "global_rotation": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.027379742454415604,
+              "full_ridge": 0.06705599039782027,
+              "subspace_ridge": 0.074640938568554,
+              "linear_trend": 0.20975915143742904,
+              "lagged_full_ridge": 0.023713401617264422,
+              "lagged_subspace_ridge": 0.03721141988497197
+            },
+            "mean_reconstruction_residual": 0.38801742238461945
+          },
+          "temporal_shuffle": {
+            "common_samples": 104,
+            "mean_prediction_mse": {
+              "persistence": 0.26461362410271205,
+              "full_ridge": 0.14637042786773705,
+              "subspace_ridge": 0.13185840545608649,
+              "linear_trend": 0.1409630022856752,
+              "lagged_full_ridge": 0.17037643013977471,
+              "lagged_subspace_ridge": 0.16747169250011304
+            },
+            "mean_reconstruction_residual": 0.5270336145369329
+          }
+        },
+        "mean_mse_delta_vs_original": {
+          "global_rotation": {
+            "persistence": 8.340016711426958e-20,
+            "full_ridge": 4.8657742498642726e-17,
+            "subspace_ridge": -2.873135757086587e-17,
+            "linear_trend": 7.647795324378519e-18,
+            "lagged_full_ridge": -1.5209062975375984e-16,
+            "lagged_subspace_ridge": -5.073336415769911e-18
+          },
+          "temporal_shuffle": {
+            "persistence": 0.2372338816482964,
+            "full_ridge": 0.07931443746991682,
+            "subspace_ridge": 0.057217466887532445,
+            "linear_trend": -0.06879614915175386,
+            "lagged_full_ridge": 0.14666302852251015,
+            "lagged_subspace_ridge": 0.13026027261514106
+          }
+        },
+        "eligible_by_control": {
+          "original": 104,
+          "global_rotation": 104,
+          "temporal_shuffle": 104
+        },
+        "excluded_by_control": {
+          "original": 0,
+          "global_rotation": 0,
+          "temporal_shuffle": 0
+        },
+        "pairing": "Same logical clock slots; shuffled vectors are not the same observation"
+      },
+      "input_hashes": {
+        "original": "24cd1aac83643cfa8b115b9d325b295d8f92fc6c3929759b48603781e97a7a2e",
+        "global_rotation": "0ea29008e99c0ed90d6b6ff7ecc20c79381781d5ca3252210c5da6fe8abe920f",
+        "temporal_shuffle": "c8b4014d6ec4eed0c3eb5c17a719b50c589f96b665f3b72a65d9f9cd24571eb3"
+      }
+    }
+  },
+  "limits": [
+    "Synthetic dimensionless vectors only; no HIT, body or perceptual validation",
+    "Hyperparameters declared before scoring; no selection on these results",
+    "MSE evaluated on common temporal support; not scientific generalization evidence"
+  ],
+  "environment": {
+    "python": "3.12.13",
+    "numpy": "2.5.1"
+  },
+  "module_hashes": {
+    "grassmann.py": "1a3c5abcdd3c45abb3efe6b4a44ada11dd08f7204298ff6ae93df5e25c75d1e8",
+    "forecast_families.py": "55c79f8d35681d52b5dbe48976164f4b4b8761639ef6bf465cd83a4e3148fbaf"
+  }
+}

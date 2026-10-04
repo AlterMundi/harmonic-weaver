@@ -287,18 +287,121 @@ backend/API: 52 passed en 10.76 s. IMPLEMENTATION_STATUS actualizado. No prueba
 corte de energía ni todos los puntos de fallo; recuperación de atributos y
 validación humana/física continúan pendientes.
 
-## Próximos cortes, necesarios para la entrega
+## Recuperar controles históricos
 
-- Adaptador de PCM verificado R05: frecuencia de muestreo declarada, ventana
-  causal, preroll/reset y soporte temporal explícitos; no alimentar pose.
-- Campo de desplazamiento y RMS temporal, nodos y controles con señales
-  conocidas. Límites de memoria y duración; prueba de truncamiento modal.
-- Worker, artifacts/manifest verificables, cancelación y recuperación de
-  interrupciones siguiendo contratos R05/R06.
-- API/UI con todos los parámetros, presets portables, visualización sincronizada
-  y contraste entre estado de voces, mezcla final y membrana. No confundir estas
-  rutas ni aplicar parámetros a live silenciosamente.
-- Banco reproducible de señales/control y recuperación de atributos reservados.
+Abrir un banco transiente conserva el resultado archivado: comprueba inventario,
+hashes, request congelado y soporte, sin renderizar de nuevo. La web indica
+`Integridad verificada; sin recalcular` y muestra por separado si coinciden código
+y entorno. Una diferencia de procedencia no impide leer la corrida.
+
+`Recalcular verificación de controles R07` compara contra la implementación actual
+sin sobrescribir artifacts. Exige estructura y soporte exactos, con tolerancia
+relativa 1e-12 y absoluta 1e-15 para floats; int/float equivalentes se admiten sólo
+con valor exactamente igual, sin convertir bools. El endpoint es
+`GET /api/research/r07-controls/{id}/verification?recompute=true`; sin ese parámetro
+informa integridad solamente. `membrane_controls_run.verify` conserva recálculo
+por defecto para workers y llamados explícitos existentes.
+
+Código/entorno coincidentes no son una prueba numérica; hashes locales no son
+custodia firmada. El banco sigue siendo sintético y no valida una membrana física.
+No se cambian defaults del instrumento ni se aplica nada al audio live.
+
+## Recuperación de atributos en casos reservados
+
+`membrane_readout` lee exclusivamente figuras RMS calculadas desde el PCM final.
+La selección local declara un ID de proyección R07, rol train/test, grabación,
+grupo corporal y valores de atributos en unidades explícitas. El servicio
+verifica y congela figuras existentes; las etiquetas entran después, en el
+decodificador, y no modifican el sonido ni la membrana.
+
+En Investigación → **R07 · Recuperación de atributos reservados**:
+
+1. Editar/validar el preset: atributos/unidades, reserva within_take/take/subject,
+   ridge, normalización, embargo y semilla. Exportarlo no incluye casos ni etiquetas.
+2. Actualizar figuras disponibles. Agregar casos con IDs de grabación/grupo y
+   atributos declarados; el JSON de casos permite corregir o retirar selecciones.
+   Conservar el mismo ID de grabación entre renders/presets de una toma.
+3. Calcular con al menos tres casos train y dos test, mismo medio y grilla de
+   2×2 a32×32. Ventanas idénticas de un PCM no cuentan como múltiples casos.
+   take/subject excluyen grabación o PCM compartidos; subject excluye grupo
+   compartido. within_take exige entrenamiento anterior y embargo declarado.
+   Entre PCM distintos de la misma grabación, el origen temporal se toma del
+   manifest R05 verificado; si ya no está disponible, no se inventa ese offset.
+4. Comparar siete lecturas sobre exactamente los mismos casos reservados:
+   media train, ridge del RMS completo/forma/magnitud y sus controles train-label
+   shuffle. Cada atributo conserva su MSE y unidad²; no promediamos unidades
+   incompatibles. Normalización/intercepto/coefs usan exclusivamente train.
+5. Descargar dataset/result/manifest o reabrir la corrida. La lectura verifica
+   integridad y binding de casos/atributos; recálculo explícito verifica números
+   sin sobrescribir archivos. Una diferencia de código/entorno se informa aparte.
+
+La forma divide cada vector por su norma L2; un campo cero produce forma cero.
+La magnitud es norma L2 sobre puntos de grilla, no loudness ni energía física.
+Una tolerancia relativa de resolución numérica evita amplificar a varianza
+unitaria el roundoff de formas constantes. El solve dual limita el trabajo a
+64 casos; no hay renderer, captura ni audio en esta comparación síncrona.
+Publicación usa staging; restos de staging no aparecen como corridas completas.
+No se afirma recuperación tras corte de energía en todos los puntos de rename.
+
+CLI sobre un dataset congelado local:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.research.membrane_readout_run \
+  --dataset DATASET.json --output NUEVA_CARPETA
+```
+
+`verify(folder)` comprueba integridad; `verify(folder,recompute=True)` compara
+contra el decodificador actual, tolerancias rel1e-12/abs1e-15. No necesita los PCM
+ni las proyecciones originales después de congelar el dataset. El snapshot
+contiene RMS, etiquetas e IDs: mantenerlo local cuando provenga de datos corporales.
+
+Control ejecutado en fixture sintético R05→PCM→R07: seis ganancias declaradas
+(train .2/.4/.6/.8, test .3/.7), mismo medio y figura5×5, ridge .001. MSE de
+ganancia en los dos casos comunes: media train .04; campo completo
+3.0862482930651985e-11; magnitud2.498750468642882e-9; forma normalizada .04.
+El control shuffle del campo completo dio .0016003555654286051. La recuperación
+es de una ganancia codificada explícitamente: prueba el canal configurado y
+su confusión con magnitud, no HIT ni información corporal. No aporta significancia
+ni independencia humana. Shuffle tampoco conserva autocorrelación temporal.
+
+## Etiquetas desde features corporales congeladas
+
+Para una figura procedente de R05 ligado a EVAL, **Cargar señales para etiquetas
+R07** muestra las señales/unidades de la corrida exacta y la ventana de fuente
+correspondiente. No acepta otra evaluación arbitraria: verifica la vinculación
+PCM→input→trace. El origen R05 se suma a los índices de muestras de la figura;
+una ventana en la cola del sonido no recibe una etiqueta corporal contemporánea.
+
+Agregar señales al **Perfil portable de etiquetas R07** y editar su JSON:
+`method=mean|rms|std|peak_abs`, `min_observations`, `min_observed_fraction` y
+`max_gap_s`. Las señales deben compartir unidad; se usan observaciones únicas
+y soporte observado común. Son estadísticas de muestras, sin interpolación ni
+ponderación temporal (`std` usa ddof=0). Fracción de observaciones válidas no es cobertura en
+segundos ni exactitud de pose. El máximo gap incluye los bordes de la ventana.
+
+**Calcular atributos desde EVAL R07** completa targets, nombres `method:signal`
+y unidades, y guarda el perfil como `label_settings` dentro del preset portable.
+Muestra cobertura, gaps y duplicados excluidos. Agregar el caso conserva el perfil
+de cálculo; al congelar el banco, el servidor recalcula esa etiqueta contra las
+fuentes verificadas y rechaza valores/nombres/unidades que hayan cambiado.
+Editar a mano el target retira la declaración de etiqueta calculada.
+Los IDs de grabación/grupo siguen siendo declaraciones humanas; no se completan
+como identidad corporal inferida. Las etiquetas no entran al renderer.
+
+Dataset archivado conserva resumen, cobertura/causas, digest, módulo agregador
+importado/NumPy y procedencia EVAL. Recálculo del decoder usa esos targets congelados;
+no revalida automáticamente el cálculo corporal si ya no existen las fuentes.
+Cambiar el código de etiquetas no reescribe un archivo histórico. Las pruebas
+con tracking sintético verifican este recorrido; no son observaciones humanas.
+
+## Pendientes de entrega e investigación
+
+El adaptador PCM R05, campos/RMS, workers, recuperación, API/UI y controles
+transientes están implementados; sus cortes y pruebas se registran arriba.
+- Ejecutar el banco con features corporales reales o anotaciones humanas y tomas
+  independientes; ampliar controles de espectro/temporalidad y probar estabilidad
+  frente al medio/resolución. IDs declarados no certifican identidad ni ceguera
+  prospectiva. Ajustar mirando la prueba convierte la comparación en exploratoria.
   Las semejanzas de figuras no demuestran información conservada ni HIT.
 - Medio físico: faltan actuador, membrana/material/bordes caracterizados,
   observación sincronizada y calibración. No se ha realizado escucha ni ensayo

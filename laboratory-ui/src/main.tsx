@@ -1,3 +1,4 @@
+import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 
 import { CapturePanel } from "./CapturePanel";
@@ -82,6 +83,8 @@ const labels: Record<string, string> = {
   window_periods: "Ventana de dibujo (períodos)",
   samples: "Muestras de la figura",
   persistence: "Persistencia visual",
+  collective_view: "Geometría del movimiento",
+  collective_max_axes: "Ejes visibles de la geometría",
   line_width: "Grosor del trazo (px)",
   brightness: "Brillo",
   scale: "Escala",
@@ -318,7 +321,8 @@ function Fields({
           onChange={(e) => onChange(e.target.value)}
         >
           {schema.enum.map((v: any) => (
-            <option key={v}>{v}</option>
+            <option key={v} value={v}>{name === "collective_view"
+              ? ({off:"Apagada",projector:"Proyector del subespacio",basis:"Base y modos"} as Data)[v] : v}</option>
           ))}
         </select>
       </label>
@@ -388,7 +392,8 @@ function App() {
   const [presetName, setPresetName] = useState(""),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
   const [sourcePreferences, setSourcePreferences] = useState<Data>({default_person:"best_coverage", autoplay_video:true});
-  const [quality, setQuality] = useState<Data | null>(null);
+  const [qualityResult, setQuality] = useState<{jobId:string,report:Data} | null>(null);
+  const quality = qualityResult?.jobId === state.source?.job?.id ? qualityResult?.report : null;
   const [algorithms, setAlgorithms] = useState<Data[]>([]);
   const [pending, setPending] = useState(false),
     [figureError, setFigureError] = useState("");
@@ -403,6 +408,9 @@ function App() {
     figure = useRef<Figure | null>(null);
   const macroQueue = useRef<{ id: string; value: number } | null>(null);
   const macroBusy = useRef(false);
+  const presetBusy = useRef(false);
+  const presetQueue = useRef<{preset: Data; generation: number} | null>(null);
+  const [presetProgress, setPresetProgress] = useState("");
   const run = async (action: () => Promise<any>) => {
     try {
       setError("");
@@ -411,25 +419,73 @@ function App() {
       setError(String(e));
     }
   };
+  const applyPreset = (preset: Data) => {
+    presetQueue.current = {preset, generation: generation.current};
+    setPresetProgress(`Elegido: ${preset.name}`);
+    if (presetBusy.current) return;
+    presetBusy.current = true;
+    void run(async () => {
+      try {
+        while (presetQueue.current) {
+          const choice = presetQueue.current;
+          presetQueue.current = null;
+          // A subsequent control edit takes precedence over an older choice.
+          if (choice.generation !== generation.current) continue;
+          const next = await api(`presets/${choice.preset.id}/apply`, {
+            expected_revision: revision.current,
+          });
+          if (choice.generation !== generation.current ||
+              next.session.desired_revision < revision.current) continue;
+          revision.current = next.session.desired_revision;
+          dirty.current = false;
+          current.current = next.preset;
+          setDraft(next.preset);
+        }
+      } finally {
+        presetQueue.current = null;
+        presetBusy.current = false;
+        setPresetProgress("");
+      }
+    });
+  };
+  const inventoryRequests = useRef<Record<string, number>>({});
+  const refreshInventory = async (path: string, accept: (rows: Data[]) => void) => {
+    const request = (inventoryRequests.current[path] ?? 0) + 1;
+    inventoryRequests.current[path] = request;
+    try {
+      const rows = await api(path);
+      if (inventoryRequests.current[path] === request) accept(rows);
+    } catch (e) {
+      if (inventoryRequests.current[path] === request) throw e;
+    }
+  };
+  useEffect(() => () => {
+    presetQueue.current = null;
+    // Invalidate in-flight reads without reusing tokens on a StrictMode remount.
+    for (const path of Object.keys(inventoryRequests.current))
+      inventoryRequests.current[path] += 1;
+  }, []);
   const refresh = () =>
     Promise.all([
-      api("media").then(setAssets),
-      api("presets").then(setPresets),
-      api("calibrations").then(setSavedCalibrations),
+      refreshInventory("media", setAssets),
+      refreshInventory("presets", setPresets),
+      refreshInventory("calibrations", setSavedCalibrations),
     ]);
   useEffect(() => {
     if (state.source?.job?.status === "ready")
-      api("media")
-        .then(setAssets)
+      refreshInventory("media", setAssets)
         .catch((e) => setError(String(e)));
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
+    let active = true;
     setQuality(null);
     if (state.source?.job?.status === "ready") {
-      api(`media/${state.source.job.id}/quality`)
-        .then(setQuality)
-        .catch((e) => setError(String(e)));
+      const jobId = state.source.job.id;
+      api(`media/${jobId}/quality`)
+        .then((report) => { if (active) setQuality({jobId,report}); })
+        .catch((e) => { if (active) setError(String(e)); });
     }
+    return () => { active = false; };
   }, [state.source?.job?.id, state.source?.job?.status]);
   useEffect(() => {
     api("source-preferences").then(setSourcePreferences).catch((e) => setError(String(e)));
@@ -798,6 +854,13 @@ function App() {
           {figureError && <p role="alert">{figureError}</p>}
         </section>
       </div>
+      <CollectiveGeometry features={state.features} visual={draft.visual} algorithm={draft.algorithm.id}/>
+      {state.shaper?.audio_disabled && (
+        <aside role="status">
+          Modo diagnóstico sin audio (--no-audio). Reiniciá sin esa opción para
+          escuchar y ver la figura de las voces efectivas.
+        </aside>
+      )}
       {(error ||
         state.runtime?.error ||
         state.shaper?.error ||
@@ -1144,6 +1207,7 @@ function App() {
                     ? `Escala fija: ${state.calibration.torso_scale.toFixed(4)} · ${state.calibration.provenance}`
                     : "Sin calibración. El baseline conserva su escala adaptativa; los otros modelos requieren calibrar."}
                 </p>
+                {state.calibration_notice&&<p role="status">{state.calibration_notice}</p>}
                 <details>
                   <summary>Reutilizar calibración explícitamente</summary>
                   <select
@@ -1344,22 +1408,13 @@ function App() {
                     />
                   </label>
                 </div>
+                {presetProgress && <p role="status">{presetProgress} · esperando confirmación</p>}
                 <div className="preset-list">
                   {presets.map((p) => (
                     <button
                       key={p.id}
                       disabled={pending}
-                      onClick={() =>
-                        run(async () => {
-                          const next = await api(`presets/${p.id}/apply`, {
-                            expected_revision: revision.current,
-                          });
-                          revision.current = next.session.desired_revision;
-                          dirty.current = false;
-                          current.current = next.preset;
-                          setDraft(next.preset);
-                        })
-                      }
+                      onClick={() => applyPreset(p)}
                     >
                       {p.name}
                     </button>

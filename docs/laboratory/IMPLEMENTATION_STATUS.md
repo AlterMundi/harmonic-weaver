@@ -4,31 +4,52 @@
 La aceptación anterior de 01c/contraste se conserva; la escucha de realce ×10,
 articulación y modelos nuevos sigue pendiente. [Evidencia y límites](VALIDATION.md).
 
-## Estado vigente de las ramas de desarrollo (auditoría 2026-09-30)
+## Estado vigente (auditoría 2026-10-03)
 
-Los apartados fechados posteriores conservan historia; sus pendientes pueden estar
-resueltos por incrementos posteriores. Esta tabla resume el estado actual, sin
-confundir rama publicada con instalación, merge ni aceptación humana.
+La historia fechada de abajo conserva evidencia de cada corte; sus pendientes
+pueden estar resueltos por entregas posteriores. Esta tabla separa software,
+instalación cotidiana y trabajo físico/humano pendiente.
 
-| Entrega | Evidencia / alcance actual | Pendiente real |
+Integración backend actual: **1167 tests + 4 subtests passed**, 283.12 s, sobre
+Weaver `76f4228` y Shaper-dev `516ebde`. Suite completa sin fallos/skips; evidencia
+de contratos/runtime/cache/render/bancos, no de escucha, hardware o hipótesis HIT.
+Los recorridos Chrome recientes siguen documentados por entrega en VALIDATION;
+no se atribuye esta cifra a toda la UI ni a adquisición física.
+
+| Entrega | Evidencia / alcance actual | Pendiente concreto |
 |---|---|---|
-| LAB-00–08 y v2 | PRs #29/#30/#37/#39; controles, modelos, cache y cuerpo por defecto; experiencia baseline previamente aceptada | Calibración/modelos/realce nuevos y latencia requieren feedback humano; CUDA no se declara reparado |
-| Comparador #18 | #40 motor PCM compartido, #41 reproducción fuente/WAV/figura y #54 descarga verificada de features/targets/configuración; repetibilidad local documentada | Ampliar evaluación/paridad/métricas y validación humana; investigación formal no completa |
-| LAB-09 #17 | #42–47 colector, export, preview cámara y recovery PCM/journal; #57 prefijo de imágenes y #67 export de prefijos PCM/journal/cámara; preview MP4 opcional con reproducción web verificada | Overlays, cámara física/sincronía medida, recovery in-flight por job polling, recorrido navegador–servidor de prefijos y journal completo |
-| R03 técnico | #68 marcas tipadas y snapshot; #69 contraste causal, servicio propio, API/UI, shifts declarados sobre soporte común y browser→HTTP→replay verificado con fixture sintética | Revisión humana, incertidumbre de anotación, centros/regiones alternativos y experimento reservado; no cierre científico |
-| R04 técnico | #70 valida datos relacionales; #71 banco sintético y pose congelada, worker/API/UI, controles globales/local proximal, JSON portable y browser HTTP probado | Corrida corporal real requiere evaluación con escala/procedencia explícitas; anotaciones independientes, ruido/emparejamientos y valor de tarea pendientes |
-| R05 técnico | #72 núcleo resonadores pasivos/excitación causal, mapeo amplitud con modulación opcional de portadoras/serie f1/2, comparación con soporte común/colas separadas, PCM DOUBLE y manifests verificados, worker/API/UI/presets y cuadratura exacta por voz; proyección/caché/presets y player ligado al clock; video original verificado, offset portable y overlay de pose causal con edad configurable; Chrome HTTP muted con seeks/loops/respuestas demoradas y gaps sobre pose/MP4 sintéticos pasa; interrupciones entre cada promoción y reverificación final cubiertas | Modalidades adicionales, prueba corporal del recorrido audiovisual, durabilidad ante caída del host/corte de energía, niveles/latencias físicas y escucha/agencia humanas pendientes; no equivalente al Shaper aceptado ni cierre científico |
-| R06 técnico | Banco CLI sintético: cuatro calendarios, igual dosis/eventos/medio, métricas completas, trace acotado y manifest reproducible; worker/service/verificador con cancelación/restauración y pruebas de proceso real; API/UI completa de parámetros y JSON portable, Chrome real de repetición/tabla/trace/reload y contraste de medios con eventos/dosis/portadoras idénticos; surrogates seeded preservan multiset de intervalos y soporte; banco de semillas explícitas, reports completos y resumen descriptivo | Controles de fase/espectro e hipótesis/protocolo físicos/humanos; no cierre HIT |
-| R07 técnico · PR #74 | Membrana sound-only y RMS causal, trayectoria/audio-follow/seek/pause/loop, presets visuales portables; mix R05 single/par verificado; bancos de transferencia/resoluciones y transientes con artifacts/API/UI; Chrome HTTP real de los tres paneles; cancelación running y kill post-publicación reales; 52 pruebas backend/API pasan | Recuperación de atributos en soporte reservado, convergencia física y protocolo/medio/sensores calibrados; escucha/aceptación humana pendientes; no cierre científico |
-| R01–R13 | Agenda conservada; banco R01 con controles pareados, horizontes, cancelación y entrada de features congeladas; repetición sintética y corporal local; Sai–Oliva #36 revisado sin merge | Hipótesis HIT específicas y evaluación ampliada; bancos/experimentos R02–R13 y sus dependencias aún pendientes |
+| LAB-00–08 | Instrumento, seis voces iniciales, presets, modelos/calibración, múltiples cuerpos, biblioteca/cache y transporte en main hasta #85; experiencia baseline aceptada. #86–89 añaden observaciones parciales y derivadas con reloj de captura | Feedback de modelos/calibración/realce, calidad y latencia físicas; CUDA no se declara reparado; nueva pila aún no instalada |
+| Comparador #18 | Motor PCM causal compartido, manifests/features/targets, video/WAV/suma de voces y selector de presets al mismo instante. Recorrido corporal con tres renders y Chrome muted registrado en EVALUATION.md | Escucha y sincronía físicas; familias/métricas científicas adicionales y reservas independientes |
+| LAB-09 #17 | Captura PCM/journal/video opt-in, export MKV/MP4/preview web, inventario y recuperación de prefijos con procedencia; #103 + Shaper #7 agregan polling persistido. Nuevas ramas añaden esqueleto observado y figura de todos los osciladores desde bloques PCM en export completa/recuperada, con causas de omisión; perfiles portables capture/export con nombre, SQLite y JSON; estímulo digital flash/PCM medido en MKV decodificado verifica offset y salto del reloj de callbacks | Nueva pila aún no instalada; cámara/sincronía medidas y feedback humano |
+| R01 | Subespacios y forecasts causales, controles pareados/horizontes; entradas EVAL congeladas y repetición corporal local. Nuevas ramas añaden tendencia, ridge con retardos completo/subespacio y armónicos declarados con causas de soporte/reloj; controles web/JSON y bancos sintéticos reproducidos | Otras familias y splits/tomas reservados; predicción HIT específica; nueva pila aún no instalada |
+| R02 | Modelos local/relacional/angular/colectivo y centros variables en instrumento/EVAL; banco Sai #36/#97 integrado en #98, web sintética #100 y Fourier corporal #107 incorporado y nuevo consumidor biblioteca/worker/API/UI con cobertura/diagnóstico geométrico | Contrastes corporales entre tomas/cuerpos; Contraste geométrico restringido reservado a Oliva; no inferir organización de compresión sola |
+| R03 | Marcas tipadas/contexto/época, filtros y snapshots; candidatos causales y contraste temporal con soporte común, barrido declarado de offset global, worker/API/UI | Marcas humanas nuevas y su incertidumbre temporal; centros/regiones alternativos y reservas; coincidencia no demuestra intención |
+| R04 | Banco relacional sintético/pose congelada, controles proximal/noise, soporte común y summaries; API/UI y repetición HTTP | Anotación/tarea y otras tomas independientes; ruido de cámara medido |
+| R05 | Resonadores/excitación y mapeo, PCM/campos de voces, player/source/offset/overlay causal; referencias y recuperación de publicaciones parciales | Escucha/agencia y niveles/latencias físicas; otras variantes/medios y crash del host |
+| R06 | Calendarios/medios/semillas, fases y sondas; #101 añade circular shifts por puerto con potencias conservadas, checks FFT y tabla/traza web | Controles más amplios, observable/hipótesis HIT y ensayo físico/humano; espectro periódico de entrada no fija respuesta finita |
+| R07 | Membrana sound-only/campos/RMS y controles de medio/resolución/transientes. #94–96: lectura histórica, readout reservado, labels EVAL; corrida corporal local 5 train +5 test, repetición byte-idéntica | Tomas/cuerpos independientes y controles ampliados; medio físico/calibración/sensores, escucha/aceptación; una toma no prueba generalización |
+| R08 | Anotación/segmentación/flow/bancos pareados con soporte, causas/coverage, archivos y UI; recuperación de POST perdida | Calidad manual/ground truth corporal y referencias de cuerda; 2D no certifica topología 3D |
+| R09 | Imports/recibos/clocks, comparación/conversiones y presets; DLT de pares declarados con workers recuperables y procedencia conservada en comparador (#121–124) | Adquisición/undistorsión, cámaras/IMUs reales y escala/calibración/sincronización/referencia independientes |
+| R10 | Protocolos/condiciones, transporte/player, respuestas/paired analysis/diseños portables; borrador/cierre recuperables y archivo local opcional entre pestañas | Participantes, niveles/sincronía/exposición medidas, sesiones largas y aceptación; datos sintéticos no son experiencia humana |
+| R11 | Stream crudo, control SNR conocido archivado (#90), import CSV explícito (#91); #99 conserva original/mapeo/conversión y recuperación web; CSV ISO con origen explícito compartido con R12 | Export/hardware OpenBCI reales, adquisición y sincronía físicas; no índice de placer/estado mental |
+| R12 | Mediciones/tarea declaradas, soporte/gaps, integral parcial W→J, vínculo EVAL, archivos, CSV numérico/ISO y configuración portable; #136–138 conservan raw excluido, contexto de cargas y sensibilidad de reloj sobre soporte común con receta pública | Export sensor real y clocks, BLE/RR/adquisición, fuerzas/escala o metabolismo apropiados; no calorías desde HR/pose |
+| R13 | Banco nativo/EVAL, splits y normalización train-only, baselines/shuffle y adaptación de prefijo; #130 añade control cuadrático opcional con positivos y negativos sintéticos; reserva corporal entre dos recordings congelados (train-only, prefijo0/60, soporte común), CLI/recomputación y dos recorridos Chrome de import/repeat verificados localmente; worker/API/UI y protocolo | Tomas adicionales/participantes/tareas, mapeos funcionales, validación externa y diseños de intervención/retención |
 
-Desarrollo permanece en `harmonic-weaver-dev` y `harmonic-shaper-dev`; no sustituye
-el workspace `harmonic-weaver-lab` de pruebas ni workspaces originales. PRs listadas
-siguen abiertas en GitHub; no se ejecutaron merges. Los datos privados no se publican.
+GitHub main Weaver sigue en `cc5fb57`, Shaper en `f8bfe07` y HarMoCAP en
+`25fda8d` (heads remotos consultados nuevamente el 2026-10-03). La pila posterior
+a #85 permanece abierta y llega a #138 (`feat/r12-clock-sensitivity`, `76f4228`).
+#36/#97 están incorporadas conservando autoría en #98 y #107 en #109, sin mergear
+sus ramas históricas. La rama de integración hereda todos esos cortes.
+El laboratorio cotidiano `harmonic-weaver-lab` sigue en `cc5fb57`; desarrollo
+permanece en `harmonic-weaver-dev`. No se sustituyó el entorno de prueba habitual
+ni se publicaron datos privados. Workspaces originales, incluido HarMoCAP con
+cambios locales, permanecen preservados.
 
-Auditoría posterior a #67: 64 tests Weaver de captura/recuperación/export y 15
-Shaper pasan; [alcance y límites](INTEGRATION_AUDIT.md). No equivale a validación
-de hardware ni aceptación humana.
+[Verificación y límites](VALIDATION.md), [arranque/recorridos](RUNNING.md),
+[agenda completa R01–R13](../../research/laboratory/AGENDA.md). Las dependencias
+científicas/humanas no desaparecen al terminar una herramienta; el roadmap sigue
+abierto. LAB-09 conserva integración de la nueva pila y validación física/humana,
+y las líneas R01/R13 conservan ampliación de predictores y reservas.
 
 ## Publicación
 
@@ -1559,3 +1580,275 @@ Investigación se carga con React.lazy/Suspense al abrir la pestaña: evita suma
 los bancos al bundle cotidiano. Build divide ~292kB inicial/~215kB investigación,
 sin modificar controles o lógica de síntesis. Verificación browser producción y
 regresión del recorrido corporal se registran en VALIDATION.md.
+
+
+## Fourier corporal · diagnóstico de bloques cortos
+
+El consumidor de la biblioteca informa las longitudes de bloques descartados
+por no alcanzar el mínimo y su máximo, respetando límites de identidad/grid.
+UI y servicio verificados con fixtures; backend además ejecutado sobre tracking
+corporal privado ya cacheado, con selección/escala explícitas y repetición local
+idéntica. No se cambiaron defaults, bridge de Oliva ni servicios cotidianos.
+Ver VALIDATION.md para evidencia y límites: recorrido web de producción con cache real verificado (audio desconectado);
+aceptación humana pendiente; el banco no valida HIT ni causalidad corporal.
+
+
+## EVAL #18 · tandas y continuación de matriz congelada
+
+Presupuesto de corridas nuevas por invocación configurable desde web/API/CLI;
+default 1024 mantiene la matriz completa admitida. partial distingue presupuesto
+agotado de resultado completo. Continuación conserva ID/entradas/corridas enteras
+verificadas, recalcula la corrida inacabada desde reset/preroll y reconstruye
+soporte común para toda la matriz. Locks, recuperación tras restart/cancelación,
+procedencia de continuación y causas previas registrados. No auto-continuación.
+
+Pruebas de API/workers/UI/PCM y contraste local corporal contra ejecución fresca
+pasan; evidencia y límites en VALIDATION.md. Contrato y recorrido en EVALUATION.md
+y RUNNING.md. No instala/mergea la pila ni acredita escucha/sincronía física,
+publicación segura de paquetes seleccionados o resultados científicos.
+
+
+## EVAL #18 · paquete seleccionable para revisar
+
+UI/API y writer propio permiten resumen sin rutas/nombres/identidad/calibración,
+con presets de parámetros conservados y soporte original explícito. Pedidos por
+corrida, traces y PCM opt-in; fuentes ajenas, video/tracking y inputs/job metadata
+externos no se agregan al ZIP. Preview congelada, presupuesto, cancelación, checksum
+al descargar e inventario hasheado; preferencias JSON portables sin selección.
+
+Pruebas backend/workers/API/UI/PCM y exportación corporal local pasan; ver
+VALIDATION.md. EVALUATION/RUNNING documentan límites. Resultado listo para revisión
+local; compartir externamente no fue realizado ni autorizado por este paquete.
+No certifica anonimato, datos públicos reproducibles ni conclusiones científicas.
+
+R03 incorpora un barrido configurable de offset global declarado, separado de
+controles temporales: soporte común, denominadores/rangos muestreados, configuración
+portable y worker reproducible. La comparación nominal no cambia. Núcleo y
+recorrido Chrome/HTTP verificados (VALIDATION); incertidumbre por evento, latencia
+medida y marcas humanas independientes siguen pendientes.
+
+R12 ahora importa CSV con mapeo explícito y archivo local del original UTF-8,
+metadatos/conversión/manifests; controles web y mapa portable. Usa parser compartido
+con R11, cuya salida se conservó. Backend y Chrome/HTTP verificados (VALIDATION).
+No adquisición/sensor real, inferencia de escala ni transferencia de calibración.
+
+R01 suma `fixed_harmonics`, configurable en web sintética/corporal: sin/cos + DC,
+frecuencias declaradas y reloj pasado, forecast congelado y soporte común. Nuevo
+control positivo armónico y banco reproducible de frecuencias incorrectas/shuffle/
+blanco estocástico con evidencia pública sintética. Defaults de predicción/audio
+conservados. No identifica una restricción HIT física; quedan hipótesis/observables
+y tomas independientes (r01_grassmann/README, VALIDATION).
+
+R01 fixed_harmonics verificado también en dos corridas corporales locales de
+60 s con la fuente/generación/cuerpo derecho previamente verificados; trazas y
+inputs repetibles, sin volver a leer/copiar video/tracking ni abrir audio. Web
+muestra causas de soporte y discrepancia del reloj objetivo estimado/observado.
+Datos/estadísticas corporales quedan locales; no generalización ni escucha inferida.
+
+R11/R12 incorporan un modo explícito de índices por registro para CSV sin contador:
+versión 3, numérico/ISO, procedencia y presets portables. Timestamp real obligatorio,
+no descarte/interpolación; device_counter_observed=false advierte que numerar filas
+no detecta pérdidas físicas. Backend/API/web verificados (VALIDATION), formatos
+anteriores/defaults conservados. Adquisición/exports reales siguen pendientes.
+
+R08 permite ahora mostrar frame original exacto bajo semillas/etiquetas del
+benchmark: fuente preparada compatible explícita, opt-in/cancelación y descarte
+de contexto antiguo. UI/HTTP con video sintético verificados (VALIDATION). No
+correspondencia automática ni nuevas referencias corporales; revisión humana
+y ground truth siguen pendientes, sin cambios de síntesis o borrador manual.
+
+R09 agrega adaptador DLT de pares 2D/cámaras K/R/t declarados, clocks/estados
+explícitos, controles web/presets/export y visor 3D. Puntos inferidos, missing
+con causas y control de correspondencias incorrectas/reproyección engañosa.
+Core/API/Chrome/CLI sintéticos pasan. Guarda stream como declarado y ahora también
+cálculos completos en workers propios cancelables, con recibos recuperables, entradas
+congeladas y descargas. Undistorsión/adquisición/calibración reales e IMUs
+siguen pendientes. No profundidad monocular ni cambios de instrumento.
+
+
+R09 multivista: abrir un resultado en tránsito no pisa inputs editados mientras
+llega; una nueva apertura explícita sí los restaura. Inventario retoma seguimiento
+de workers activos tras reload y permite cancelación propia. Intentos locales
+inválidos pueden descartarse sin envío. Chrome con worker real y build verificados
+(VALIDATION); no cambios en síntesis/defaults ni prueba física nueva.
+
+
+R09 conecta cálculos multivista completos con conversiones/comparador por ID y
+manifest esperado. Publicación verifica artefactos, mantiene stream exacto y
+origen local hasheado; recuperación idempotente no vuelve a resolver la fuente.
+Origen no puede inyectarse por ruta declarada. UI/HTTP/contratos verificados;
+no cambios a default de inferidos ni síntesis. Procedencia de cálculo conservada
+sin acreditación de calibración física. Ver README R09 y VALIDATION.
+
+
+R10 incorpora archivo opcional IndexedDB para snapshots de borradores, con
+export/restore/delete explícitos, dedup del mismo JSON y checksum al leer. No
+reemplaza automáticamente borrador ni pending, no revive player ni envía. Chrome
+verifica cierre de pestaña y nueva pestaña, recuperación exacta y posterior guardado
+explícito en API real. Límites de almacenamiento y privacidad documentados; ningún
+nuevo default/sonido/telemetría ni exposición humana acreditada.
+
+
+R05 recorrido audiovisual corporal para resonador+mapeo verificado en Chrome sobre
+bundle/runtime/biblioteca reales con PCM muted, source/pose/figura de seis voces,
+seeks/pausa/offset/cola y soporte común no vacío. Fixture reutilizable lee una EVAL
+existente sin mutadores/copia/retracking y guarda nuevos R05 sólo en root separado.
+Datos/evidencia corporal permanecen locales. VALIDATION/RUNNING describen alcance;
+no escucha, precisión 3D, causalidad ni timing físico acreditados. Sonido/defaults
+productivos y workspaces cotidianos intactos.
+
+
+R04 recorrido corporal congelado con escala aparente/procedencia ya archivadas
+verificado en web/reader/workers: dos corridas de60s repetibles, seis condiciones
+sobre soporte común y faltantes preservados. Evaluación sin escala rechazada,
+calibración runtime sigue null. Escala no se infiere/transfiere; datos y artefactos
+quedan locales. Software verificado no sustituye tarea/anotación independiente,
+medición de ruido ni validación física/HIT (VALIDATION/README R04).
+
+
+Arranque de desarrollo explícito disponible: start-laboratory-development.sh usa
+Shaper-dev y perfil de datos separado, conservando comando cotidiano. Ambos wrappers
+muestran checkout/head/interpreter/modelo y --describe permite revisar sin servicios.
+Selecciones explícitas inválidas no caen en otro workspace/modelo. Scripts verificados
+con executables inertes y resolución real; R24/readiness/escucha son pendientes físicos.
+RUNNING distingue comandos/perfiles; no nueva pila instalada ni merges realizados.
+
+Arranque completo sin audio de la pila dev verificado con datos temporales: web,
+estado, presets, ACK de controles y cierre de ambos procesos. Modo --no-audio
+explícito en UI/diagnóstico, sin telemetría ficticia ni 503 esperado como fallo;
+errores reales de control conservados. No puede deshabilitar un Shaper externo.
+Un único perfil start-laboratory-dev.sh conserva puertos 8875/8185 y datos dev;
+start-laboratory-development.sh es alias, no una instalación alternativa.
+23 pruebas backend/shell y Chrome real de producción pasan; R24, tracking físico
+y escucha siguen pendientes. VALIDATION/RUNNING contienen alcance y recorrido.
+
+R13 añade ridge cuadrático opcional (default off), train-only y soporte común con
+baselines/adaptación/shuffle; UI/settings portables y positivo sintético conocido.
+16 tests, Chrome producción/worker real y banco público de tres condiciones pasan.
+El control separa una no linealidad simple de una posible ventaja de descriptor;
+no acredita transferencia entre cuerpos/tareas ni HIT. Datos privados y sonido
+no modificados. Protocolo/evidencia R13 preservan casos sin mejora y dependencias.
+
+LAB-09: panel de captura ya no oculta fallos de consultas de estado. Inventario
+pendiente/fallido se distingue de idle, conserva último estado y bloquea nuevos
+pedidos respectivos hasta reconciliar; stop/cancel conocidos no se bloquean.
+Una consulta por grupo y recuperación sin operaciones automáticas verificados
+en Chrome con HTTP503/demoras controladas. Backend y sonido intactos; validación
+física/cámara/R24 y sincronía siguen pendientes.
+
+EVAL #18 comparte consultas confirmadas con captura: inventario pendiente/fallido
+visible, progreso anterior conservado, repetir/continuar/iniciar bloqueados hasta
+reconciliar y cancelación de corrida conocida disponible. Dos recorridos Chrome
+con fallos/demoras e inventarios explícitos verifican acciones sin nuevos jobs.
+Motor, resultados, reproductor y sonido no cambian; aceptación física sigue pendiente.
+
+EVAL #18: perfiles de procesamiento con nombre, SQLite y JSON portable implementados.
+Controles reloj/preroll/tandas/PCM independientes de selección fuentes/presets/cuerpos/
+calibración e identidad renderer. Cargar no inicia ni modifica requests congeladas;
+carga demorada no sobrescribe ediciones posteriores. 30 tests backend y Chrome
+producción/API pasan. Instrumento/defaults intactos; instalación cotidiana/escucha
+y reservas científicas pendientes.
+
+LAB-00–08: corregido traspaso de escala al cambiar automáticamente de persona
+entre prefijo y tracking completo. Calibración histórica conservada; nuevo cuerpo
+requiere escala propia, mientras cuerpo explícito estable mantiene su medición.
+Runtime10/evaluación20 tests pasan. Elección derecha del clip local verificada y
+registrada sólo en desarrollo, sin tocar preferencia cotidiana/calibraciones ni
+copiar/retrackear medios. Sigue pendiente precisión/escucha/aceptación física.
+
+El descarte automático de una escala activa ahora informa su motivo en web/state.
+Aviso temporal, sin bloquear baseline, limpio al recalibrar/seleccionar/cambiar
+fuente; selecciones sin escala no producen aviso. Runtime12 tests y build pasan.
+Defaults y comportamiento musical intactos; escucha física pendiente.
+
+R12: lecturas raw negativas de HR/potencia metabólica pueden conservarse sólo con
+exclusión explícita del mismo canal/muestra. Intervalos afectados no integrados;
+sin causa y no finitos rechazados. Potencia mecánica firmada sigue válida.
+29 tests R12/CSV pasan, incluyendo API, archivo/reapertura/recomputación y soporte
+común. JSON/web actuales permiten declarar la causa; CSV no tiene exclusiones por
+fila. Sin cambios de controles/defaults/audio ni datos humanos nuevos.
+
+R12 web: resultados de inspección, reapertura de corridas, vínculo EVAL y carga
+CSV archivada comprueban que el protocolo no cambió durante el await. Cambios
+posteriores conservados con aviso; repetir aplica normalmente. Chrome producción
+con API/archivos reales y respuestas demoradas verifica tres cruces, incluida
+ausencia de resultado guardable obsoleto; build pasa. Instrumento/defaults intactos.
+
+R12: banco configurable web/API/CLI de sensibilidad del reloj declarado con
+offsets congelados, cobertura original y común entre condiciones/canales, archivo
+request/result/manifest idempotente, reapertura/recomputación y configuración
+portable. Dos controles sintéticos repetidos (incluido soporte vacío) publicados.
+41 tests R12/CSV y dos recorridos Chrome pasan; build94 módulos. Mediciones reales,
+calibración/sincronía físicas y eficiencia/aceptación siguen pendientes.
+
+Instrumento web actual: recorrido corporal con cache existente verifica cuatro
+presets/modelos afinados, calibración, seis targets, edición de componentes/
+referencias/joints y peso de ruteo mientras el video avanza. Peso cero silencia
+sólo la voz elegida; recuperación, preset portable y cambio de cuerpo/loop pasan.
+Chrome11.3s; fixture no sintetiza ni abre dispositivos y prohíbe retracking.
+Cache original intacto, datos privados locales; sonido/aceptación siguen pendientes.
+
+Web: respuesta demorada de aplicar preset ya no reemplaza draft/revisión tras una
+edición posterior ni ante una revisión más nueva confirmada. Regresión reproducida;
+tres escenarios Chrome con API real/WS retenido pasan, más recorrido corporal
+completo11.6s con bundle nuevo. Sin defaults/audio/backend modificados.
+
+Fuente/cobertura web: cada informe queda vinculado al job activo; respuestas y
+errores demorados de jobs anteriores ignorados tras cambio/cleanup. Dos regresiones
+reproducidas y corregidas; Chrome con cobertura real cacheada y captions de fault
+control pasa junto al recorrido corporal completo. Sin tracking/defaults/audio
+modificados; cache original intacto, precisión/escucha siguen pendientes.
+
+Inventarios web: lecturas demoradas de biblioteca/presets/calibraciones ya no
+reemplazan lecturas más recientes ni muestran errores obsoletos. Dos regresiones
+Chrome reproducidas y corregidas con API/SQLite reales; sin defaults/backend/audio
+modificados. Pendiente separado identificado: dos aplicaciones de preset que se
+solapan pueden producir conflicto de revisión; no se reintenta silenciosamente.
+
+Presets rápidos: resuelto el solapamiento propio de apply registrado en #143;
+una solicitud en curso y última elección pendiente, revisión confirmada antes de
+la siguiente. Ediciones posteriores descartan elección pendiente; errores visibles
+sin retry. Seis pruebas Chrome reales y build pasan; sin defaults/audio modificados.
+No representa una cola universal para todas las escrituras ni elimina conflictos
+con otras ventanas o controles anteriores a una confirmación de revisión.
+
+R13: comparador web/API read-only de2–6 corridas, mismo input/contexto y settings
+variables, sobre pares origen/objetivo idénticos; MSE/deltas/exclusiones/soporte y
+JSON local con procedencia.23 pruebas backend y4 Chrome pasan, controles sintéticos
+publicados; coincidencia con cálculo corporal privado de #145. Sin datos privados,
+refit/defaults/audio/aceptación modificados; reservas independientes siguen pendientes.
+
+LAB-09: control digital AAC preview independiente del MKV exacto, tres bitrates y
+offsets±100ms, transiente/PTS decodificados y receta sintética repetida.38 pruebas
+capture/export/timeline y3 Chrome (audio offline, frame HTML presentado, muted)
+pasan. No equivale a sincronía física/escucha ni cambia defaults o instrumento.
+
+EVAL: cambio de cuerpo en un segmento descarta su calibration_id anterior; otras
+copias y ediciones del intervalo conservan sus escalas. Dos regresiones de payload
+web reproducidas/corregidas y build pasan. Backend conserva rechazo de calibración
+ajena; sin defaults/instrumento/medidas nuevos.
+
+R01/R02: vista live configurable de base/proyector colectivo ya producido por
+el núcleo causal. Escala de color fija, ejes/modos explícitos, amplitudes,
+residuo, ángulos y JSON observado; explica falta de soporte y baseline.
+Preset portable conserva vista/recorte, default apagada. Pruebas de runtime
+conservan modelo/historial/targets en edición visual; recorrido Chrome sobre
+cache corporal read-only verifica matrices/controles/preset y seis voces.
+Es visualización de features de velocidad, no reconstrucción3D ni prueba HIT.
+
+R01: comparación web/API de2–6 corridas guardadas sobre entradas congeladas
+idénticas, con selección explícita objetivo u origen/objetivo, soporte por
+control/familias comunes, exclusiones/MSE/deltas/JSON y procedencia. 49 pruebas
+R01/backend más regresión histórica adicional; dos Chrome nativos y build pasan.
+Receta sintética repetida publicada; cuatro corridas corporales históricas
+comparadas localmente sin cambios en sus archivos. Request JSON se compara
+mediante contratos para evitar rechazo0 frente a0.0. Sin refit/instrumento/
+aceptación/HIT; reservas y familias adicionales conservan su agenda.
+
+R03: comparador web/API read-only de señales/centros archivados contra idéntico
+corte de marcas y contexto, matching y cobertura declarada. Intersección de
+soporte entre condiciones; conserva métricas individuales, denominadores,
+umbrales/unidades/candidatos/procedencia. Inventario de nuevas corridas identifica
+señal/crop/conteo sin cargar todas las traces.45 pruebas backend/temporal y2 Chrome
+pasan, receta sintética repetida pública. No marcas humanas nuevas, tracking,
+sonido, offset óptimo, centro causal ni validación Jpsh/HIT.

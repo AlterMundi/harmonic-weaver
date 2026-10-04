@@ -55,6 +55,17 @@ requieren su checkout pinneado o una nueva corrida, nunca quitar el hash en sile
 
 ## Siguiente integración, sin perder el alcance de #17
 
+Actualización 2026-10-03: recovery in-flight dispone de jobs consultables en el
+nuevo Shaper. Weaver guarda shaper_recovery_job_id antes del envío; respuesta
+perdida se resuelve consultando ese mismo recibo. GET no relanza. Reload conserva
+ID y Recuperar vuelve a consultar explícitamente. Timeout/5xx/transporte ambiguo
+quedan unconfirmed, con ID reutilizable; job muerto es interrupted y un nuevo
+intento después de fallo terminal requiere acción explícita. Espera acotada a
+120s por intento, solicitudes de8s. Shaper viejo conserva camino anterior.
+Job recuperado no equivale a captura normalmente completa ni revalida por sí
+solo archivos actuales: exportación mantiene sus verificaciones. Las menciones
+históricas de polling pendiente abajo quedan superadas por este corte.
+
 1. Controles web explícitos iniciar/detener, duración/presupuesto y diagnóstico.
    Proxy al Shaper seleccionado, id propio y reconocimiento de desconexiones;
    no activar cámara ni un buffer retrospectivo como efecto de grabar audio.
@@ -403,3 +414,151 @@ y carpeta/frame_root/índice/corte del prefijo de cámara consumido. input_hashe
 source_hashes_declared se conservan como declaraciones de recuperación; no se
 afirma revalidación del raw original. Todo permanece local, no portable ni apto
 para publicación automática sin revisar rutas/datos privados.
+
+### Overlay opcional de esqueleto — 2026-10-03
+
+En Exportar video + audio, **Incluir esqueleto observado en la exportación**
+arranca apagado. Elegí persona seleccionada en cada observación o todas; confianza
+mínima (0), grosor (2 px) y desfase máximo pose/video (0.1 s) son configurables.
+Funciona para capturas completas y prefijos recuperados, MKV y preview MP4.
+No modifica el PCM ni activa fuentes o tracking. No cambia defaults del instrumento.
+
+Usa el MotionFrame guardado en el timeline: joints observados, coordenadas
+camera_isotropic/frame_height y letterbox del video. Descarta held/missing,
+puntos fuera de imagen y confianza inferior al umbral. No proyecta coordenadas
+world. Requiere época observada confirmada; archivo debe coincidir en identidad
+y stream y estar dentro de la tolerancia temporal. Cámara exige el mismo stream
+y sequence del JPEG grabado y geometría compatible. Una observación posterior de
+pose no se aplica a un JPEG anterior: la omisión es explícita, sin interpolación.
+
+frames.jsonl registra observation_index y resultado del overlay por fotograma;
+el manifest resume frames dibujados y causas de omisión. Capturas históricas sin
+pose siguen exportándose, con pose_not_recorded si se solicita overlay. El desfase
+es una tolerancia de selección, no una medida de sincronía física.
+
+La preview de prefijos ya tiene integración API/export/reinicio/rangos; las
+menciones históricas a ese pendiente arriba están superadas. Pendientes: figura
+armónica exportada desde estado efectivo de síntesis, medición física y feedback
+humano de cámara. No se declara que el esqueleto esté sincronizado acústicamente.
+
+### Figura de osciladores efectivos en exportación — 2026-10-03
+
+**Incluir figura de todos los osciladores grabados**, apagado por defecto,
+añade un panel a la derecha del video dentro del tamaño de salida elegido.
+Conserva el letterbox a la izquierda y es compatible con el esqueleto, las
+capturas completas, los prefijos recuperados y la preview MP4. No cambia el audio.
+
+Usa voices del blocks.jsonl que acompaña al PCM; ninguna voz se reconstruye desde
+targets ni se limita a dos señales o al número de componentes del análisis.
+La muestra de salida selecciona el bloque y desplaza sus fases con frecuencia
+y reloj de muestras, incluyendo gain_end/phase_offset_delta_rad cuando existen.
+La rampa conserva la longitud original del callback aunque el final de captura
+lo trunque. Silencio confirmado y telemetría ausente se distinguen: la ausencia
+o invalidez limpia el panel y deja una causa en frames.jsonl/manifest.
+
+**Frecuencia de referencia de la ventana** (40.4 Hz) determina la duración de
+la curva, no la frecuencia de las voces. **Estilo de figura exportada (JSON)**
+acepta VisualSettings; {} utiliza defaults. Por ejemplo
+`{"color":"gold","components":true,"persistence":0.3,"window_periods":3.0}`.
+Permite samples, line_width, brightness, scale y auto_scale además de los campos
+del ejemplo. Se congela en settings del manifest para recuperar la configuración.
+
+Reutiliza RasterFigure/voices_at del comparador: suma fasorial de todos los
+osciladores antes de waveshaping/limiter, no reproducción de la forma de onda
+post-limiter ni simulación de membrana. offset_s afecta sólo la selección de
+video/pose; la figura permanece ligada al PCM. Persistencia depende de FPS de
+exportación y no pretende reproducir cada refresco WebGL de una sesión anterior.
+Siguen pendientes medición física de sincronía, feedback humano e instalación
+de estas PRs; el software no valida por sí mismo HIT ni cymatics físico.
+
+### Configuraciones portables de captura/exportación — 2026-10-03
+
+El panel ofrece configuraciones con nombre: **Guardar configuración de captura**,
+selector y **Cargar configuración de captura**. Se conservan en SQLite junto a
+los presets del laboratorio, en un namespace separado; no reemplazan el preset
+sonoro. Cargar sólo cambia borradores de controles; no inicia captura, cámara,
+exportación ni audio. Importar/cargar controles se deshabilita durante una
+captura o exportación activa.
+
+**Preparar JSON de captura**, **Descargar configuración de captura** y
+**Aplicar JSON de captura** permiten transportar la misma configuración a otra
+fuente/biblioteca. El objeto schema_version=1 contiene id, name, capture y export,
+incluidos parámetros de cámara, offsets, calidad, esqueleto y VisualSettings de
+figura. No admite fuentes, personas, calibración ni rutas de archivos.
+recovered_prefix se decide con el botón de cada captura; no es un modo portable.
+Importar valida todo antes de cambiar controles; guardar valida antes de escribir.
+Los valores anteriores quedan intactos ante un error. Una importación válida no
+reemplaza lo guardado hasta pulsar Guardar.
+
+API: GET/POST /api/capture-profiles; GET /api/capture-profiles/{id} descarga JSON;
+POST /api/capture-profiles/validate normaliza sin persistir ni ejecutar acciones.
+Guardar reutiliza id para actualizar esa configuración; Nueva configuración
+permite crear otra con los controles actuales. Defaults son los ya existentes;
+record_camera, skeleton_overlay, harmonic_figure y browser_preview siguen apagados.
+## Consultas de estado fallidas (2026-10-03)
+
+El panel distingue inventario todavía no confirmado del estado idle. Los fallos
+al consultar capturas, exportaciones o recuperación aparecen como alertas, con
+el último estado confirmado conservado y reintento automático. Cada grupo mantiene
+una consulta en vuelo; si una exportación falla mientras su inventario demora,
+el fallo se muestra de inmediato y no se acumulan consultas al inventario.
+
+Un inventario de capturas desconocido/fallido deshabilita nuevos inicios; un estado
+de exportación o recuperación desconocido/fallido bloquea nuevos pedidos respectivos.
+Detener/cancelar una operación conocida sigue disponible. Recuperar la consulta
+quita la alerta y reconcilia los botones; no inicia ni repite operaciones por sí solo.
+Esto no modifica buffers, PCM, codecs, snapshots ni defaults de grabación.
+
+Chrome contra bundle de producción/API real, con 503 y demoras introducidos
+explícitamente en las consultas de prueba: inventario inicial pendiente, tres
+alertas, estado anterior conservado, una consulta por grupo, recuperación y cero
+POST/errores JS. No se grabó audio/cámara ni se usaron medios corporales.
+
+### Estímulo audiovisual digital decodificado (2026-10-03)
+
+Control sintético de flash de un frame y pulso PCM de32 muestras, ambos a0.5s.
+El sample-clock del archivo es continuo; entre bloques el reloj de callbacks salta
+10→12s y el timeline cambia de época. Tras exportar y decodificar el MKV, FFprobe
+mide PTS del flash y FFmpeg extrae PCM float. Offset0 conserva ambos onsets0.5s;
+offset+0.1 selecciona fuente posterior y adelanta flash a0.4s; offset−0.1 lo retrasa
+a0.6s. Audio permanece en0.5s, bit-idéntico al input. No se infiere sincronía de
+igualar duraciones; se mide el evento dentro del archivo. Resolución visual50ms
+(20fps); los timestamps exactos del control no implican precisión física equivalente.
+
+Receta pública, ejecutada dos veces por condición, y evidencia sin imágenes humanas:
+
+```bash
+PYTHONPATH=src:tests OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/capture_stimulus_control.py \
+  --output /tmp/capture-stimulus-nueva > /tmp/capture-stimulus-evidence.json
+```
+
+`research/laboratory/capture-stimulus-evidence-2026-10-03.json` conserva mediciones,
+código/entorno y límites. `tests/test_lab_capture_stimulus.py` verifica salida
+codificada, salto de reloj/época, signos del offset, PCM y originales intactos.
+No abre dispositivos, no valida AAC de preview ni cámara/DAC/display/acústica.
+Para esa validación todavía se necesita un estímulo físicamente observable y
+medición externa del recorrido real; no reemplazarla por este control digital.
+
+### Control separado de previsualización AAC
+
+La receta `research/laboratory/capture_preview_timing_control.py` exporta el mismo
+estímulo con AAC64/192/320kbps y offsets±0.1s a192kbps, dos repeticiones por condición.
+Mide pico y centro de energía en la ventana fija[0.45,0.55]s tras decodificar MP4;
+no llama a ese centro «onset perceptual». Tolerancia del control2ms (tres anchos del
+pulso original): detecta un retardo no compensado de un frame AAC, sin reclamar
+PCM exacto ni un límite general del códec. Audio AAC/padding permanecen distintos
+del archivo principal MKV, cuyo PCM sigue idéntico. Flash/PTS conserva el offset.
+Evidencia pública: `research/laboratory/capture-preview-evidence-2026-10-03.json`.
+
+```bash
+PYTHONPATH=src:tests OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/capture_preview_timing_control.py \
+  --output /tmp/capture-preview-nueva > /tmp/capture-preview-evidence.json
+```
+
+Chrome valida AAC con OfflineAudioContext.decodeAudioData y el flash mediante
+requestVideoFrameCallback durante reproducción HTML silenciada. Usa frame.mediaTime
+presentado; evento seeked/dobleRAF no demuestra que el canvas tenga el nuevo frame.
+Es control del decodificador con una página mínima y medios sintéticos, no una
+sesión del instrumento, presentación acústica o medición física de A/V.

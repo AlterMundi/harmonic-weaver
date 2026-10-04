@@ -587,6 +587,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--shaper-api", default="http://127.0.0.1:8080/api/state")
     parser.add_argument("--harmocap-host", default="127.0.0.1")
     parser.add_argument("--harmocap-port", type=int, default=9100)
+    parser.add_argument(
+        "--harmocap-events", choices=("legacy", "v2"), default="legacy",
+        help="opt-in per-slot observations with raw capture provenance; legacy remains default",
+    )
     parser.add_argument("--ecg-host", default="127.0.0.1")
     parser.add_argument("--ecg-port", type=int, default=5001)
     parser.add_argument("--max-runtime-s", type=float, default=300.0)
@@ -611,6 +615,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="hardware-free mode: replay a HarMoCAP session .jsonl through the engine",
     )
     return parser
+
+
+def make_harmocap_driver(engine: WeaverEngine, args: argparse.Namespace, *, lease_ms: float = 2000.0) -> HarMoCAPDriver:
+    if getattr(args, "harmocap_events", "legacy") == "v2":
+        return HarMoCAPDriver(on_observation=engine.ingest_driver_observation, lease_ms=lease_ms)
+    return HarMoCAPDriver(on_frame=engine.driver_callback, lease_ms=lease_ms)
 
 
 def run_offline_replay(args: argparse.Namespace) -> int:
@@ -644,6 +654,7 @@ def run_offline_replay(args: argparse.Namespace) -> int:
             "scene": str(scene_path),
             "replay": str(args.replay),
             "drivers": ["harmocap"],
+            "harmocap_events": getattr(args, "harmocap_events", "legacy"),
             "instrument_transport": "live OSC/UDP (audit only; no hardware required)",
         },
     )
@@ -695,7 +706,7 @@ def run_offline_replay(args: argparse.Namespace) -> int:
     if not frames:
         raise SystemExit(f"replay file is empty: {args.replay}")
 
-    driver = HarMoCAPDriver(on_frame=engine.driver_callback, lease_ms=max(args.lease_ms, 60_000.0))
+    driver = make_harmocap_driver(engine, args, lease_ms=max(args.lease_ms, 60_000.0))
     # Monotonic driver clock so leases and dt-based transforms stay well-defined.
     now_ms = 1_000_000.0
     seq = 0
@@ -760,6 +771,7 @@ def main(argv: list[str] | None = None) -> int:
             "bind_host": args.host,
             "bind_port": args.port,
             "drivers": ["harmocap", "ecg", "midi"],
+            "harmocap_events": getattr(args, "harmocap_events", "legacy"),
             "instrument_transport": "live OSC/UDP",
             "shaper_audio": "disabled (--no-audio); state API is the evidence plane",
             "midi_hardware": False,
@@ -839,7 +851,7 @@ def main(argv: list[str] | None = None) -> int:
         if not engine.source_hello(source_id, stream_id, contract_id):
             raise RuntimeError(f"source hello rejected for {source_id}")
 
-    harmocap = HarMoCAPDriver(on_frame=engine.driver_callback)
+    harmocap = make_harmocap_driver(engine, args)
     harmocap_thread = threading.Thread(
         target=harmocap.serve_udp,
         kwargs={

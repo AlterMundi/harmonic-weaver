@@ -200,3 +200,117 @@ verificación de exactitud de pose, identidad humana, musicalidad o hipótesis H
 Pendientes científicos: formular predicciones HIT específicas, controlar el efecto
 de señales derivadas/modelos, ampliar familias de predictores, splits reservados,
 normalización causal explícita cuando se requiera y evaluación entre cuerpos/tareas.
+
+## Familias adicionales de pronóstico — 2026-10-03
+
+Además de persistencia, ridge completo y ridge de subespacio, se pueden seleccionar
+linear_trend, lagged_full_ridge y lagged_subspace_ridge. Los defaults siguen siendo
+los tres métodos anteriores. La web ofrece selección y autoregressive_lags (3,
+configurable 1–12) tanto en banco sintético como en features EVAL congeladas;
+JSON portable conserva ambos. La tabla usa los métodos de cada resultado, no
+los controles actuales. Corridas históricas conservan sus columnas anteriores.
+
+Ridge con q retardos ajusta pares (q vectores consecutivos, vector h muestras
+después), centra usando sólo esos pares y pronostica desde el último conjunto
+de q observaciones. Con q=1 coincide numéricamente con ridge anterior. Tendencia
+lineal ajusta cada coordenada contra índice de muestra y extrapola h pasos.
+En features irregulares, h cuenta muestras, no segundos: las traces mantienen
+horizon_elapsed_s. No hay selección de hiperparámetros usando el resultado.
+
+La elegibilidad exige suficiente pasado para todos los métodos seleccionados;
+los scores dentro de cada control comparten targets, y la comparación de controles
+intersecta ese soporte. prediction_fit_support registra observaciones/pares por
+método, además del origen congelado. Gaps reinician todas las familias.
+
+Ejemplo reproducible sin datos corporales:
+
+```bash
+OPENBLAS_NUM_THREADS=1 PYTHONPATH=src .venv/bin/python \
+  research/laboratory/r01_grassmann/reproduce_families.py \
+  --output /tmp/r01-families-reproduction
+```
+
+El script corre los tres casos congelados de evidence-families-2026-10-03.json y
+compara soporte y resúmenes numéricos (rtol 1e-8, atol 1e-11 para variaciones
+pequeñas de aritmética float64/BLAS). Hashes de módulos/entradas son procedencia,
+no el criterio de equivalencia entre entornos. El test de repetición local sí
+comprueba traces byte-idénticas bajo las mismas entradas/entorno.
+
+Con seed=17, h=6, q=4 y los restantes ajustes del ejemplo: MSE original del caso
+periódico es 0.02606 persistencia y 0.02108 lagged ridge completo; el caso sin
+memoria da 0.26641 ridge completo y 0.74338 lagged ridge completo. El segundo
+muestra empeoramiento con más parámetros, pese al subespacio compacto. No se elige un ganador universal.
+No son resultados corporales ni validación de HIT, intención o generalización.
+Siguen pendientes predicciones específicas, otras familias y reservas independientes.
+
+### Predictor de armónicos declarados (2026-10-03)
+
+`fixed_harmonics` ajusta una base sin/cos + DC a los vectores pasados, con ridge
+sobre coeficientes periódicos y DC sin penalizar. Frecuencias = fundamental Hz ×
+ratios declarados (1–12 positivos distintos ≤32); son frecuencias de movimiento,
+independientes de las seis voces musicales o componentes del subespacio. El ajuste
+usa timestamps reales recortados en su origen. Predice en origen + horizonte de
+muestras × mediana de intervalos pasados. Con reloj irregular se puntúa al sample
+objetivo observado, y ambos tiempos quedan en trace: no se conoce el tiempo
+objetivo de antemano ni se interpola para mejorar el resultado. Se requieren al
+menos 2N+1 observaciones; el límite conservador de muestreo usa el intervalo pasado
+más largo. Si no admite las frecuencias, no genera forecast ni un error cero.
+
+Web sintética y corporal comparten los controles de fundamental/ratios/selección;
+ratios se aplican al salir del campo. Configuraciones JSON conservan el método;
+ninguna selección cambia el audio live. Tres predictores default anteriores
+siguen seleccionados. Escenario `harmonic_span` es un **control positivo** que
+entrega deliberadamente las frecuencias del generador al predictor, no una
+frecuencia descubierta en datos reservados. Elegir frecuencias tras mirar errores
+es exploración y debe distinguirse de fijarlas antes de evaluar una toma nueva.
+
+Reproducir controles conocido/incorrecto/shuffle y estocástico:
+
+```bash
+PYTHONPATH=src .venv/bin/python research/laboratory/r01_grassmann/reproduce_harmonics.py --output /tmp/r01-harmonics-new-folder
+```
+
+El directorio debe ser nuevo. Guarda traces y summary; repite cada condición
+armónica y exige igualdad de resultados en la misma invocación. La condición
+incorrecta usa exactamente los mismos datos objetivo que la conocida, con otra
+fundamental. `evidence-harmonics-2026-10-03.json` conserva parámetros/métricas:
+225 slots comunes, MSE armónico conocido 0.0001395223, incorrecto 0.4399455,
+shuffle 15.8073. El blanco estocástico es otro dataset y da 29.5150: la base
+periódica puede extrapolar mal; no se oculta el resultado adverso. Ridge/ventana/
+horizonte influyen. No comparar datasets distintos como si fueran una observación
+pareada. No valida predicción HIT específica, ley de dispersión, intención,
+frecuencias corporales naturales ni percepción/escucha. Faltan tomas independientes
+y una hipótesis física concreta con observable y controles distinguibles.
+
+### Comparar archivos R01 sin recalcular
+
+Web: **Comparar corridas R01 guardadas**,2–6 corridas; API POST
+`/api/research/r01/compare` con `{ "run_ids": ["…", "…"], "support": "origin_target" }`.
+Soporte `origin_target` (default) requiere mismo segmento/origen/objetivo.
+`target` requiere mismo segmento/objetivo, conserva orígenes individuales y
+advierte que pueden variar. No mezcla controles ni familias ausentes: promedia
+los errores archivados por instante de la intersección, con delta contra primera
+selección y exclusiones. Sin soporte hay null, sin familias comunes no hay scores.
+
+Sintéticos requieren hashes de vectores/control, reloj y dimensiones idénticos.
+Corporales requieren mismo input.json congelado, unidades/canales, semilla y
+segmentación por gaps; no calibra ni normaliza. Request, trazas e input corporal
+se verifican antes/después; manifest/código/entorno se conservan en el informe,
+sin exigir igualdad entre entornos ni reemplazar lectura histórica por refit.
+JSON0/0.0 se compara con contratos tipados; otros valores cambiados se rechazan.
+Trazas antiguas sin origen explícito no reciben un origen inferido.
+
+[Controles sintéticos repetidos](evidence-saved-comparison-2026-10-03.json):
+ventana2/.5s y horizontes1/6, mismas muestras, diferencias de soporte explícitas.
+Cada condición se ejecutó dos veces, traces y controles numéricos idénticos
+en este entorno. Reproducción en directorio nuevo desde Weaver-dev:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/r01_grassmann/saved_comparison_controls.py \
+  --output /tmp/r01-saved-comparison-new
+```
+
+También se compararon cuatro corridas corporales históricas locales con sus
+archivos intactos; resultados corporales no se publican. No demuestra HIT,
+causalidad corporal, generalización ni significancia estadística.

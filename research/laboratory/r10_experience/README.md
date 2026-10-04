@@ -607,3 +607,29 @@ sessionStorage no sobrevive garantía de cerrar pestaña ni crash/quota; reload 
 conservar último snapshot sin closed (cleanup React no garantiza cierre de página).
 Para durabilidad, guardar en servidor local o exportar. Pendientes sesiones largas/
 latencia/storage, acceptance humana y R11–R13. Sonido/defaults intactos.
+
+
+## Corte 34 · Archivo opcional de borradores en navegador
+
+Panel de transportes permite Conservar borrador en navegador: guarda un snapshot
+exacto en IndexedDB, separado del borrador y envío pendiente de sessionStorage.
+No autosave, POST ni reproducción; un nuevo ensayo no reemplaza archivos anteriores.
+Dos guardados del mismo JSON reutilizan el registro íntegro. IDs aleatorios locales,
+fecha local y SHA256; checksum se verifica al exportar/restaurar, no certifica
+exposición ni reloj físico. Máximo4MiB UTF-8 por archivo/64MiB en total; fallos de
+storage quedan visibles sin borrar memoria/borrador ni enviar al servidor.
+
+Inventario persiste después de cerrar pestaña/abrir otra del mismo navegador y
+origen. Exportar descarga JSON exacto; Restaurar reemplaza sólo borrador de esta
+pestaña, sin modificar envío pendiente/player en memoria. Se descarta restauración
+si ese borrador cambió durante lectura o se desmontó panel. Guardar borrador en
+servidor sigue siendo acción separada y conserva validación/binding existentes.
+Borrar sólo elimina archivo elegido en navegador. Eliminar datos del sitio o
+cambiar origen/navegador afecta acceso: export es la copia independiente.
+
+Chrome con IndexedDB y API reales prueba cierre de pestaña, nueva pestaña sin
+sessionStorage/player/POST, export exacto, restauración con pendiente intacto,
+guardado explícito del trace declarado ligado a protocolo sintético real y
+corrupción detectada sin perder botón borrar. Build pasa. No eventos de reproducción
+real/humana generados ni escucha/acreditación de experiencia. Medición física,
+participantes y pruebas de sesiones largas siguen pendientes.

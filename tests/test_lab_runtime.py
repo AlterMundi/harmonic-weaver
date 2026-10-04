@@ -32,6 +32,21 @@ class Library:
         return [f for f in self.frames if start < f.source_time_s <= end]
 
 
+def test_audio_diagnostic_distinguishes_explicit_disabled_mode_from_connection(tmp_path):
+    store=SessionStore(tmp_path)
+    try:
+        runtime=LaboratoryRuntime(store,audio=Audio(),library=Library())
+        runtime._diagnose(Preset(),False,{"audio_disabled":True,"error":None},None)
+        assert runtime.diagnostic['audio_status']=='disabled'
+        assert runtime.diagnostic['audio_error'] is None
+        runtime._diagnose(Preset(),False,{"audio_disabled":True,"error":"control failed"},None)
+        assert runtime.diagnostic['audio_error']=='control failed'
+        runtime._diagnose(Preset(),False,{"error":"503"},None)
+        assert runtime.diagnostic['audio_status']=='unavailable'
+    finally:
+        store.close()
+
+
 def test_replay_pause_gap_loop_and_configuration_do_not_replay_old_events(tmp_path):
     now = [0.]
     store = SessionStore(tmp_path, prepare=PreparedRoutes)
@@ -54,6 +69,17 @@ def test_replay_pause_gap_loop_and_configuration_do_not_replay_old_events(tmp_pa
     runtime.tick()
     assert runtime.model is model  # a gain edit must not clear motion history
     assert audio.revision == 2
+    # Display edits must not restart kinematics, subspace or articulation.
+    history = list(model.kinematics.history)
+    targets = list(audio.targets)
+    preset.visual.collective_view = "projector"
+    preset.visual.collective_max_axes = 8
+    store.edit(preset, 2)
+    runtime.tick()  # same source instant, no new observation
+    assert runtime.model is model
+    assert list(model.kinematics.history) == history
+    assert audio.targets == targets
+    assert audio.revision == 3
     runtime.control(playing=False)
     assert audio.targets == []
     runtime.tick()
@@ -204,6 +230,67 @@ def test_explicit_prefix_selection_is_pinned_when_generation_finishes(tmp_path):
     runtime.tick()
     assert runtime.person_id=="two"
     assert runtime.diagnostic["code"]=="tracking_missing"
+    store.close()
+
+
+def test_automatic_final_body_selection_cannot_inherit_prefix_calibration(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    store.edit(Preset(algorithm={'id':'local'}),0)
+    library=TwoPeopleLibrary(status='building')
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.kind,runtime.job_id='video','test'
+    runtime.tick()
+    assert runtime.person_id=='one'
+    runtime.calibrate();runtime.tick()
+    previous=runtime.model;calibration=runtime.calibration
+    assert calibration is not None
+    library.status='ready';runtime.tick()
+    assert runtime.person_id=='two' and runtime.selection_status=='automatic'
+    assert runtime.calibration is None
+    assert runtime.model is not previous
+    assert runtime.model.scale is None and runtime.model.kinematics.scale is None
+    assert runtime.diagnostic['code']=='calibration_required'
+    assert runtime.audio.targets==[]
+    assert store.calibrations()[0]['id']==calibration.id  # preserve historical explicit measurement
+    assert 'se descartó la escala activa' in runtime.snapshot()['calibration_notice']
+    runtime.calibrate()
+    assert runtime.snapshot()['calibration_notice'] is None
+    store.close()
+
+
+def test_explicit_same_prefix_body_keeps_its_calibration_when_tracking_finishes(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    library=TwoPeopleLibrary(status='building')
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.kind,runtime.job_id='video','test';runtime.tick();runtime.select_person('two');runtime.calibrate();runtime.tick()
+    previous,calibration=runtime.model,runtime.calibration
+    library.status='ready';runtime.tick()
+    assert runtime.person_id=='two' and runtime.selection_status=='explicit'
+    assert runtime.calibration is calibration and runtime.model is previous
+    assert runtime.snapshot()['calibration_notice'] is None
+    assert store.source_selection('media-a')['person_id']=='two'
+    store.close()
+
+
+def test_automatic_selection_without_scale_does_not_issue_a_reset_notice(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes);library=TwoPeopleLibrary(status='building')
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio());runtime.kind,runtime.job_id='video','test'
+    runtime.tick();library.status='ready';runtime.tick()
+    assert runtime.person_id=='two' and runtime.snapshot()['calibration_notice'] is None
+    store.close()
+
+
+def test_new_source_and_explicit_choice_clear_previous_calibration_notice(tmp_path):
+    from harmonic_weaver.lab.contracts import PerceptionSettings
+    store=SessionStore(tmp_path,prepare=PreparedRoutes);library=TwoPeopleLibrary()
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio());runtime.kind,runtime.job_id='video','test';runtime.tick()
+    runtime.calibration_notice='previous automatic body change'
+    runtime.select_person('one');assert runtime.snapshot()['calibration_notice'] is None
+    runtime.calibration_notice='previous automatic body change'
+    runtime.open_video('/example.mp4',PerceptionSettings(checkpoint='example.pt'));assert runtime.snapshot()['calibration_notice'] is None
+    runtime.calibration_notice='previous automatic body change'
+    library.cancel=lambda job:None
+    runtime.close_source();assert runtime.snapshot()['calibration_notice'] is None
     store.close()
 
 

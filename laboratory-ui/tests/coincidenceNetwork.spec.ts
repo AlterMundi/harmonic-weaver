@@ -8,6 +8,8 @@ test('real network panel freezes verified replay, runs twice and downloads equal
  await page.getByRole('combobox',{name:/^Grupo de marcas R03/}).selectOption({index:1});
  await page.getByLabel('Intervalos realmente observados R03 (JSON)').fill('[[0.2,2]]');
  await page.getByLabel('Desplazamientos de control R03 (JSON, segundos)').fill('[0.1,-0.1]');
+ await page.getByLabel('Semiancho de sensibilidad temporal (s) R03').fill('.05');
+ await page.getByLabel('Pasos temporales por lado R03').fill('2');
  const results:Buffer[]=[];
  for(let i=0;i<2;i++){
   const started=page.waitForResponse(r=>r.url()===`${origin}/api/research/r03` && r.request().method()==='POST');
@@ -16,11 +18,15 @@ test('real network panel freezes verified replay, runs twice and downloads equal
   const ident=(await response.json()).id;
   const view=page.getByRole('button',{name:`Ver resultado R03 ${ident}`});
   await expect(view).toBeVisible({timeout:10000});await view.click();
-  await expect(page.getByRole('table')).toBeVisible();
+  await expect(page.getByRole('table')).toHaveCount(2);
+  await expect(page.getByText('Sensibilidad temporal · soporte común:',{exact:false})).toBeVisible();
   const result=await page.request.get(`${origin}/api/research/r03/${ident}/artifacts/result.json`);
   expect(result.status()).toBe(200);results.push(await result.body());
   const value=await result.json();
   expect(value.temporal_controls.conditions).toHaveLength(3);
+  expect(value.timing_sensitivity.conditions).toHaveLength(5);
+  expect(value.timing_sensitivity.half_width_s).toBe(.05);
+  expect(value.timing_sensitivity.sampled_offsets_s).toEqual([-.05,-.025,0,.025,.05]);
   expect(value.feature_provenance.source.person_id).toBe('one');
   expect(value.candidates.events).toBeDefined();
   const downloadPromise=page.waitForEvent('download');

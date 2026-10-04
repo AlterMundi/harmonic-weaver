@@ -29,6 +29,7 @@ class LaboratoryRuntime:
         self.job_id = None
         self.person_id = None
         self.calibration = None
+        self.calibration_notice = None
         self.selection_status = "automatic"
         self._selection_checked = None
         self._selection_explicit = False
@@ -83,6 +84,7 @@ class LaboratoryRuntime:
         with self._lock:
             self.kind, self.job_id = "video", job["id"]
             self.person_id, self.calibration, self.frame = None, None, None
+            self.calibration_notice = None
             self.selection_status = "automatic"
             self._selection_checked = None
             self._selection_explicit = False
@@ -100,6 +102,7 @@ class LaboratoryRuntime:
         with self._lock:
             self.kind, self.job_id = "camera", None
             self.person_id, self.calibration, self.frame = None, None, None
+            self.calibration_notice = None
             self.selection_status = "automatic"
             self._selection_checked = None
             self._selection_explicit = False
@@ -120,6 +123,7 @@ class LaboratoryRuntime:
             self.kind, self.job_id = None, None
             self._autoplay_pending = False
             self.frame, self.person_id, self.calibration = None, None, None
+            self.calibration_notice = None
             self.transport.reset()
             self._reset()
             self.model = None
@@ -155,6 +159,7 @@ class LaboratoryRuntime:
             self._selection_explicit = True
             self._remember_selection(metadata)
             self.calibration = None
+            self.calibration_notice = None
             self.model = None
             self._reset()
             self.store.record_event("person", {"person_id":person_id})
@@ -210,6 +215,7 @@ class LaboratoryRuntime:
             self.calibration = Calibration(source_id=self.frame.source_id, person_id=self.person_id,
                 torso_scale=scale, measured_at=datetime.now(timezone.utc).isoformat(), provenance=provenance, policy=policy)
             self.store.save_calibration(self.calibration)
+            self.calibration_notice = None
             self.model = None
             self._reset()
             return self.calibration.model_dump()
@@ -273,7 +279,13 @@ class LaboratoryRuntime:
             previous_person = self.person_id
             self._resolve_selection(metadata, current)
             if previous_person != self.person_id:
+                if self.calibration is not None:
+                    self.calibration_notice = "La elección automática cambió de cuerpo: se descartó la escala activa. Calibrá este cuerpo si tu modelo requiere escala."
+                self.calibration = None
                 self._reset()
+                # reset() preserves scale; a different body needs a fresh model.
+                if self.model.scale is not None:
+                    self.model = MotionModel(preset, None)
             valid = current is not None and any(p.person_id == self.person_id for p in current.persons)
             if self.kind == "video" and current:
                 valid &= position-current.source_time_s <= preset.algorithm.max_gap_s
@@ -324,7 +336,8 @@ class LaboratoryRuntime:
         self.diagnostic = {"code": code, "message": message, "observed_signals": observed,
                            "missing_signals": missing, "pose": current_quality(self.frame, self.person_id),
                            "audio_error": audio.get("error"),
-                           "audio_status": "unavailable" if audio.get("error") else "connected"}
+                           "audio_status": "disabled" if audio.get("audio_disabled") else
+                                           "unavailable" if audio.get("error") else "connected"}
 
     def retry_cpu(self, job_id):
         if self.kind != "video" or self.job_id != job_id:
@@ -376,6 +389,7 @@ class LaboratoryRuntime:
                     "motion_frame":self.frame.model_dump() if self.frame else None,
                     "features":self.features.model_dump() if self.features else None,
                     "calibration":self.calibration.model_dump() if self.calibration else None,
+                    "calibration_notice":self.calibration_notice,
                     "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
                                "epoch":self.transport.epoch, "observed_epoch":self.epoch if self.epoch>=0 else None, "diagnostic":self.diagnostic,
                                "selection_status":self.selection_status}, **self.audio.snapshot()}

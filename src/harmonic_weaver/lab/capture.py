@@ -201,7 +201,9 @@ class CaptureSession:
             if not job or job['status'] not in ('failed','interrupted'): raise ValueError('Elegí una captura fallida o interrumpida')
             driver_id=(job.get('shaper') or {}).get('id')
             if not driver_id: raise ValueError('No hay identidad confirmada de la captura Shaper')
-            self.recovery_job={'status':'recovering','capture_id':ident}
+            previous=job.get('recovery') or {}
+            recovery_id=(previous.get('shaper_recovery_job_id') if previous.get('status') in ('recovering','unconfirmed','interrupted') else None) or uuid4().hex
+            self.recovery_job={'status':'recovering','capture_id':ident,'shaper_recovery_job_id':recovery_id}
             def persist():
                 snapshot=self.recovery_snapshot()
                 atomic_json(Path(job['directory'])/'recovery.json',snapshot)
@@ -213,14 +215,16 @@ class CaptureSession:
                     with self.client_factory() as client:
                         contract=client.get('/api/audio/capture/recovery-contract')
                         supports_retry=contract.status_code==200 and contract.json().get('schema_version')==1 and contract.json().get('idempotent_source_hashes') is True
-                        try:response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
-                        except httpx.TransportError:
-                            acknowledgement_lost=True
-                            if not supports_retry:raise
-                            # Shaper reuses verified results for the same raw hashes.
-                            # HTTP validation failures are not interpreted as lost acks.
-                            response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
-                        response.raise_for_status();result=response.json()
+                        if contract.status_code==200 and contract.json().get('pollable_jobs') is True:
+                            from .capture_recovery_poll import recover as recover_polled
+                            result=recover_polled(client,driver_id,recovery_id)
+                        else:
+                            try:response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
+                            except httpx.TransportError:
+                                acknowledgement_lost=True
+                                if not supports_retry:raise
+                                response=client.post('/api/audio/capture/recover',json={'id':driver_id},timeout=120)
+                            response.raise_for_status();result=response.json()
                     if result.get('status')!='recovered' or result.get('capture_id')!=driver_id:
                         raise ValueError('Shaper did not confirm this recovered prefix')
                     from .capture_journal_recovery import recover_journal
@@ -237,7 +241,8 @@ class CaptureSession:
                     self.recovery_job.update(status='recovered',result=result,journal=journal,camera=camera)
                     persist()
                 except Exception as exc:
-                    status='unconfirmed' if acknowledgement_lost and 'result' not in self.recovery_job else 'failed'
+                    from .capture_recovery_poll import UnconfirmedRecovery
+                    status='unconfirmed' if (acknowledgement_lost or isinstance(exc,UnconfirmedRecovery)) and 'result' not in self.recovery_job else 'failed'
                     self.recovery_job.update(status=status,error=str(exc))
                     try:persist()
                     except OSError as disk_error:

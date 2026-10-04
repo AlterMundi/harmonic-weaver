@@ -25,3 +25,36 @@ def compare_shifts(marks,candidates,mark_support,candidate_support,*,offsets_s,t
                       'Shifted marks may have different eligible counts; denominators are reported',
                       'No circular wrapping, offset optimization, p-value or causal inference',
                       'Offsets chosen after viewing results are exploratory, not preregistered controls']}
+
+
+def timing_sensitivity(marks, candidates, mark_support, candidate_support, *,
+                       half_width_s, steps_per_side=2, tolerance_s=.2, mark_offset_s=0.):
+    """Declared global timing interval sampled without optimizing the offset."""
+    if not finite(half_width_s) or not 0 < half_width_s <= 5:
+        raise ValueError('Timing half-width must be positive and at most 5 seconds')
+    if type(steps_per_side) is not int or not 1 <= steps_per_side <= 8:
+        raise ValueError('Choose 1–8 timing steps per side')
+    offsets = [half_width_s * i / steps_per_side
+               for i in range(-steps_per_side, steps_per_side + 1) if i]
+    result = compare_shifts(marks, candidates, mark_support, candidate_support,
+                            offsets_s=offsets, tolerance_s=tolerance_s,
+                            mark_offset_s=mark_offset_s)
+    conditions = sorted(result['conditions'], key=lambda row: row['shift_s'])
+    metrics = {}
+    for name in ('precision', 'recall'):
+        values = [row['paired'][name] for row in conditions
+                  if row['paired'][name] is not None]
+        metrics[name] = {'min': min(values) if values else None,
+                         'max': max(values) if values else None,
+                         'defined_conditions': len(values)}
+    return {'half_width_s': half_width_s, 'steps_per_side': steps_per_side,
+            'center_offset_s': mark_offset_s,
+            'sampled_offsets_s': [mark_offset_s + row['shift_s'] for row in conditions],
+            'common_support': result['common_support'],
+            'support_duration_s': result['support_duration_s'],
+            'conditions': conditions, 'sampled_metric_ranges': metrics,
+            'limits': result['limits'] + [
+                'Declared global clock/reaction offset sensitivity, not measured uncertainty',
+                'Sampled ranges are not confidence intervals or bounds between samples',
+                'Not per-event jitter; the same offset shifts all marks and their coverage',
+                'No best offset selected; nominal comparison remains unchanged']}

@@ -8,7 +8,7 @@ from ..cache import atomic_json,sha256_file
 import threading
 from uuid import uuid4
 from .rope_compare_service import RopeCompareService
-from .spatial_run import Input,run,read_verified
+from .spatial_run import Input,run,read_verified,stream_digest
 from .spatial_adapter import SourceRequest
 from .spatial_clock_binding import Application,transformed
 from ..contracts import Contract
@@ -31,6 +31,12 @@ class ClockSaveRequest(Contract):
     conversion_id:Key
     fit_id:Key
     allow_extrapolation:bool=False
+    idempotency_key:Key|None=None
+
+
+class MultiviewSaveRequest(Contract):
+    run_id:Key
+    expected_manifest_sha256:Annotated[str,Field(pattern=r'^[a-f0-9]{64}$')]
     idempotency_key:Key|None=None
 
 
@@ -66,6 +72,7 @@ class SpatialService(RopeCompareService):
 
     def start(self,request):
         body=SaveRequest.model_validate(request)
+        if body.multiview_origin is not None:raise ValueError('Resolve multiview origin through saved run IDs')
         if body.clock_application is not None:raise ValueError('Resolve clock application through saved IDs')
         frozen=body.model_dump(exclude={'idempotency_key','stream','clock_application'} if body.conversion is not None else {'idempotency_key','conversion','tracking_provenance','clock_application'})
         return self.publish('declared',frozen,body.idempotency_key,lambda:frozen)
@@ -112,3 +119,22 @@ class SpatialService(RopeCompareService):
             for service,source in snapshots:
                 if sha256_file(service.artifact(source['id'],'manifest.json'))!=source['manifest_sha256']:raise ValueError('Clock application source changed during publication')
         return self.publish('clock_application',selection.model_dump(exclude={'idempotency_key'}),selection.idempotency_key,resolve,check)
+
+
+    def from_multiview(self,multiview,selection):
+        selection=MultiviewSaveRequest.model_validate(selection)
+        snapshot={}
+        def resolve():
+            paths={name:multiview.artifact(selection.run_id,name) for name in ('request.json','result.json','manifest.json')}
+            hashes={name:sha256_file(path) for name,path in paths.items()}
+            if hashes['manifest.json']!=selection.expected_manifest_sha256:raise ValueError('Multiview calculation changed; refresh before selecting')
+            snapshot.update(hashes)
+            stream=json.loads(paths['result.json'].read_text())['stream']
+            return {'stream':stream,'multiview_origin':{
+                'run_id':selection.run_id,'manifest_sha256':hashes['manifest.json'],
+                'request_sha256':hashes['request.json'],'result_sha256':hashes['result.json'],
+                'stream_sha256':stream_digest(stream),'verification':'local_artifact_integrity'}}
+        def check():
+            for name,digest in snapshot.items():
+                if sha256_file(multiview.artifact(selection.run_id,name))!=digest:raise ValueError('Multiview calculation changed during conversion publication')
+        return self.publish('multiview',selection.model_dump(exclude={'idempotency_key'}),selection.idempotency_key,resolve,check)

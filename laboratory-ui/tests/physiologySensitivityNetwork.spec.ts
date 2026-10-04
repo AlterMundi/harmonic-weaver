@@ -1,0 +1,26 @@
+import {test,expect} from '@playwright/test';
+import {readFile} from 'node:fs/promises';
+test('R12 offsets preserve paired support, archives, current context and instrument',async({page})=>{
+ test.skip(!process.env.LAB_R12_CLOCK_URL,'isolated production laboratory required');
+ const origin=process.env.LAB_R12_CLOCK_URL!;const errors:string[]=[];page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto(origin);const before=await(await page.request.get(`${origin}/api/state`)).json();await page.getByRole('button',{name:'Investigación',exact:true}).click();
+ const panel=page.getByRole('region',{name:'Mediciones y tarea R12'});await panel.getByText('Sensibilidad del reloj R12',{exact:true}).click();
+ const deltas=panel.getByLabel('Deltas de offset R12 (JSON)',{exact:true});await deltas.fill('[-0.5,0,0.5]');
+ await panel.getByRole('button',{name:'Comparar offsets R12',exact:true}).click();
+ const table=panel.getByRole('table',{name:'Sensibilidad R12 0 control',exact:true});await expect(table).toBeVisible();await expect(table.getByRole('row').nth(1)).toContainText('85');
+ const save=page.waitForResponse(r=>r.url().endsWith('/api/research/r12/clock-sensitivity')&&r.request().method()==='POST');await panel.getByRole('button',{name:'Guardar sensibilidad R12',exact:true}).click();const response=await save;expect(response.ok()).toBe(true);const record=await response.json();
+ const result=await(await page.request.get(`${origin}/api/research/r12/clock-sensitivity/${record.id}/artifacts/result.json`)).json();
+ expect(result.request.offset_deltas_s).toEqual([-.5,0,.5]);expect(result.common_support_intervals_s).toEqual([[.5,4.5]]);
+ expect(result.conditions.map((c:any)=>c.paired_trials[0].channels[0].mean)).toEqual([90,85,80]);expect(result.conditions.map((c:any)=>c.paired_trials[0].channels[1].energy_or_work_J)).toEqual([8,8,8]);
+ const downloading=page.waitForEvent('download');await panel.getByRole('button',{name:'Exportar offsets R12',exact:true}).click();const file=await downloading;const settings=JSON.parse(await readFile((await file.path())!,'utf8'));
+ expect(settings).toEqual({schema_version:1,kind:'r12-clock-sensitivity-settings',offset_deltas_s:[-.5,0,.5]});
+ await deltas.fill('[0,61]');await panel.getByRole('button',{name:'Comparar offsets R12',exact:true}).click();await expect(panel.getByRole('alert').filter({hasText:'60'})).toBeVisible();await expect(panel.getByRole('button',{name:'Guardar sensibilidad R12',exact:true})).toBeDisabled();
+ await panel.getByLabel('Importar offsets R12',{exact:true}).setInputFiles({name:'offsets.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(settings))});await expect(deltas).toHaveValue('[-0.5,0,0.5]');
+ let release!:()=>void;let reached=false;const held=new Promise<void>(resolve=>release=resolve);const inspect=`${origin}/api/research/r12/clock-sensitivity/inspect`;
+ await page.route(inspect,async route=>{const response=await route.fetch();expect(response.ok()).toBe(true);reached=true;await held;await route.fulfill({response})});
+ await panel.getByRole('button',{name:'Comparar offsets R12',exact:true}).click();await expect.poll(()=>reached).toBe(true);await panel.getByLabel('Gap máximo entre muestras (s)',{exact:true}).fill('.5');release();
+ await expect(panel.getByRole('alert').filter({hasText:'El contexto R12 cambió durante la sensibilidad'})).toBeVisible();await expect(table).toHaveCount(0);await page.unroute(inspect);
+ await panel.getByRole('button',{name:'Comparar offsets R12',exact:true}).click();await expect(table.getByRole('row').nth(1)).toContainText('Sin soporte');
+ await page.reload();await page.getByRole('button',{name:'Investigación',exact:true}).click();await panel.getByText('Sensibilidad del reloj R12',{exact:true}).click();await panel.getByRole('button',{name:`Ver sensibilidad R12 ${record.id}`,exact:true}).click();await expect(table.getByRole('row').nth(1)).toContainText('85');
+ const after=await(await page.request.get(`${origin}/api/state`)).json();expect(after.preset).toEqual(before.preset);expect(after.source).toEqual(before.source);expect(after.calibration).toEqual(before.calibration);expect(errors).toEqual([]);
+});

@@ -10,8 +10,9 @@ from .contracts import VoiceFrame
 
 
 class ShaperOutput:
-    def __init__(self, url="http://127.0.0.1:8085", *, client_factory=None):
+    def __init__(self, url="http://127.0.0.1:8085", *, client_factory=None, audio_disabled=False):
         self.url = url.rstrip("/")
+        self.audio_disabled = audio_disabled
         self.owner = uuid4().hex
         self._client_factory = client_factory or (lambda: httpx.Client(base_url=self.url, timeout=.3, trust_env=False))
         self._lock = threading.RLock()
@@ -25,7 +26,7 @@ class ShaperOutput:
         self._acknowledged_revision = -1
         self._control_to_audio_ms = None
         self._frame = None
-        self._error = "connecting"
+        self._error = None if audio_disabled else "connecting"
         self._control_error = None
         self._roundtrip_ms = None
         self._last_ack = None
@@ -77,7 +78,7 @@ class ShaperOutput:
                         except (httpx.HTTPError, ValueError) as exc:
                             with self._lock:
                                 self._control_error = str(exc)
-                    if started-polled_at >= 1/30:
+                    if not self.audio_disabled and started-polled_at >= 1/30:
                         polled_at = started
                         try:
                             response = client.get("/api/audio/voices")
@@ -107,7 +108,8 @@ class ShaperOutput:
         with self._lock:
             now = time.monotonic()
             age = now-self._frame.generated_monotonic_s if self._frame else None
-            return {"shaper": {"url": self.url, "applied_revision":self._applied_revision,
+            return {"shaper": {"url": self.url, "audio_disabled":self.audio_disabled,
+                    "applied_revision":self._applied_revision,
                     "error":self._control_error or self._error,
                     "control_roundtrip_ms":self._roundtrip_ms,
                     "acknowledged_revision":self._acknowledged_revision,

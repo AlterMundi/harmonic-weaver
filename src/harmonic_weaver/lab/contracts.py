@@ -243,6 +243,8 @@ class VisualSettings(Contract):
     color: Literal["ice", "gold", "violet"] = "ice"
     mirror_video: bool = False
     show_skeleton: bool = True
+    collective_view: Literal["off", "projector", "basis"] = "off"
+    collective_max_axes: int = Field(default=12, ge=2, le=34)
     on_disconnect: Literal["clear", "freeze"] = "clear"
 
 

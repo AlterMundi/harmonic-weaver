@@ -2,7 +2,7 @@ import json
 import pytest
 from harmonic_weaver.lab.cache import atomic_json,sha256_file
 from harmonic_weaver.lab.research.spatial_compare_run import run,verify,read_verified
-from test_spatial_compare import stream
+from research.test_spatial_compare import stream
 
 
 def data():

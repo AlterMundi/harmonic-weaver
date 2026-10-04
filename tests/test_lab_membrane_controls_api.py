@@ -18,5 +18,13 @@ def test_controls_api_real_worker_portable_preset_and_artifacts(tmp_path):
         result=client.get(f'/api/research/r07-controls/{ident}/artifacts/result.json')
         assert result.status_code==200
         assert set(result.json()['conditions'])=={'impulse','pulse','multisine','seeded_noise'}
+        verification=client.get(f'/api/research/r07-controls/{ident}/verification')
+        assert verification.status_code==200
+        assert verification.json()['read_verification']=='integrity_only'
+        assert verification.json()['numerical_tolerance'] is None
+        recomputed=client.get(f'/api/research/r07-controls/{ident}/verification?recompute=true')
+        assert recomputed.status_code==200
+        assert recomputed.json()['read_verification']=='numerically_recomputed'
+        assert client.get(f'/api/research/r07-controls/{ident}/artifacts/result.json').content==result.content
         assert client.get(f'/api/research/r07-controls/{ident}/artifacts/worker.log').status_code==422
         assert client.post('/api/research/r07-controls',json={'seed':True}).status_code==422

@@ -44,6 +44,8 @@ def main():
     parser.add_argument("--data-dir", type=Path, default=Path.home()/".local/share/harmonic-weaver/laboratory")
     parser.add_argument("--ui-dir", type=Path, default=Path(__file__).resolve().parents[3]/"laboratory-ui/dist")
     args = parser.parse_args()
+    if args.no_audio and args.external_shaper:
+        parser.error("--no-audio requires an owned Shaper; it cannot disable audio in an external service")
     if not args.checkpoint or not Path(args.checkpoint).expanduser().is_file():
         parser.error("--checkpoint must name an existing local HarMoCAP pose model")
     if not (args.ui_dir/"index.html").is_file():
@@ -101,10 +103,12 @@ def main():
                 time.sleep(.1)
         store = SessionStore(args.data_dir, prepare=PreparedRoutes)
         seed_presets(store)
-        runtime = LaboratoryRuntime(store, audio=ShaperOutput(url))
+        runtime = LaboratoryRuntime(store, audio=ShaperOutput(url, audio_disabled=args.no_audio))
         perception = PerceptionSettings(checkpoint=str(Path(args.checkpoint).expanduser().resolve()), device=args.tracking_device)
         app = create_app(args.data_dir, store=store, runtime=runtime, perception=perception, ui_dir=args.ui_dir)
-        print(f"\nLaboratorio: http://127.0.0.1:{args.port}\nCtrl+C detiene esta sesión y su Shaper propio.\n", flush=True)
+        print(f"\nLaboratorio: http://127.0.0.1:{args.port}\nDatos: {args.data_dir.expanduser().resolve()}\n"
+              f"Audio: {'diagnóstico sin audio (--no-audio)' if args.no_audio else 'motor externo' if args.external_shaper else 'Shaper propio'}\n"
+              f"Ctrl+C detiene esta sesión {'y conserva el Shaper externo' if args.external_shaper else 'y su Shaper propio'}.\n", flush=True)
         uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="warning")
     finally:
         if store:

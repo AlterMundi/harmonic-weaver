@@ -1,0 +1,18 @@
+{
+  "medium": {
+    "sample_rate": 8000
+  },
+  "excitation_span_s": 0.1,
+  "tail_s": 0.1,
+  "trace_stride": 256,
+  "spectral_probe": {
+    "frequencies_hz": [
+      0,
+      40,
+      40.4,
+      80,
+      80.8
+    ],
+    "window": "excitation"
+  }
+}

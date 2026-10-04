@@ -268,3 +268,130 @@ locales. La prueba reproducible de software es comparisonRealNetwork.spec.ts y
 requiere LAB_AB_API_URL, LAB_AB_JOB (corrida completa ≥2 presets del mismo segmento)
 y LAB_COMPONENT_TEST_URL con proxy /api hacia esa API aislada; no apunta por
 defecto a sesiones compartidas ni inicia hardware.
+
+
+## Tandas y continuación de una comparación — 2026-10-03
+
+`max_runs_per_invocation` (1..1024, default 1024) acota corridas nuevas por
+invocación; una corrida es preset × segmento. El default ejecuta toda matriz
+admitida de hasta 32 × 32. No limita segundos, RAM ni CPU dentro de una corrida.
+Al alcanzar el presupuesto sin terminar la matriz, manifest/status quedan
+`partial`; todavía no se presentan como comparación completa. La web ofrece
+Continuar comparación congelada y usa el presupuesto actualmente elegido.
+
+POST `/api/evaluations/{id}/resume` recibe `{ "max_runs": 3 }` o `{}` para usar
+el presupuesto original. Conserva ID, request congelado y corridas completas.
+La continuación verifica request, cache identificado y hashes de artefactos
+completos, incluido WAV/estado de osciladores cuando corresponde. Rechaza cambios
+en código de replay, Python o versiones de dependencias numéricas; cambios de
+HEAD/metadatos o bancos ajenos al replay no bloquean por sí solos. El renderer
+PCM conserva además su contrato previo de motor/entorno congelados.
+
+Sólo se reutilizan corridas enteras declaradas en el manifest. La corrida
+inacabada se calcula de nuevo desde reset/preroll y sobrescribe sus artefactos
+parciales; no restaura historia del modelo ni fase a mitad del render. Los
+artefactos completos no se reescriben. Soporte común y comparaciones se reconstruyen
+leyendo las traces verificadas de toda la matriz, no usando sólo la última tanda.
+El manifest registra presupuesto efectivo, corridas reutilizadas, código de
+continuación, estado/error anteriores; process.log conserva los intentos.
+
+Un lock por directorio de resultado impide dos workers simultáneos sobre esa
+comparación. Cancelación/reinicio no inicia una continuación automáticamente.
+Sólo se continúa un resultado incompleto con contrato nuevo y manifest válido;
+una corrida completa, legacy sin identidad de replay o cancelada antes de publicar
+su primer manifest se repite como nueva. Repetir conserva el camino anterior.
+
+CLI, desde el checkout correspondiente:
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python -m harmonic_weaver.lab.evaluation \
+  /ruta/request.json --output /ruta/resultado-nuevo --max-runs 1
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python -m harmonic_weaver.lab.evaluation \
+  /ruta/request.json --output /ruta/resultado-nuevo --resume --max-runs 3
+```
+
+Para PCM usar el mismo SHAPER_DIR/extras que el render inicial. El presupuesto
+CLI es un ajuste de ejecución registrado, no una modificación de método/preset.
+Ver VALIDATION.md para pruebas sintéticas, PCM y tracking corporal privado.
+
+
+## Paquetes seleccionados para revisión local — 2026-10-03
+
+Después de abrir un informe completo, Preparar paquete local para revisar permite
+seleccionar corridas y contenidos. Default: summary.json y package-manifest.json,
+sin video/tracking, rutas, nombres originales, persona ni escala corporal. Los
+presets del resumen tienen nombres/IDs/etiquetas sustituidos y conservan parámetros
+computacionales; señales/targets iguales verificados en fixture. Sólo señales
+catalogadas con unidades compatibles se resumen; omisiones se cuentan por corrida.
+Resultados derivados pueden seguir siendo sensibles: esto no certifica anonimato.
+
+Opciones explícitas, desactivadas por defecto: pedidos de reproducción de cada
+corrida elegida (incluyen rutas/persona/calibración y labels originales), traces de
+features/targets y WAV/estados de osciladores disponibles. No se incluyen fuentes o
+presets ajenos a las corridas elegidas. Los pedidos se ejecutan como Request de una
+fuente × un preset; requieren los inputs locales originales y código compatible.
+No son una reproducción autónoma sin video/cache. No se copia ningún video ni
+tracking al paquete y no hay publicación externa automática.
+
+Las medias seleccionadas conservan el soporte común de la matriz original completa.
+Exportar dos presets no recalcula una intersección nueva más amplia; el resumen
+indica cuántos presets definieron el soporte. Esto evita alterar la comparación al
+seleccionar sólo resultados favorables. El paquete no agrega inferencia científica,
+aceptación perceptual ni medición de sincronía física.
+
+La vista previa enumera archivos, hashes y bytes antes del contenedor. El límite
+1..4096 MiB (default 64) aplica al payload; ZIP/manifest agregan overhead. Un cambio
+de selección invalida la vista previa; el servidor rechaza entradas/resultados
+cambiados. Writer cancelable en proceso propio, fuera del instrumento. Directorios
+locales research/eval-package/<id>/; ZIP con timestamps fijos e inventario interno
+hasheado. Se escribe un archivo .partial y se publica el ZIP local completo por
+rename tras verificar entradas; lectura verifica checksum y no descarga parciales.
+
+API: POST /api/evaluations/{id}/package-preview recibe Selection; POST
+/api/evaluations/{id}/packages recibe selection y preview_sha256. GET
+/api/evaluation-packages lista; POST /api/evaluation-packages/{id}/cancel cancela
+sólo worker propio; GET /api/evaluation-packages/{id}/artifacts/package.zip descarga
+resultado completo. manifest.json permite diagnóstico, no es el informe público.
+Inputs/job/manifest externos contienen referencias locales y no se agregan al ZIP.
+
+Preferencias del paquete se exportan/importan por JSON: flags y presupuesto,
+sin corridas/fuente/identidad. Importar limpia selección y preview y no ejecuta nada.
+Revisar el contenido antes de compartir manualmente; publicar requiere selección
+humana de datos/destino y consentimiento pertinente. Este corte prepara el paquete,
+no proporciona por sí solo fuentes públicas ni autorización de publicación.
+## Inventario de corridas no confirmado o inaccesible (2026-10-03)
+
+El comparador muestra «Esperando inventario» antes de la primera respuesta y una
+alerta si la consulta falla. Conserva el último progreso confirmado y reintenta
+cada1.5s, sin acumular consultas mientras una está pendiente. Comparar, repetir
+y continuar requieren inventario confirmado sin fallo actual; cancelar una
+corrida conocida sigue disponible. Abrir resultados/descargas no se oculta por
+un fallo del inventario. Recuperar la consulta no lanza ni repite corridas.
+
+Captura y comparación comparten la misma lógica de consultas; no cambia el
+worker, hashes, PCM, modelos, presupuesto ni estado del reproductor. Dos recorridos
+Chrome verifican captura y evaluación con 503/demoras e inventarios de UI declarados,
+sin crear trabajos, fuentes ni resultados corporales. Las pruebas del motor y
+repetibilidad previas conservan su alcance; esto sólo verifica diagnóstico/acciones
+del panel, no evaluación científica ni latencia física.
+
+## Perfiles portables de procesamiento (2026-10-03)
+
+En Comparar → **Guardar ajustes de procesamiento**, elegir nombre y guardar.
+El perfil conserva reloj de control, historia previa, presupuesto por tanda y
+render PCM (activación, sample-rate, bloque, master y cola), con las cotas del
+contrato de ejecución. No contiene presets, fuentes, personas, calibraciones,
+segmentos, paths ni hashes de motor/entorno. El renderer efectivo se congela al
+iniciar una nueva comparación, como antes.
+
+Perfiles con nombre viven en SQLite local y sobreviven al reinicio. Seleccionar
+y **Cargar perfil de comparación** aplica sólo controles de próximas corridas;
+no inicia, reanuda, repite ni cambia una request congelada. Selecciones existentes
+quedan intactas. Preparar/descargar JSON permite trasladarlo: pegar y **Aplicar JSON**
+en otra selección/laboratorio, y guardar explícitamente allí si se quiere conservar.
+Una carga demorada no sobrescribe controles editados mientras se esperaba: informa
+el cambio para que la reaplicación sea deliberada. Continuar una evaluación ya
+iniciada conserva su request congelada, independientemente del perfil cargado.
+
+API local GET/POST /api/evaluation-profiles, POST /validate y GET /{id}. Validar no
+guarda ni inicia. No migra sesiones ni registra datos corporales.
