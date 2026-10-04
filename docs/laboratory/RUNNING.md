@@ -10,7 +10,7 @@ aceptación de Nicolás no se infieren de las pruebas automatizadas.
 En Legion, el comando corto prepara la web e inicia la sesión:
 
 ```sh
-cd /home/nicolas/Projects/harmonic-weaver-lab
+cd /home/nicolas/Projects/harmonic-weaver
 ./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
 ```
 
@@ -20,18 +20,13 @@ El wrapper acepta `WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON`, `HARMOCAP_DIR`
 `HARMOCAP_VENV` y `HARMOCAP_CHECKPOINT` para otros checkouts/entornos. Los flags
 posteriores se pasan al launcher Python.
 
-Desde la integración del 2026-10-02, las entregas publicadas del laboratorio
-están en `main`: Weaver hasta #84, incluido el follow-up #39; Shaper hasta #6;
-HarMoCAP #1. Los checkouts cotidianos `harmonic-weaver-lab` y
-`harmonic-shaper-lab` usan esa integración, con entornos `.venv` propios.
-Los workspaces originales y el trabajo OSC todavía no publicado permanecen
-preservados. El bridge de Oliva #36 se revisa por separado.
-
-### Pila de desarrollo, separada de la instalación cotidiana
-
-Las PR posteriores aún no están mergeadas ni instaladas en `harmonic-weaver-lab`.
-Usar el [arranque explícito de desarrollo](#arranque-explícito-de-desarrollo):
-un único perfil con datos y puertos separados de la sesión cotidiana.
+Desde el 2026-10-04 el laboratorio avanza integrado en `main`, incluyendo
+Weaver #152 y sus antecedentes (aportes #36/#97/#107), Shaper #7 y HarMoCAP #1.
+En Legion se desarrolla y prueba desde `~/Projects/harmonic-weaver`, con
+`~/Projects/harmonic-shaper` y `~/Projects/HarMoCAP`. Hay una sola instalación,
+los puertos habituales 8765/8085 y los datos existentes de `laboratory`.
+Los nombres antiguos de carpetas y scripts quedan como alias de compatibilidad.
+No constituyen versiones ni instalaciones separadas.
 
 Entorno Weaver: dependencias del proyecto y extra `lab`. Entorno HarMoCAP:
 dependencias propias + `av>=12,<17` y modelo pose local. Entorno Shaper:
@@ -56,12 +51,12 @@ python -m harmonic_weaver.lab \
 En Legion, los checkouts y entornos ya preparados permiten:
 
 ```sh
-cd /home/nicolas/Projects/harmonic-weaver-lab
+cd /home/nicolas/Projects/harmonic-weaver
 PYTHONPATH=src \
-HARMOCAP_DIR=/home/nicolas/Projects/HarMoCAP-lab \
+HARMOCAP_DIR=/home/nicolas/Projects/HarMoCAP \
 HARMOCAP_VENV=/home/nicolas/Projects/HarMoCAP/.venv \
 /home/nicolas/Projects/harmonic-weaver/.venv/bin/python -m harmonic_weaver.lab \
-  --shaper-dir /home/nicolas/Projects/harmonic-shaper-lab \
+  --shaper-dir /home/nicolas/Projects/harmonic-shaper \
   --shaper-python /home/nicolas/Projects/harmonic-shaper/.venv/bin/python \
   --checkpoint /home/nicolas/Projects/HarMoCAP/harmocap-m-pose-ft2.pt \
   --audio-backend jack --device "R24 Analog Stereo"
@@ -149,7 +144,7 @@ constante termina en silencio. Ambos controles se guardan en presets.
 En Legion con R24:
 
 ```sh
-cd /home/nicolas/Projects/harmonic-weaver-lab
+cd /home/nicolas/Projects/harmonic-weaver
 ./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo"
 ```
 
@@ -220,72 +215,18 @@ Conectar la R24 después no habilita ese proceso.
 Detenerlo con Ctrl+C y volver a iniciar con el comando R24 de arriba, sin
 `--no-audio`. Recargar la web después del reinicio.
 
-## Arranque explícito de desarrollo
-
-Los avances posteriores al laboratorio habitual están en
-`~/Projects/harmonic-weaver-dev` y requieren el Shaper compatible de
-`~/Projects/harmonic-shaper-dev`. No reemplazan `harmonic-weaver-lab`.
-Cada checkout usa su propio `.venv`; para preparar una instalación nueva:
+## Desarrollo integrado
 
 ```bash
-cd ~/Projects/harmonic-weaver-dev
-uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python -e '.[lab,test]'
-cd ~/Projects/harmonic-shaper-dev
-uv venv --python 3.13 .venv
-uv pip install --python .venv/bin/python -e '.[test]'
+cd ~/Projects/harmonic-weaver
+./scripts/start-laboratory.sh --check
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
 ```
 
-Las versiones instaladas forman parte de la identidad de los experimentos;
-instalar sin constraints puede resolver versiones distintas y exige producir
-un nuevo manifest, no reutilizar una identidad antigua.
-
-```bash
-cd ~/Projects/harmonic-weaver-dev
-./scripts/start-laboratory-dev.sh --check
-./scripts/start-laboratory-dev.sh --describe
-./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
-```
-
-La web de desarrollo es `http://127.0.0.1:8875`, Shaper usa `8185` y el estado
-se guarda en `~/.local/share/harmonic-weaver/laboratory-dev`. `--check` sólo
-comprueba imports y muestra destinos; no abre cámara ni audio, ni verifica la
-conexión física de la R24. Ctrl+C detiene los procesos de esa sesión.
-
-`--describe` muestra checkouts/heads, intérpretes y modelo sin construir ni iniciar.
-El código HarMoCAP se selecciona en `HarMoCAP-lab`, con entorno/modelo del original
-`HarMoCAP` explícitos y configurables por `HARMOCAP_DIR`, `HARMOCAP_VENV` y
-`HARMOCAP_CHECKPOINT`. Las rutas explícitas inválidas fallan sin sustituirse por
-otra instalación. `start-laboratory-development.sh` es un alias del mismo wrapper:
-usa los mismos puertos, entorno y datos; no es un segundo perfil.
-
-Para revisar la web y el arranque sin audio físico ni datos de la sesión habitual:
-
-```bash
-cd ~/Projects/harmonic-weaver-dev
-lab_smoke_root="$(mktemp -d /tmp/weaver-no-audio-XXXXXX)"
-./scripts/start-laboratory-dev.sh --no-audio --tracking-device cpu \
-  --port 18967 --shaper-port 18968 --data-dir "$lab_smoke_root/data"
-```
-
-Abrir `http://127.0.0.1:18967`; detener con Ctrl+C. No abre cámara ni calcula tracking
-por sí solo. Esta prueba acredita el arranque/control/UI, no la escucha ni el backend
-de tracking. Los puertos se pueden cambiar si ya hay otra sesión.
-
-La primera apertura tiene estado independiente: importar los presets portables
-que quieras probar desde la web. No se copian selecciones corporales,
-calibraciones, fuentes ni videos del laboratorio habitual. Abrir un fragmento
-existente lo usa desde su ruta; no hace falta copiar el original grande.
-El nuevo estado puede necesitar su propio tracking. No iniciar ambos Shapers
-sobre la R24 simultáneamente. Para cambiar puertos o datos, pasar `--port`,
-`--shaper-port` o `--data-dir`; los argumentos explícitos prevalecen.
-`WEAVER_PYTHON`, `SHAPER_DIR`, `SHAPER_PYTHON` y `LAB_DEV_DATA_DIR` permiten
-seleccionar otras instalaciones deliberadamente; el wrapper no usa un venv
-original como alternativa silenciosa para Weaver o Shaper.
-`WEAVER_LAB_DATA_DIR` se acepta como alias de datos, con prioridad de `LAB_DEV_DATA_DIR`;
-`--data-dir` tiene la última palabra. El launcher cotidiano mantiene su fallback
-cuando no se ha seleccionado explícitamente un entorno.
-
+Abrir http://127.0.0.1:8765. `--check` verifica imports sin iniciar servicios.
+Desarrollamos e integramos continuamente en `main`; una separación de producción
+se decide cuando Nicolás la pida. Las pruebas pueden usar datos temporales y
+puertos explícitos sin crear otra instalación cotidiana.
 
 ### Recorrido R05 experimental (rama de desarrollo, PR #72)
 
@@ -362,7 +303,7 @@ fase corporal medida ni evidencia de coordinación fisiológica.
 
 ### R06 en la mesa web
 
-En harmonic-weaver-dev, pestaña «Investigación» → «R06 · Banco de activación».
+En harmonic-weaver, pestaña «Investigación» → «R06 · Banco de activación».
 La web carga defaults validados del servidor. Modificar medio (f1, ratios,
 damping, acoplamiento, topología/matriz y sample rate) y todos los parámetros de
 calendario/cálculo. «Exportar configuración R06» guarda JSON portable;
@@ -445,7 +386,7 @@ física, convergencia modal y recuperación científica de atributos pendientes.
 
 ## Recorrido R10 experimental · PR #78
 
-En harmonic-weaver-dev, con el arranque de desarrollo documentado arriba, abrir
+En harmonic-weaver, con el arranque integrado documentado arriba, abrir
 Investigación → R10. Este recorrido es opcional: el instrumento cotidiano sigue
 funcionando sin completar ensayos ni responder preguntas.
 
@@ -550,12 +491,12 @@ abrir la comparación con ese directorio. Sólo es evidencia de software, no
 aceptación auditiva. Arrancar el desarrollo como se documenta arriba:
 
 ```sh
-cd ~/Projects/harmonic-weaver-dev
+cd ~/Projects/harmonic-weaver
 ./scripts/start-laboratory-dev.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
 ```
 
-Web de desarrollo http://127.0.0.1:8875; instalación cotidiana harmonic-weaver-lab
-permanece separada y no contiene automáticamente esta rama.
+Web integrada http://127.0.0.1:8765. Los archivos de validación anteriores
+siguen conservados localmente en su directorio histórico.
 
 
 ### Hacer audible cada modelo conservando la afinación

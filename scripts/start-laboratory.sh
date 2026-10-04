@@ -5,6 +5,7 @@ lab_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 lab_parent="$(dirname -- "$lab_root")"
 lab_error() { printf '%s\n' "$1" >&2; exit 1; }
 lab_describe=false
+lab_check=false
 lab_arguments=()
 lab_shaper_cli=''
 lab_shaper_python_cli=''
@@ -12,6 +13,7 @@ lab_checkpoint_cli=''
 while (($#)); do
   case "$1" in
     --describe) lab_describe=true; shift ;;
+    --check) lab_check=true; shift ;;
     --shaper-dir|--shaper-python|--checkpoint)
       lab_flag="$1"
       (($#>=2)) || lab_error "Falta valor de $lab_flag"
@@ -33,13 +35,13 @@ if [[ -z "${WEAVER_PYTHON:-}" && ! -x "$lab_python" && -x "$lab_parent/harmonic-
   lab_python="$lab_parent/harmonic-weaver/.venv/bin/python"
 fi
 [[ -x "$lab_python" ]] || lab_error "Python Weaver no ejecutable: $lab_python. Crear .venv con extra [lab] o definir WEAVER_PYTHON."
-lab_shaper="${lab_shaper_cli:-${SHAPER_DIR:-$lab_parent/harmonic-shaper-lab}}"
+lab_shaper="${lab_shaper_cli:-${SHAPER_DIR:-$lab_parent/harmonic-shaper}}"
 if [[ -z "$lab_shaper_cli" && -z "${SHAPER_DIR:-}" && ! -d "$lab_shaper" ]]; then lab_shaper="$lab_parent/harmonic-shaper"; fi
 [[ -d "$lab_shaper" ]] || lab_error "Checkout Shaper no encontrado: $lab_shaper"
 lab_shaper_python="${lab_shaper_python_cli:-${SHAPER_PYTHON:-$lab_shaper/.venv/bin/python}}"
 if [[ -z "$lab_shaper_python_cli" && -z "${SHAPER_PYTHON:-}" && ! -x "$lab_shaper_python" ]]; then lab_shaper_python="$lab_parent/harmonic-shaper/.venv/bin/python"; fi
 [[ -x "$lab_shaper_python" ]] || lab_error "Python Shaper no ejecutable: $lab_shaper_python"
-lab_harmocap="${HARMOCAP_DIR:-$lab_parent/HarMoCAP-lab}"
+lab_harmocap="${HARMOCAP_DIR:-$lab_parent/HarMoCAP}"
 if [[ -z "${HARMOCAP_DIR:-}" && ! -d "$lab_harmocap" ]]; then lab_harmocap="$lab_parent/HarMoCAP"; fi
 [[ -d "$lab_harmocap" ]] || lab_error "Checkout HarMoCAP no encontrado: $lab_harmocap"
 lab_harmocap_venv="${HARMOCAP_VENV:-$lab_harmocap/.venv}"
@@ -60,6 +62,11 @@ lab_checkout 'Shaper' "$lab_shaper"
 lab_checkout 'HarMoCAP' "$HARMOCAP_DIR"
 printf 'Python Weaver: %s\nPython Shaper: %s\nPython HarMoCAP: %s/bin/python\nModelo pose: %s\n' "$lab_python" "$lab_shaper_python" "$HARMOCAP_VENV" "$lab_checkpoint"
 if "$lab_describe"; then exit 0; fi
+if "$lab_check"; then
+  PYTHONPATH="$lab_root/src" "$lab_python" -c 'import harmonic_weaver.lab, cv2, fastapi, soundfile; print("Weaver: dependencias disponibles")'
+  PYTHONPATH="$lab_shaper/src" "$lab_shaper_python" -c 'import harmonic_shaper.audio_engine, harmonic_shaper.capture_recovery; print("Shaper: dependencias disponibles")'
+  exit 0
+fi
 
 cd -- "$lab_root/laboratory-ui"
 if [[ ! -d node_modules ]]; then npm ci --no-audit --no-fund; fi
@@ -68,4 +75,4 @@ cd -- "$lab_root"
 export PYTHONPATH="$lab_root/src"
 exec "$lab_python" -m harmonic_weaver.lab \
   --shaper-dir "$lab_shaper" --shaper-python "$lab_shaper_python" \
-  --checkpoint "$lab_checkpoint" "${lab_arguments[@]}"
+  --checkpoint "$lab_checkpoint" --data-dir "${WEAVER_LAB_DATA_DIR:-$HOME/.local/share/harmonic-weaver/laboratory}" "${lab_arguments[@]}"

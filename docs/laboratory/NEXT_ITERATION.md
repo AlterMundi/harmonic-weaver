@@ -1,3 +1,8 @@
+> Actualización 2026-10-04: Nicolás autoriza integrar continuamente el trabajo
+> terminado en `main`, sin acumular PRs ni instalaciones separadas. Esta decisión
+> reemplaza las indicaciones históricas de «sin merge automático» de este documento.
+> Se usa `~/Projects/harmonic-weaver` y el arranque habitual 8765/8085.
+
 # Próxima iteración: instrumento y contraste independiente
 
 2026-09-29. El goal principal se ejecutó en la segunda iteración: consultar

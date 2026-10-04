@@ -1,3 +1,7 @@
+> 2026-10-04: integración continua en `main` hasta #152, Shaper #7 y HarMoCAP #1.
+> Instalación única: `~/Projects/harmonic-weaver`, web 8765 y Shaper 8085.
+> Las menciones históricas de pila separada/no instalada quedan superadas.
+
 # Implementación: estado comprobado
 
 2026-09-29. Segunda iteración local y primer comparador disponibles para feedback.

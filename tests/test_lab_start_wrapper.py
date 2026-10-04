@@ -41,8 +41,8 @@ def test_describe_resolves_daily_without_build_or_launch(stack):
     executable(Path(env['PATH'].split(os.pathsep)[0])/'npm','#!/bin/sh\nexit 73\n')
     result=run(stack,'--describe')
     assert result.returncode==0,result.stderr
-    assert str(root.parent/'harmonic-shaper-lab') in result.stdout
-    assert str(root.parent/'HarMoCAP-lab') in result.stdout
+    assert str(root.parent/'harmonic-shaper') in result.stdout
+    assert str(root.parent/'HarMoCAP') in result.stdout
     assert not Path(env['WEAVER_START_RECORD']).exists()
 
 
@@ -71,29 +71,24 @@ def test_cli_selections_and_spaced_arguments_reach_the_effective_launcher(stack)
     assert str(chosen) in result.stdout
 
 
-def test_development_uses_explicit_peer_and_separate_data(stack):
+def test_legacy_development_alias_uses_the_same_project_and_data(stack):
     root,env=stack
-    result=run(stack,'--describe',development=True);assert result.returncode==0,result.stderr
-    assert str(root.parent/'harmonic-shaper-dev') in result.stdout
-    assert env['WEAVER_LAB_DATA_DIR'] in result.stdout
-    assert not Path(env['WEAVER_START_RECORD']).exists()
-    result=run(stack,'--device','R24 Analog Stereo',development=True);assert result.returncode==0,result.stderr
+    result=run(stack,'--device','R24 Analog Stereo',development=True)
+    assert result.returncode==0,result.stderr
     args=json.loads(Path(env['WEAVER_START_RECORD']).read_text())['argv']
     assert args[args.index('--data-dir')+1]==env['WEAVER_LAB_DATA_DIR']
-    assert args[args.index('--shaper-dir')+1]==str(root.parent/'harmonic-shaper-dev')
-    assert args[args.index('--port')+1]=='8875'
-    assert args[args.index('--shaper-port')+1]=='8185'
+    assert args[args.index('--shaper-dir')+1]==str(root.parent/'harmonic-shaper')
+    assert '--port' not in args and '--shaper-port' not in args
 
 
-def test_development_spellings_share_defaults_and_allow_cli_overrides(stack):
+def test_both_legacy_spellings_share_describe_and_allow_explicit_overrides(stack):
     root,env=stack
     result=subprocess.run([str(root/'scripts/start-laboratory-dev.sh'),'--describe'],env=env,capture_output=True,text=True,timeout=10)
     alias=run(stack,'--describe',development=True)
     assert result.returncode==alias.returncode==0
     assert result.stdout==alias.stdout
-    result=run(stack,'--port','19001','--shaper-port','19002','--data-dir','explicit data',development=True,
-               overrides={'LAB_DEV_DATA_DIR':'canonical data'})
+    result=run(stack,'--port','17775','--data-dir','chosen data',development=True)
     assert result.returncode==0,result.stderr
     args=json.loads(Path(env['WEAVER_START_RECORD']).read_text())['argv']
-    assert args[args.index('--data-dir')+1]=='canonical data'
-    assert args[-6:]==['--port','19001','--shaper-port','19002','--data-dir','explicit data']
+    assert args[args.index('--port')+1]=='17775'
+    assert args[-2:]==['--data-dir','chosen data']
