@@ -4,10 +4,31 @@ Limits are tuning parameters in projected torso lengths, not physiological bound
 No missing coordinate is filled; estimated positions are exposed separately.
 """
 from collections import deque
+from functools import lru_cache
+import importlib
 import math
+import os
+from pathlib import Path
+import sys
 import numpy as np
 
 from .kinematics import observed_xy, torso_scale
+
+
+@lru_cache(maxsize=1)
+def harmocap_one_euro():
+    """Use the actual checkout's lightweight filter, not a copied implementation."""
+    source = Path(os.environ.get("HARMOCAP_DIR", Path.home()/"Projects/HarMoCAP"))/"src"
+    sys.path.insert(0, str(source))
+    try:
+        module = importlib.import_module("harmocap.smoothing")
+    except ImportError as exc:
+        raise RuntimeError("One-Euro requires the HarMoCAP checkout; set HARMOCAP_DIR") from exc
+    finally:
+        sys.path.remove(str(source))
+    if not Path(module.__file__).resolve().is_relative_to(source.resolve()):
+        raise RuntimeError("HarMoCAP import differs from HARMOCAP_DIR; restart with the intended checkout")
+    return module.OneEuroFilter, str(Path(module.__file__).resolve())
 
 
 class JointMotionFilter:
@@ -23,6 +44,8 @@ class JointMotionFilter:
         if person is None:
             self.states.clear()
             return frame, {"enabled": True, "state": "missing", "reason": "selected person missing"}
+        if self.settings.tracking_smoother == "harmocap_one_euro":
+            return self._one_euro(frame, person_id, person)
         if self.scale is None:
             self.scale = torso_scale(observed_xy(person))
         if self.scale is None:
@@ -82,6 +105,36 @@ class JointMotionFilter:
         selected = next(p for p in conditioned.persons if p.person_id == person_id)
         selected.joints = estimates
         return conditioned, {"enabled": True, "state": "conditioned", "scale": self.scale,
+            "smoother": "bounded",
             "unit": "projected torso lengths/s²", "hip_labels_swapped": swapped,
             "acceleration_limited_joints": limited,
             "interpretation": "causal position estimates, not new raw observations or anatomical limits"}
+
+    def _one_euro(self, frame, person_id, person):
+        factory, source = harmocap_one_euro()
+        settings = self.settings
+        estimates = []
+        t = frame.source_time_s
+        for index in set(self.states)-{q.index for q in person.joints}:
+            self.states.pop(index)
+        for q in person.joints:
+            estimate = q.model_copy(deep=True)
+            if q.state != "observed" or q.position is None:
+                self.states.pop(q.index, None)
+            else:
+                previous = self.states.get(q.index)
+                dt = t-previous["time"] if previous else 0.
+                if previous is None or dt <= 0 or dt > settings.max_gap_s:
+                    previous = {"filters": [factory(settings.tracking_one_euro_mincutoff,
+                        settings.tracking_one_euro_beta, settings.tracking_one_euro_dcutoff)
+                        for _ in q.position]}
+                    self.states[q.index] = previous
+                estimate.position = [f(x, dt) for f,x in zip(previous["filters"], q.position)]
+                previous["time"] = t
+            estimates.append(estimate)
+        conditioned = frame.model_copy(deep=True)
+        next(p for p in conditioned.persons if p.person_id == person_id).joints = estimates
+        return conditioned, {"enabled": True, "state": "conditioned", "smoother": "harmocap_one_euro",
+            "implementation": source, "unit": frame.unit, "hip_labels_swapped": False,
+            "acceleration_limited_joints": [],
+            "interpretation": "HarMoCAP One-Euro on observed coordinates; no hold, median, swap repair or acceleration cap"}

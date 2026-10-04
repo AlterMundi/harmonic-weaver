@@ -44,6 +44,74 @@ no video, frames, identities or body result tables are published.
 
 ## State of the art: decision review, 2026-10-04
 
+### Immediate local direction and HarMoCAP reuse
+
+The model research below is retained for later; no new model installation or
+training is part of the immediate glitch repair. Mariano's public HarMoCAP main
+(`bdeebbf`, 2026-08-17) is already an ancestor of our checkout (`25fda8d`). The
+other public branch inspected, `agent/fix-visible-person-focus`, is historical
+July identity/focus work, not a newer pose model. Unpublished work is unknown.
+
+HarMoCAP uses YOLO26m-pose fine-tuned on CrowdPose plus COCO (COCO-17 2D), person
+association and a causal One-Euro validity/smoothing layer. Weaver's perception
+worker uses the detector and identity layer; raw caches intentionally precede
+conditioning. Our current capture uses `imgsz=320`; the ft2 training used 640.
+The original batch-16 training recipe documents approximately 10.3 GB VRAM and
+cannot simply be reused on this machine's 6 GB GPU. Fine-tuning might address
+domain errors but does not add temporal reasoning, 3D or joint rotations to YOLO.
+
+`tracking_smoother=harmocap_one_euro` now selects the actual checkout's
+`harmocap.smoothing.OneEuroFilter` (implementation path in diagnostics), with
+native defaults: minimum cutoff 1 Hz, beta .15, derivative cutoff 1 Hz. It replaces
+the bounded median/response/acceleration/hip-guard path; it does not stack with it.
+Three parameters are editable in Modelos and stored in portable presets. The
+HarMoCAP checkout selected by `HARMOCAP_DIR` is required when using this option.
+Positions use the raw frame's coordinate units, as in native HarMoCAP; beta is
+unit-dependent. Missing/held support resets the joint; no retained coordinate is
+promoted to observed, and no hold-last motion is generated for synthesis.
+
+Native smoothing was replayed on the existing private 60-second cache, including
+the two previously inspected jumps. Local configuration/results/scripts remain
+in the private checks directory. Smoothed acceleration falls substantially, but
+this alone neither repairs wrong joint labels nor demonstrates preserved real
+movement. A synthetic 30 FPS, amplitude .05 frame-height sinusoid under native
+defaults retains about 71% amplitude at 1 Hz with 113 ms phase delay, and 31% at
+3 Hz with 52 ms phase delay (fit after five seconds of warmup). This is filter
+response, not measured live latency or body ground truth. Listening is pending.
+Automatic checks cover native implementation parity, absence/held support,
+person loss, gaps/seeks and all five model paths, plus existing contracts,
+runtime and evaluation tests (60 distinct tests) and the web build. The local
+session was switched to native One-Euro and runtime telemetry confirmed six voices
+and no audio/runtime error. Its previous source, person, explicit same-source
+calibration and paused transport position were restored. This is not perceptual
+acceptance. Reference preset defaults remain unchanged.
+
+Next local work, conditional on this trial:
+
+1. Compare bounded versus native One-Euro on the same cached person/source,
+   including the identified jumps, turns and genuine fast wrists. Adjust existing
+   cutoff/beta controls before adding complexity; retain the accepted audio ratios,
+   continuous voices and articulation. Lower acceleration alone is not success.
+2. If false motion persists, separate outlier/label continuity repair from smoothing.
+   Improve hip-pair assignment using measured support and short source-time history;
+   inspect pelvis centre and width separately. Avoid enforcing constant projected
+   bone lengths, which change legitimately with turns/perspective. Reject dubious
+   support explicitly instead of concealing it as an observed interpolated point.
+3. Tune by joint/region if a single response dampens wrists while stabilizing hips.
+   Check onset/phase and recovery, not just average jitter. Keep raw caches reusable
+   and the same causal path in live and replay. No retraining is required for this.
+4. If raw pose errors remain systematic, compare 320/640 on small existing local
+   segments before considering targeted, manually corrected rope-flow fine-tuning.
+   Split any eventual training/evaluation by session/source, not adjacent frames;
+   teacher-model labels are suggestions, not independent ground truth.
+
+A useful HarMoCAP collaboration proposal would be a configurable conditioning
+stage separating continuity/outlier handling from adaptive smoothing, with
+observed/held/invalid semantics and causal replay tests. Before implementing there,
+ask Mariano or his agents about unpublished changes and contribution instructions.
+Do not send messages autonomously; no outreach has occurred in this trial. This
+proposal depends on finding a concrete remaining problem in the local comparison.
+
 The initial four-model shortlist was insufficient. It omitted recent causal video
 recovery, multi-person articulated tracking, efficient rotation uplift, and explicit
 recovery of velocity/acceleration. This review replaces its unconditional

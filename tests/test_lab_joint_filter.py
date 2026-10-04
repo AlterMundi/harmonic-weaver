@@ -80,3 +80,71 @@ def test_conditioning_shared_by_baseline_and_new_models_resets_at_seek():
         assert point(m.conditioned_frame,11)==pytest.approx(point(first,11))
         assert m.joint_filter.states[11]['velocity']==pytest.approx(np.zeros(2))
         assert len(m.joint_filter.states[11]['measurements'])==1
+
+
+@pytest.fixture
+def native_one_euro():
+    from pathlib import Path
+    import os
+    from harmonic_weaver.lab.joint_filter import harmocap_one_euro
+    checkout = Path(os.environ.get('HARMOCAP_DIR', Path.home()/'Projects/HarMoCAP'))
+    if not (checkout/'src/harmocap/smoothing.py').exists():
+        pytest.skip('native HarMoCAP checkout not present')
+    return harmocap_one_euro()[0]
+
+
+def test_native_one_euro_matches_harmocap_without_stacking_other_filters(native_one_euro):
+    cfg=settings(tracking_smoother='harmocap_one_euro',tracking_median_frames=9,
+                 tracking_joint_accel_limits=[.1]*17)
+    f=JointMotionFilter(cfg,.2)
+    reference=[native_one_euro() for _ in range(2)]
+    base=observation(0.,0)
+    for i, t in enumerate([0.,.02,.06,.09,.14,.18]):
+        frame=base.model_copy(deep=True);frame.source_time_s=t;frame.sequence=i
+        frame.persons[0].joints[11].position[0]+=.03*np.sin(i)
+        raw=frame.model_dump()
+        out,diag=f.push(frame,'one')
+        dt=0 if i==0 else t-last_t
+        expected=[ff(x,dt) for ff,x in zip(reference,point(frame,11))]
+        assert point(out,11)==pytest.approx(expected)
+        assert frame.model_dump()==raw
+        assert diag['smoother']=='harmocap_one_euro' and not diag['acceleration_limited_joints']
+        last_t=t
+
+
+def test_native_one_euro_resets_at_missing_held_seek_and_long_gap(native_one_euro):
+    f=JointMotionFilter(settings(tracking_smoother='harmocap_one_euro'),.2)
+    base=observation(0.,0);f.push(base,'one')
+    for state in ['missing','held']:
+        lost=base.model_copy(deep=True);lost.source_time_s=.1
+        lost.persons[0].joints[11]=Joint(index=11,state=state,position=None if state=='missing' else [9.,9.])
+        out,_=f.push(lost,'one')
+        assert out.persons[0].joints[11].state==state and 11 not in f.states
+        found=base.model_copy(deep=True);found.source_time_s=.2
+        found.persons[0].joints[11].position=[.8,.9]
+        out,_=f.push(found,'one');assert point(out,11)==pytest.approx([.8,.9])
+    for t in [.05, 4.]:
+        frame=base.model_copy(deep=True);frame.source_time_s=t
+        out,_=f.push(frame,'one');assert point(out,11)==pytest.approx(point(frame,11))
+
+
+def test_native_one_euro_recovers_missing_person_without_calibration(native_one_euro):
+    f=JointMotionFilter(settings(tracking_smoother='harmocap_one_euro'))
+    base=observation(0.,0);f.push(base,'one')
+    lost=base.model_copy(deep=True);lost.source_time_s=.1;lost.persons=[]
+    f.push(lost,'one');assert not f.states
+    base.source_time_s=.2
+    out,_=f.push(base,'one');assert point(out,11)==pytest.approx(point(base,11))
+
+
+@pytest.mark.parametrize('algorithm',['baseline','local','relational','angular','collective'])
+def test_native_one_euro_is_shared_by_models_and_resets_at_seek(native_one_euro,algorithm):
+    p=next(p for p in initial_presets() if p.algorithm.id==algorithm)
+    p.algorithm.tracking_filter_enabled=True
+    p.algorithm.tracking_smoother='harmocap_one_euro'
+    m=MotionModel(p,.2)
+    for i in range(8):
+        z=m.observe(observation(i/30,i),'one',i/30)
+    assert z.diagnostics['tracking_filter']['smoother']=='harmocap_one_euro'
+    first=observation(.05,1);m.observe(first,'one',2.)
+    assert point(m.conditioned_frame,11)==pytest.approx(point(first,11))

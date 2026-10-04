@@ -49,6 +49,10 @@ const labels: Record<string, string> = {
   fixed_y: "Origen fijo Y",
   joints: "Joints para análisis colectivo y velocidad global",
   tracking_filter_enabled: "Filtrar glitches de tracking",
+  tracking_smoother: "Filtro: bounded = mediana/límite; harmocap_one_euro = HarMoCAP",
+  tracking_one_euro_mincutoff: "One-Euro: corte mínimo (Hz)",
+  tracking_one_euro_beta: "One-Euro: respuesta a velocidad (β)",
+  tracking_one_euro_dcutoff: "One-Euro: corte de derivada (Hz)",
   tracking_hip_swap_guard: "Corregir intercambios de caderas por continuidad",
   tracking_median_frames: "Mediana causal (cuadros)",
   tracking_smoothing_s: "Suavizado del tracking (s)",
@@ -183,9 +187,13 @@ function Fields({
         {Object.entries(schema.properties || {})
           .filter(
             ([key]) =>
-              schema.title !== "AlgorithmSettings" ||
+              (schema.title !== "AlgorithmSettings" ||
               value?.id !== "baseline" ||
-              (["id", "version", "horizon_s", "max_gap_s"].includes(key) || key.startsWith("tracking_")),
+              (["id", "version", "horizon_s", "max_gap_s"].includes(key) || key.startsWith("tracking_"))) &&
+              (schema.title !== "AlgorithmSettings" ||
+                (key.startsWith("tracking_one_euro_")
+                  ? value?.tracking_smoother === "harmocap_one_euro"
+                  : !["tracking_hip_swap_guard", "tracking_median_frames", "tracking_smoothing_s", "tracking_joint_accel_limits"].includes(key) || value?.tracking_smoother !== "harmocap_one_euro")),
           )
           .map(([key, sub]) => (
             <Fields
@@ -1351,9 +1359,10 @@ function App() {
                 </p>
                 {form("algorithm")}
                 {draft.algorithm.tracking_filter_enabled && <p role="status">
-                  Filtro causal activo. {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped ? "Intercambio de caderas corregido en este cuadro. " : ""}
+                  Filtro causal activo: {draft.algorithm.tracking_smoother || "bounded"}. {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped ? "Intercambio de caderas corregido en este cuadro. " : ""}
                   Joints limitados ahora: {(state.features?.diagnostics?.tracking_filter?.acceleration_limited_joints || []).join(", ") || "ninguno"}.
                   En Figura podés alternar el esqueleto crudo y el filtrado.
+                  {draft.algorithm.tracking_smoother === "harmocap_one_euro" && " One-Euro reemplaza la mediana, el límite de aceleración y la corrección de caderas. No rellena articulaciones perdidas."}
                 </p>}
               </>
             )}
