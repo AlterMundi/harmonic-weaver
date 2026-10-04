@@ -30,18 +30,21 @@ class CausalSubspace:
         self.history = deque(maxlen=2048)
         self.previous_basis = None
         self.support = None
+        self.effective_support = None
 
     def reset(self):
         self.history.clear()
         self.previous_basis = None
         self.support = None
+        self.effective_support = None
 
     def push(self, t, vector, feature_ids):
         vector = np.asarray(vector, dtype=float)
         support = tuple(feature_ids)
         if vector.ndim != 1 or len(vector) != len(support):
             raise ValueError("collective feature IDs must match the vector")
-        if not np.isfinite(vector).all():
+        adaptive = self.settings.collective_support == "observed"
+        if not np.isfinite(vector).any() or (not adaptive and not np.isfinite(vector).all()):
             self.reset()
             return {"state": "missing", "reason": "missing collective support"}
         if support != self.support or (self.history and (
@@ -52,9 +55,20 @@ class CausalSubspace:
             self.history.popleft()
         result = {"state": "missing", "reason": "warming collective window", "support": list(support),
                   "past_samples": len(self.history)}
-        k = min(self.settings.components, len(vector))
-        if len(self.history) >= max(k+2, 6):
-            past = np.stack([v for _, v in self.history])
+        past = np.stack([v for _, v in self.history]) if self.history else np.empty((0, len(vector)))
+        mask = np.isfinite(vector) & np.isfinite(past).all(axis=0)
+        effective = tuple(np.array(support)[mask])
+        if effective != self.effective_support:
+            self.previous_basis = None
+            self.effective_support = effective
+        result.update(support=list(effective), requested_support=list(support),
+                      excluded_support=[name for name, present in zip(support, mask) if not present],
+                      support_policy=self.settings.collective_support)
+        k = min(self.settings.components, len(effective))
+        if len(effective) < 2:
+            result["reason"] = "insufficient common observed collective support"
+        elif len(self.history) >= max(k+2, 6):
+            past = past[:, mask]
             mean = past.mean(axis=0)
             _, singular, vt = np.linalg.svd(past-mean, full_matrices=False)
             rank = int(np.sum(singular > self.settings.noise_velocity*np.sqrt(len(past))))
@@ -69,7 +83,7 @@ class CausalSubspace:
             else:
                 basis = align_basis(vt[:k].T, self.previous_basis)
                 angles = principal_angles(self.previous_basis, basis) if self.previous_basis is not None else None
-                centered = vector-mean
+                centered = vector[mask]-mean
                 amplitudes = basis.T @ centered
                 residual = centered-basis @ amplitudes
                 projector = basis @ basis.T

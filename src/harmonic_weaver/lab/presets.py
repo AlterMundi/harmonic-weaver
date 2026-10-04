@@ -1,8 +1,8 @@
-"""Versioned starting places, never overwriting a user's saved configuration."""
+"""Starting places: migrate unchanged factory defaults, preserve user edits."""
 from .contracts import Macro, MacroTarget, MappingTerm, Preset, Route
 
 
-def initial_presets():
+def initial_presets(*, legacy=False):
     names = {"baseline":"01 · Instrumento original / seis plucks",
              "local":"02 · Movimiento continuo / predicción local",
              "relational":"03 · Interferencia relativa / Anni v0",
@@ -17,6 +17,15 @@ def initial_presets():
                               targets=[MacroTarget(path="master", minimum=0., maximum=1.)]),
                          Macro(id="phase", label="Movimiento de fase", value=.25,
                               targets=[MacroTarget(path="response.phase_depth", minimum=0., maximum=180.)])]
+        if not legacy and algorithm != "baseline":
+            for route in preset.routes:
+                if route.target in {"detune", "phase_deg"}:
+                    route.enabled = False
+                elif route.target == "gain":
+                    route.smoothing_s = .03
+            preset.macros = [m for m in preset.macros if m.id != "phase"]
+            if algorithm == "collective":
+                preset.algorithm.collective_support = "observed"
         result.append(preset)
     continuous = result[0].model_copy(deep=True)
     continuous.id = "lab-v1-baseline-continuous"
@@ -42,18 +51,20 @@ def initial_presets():
     contrast.expression = 10.
     contrast.transient_mix = .3
     result.append(contrast)
-    result.extend(descriptor_presets(reference))
+    result.extend(descriptor_presets(reference, legacy=legacy))
     return result
 
 
 def seed_presets(store):
-    existing = {p["id"] for p in store.list_presets()}
+    existing = {p["id"]:p for p in store.list_presets()}
+    old_defaults = {p.id:p for p in initial_presets(legacy=True)}
     for preset in initial_presets():
-        if preset.id not in existing:
+        old = existing.get(preset.id)
+        if old is None or (old == old_defaults[preset.id].model_dump() and old != preset.model_dump()):
             store.save(preset)
 
 
-def descriptor_presets(reference):
+def descriptor_presets(reference, *, legacy=False):
     """Tuned amplitude-only examples; no calibration/source, never rewrite saved presets."""
     specs = [
         ("local", "08 · Afinado / error de predicción local"),
@@ -101,6 +112,7 @@ def descriptor_presets(reference):
         preset.routes = routes
         if algorithm == "collective":
             preset.algorithm.components = 3
+            preset.algorithm.collective_support = "fixed" if legacy else "observed"
             for voice, label in zip(preset.voices, ("Modo 1", "Modo 2", "Modo 3", "Residuo × velocidad", "Cambio de subespacio × velocidad", "Velocidad global")):
                 voice.label = label
         result.append(Preset.model_validate(preset.model_dump()))

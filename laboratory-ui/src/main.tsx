@@ -57,6 +57,7 @@ const labels: Record<string, string> = {
   relation_reference: "Referencia relacional",
   window_s: "Ventana colectiva (s)",
   components: "Componentes",
+  collective_support: "Soporte colectivo (observed: articulaciones visibles; fixed: todas)",
   ridge: "Regularización ridge",
   lag_s: "Retardo central a explorar (s)",
   propagation_interval_s: "Intervalo de ajuste retardado (s)",
@@ -191,6 +192,8 @@ function Fields({
                 onChange({
                   ...value,
                   [key]: v,
+                  ...(schema.title === "AlgorithmSettings" && key === "id" && v === "collective" && value.id !== "collective"
+                    ? {collective_support: "observed"} : {}),
                   ...(key === "source" && signalUnits[v]
                     ? { input_unit: signalUnits[v] }
                     : {}),

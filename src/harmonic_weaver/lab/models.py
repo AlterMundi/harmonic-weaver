@@ -125,11 +125,14 @@ class MotionModel:
             region = propagation.get("regions", {}).get(str(z), {})
             put(f"zone.{z}.center_score", region.get("score"), reason="propagation evidence not yet available")
         selected = kin["velocity"][settings.joints]
-        put("global.speed", finite_mean(np.linalg.norm(selected, axis=1)), "T/s")
+        speed_support = np.isfinite(selected).all(axis=1)
+        speed_selected = selected[speed_support] if settings.collective_support == "observed" else selected
+        put("global.speed", finite_mean(np.linalg.norm(speed_selected, axis=1)) if len(speed_selected) else None, "T/s")
         trunk = kin["raw"][[5, 6]].mean(axis=0)-kin["raw"][[11, 12]].mean(axis=0)
         orientation = self.global_angle.push(t, trunk if np.isfinite(trunk).all() else None)
         put("global.angle_deg", orientation.get("angle_deg"), "deg")
         collective = self.subspace.push(t, selected.ravel(), [f"{j}.{axis}" for j in settings.joints for axis in "xy"])
+        collective["speed_support"] = [joint for joint, valid in zip(settings.joints, speed_support) if valid]
         put("collective.rank", collective.get("rank"))
         put("collective.residual", collective.get("residual"))
         principal = collective.get("principal_angles_deg")

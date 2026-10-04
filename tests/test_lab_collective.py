@@ -74,3 +74,31 @@ def test_propagation_compares_predictors_on_shared_target_times():
     assert target['evaluation_samples']==target['augmented_available_samples']
     assert target['own_history_error']==pytest.approx(target['augmented_error'])
     assert target['improvement']==pytest.approx(0.)
+
+
+def test_observed_support_keeps_real_modes_without_inventing_occluded_coordinates():
+    model = CausalSubspace(AlgorithmSettings(components=1, noise_velocity=.001, collective_support="observed"))
+    for i in range(30):
+        result = model.push(i/30, [np.sin(i/5), 2*np.sin(i/5), np.nan, np.nan], ["a.x", "a.y", "b.x", "b.y"])
+    assert result["state"] == "observed"
+    assert result["support"] == ["a.x", "a.y"]
+    assert result["excluded_support"] == ["b.x", "b.y"]
+    assert np.array(result["basis"]).shape == (2, 1)
+    assert result["history_end_s"] < 29/30
+    assert np.isfinite(result["amplitudes"]).all()
+    assert len(model.history) == 30
+    # Returning coordinates cannot acquire a fitted mode from invented history.
+    result = model.push(1., [0., 0., 5., 6.], ["a.x", "a.y", "b.x", "b.y"])
+    assert result["support"] == ["a.x", "a.y"]
+    assert model.push(1.1, [np.nan]*4, ["a.x", "a.y", "b.x", "b.y"])["state"] == "missing"
+    assert not model.history
+
+
+def test_observed_support_does_not_join_alternating_nonoverlapping_observations():
+    model = CausalSubspace(AlgorithmSettings(collective_support="observed"))
+    for i in range(20):
+        vector = [i, i, np.nan, np.nan] if i%2 else [np.nan, np.nan, i, i]
+        result = model.push(i/30, vector, ["a.x", "a.y", "b.x", "b.y"])
+    assert result["state"] == "missing"
+    assert result["reason"] == "insufficient common observed collective support"
+    assert result["support"] == []

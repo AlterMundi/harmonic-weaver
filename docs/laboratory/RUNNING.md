@@ -1014,3 +1014,18 @@ precisión/recall y exclusiones. Todas se restringen al soporte observado común
 Sin soporte hay ausencia de puntuación. **Guardar comparación R03** descarga
 intervalos/candidatos/procedencia localmente. No decide un centro causal ni
 recalcula pose/audio. Marcas humanas y cobertura no se fabrican.
+
+### Ajuste de clickeo y colectivo (2026-10-04)
+
+Los presets de fábrica 02–05 ahora dejan pitch/fase desactivados y suavizan gain
+30 ms, siguiendo la referencia afinada. Pitch/fase siguen disponibles como ruteos
+explícitos. No cambian el realce ×10, transientes ni los presets baseline aceptados.
+Sólo se actualizan ejemplos guardados idénticos a la versión de fábrica anterior;
+las configuraciones modificadas se conservan.
+
+Los ejemplos colectivos 05/11 usan `collective_support=observed`: el subespacio
+se calcula sobre coordenadas realmente observadas en común en la ventana causal,
+sin rellenar huecos. Figura indica ejes excluidos. `fixed` conserva la exigencia de
+todas las articulaciones seleccionadas. Cambiar a colectivo desde Modelos propone
+`observed`; ambos modos se pueden elegir desde ese panel. La velocidad global
+usa articulaciones observadas en ese instante y no se presenta como modo PCA.

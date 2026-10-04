@@ -105,6 +105,10 @@ export function CollectiveGeometry({
             rango {geometry.rank} · {geometry.components} componentes. Las seis
             voces siguen siendo independientes de estos componentes.
           </p>
+          {!!geometry.excluded_support?.length && <p>
+            Sin observaciones comunes en esta ventana: {geometry.excluded_support.map(axisLabel).join(", ")}.
+            No se rellenan esas articulaciones ni se toman como movimiento cero.
+          </p>}
           <canvas
             ref={canvas}
             aria-label={

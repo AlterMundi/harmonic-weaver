@@ -69,3 +69,19 @@ def test_additive_seed_preserves_existing_edits_and_reference(tmp_path):
         assert len(reference.voices)==6
         assert not any(r.enabled for r in reference.routes if r.target in {'detune','phase_deg'})
     finally:store.close()
+
+
+def test_factory_migration_repairs_untouched_examples_without_overwriting_user_presets(tmp_path):
+    from harmonic_weaver.lab.store import SessionStore
+    from harmonic_weaver.lab.routing import PreparedRoutes
+    store = SessionStore(tmp_path, prepare=PreparedRoutes)
+    for preset in initial_presets(legacy=True):
+        store.save(preset)
+    custom = store.load("lab-v1-angular"); custom.master=.37; store.save(custom)
+    seed_presets(store)
+    assert store.load(custom.id) == custom
+    collective = store.load("lab-v3-descriptor-collective")
+    assert collective.algorithm.collective_support == "observed"
+    assert store.load("lab-v1-relational").routes[1].enabled is False
+    assert store.load("lab-v1-baseline-sustained") == next(p for p in initial_presets(legacy=True) if p.id == "lab-v1-baseline-sustained")
+    store.close()

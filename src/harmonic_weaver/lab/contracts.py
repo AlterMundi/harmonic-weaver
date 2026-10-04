@@ -155,6 +155,8 @@ class AlgorithmSettings(Contract):
     relation_reference: Literal["history", "instantaneous"] = "history"
     window_s: Number = Field(default=2, ge=.3, le=10)
     components: int = Field(default=3, ge=1, le=12)
+    collective_support: Literal["fixed", "observed"] = Field(default="fixed",
+        description="fixed requires every selected coordinate; observed uses only coordinates observed throughout the current causal window, without filling gaps.")
     ridge: Number = Field(default=.1, ge=.00001, le=100)
     lag_s: Number = Field(default=.12, ge=.02, le=1)
     propagation_interval_s: Number = Field(default=.2, ge=.03, le=2)
