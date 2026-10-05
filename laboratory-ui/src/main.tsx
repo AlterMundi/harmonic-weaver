@@ -1,6 +1,7 @@
 import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 import {PerformanceControls} from "./PerformanceControls";
+import {CalibrationReuse} from "./CalibrationReuse";
 
 import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
@@ -698,6 +699,8 @@ function App() {
     props = schemas.Preset.properties,
     job = state.source?.job,
     session = state.session || {};
+  const canMeasureScale = !pending && state.motion_frame?.persons?.some((p:Data)=>p.person_id===session.person_id &&
+    [5,6,11,12].every(index=>p.joints.some((j:Data)=>j.index===index && j.state==='observed' && j.position)));
   const displayedMotion = (draft.visual.show_raw_tracking ? state.motion_frame : state.conditioned_motion_frame) || state.motion_frame;
   const form = (key: string) => (
     <Fields
@@ -1239,7 +1242,7 @@ function App() {
                   }
                 </p>
                 <button
-                  disabled={!session.person_id}
+                  disabled={!canMeasureScale}
                   onClick={() =>
                     run(async () => {
                       await api("calibrate", {});
@@ -1255,23 +1258,9 @@ function App() {
                     : "Sin calibración. El baseline conserva su escala adaptativa; los otros modelos requieren calibrar."}
                 </p>
                 {state.calibration_notice&&<p role="status">{state.calibration_notice}</p>}
-                <details>
-                  <summary>Reutilizar calibración explícitamente</summary>
-                  <select
-                    value=""
-                    onChange={(e) =>
-                      e.target.value &&
-                      run(() => api("calibrate", { reuse_id: e.target.value }))
-                    }
-                  >
-                    <option value="">Seleccionar…</option>
-                    {savedCalibrations.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.measured_at} · {c.torso_scale.toFixed(4)}
-                      </option>
-                    ))}
-                  </select>
-                </details>
+                <CalibrationReuse calibrations={savedCalibrations} sourceId={session.source_id}
+                  personId={session.person_id} pending={pending}
+                  reuse={id=>run(()=>api("calibrate",{reuse_id:id}))}/>
                 {perception && schemas.PerceptionSettings && (
                   <details>
                     <summary>
@@ -1525,7 +1514,7 @@ function App() {
                 señales.
               </p>
               <button
-                disabled={!state.motion_frame?.persons?.length}
+                disabled={!canMeasureScale}
                 onClick={() =>
                   run(async () => {
                     await api("calibrate", {});
@@ -1535,6 +1524,10 @@ function App() {
               >
                 Calibrar con el cuerpo visible
               </button>
+              {!canMeasureScale && !pending && <p>Para medir, deben estar observados ambos hombros y ambas caderas de la persona seleccionada.</p>}
+              <CalibrationReuse calibrations={savedCalibrations} sourceId={session.source_id}
+                personId={session.person_id} pending={pending} matchingOnly
+                reuse={id=>run(async()=>{await api("calibrate",{reuse_id:id});await refresh();})}/>
             </div>
           )}
           <dl>

@@ -138,6 +138,15 @@ Los modelos distintos de baseline requieren calibración: el inspector muestra
 un aviso y botón cuando falta. Calibrar con hombros y caderas visibles antes de
 evaluarlos; permitir que acumulen historia tras arrancar.
 
+El botón de medición requiere hombros y caderas observados de la persona
+seleccionada, incluso si hay otra persona visible. Si falta escala, el inspector
+también ofrece **Recuperar escala guardada de esta fuente y persona**, disponible
+en Performance. Es una selección explícita; no aplica ninguna al cambiar de vista.
+En Fuente, **Reutilizar calibración explícitamente** agrupa las coincidencias y
+separa las de otra fuente/persona. Cada opción identifica fecha, fuente, persona,
+escala y si fue reutilizada. Coincidir en IDs no demuestra identidad corporal
+entre generaciones de tracking; verificá el cuerpo seleccionado.
+
 
 Para aprender los controles: en Ruteos, exponente > 1 reduce valores pequeños
 más que grandes (contraste estático); exponente < 1 levanta valores pequeños

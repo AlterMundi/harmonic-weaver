@@ -7,7 +7,7 @@ function fixture() {
   return JSON.parse(execFileSync(resolve(root,'.venv/bin/python'),['-c',
     'import json; from harmonic_weaver.lab.contracts import Preset,Macro,MacroTarget; p=Preset(); p.macros=[Macro(id="intensity",label="Intensidad compartida",value=.7,targets=[MacroTarget(path="master",minimum=0.,maximum=1.)])]; print(json.dumps({"preset":p.model_dump(),"schemas":{"Preset":Preset.model_json_schema()}}))'],{cwd:root,encoding:'utf8'}));
 }
-async function setup(page:any) {
+async function setup(page:any,calibrations:any[]=[]) {
  const data=fixture(); const writes:any[]=[];
  let preset=data.preset;
  const state:any={preset,session:{session_id:'synthetic',desired_revision:1,person_id:'one',source_id:'synthetic',playing:true,position_s:0,loop:true,status:'playing'},
@@ -26,13 +26,14 @@ async function setup(page:any) {
    const body=request.postDataJSON();writes.push({path,body});
    if(path==='/api/configuration'){preset=body.preset;state.preset=preset;state.session.desired_revision++;}
    if(path==='/api/person')state.session.person_id=body.person_id;
+   if(path==='/api/calibrate')state.calibration=calibrations.find(c=>c.id===body.reuse_id) || {torso_scale:.2,provenance:'synthetic measurement'};
    if(path==='/api/presets')saved.push(body);
    if(path==='/api/macros/intensity'){state.preset.macros[0].value=body.value;state.preset.master=body.value;state.session.desired_revision++;}
    if(path.endsWith('/apply')){state.preset={...preset,master:.42};state.session.desired_revision++;}
    await route.fulfill({json:state});return;
   }
   const responses:any={ '/api/schemas':data.schemas,'/api/state':state,'/api/presets':saved,'/api/media':[],
-   '/api/calibrations':[],'/api/signals':{},'/api/algorithms':[], '/api/environment':{perception:{}},
+   '/api/calibrations':calibrations,'/api/signals':{},'/api/algorithms':[], '/api/environment':{perception:{}},
    '/api/source-preferences':{default_person:'best_coverage',autoplay_video:true},'/api/marks':[]};
   if(path.includes('preview')){await route.fulfill({status:204});return;}
   await route.fulfill({json:responses[path] ?? []});
@@ -95,4 +96,37 @@ test('view persists locally and calibration and audio warnings stay visible',asy
  await page.reload();
  await expect(page.getByRole('region',{name:'Controles de performance'})).toBeVisible();
  expect(writes).toEqual([]);expect(errors).toEqual([]);
+});
+
+test('performance recovery lists only matching scales and measurement needs selected body support',async({page})=>{
+ const calibrations=[
+  {id:'matching',source_id:'synthetic',person_id:'one',torso_scale:.2,measured_at:'measured-one'},
+  {id:'other-body',source_id:'synthetic',person_id:'two',torso_scale:.4,measured_at:'measured-two'},
+  {id:'other-source',source_id:'another',person_id:'one',torso_scale:.3,measured_at:'measured-other'},
+ ];
+ const {state,writes,errors}=await setup(page,calibrations);
+ state.preset.algorithm.id='local';state.runtime.diagnostic.message='Calibración requerida';
+ const joints=[5,6,11,12].map(index=>({index,state:'observed',position:[.5,index<11?.2:.7]}));
+ state.motion_frame.persons[1].joints=joints;
+ await page.getByRole('button',{name:'Performance',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Calibrar con el cuerpo visible'})).toBeDisabled();
+ await page.getByText('Recuperar escala guardada de esta fuente y persona',{exact:true}).click();
+ const recovery=page.getByLabel('Calibración de esta fuente y persona',{exact:true});
+ expect(await recovery.locator('option').evaluateAll(options=>options.map(o=>(o as HTMLOptionElement).value))).toEqual(['','matching']);
+ expect(writes).toEqual([]);
+ await recovery.selectOption('matching');
+ await expect.poll(()=>writes.filter(w=>w.path==='/api/calibrate').map(w=>w.body)).toEqual([{reuse_id:'matching'}]);
+ await expect(page.getByRole('button',{name:'Calibrar con el cuerpo visible'})).not.toBeVisible();
+ state.calibration=null;state.motion_frame.persons[0].joints=joints;
+ await expect(page.getByRole('button',{name:'Calibrar con el cuerpo visible'})).toBeEnabled();
+ await page.getByRole('button',{name:'Explorar',exact:true}).click();
+ await page.getByText('Reutilizar calibración explícitamente',{exact:true}).click();
+ const all=page.getByLabel('Calibración guardada',{exact:true});
+ expect(await all.locator('optgroup').evaluateAll(groups=>groups.map(g=>(g as HTMLOptGroupElement).label)))
+  .toEqual(['Esta fuente y persona','Otra fuente o persona · reutilización explícita']);
+ expect(await all.locator('option').evaluateAll(options=>options.map(o=>(o as HTMLOptionElement).value)))
+  .toEqual(['','matching','other-body','other-source']);
+ await expect(all.locator('option[value="other-body"]')).toContainText('two');
+ await expect(all.locator('option[value="other-source"]')).toContainText('another');
+ expect(errors).toEqual([]);
 });

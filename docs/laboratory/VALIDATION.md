@@ -3346,3 +3346,15 @@ ratios, síntesis ni cache. No se atribuye esta corrección al click que Nicolá
 había dejado de escuchar; no se hizo una nueva escucha ni se reinició su sesión.
 Los 8 tests de PCM cross-repo pasan con el checkout Shaper actual añadido a
 PYTHONPATH: repetibilidad, paridad de targets/render, bloque causal y procedencia.
+
+### Recuperación explícita de escala desde Performance — 2026-10-05
+
+La UI distingue calibraciones por fuente/persona y permite recuperar desde el
+inspector las que coinciden con ambas IDs. Las demás siguen disponibles en Fuente,
+agrupadas e identificadas; no se aplican automáticamente. Medir requiere soporte
+de hombros/caderas del cuerpo seleccionado, no basta con otra persona visible.
+Cuatro pruebas Chrome con HTTP/WebSocket sintéticos interceptados pasan: lista
+restringida del inspector, inventario completo etiquetado, selección explícita con
+reuse_id, habilitación de medición por soporte seleccionado y controles previos
+Performance. TypeScript/Vite build pasa. No cambia calibración/runtime ni defaults;
+no acredita continuidad de identidad entre generaciones ni una medición corporal.
