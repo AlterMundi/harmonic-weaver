@@ -3534,3 +3534,25 @@ idénticas. Script/configuración/resultados quedan locales en
 `checks/one-euro-hip-continuity-20261005/`. Esto no prueba exactitud anatómica ni
 corrección de cada giro, ni aceptación auditiva. No se aplicó la opción a la sesión
 cotidiana ni se reanudó la fuente. Backend requiere próximo arranque normal.
+
+### 2026-10-05 — Reproductor CUDA acotado sin cache
+
+Nuevo `lab.tracking_diagnostic` usa el worker productivo sin modificar sus archivos,
+contratos IPC ni fingerprint del cache. Proceso nuevo por condición, prefijo
+limitado, device explícito, sin exportar frames/poses ni escribir cache. Guarda
+etapa decode/initialization/inference/identity/projection, frame/timestamp,
+traceback y procedencia local. Síncrono sólo en hijo; timeout/fallo no es éxito.
+
+Pruebas sintéticas verifican fallo inferencia en frame concreto, conteo anterior,
+traceback, ausencia de pose en informe, límite de frames, restauración del wrapper,
+CUDA no disponible sin fallback, timeout con etapa conservada y no sobrescritura.
+Pruebas cache existentes acompañan la entrega; no se alteró ese código.
+
+Dos procesos CUDA reales sobre el prefijo de 240 frames del clip privado actual
+completaron: normal y `CUDA_LAUNCH_BLOCKING=1`. GPU RTX2060/6 GB, driver615.71.09,
+backend local existente. No reproduce el fallo histórico de otro fragmento de
+espalda de 360 frames ni acredita causa o solución de #31. Reportes/logs locales:
+`checks/cuda-diagnostic-20261005/{async-240,sync-240}`. Primera corrida precede el
+agregado final de campos de procedencia/returncode del reproductor; su worker
+productivo y parámetros de inferencia no cambiaron. No medios/coords publicados,
+ninguna generación reemplazada, sesión audio conservada pausada.

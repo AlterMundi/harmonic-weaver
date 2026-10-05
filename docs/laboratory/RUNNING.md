@@ -1157,3 +1157,31 @@ Ganancia enviada no demuestra audio audible: revisar salida R24 y diagnóstico
 Shaper si hay targets activos pero no se escucha. No hace calibración automática,
 cambia defaults ni altera el sonido. El backend nuevo carga en el siguiente arranque
 normal; no hace falta interrumpir una sesión sólo para instalar el diagnóstico.
+
+### Diagnóstico local de un fallo CUDA
+
+El comando siguiente ejecuta el mismo worker de percepción en un proceso nuevo,
+pero sólo sobre un prefijo y sin escribir tracking ni tocar caches. Usar un
+fragmento local; no hace falta copiar el video original. Los informes/logs contienen
+rutas locales y permanecen privados. Cada `--output` debe ser un directorio nuevo.
+
+```sh
+PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.tracking_diagnostic \
+  --video /ruta/fragmento.mp4 \
+  --checkpoint /home/nicolas/Projects/HarMoCAP/harmocap-m-pose-ft2.pt \
+  --device cuda:0 --frames 240 \
+  --output ~/.local/share/harmonic-weaver/laboratory/checks/cuda-normal
+```
+
+Repetir con otro `--output` y `--cuda-synchronous` permite localizar mejor una
+excepción asíncrona (`CUDA_LAUNCH_BLOCKING=1` sólo en el hijo). `--settings-json`
+acepta una configuración PerceptionSettings completa en lugar de `--checkpoint`;
+`--device` selecciona explícitamente CPU/CUDA. No hay fallback silencioso. Flags
+adicionales: `--imgsz`, `--harmocap-dir`, `--python`, `--timeout` (default 180 s).
+
+`report.json` conserva etapa, último frame/timestamp, frames completados,
+traceback, entorno, procedencia del worker/modelo y condición solicitada;
+`worker.log` conserva logs. Un timeout o proceso abortado permanece failed, aunque
+haya completado frames. Completar el prefijo no prueba ausencia del fallo en el
+resto del video ni resuelve un error intermitente. El modo síncrono es diagnóstico,
+no una mejora de rendimiento ni un cambio al arranque cotidiano.

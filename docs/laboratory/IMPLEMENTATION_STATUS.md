@@ -70,6 +70,12 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 
 ## Continuación
 
+Diagnóstico CUDA acotado disponible por comando, sin escribir/invalidatear cache:
+worker productivo en proceso nuevo, prefijo y dispositivo explícitos, comparación
+normal/síncrona, etapa/frame/traceback locales. Dos prefijos reales de 240 frames
+completaron en CUDA; no reproducen ni resuelven el fallo histórico de espalda.
+CPU cotidiana intacta. Comando y límites en RUNNING/VALIDATION; #31 sigue abierto.
+
 One-Euro incorpora corrección opcional de continuidad de etiquetas de caderas
 antes de suavizar. Apagada por defecto, portable y sin mediana/límite añadido;
 replay del cache corporal produjo correcciones con las demás articulaciones
