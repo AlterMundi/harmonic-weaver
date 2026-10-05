@@ -3387,3 +3387,29 @@ cero submits durante confirmación, objetos/historia conservados, selección gua
 y reinicio al cambiar cuerpo/generación. Seis pruebas Chrome interceptadas y build
 pasan: confirmación explícita envía sólo selección, conserva controles y queda
 oculta con backend anterior. Sin nueva escucha ni modificación de sesión corporal.
+
+### R07 corporal: EVAL→R05→campo RMS→atributos reservados — 2026-10-05
+
+Primera corrida local con features congeladas de tracking corporal. Plan previo:
+señal de velocidad de caderas, mapeo R05 de amplitud con seis ratios fijos, 8kHz,
+membrana teórica 4×4 modos/grilla5×5, tres ventanas train/dos test dentro de toma,
+embargo explícito, media de señal observada y cobertura mínima declarada. Kernels
+existentes calculan targets/unidades/causas, RMS y decoder train-only (campo,
+forma, magnitud, media y controles train-label shuffle). Sin modificar live/cache.
+
+Dos ejecuciones con entradas/entorno congelados conservaron exactamente PCM,
+dataset y resultados; la receta final conserva equivalencia numérica. Verificación
+con recálculo del decoder pasa. Todo queda privado en
+`~/.local/share/harmonic-weaver/laboratory/checks/r07-body-20261005/`.
+El primer intento falló por lectura incorrecta de la estructura source_record;
+se conservó como prefijo incompleto, sin manifest final completo, y la receta fue
+corregida. No se modificó el plan ni se ajustó a scores reservados.
+
+21 tests existentes de labels/readout pasan; prueba nueva end-to-end sintética
+pasa y confirma repetición, preservación EVAL byte por byte, rechazo de manifest
+cambiado y unidad de etiqueta angular independiente de la excitación de velocidad.
+Receta pública sin datos corporales en research/laboratory/r07_membrane/.
+No se anuncia un resultado numérico corporal públicamente. Dos ventanas de una
+toma no son sujetos/tomas independientes; labels derivados de tracking no son
+verdad de movimiento. Mapeo experimental R05 requiere contraste separado con
+PCM de Shaper; membrana teórica no es ensayo físico ni validación HIT/perceptual.

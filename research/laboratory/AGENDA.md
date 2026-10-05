@@ -967,3 +967,12 @@ Todas usan soporte observado común, con métricas individuales y denominadores
 retenidos. Control sintético de cobertura desigual/disjunta repetido; no marcas
 humanas inventadas ni centro causal descubierto. Marcas, incertidumbre temporal y
 reservas nuevas conservan su dependencia humana.
+
+R07 — 2026-10-05: receta EVAL→mapeo R05 de seis carriers→membrana RMS→readout
+con atributos calculados explícitamente. Primer contraste corporal local, tres
+ventanas train/dos test dentro de la misma toma, plan congelado antes de scores;
+repetición PCM/dataset/resultados y recálculo verificados. Datos/scores privados.
+[Receta y alcance](r07_membrane/README.md). Kernels/controles existentes; no nueva
+adquisición, cambios de sonido ni validación física. Siguientes contrastes: tomas
+independientes y origen PCM de Shaper explícito. No continuidad de identidad
+inferida entre archivos, información natural preservada ni evidencia HIT.

@@ -406,3 +406,45 @@ transientes están implementados; sus cortes y pruebas se registran arriba.
 - Medio físico: faltan actuador, membrana/material/bordes caracterizados,
   observación sincronizada y calibración. No se ha realizado escucha ni ensayo
   físico ni validación humana de esta implementación.
+
+## Receta corporal local con ventanas reservadas — 2026-10-05
+
+`body_readout.py` enlaza los núcleos existentes: trace EVAL congelado → mapeo de
+amplitud experimental R05 con seis carriers → campos RMS R07 → etiquetas de
+features EVAL → decoder train-only. Conserva plan antes de render/scoring, PCM,
+proyecciones, etiquetas/causas/unidades, dataset y resultados/manifests locales.
+No vuelve a inferir pose, lee/copia video ni abre un dispositivo sonoro.
+
+```bash
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/r07_membrane/body_readout.py \
+  --evaluation-dir /ruta/local/evaluacion/result \
+  --plan research/laboratory/r07_membrane/body_readout_example.json \
+  --output /ruta/local/corrida-r07-nueva
+```
+
+El ejemplo es configuración sin datos/IDs corporales; exige que la corrida EVAL
+incluya [2,34) y la señal elegida. Ajustar previamente ventanas, índices, señales,
+medio y mapeo a la pregunta; no elegirlos tras mirar scores reservados. Los tiempos
+son segundos fuente. Ventanas train preceden a test y conservan embargo explícito.
+Etiquetas usan observaciones únicas válidas, su unidad propia y límites de cobertura;
+no rellenan gaps. `source_origin_s` conserva el offset del PCM respecto de la fuente.
+El alias EVAL es local y derivado de su manifest: no es un job registrado en la UI.
+
+`dataset.json` permite repetir sólo el decoder con `membrane_readout_run`, sin
+video/PCM. La receta usa archivos congelados fuera del inventario web; los mismos
+mecanismos y parámetros se operan en los paneles R05/R07 con corridas registradas.
+No registra automáticamente estos checks como ensayos en el servidor cotidiano.
+Un fallo conserva prefijo/plan, sin manifest final completo; repetir usa destino
+nuevo. Datos corporales y scores no se publican por ejecutar este comando.
+
+Recorrido local con tracking corporal: cinco ventanas, tres train/dos test dentro
+de la misma toma; PCM/dataset/resultados repetidos bajo las mismas entradas/entorno,
+y recálculo del decoder verificado. Resultados numéricos privados. Prueba sintética
+end-to-end adicional conserva EVAL byte por byte y comprueba etiquetas angulares
+con unidad deg/s aunque la excitación venga de velocidad T/s.
+
+Este corte mide el canal configurado del mapeo experimental R05 y la membrana
+teórica. Compararlo con Shaper requiere otro origen de PCM declarado. Dentro de
+una toma no hay generalización entre recordings/personas ni muestras independientes;
+features de tracking no son ground truth corporal y la membrana no es cymatics físico.

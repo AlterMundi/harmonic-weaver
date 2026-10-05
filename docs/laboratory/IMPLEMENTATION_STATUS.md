@@ -69,9 +69,10 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 ## Continuación
 
 Prioridad cotidiana: escuchar los otros modelos con tracking suavizado, probar
-Performance y reportar fallos concretos. El primer experimento corporal R07 puede
-usar las fuentes locales existentes y targets calculados explícitamente desde
-EVAL; no requiere membrana física, pero su reserva temporal debe quedar declarada.
+Performance y reportar fallos concretos. La primera corrida corporal R07 dentro
+de una toma, con reserva temporal y targets EVAL explícitos, quedó ejecutada y repetida
+el 2026-10-05; resultados privados, receta en el banco R07. El siguiente contraste
+necesita tomas independientes o un origen de PCM explícito de Shaper.
 #77 conserva el trabajo de procedencia temporal y productores adicionales.
 La causa CUDA y las mediciones físicas siguen abiertas. No se declara terminado
 el roadmap ni validadas sus hipótesis al entregar herramientas.
