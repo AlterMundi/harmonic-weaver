@@ -965,6 +965,8 @@ function App() {
               exportPreset={exportPreset} name={presetName} setName={setPresetName} personId={session.person_id}
               personIds={[...new Set<string>([session.person_id,...(job?.person_ids || []),...(state.motion_frame?.persons || []).map((p:Data)=>p.person_id)].filter(Boolean))]}
               choosePerson={id=>run(()=>api("person",{person_id:id}))}
+              selectionStatus={state.runtime?.selection_status}
+              canConfirmPerson={state.runtime?.can_confirm_person === true}
               mark={()=>run(()=>api("marks",{text:"Se siente bien",category:"experience"}))}/>}
             <div hidden={performance}>
             {tab === "Investigación" && <Suspense fallback={<p>Cargando bancos de investigación…</p>}><ResearchPanel api={api} run={run}/></Suspense>}
@@ -1251,6 +1253,9 @@ function App() {
                     )[state.runtime?.selection_status]
                   }
                 </p>
+                {state.runtime?.can_confirm_person === true && ['automatic','automatic_changed'].includes(state.runtime?.selection_status) &&
+                  <button disabled={pending || !session.person_id}
+                    onClick={()=>run(()=>api("person",{person_id:session.person_id}))}>Fijar esta persona</button>}
                 <button
                   disabled={!canMeasureScale}
                   onClick={() =>

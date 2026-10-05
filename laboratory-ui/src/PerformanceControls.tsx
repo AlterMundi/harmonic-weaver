@@ -1,9 +1,9 @@
 type Data = Record<string, any>;
-export function PerformanceControls({draft,presets,pending,change,applyPreset,applyMacro,save,exportPreset,name,setName,personId,personIds,choosePerson,mark}:{
+export function PerformanceControls({draft,presets,pending,change,applyPreset,applyMacro,save,exportPreset,name,setName,personId,personIds,selectionStatus,canConfirmPerson,choosePerson,mark}:{
  draft:Data;presets:Data[];pending:boolean;change:(key:string,value:any)=>void;
  applyPreset:(preset:Data)=>void;applyMacro:(id:string,value:number)=>unknown;
  save:()=>void;exportPreset:()=>void;name:string;setName:(name:string)=>void;
- personId?:string;personIds:string[];choosePerson:(id:string)=>void;mark:()=>void;
+ personId?:string;personIds:string[];selectionStatus?:string;canConfirmPerson?:boolean;choosePerson:(id:string)=>void;mark:()=>void;
 }) {
  return <section aria-label="Controles de performance">
   <h2>Jugar con el movimiento</h2>
@@ -39,6 +39,8 @@ export function PerformanceControls({draft,presets,pending,change,applyPreset,ap
   <label>Persona en performance<select value={personId || ''} onChange={e=>choosePerson(e.target.value)}>
    <option value="" disabled>Elegir cuerpo…</option>{personIds.map(id=><option key={id}>{id}</option>)}
   </select></label>
+  {canConfirmPerson && ['automatic','automatic_changed'].includes(selectionStatus || '') && <button disabled={pending || !personId}
+    onClick={()=>personId && choosePerson(personId)}>Fijar esta persona</button>}
   <h3>Configuraciones guardadas</h3>
   <div className="preset-list">{presets.map(p=><button key={p.id} disabled={pending} onClick={()=>applyPreset(p)}>{p.name}</button>)}</div>
   <label>Nombre para guardar<input value={name} onChange={e=>setName(e.target.value)} placeholder={draft.name}/></label>

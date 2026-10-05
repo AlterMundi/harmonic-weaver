@@ -20,6 +20,12 @@ convertirla en medición automática ni corregir el tiempo de reacción.
 Cambiar de vista no modifica defaults sonoros. Recargar la web carga esta vista
 sin requerir reiniciar los servicios.
 
+Cuando la persona fue elegida automáticamente, **Fijar esta persona** confirma
+esa elección y la recuerda para la misma generación de tracking. Si ya es el
+cuerpo activo, conserva escala, historia y sonido. Cambiar a otra persona o
+generación sigue descartando calibración e historia. Esta acción aparece en
+Fuente y Performance después del siguiente arranque del backend actualizado.
+
 ## Explorar mientras se procesa un video
 
 Cuando hay tracking parcial, el transporte ofrece **Loop sobre prefijo trackeado**.

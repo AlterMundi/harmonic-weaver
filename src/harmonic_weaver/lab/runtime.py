@@ -168,14 +168,18 @@ class LaboratoryRuntime:
                 known.update(metadata.get("person_ids", []))
             if person_id not in known:
                 raise ValueError("Elegí una persona detectada en esta fuente.")
+            generation_changed = (metadata and metadata["status"] == "ready" and
+                (metadata.get("cache_key"), metadata.get("generation")) != self._selection_checked)
+            same_person = person_id == self.person_id and not generation_changed
             self.person_id = person_id
             self.selection_status = "explicit"
             self._selection_explicit = True
             self._remember_selection(metadata)
-            self.calibration = None
             self.calibration_notice = None
-            self.model = None
-            self._reset()
+            if not same_person:
+                self.calibration = None
+                self.model = None
+                self._reset()
             self.store.record_event("person", {"person_id":person_id})
 
     def _remember_selection(self, metadata):
@@ -408,7 +412,7 @@ class LaboratoryRuntime:
                     "calibration_notice":self.calibration_notice,
                     "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
                                "epoch":self.transport.epoch, "observed_epoch":self.epoch if self.epoch>=0 else None, "diagnostic":self.diagnostic,
-                               "selection_status":self.selection_status}, **self.audio.snapshot()}
+                               "selection_status":self.selection_status, "can_confirm_person":True}, **self.audio.snapshot()}
 
     def close(self):
         self._stop.set()

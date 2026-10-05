@@ -12,7 +12,7 @@ async function setup(page:any,calibrations:any[]=[]) {
  let preset=data.preset;
  const state:any={preset,session:{session_id:'synthetic',desired_revision:1,person_id:'one',source_id:'synthetic',playing:true,position_s:0,loop:true,status:'playing'},
   source:{kind:'camera',job:null,camera:{status:'running'}},motion_frame:{width:100,height:100,persons:[{person_id:'one',joints:[]},{person_id:'two',joints:[]}]},
-  runtime:{diagnostic:{code:'active',message:'Prueba sintética en marcha',observed_signals:6,pose:{observed:17}}},
+  runtime:{can_confirm_person:true,diagnostic:{code:'active',message:'Prueba sintética en marcha',observed_signals:6,pose:{observed:17}}},
   shaper:{telemetry_valid:true,applied_revision:1},voice_frame:{sample_index:0,sample_rate:48000,block_frames:1024,voices:[]},calibration:null};
  const saved=[{...preset,id:'reference',name:'Referencia sintética'}];
  let tick:any;
@@ -25,7 +25,7 @@ async function setup(page:any,calibrations:any[]=[]) {
   if(request.method()!=='GET') {
    const body=request.postDataJSON();writes.push({path,body});
    if(path==='/api/configuration'){preset=body.preset;state.preset=preset;state.session.desired_revision++;}
-   if(path==='/api/person')state.session.person_id=body.person_id;
+   if(path==='/api/person'){state.session.person_id=body.person_id;state.runtime.selection_status='explicit';}
    if(path==='/api/transport'){
     if(body.tracked_prefix!=null)state.session.loop_end_s=body.tracked_prefix ? state.source.job.prefix_s : null;
     if(body.loop!=null){state.session.loop=body.loop;if(!body.loop)state.session.loop_end_s=null;}
@@ -153,4 +153,19 @@ test('tracked-prefix controls freeze and explicitly expand the loop without chan
  await prefix.click();await expect(prefix).not.toBeChecked();await expect.poll(()=>state.session.loop_end_s).toBeNull();
  expect(writes.map(w=>w.body)).toEqual([{tracked_prefix:true},{tracked_prefix:true},{tracked_prefix:false}]);
  expect(JSON.stringify(state.preset)).toBe(before);expect(errors).toEqual([]);
+});
+
+test('pinning the automatic body sends only its selection and preserves current controls',async({page})=>{
+ const {state,writes,errors}=await setup(page);
+ state.runtime.can_confirm_person=false;
+ state.runtime.selection_status='automatic';state.calibration={torso_scale:.2,provenance:'synthetic measured scale'};
+ const before=JSON.stringify(state.preset),scale=state.calibration;
+ await page.getByRole('button',{name:'Performance',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Fijar esta persona',exact:true})).not.toBeVisible();
+ state.runtime.can_confirm_person=true;
+ await page.getByRole('button',{name:'Fijar esta persona',exact:true}).click();
+ await expect.poll(()=>state.runtime.selection_status).toBe('explicit');
+ await expect(page.getByRole('button',{name:'Fijar esta persona',exact:true})).not.toBeVisible();
+ expect(writes).toEqual([{path:'/api/person',body:{person_id:'one'}}]);
+ expect(JSON.stringify(state.preset)).toBe(before);expect(state.calibration).toBe(scale);expect(errors).toEqual([]);
 });

@@ -377,3 +377,44 @@ def test_tracked_prefix_loop_is_explicit_fixed_and_resets_history(tmp_path):
     with pytest.raises(ValueError,match='only file'):
         runtime.control(tracked_prefix=True)
     store.close()
+
+
+def test_confirming_current_body_pins_selection_without_silencing_or_losing_scale(tmp_path):
+    now = [0.]
+    store = SessionStore(tmp_path, prepare=PreparedRoutes)
+    store.edit(Preset(algorithm={'id':'local'},response={'pluck_enabled':False}),0)
+    library, audio = TwoPeopleLibrary(), Audio()
+    runtime = LaboratoryRuntime(store,library=library,audio=audio,clock=lambda:now[0])
+    runtime.kind,runtime.job_id='video','test'
+    runtime.tick();runtime.calibrate();runtime.control(playing=True)
+    for i in range(20):
+        now[0]=i/30;runtime.tick()
+    assert any(t.gain>0 for t in audio.targets)
+    model,calibration,routes,targets=runtime.model,runtime.calibration,runtime.routes,audio.targets
+    history=list(model.kinematics.history)
+    submissions=[]
+    submit=audio.submit
+    audio.submit=lambda t,r:(submissions.append((t,r)),submit(t,r))
+    runtime.select_person(runtime.person_id)
+    assert runtime.selection_status=='explicit'
+    assert runtime.model is model and runtime.calibration is calibration and runtime.routes is routes
+    assert len(model.kinematics.history)==len(history)
+    assert audio.targets is targets and not submissions
+    assert store.source_selection('media-a')['person_id']==runtime.person_id
+    # An actual body change must still discard scale/history and release audio.
+    runtime.select_person('one')
+    assert runtime.calibration is None and runtime.model is None
+    assert submissions and audio.targets==[]
+    store.close()
+
+
+def test_same_slot_cannot_preserve_scale_when_cache_generation_changed(tmp_path):
+    store=SessionStore(tmp_path,prepare=PreparedRoutes)
+    library=TwoPeopleLibrary()
+    runtime=LaboratoryRuntime(store,library=library,audio=Audio())
+    runtime.kind,runtime.job_id='video','test';runtime.tick();runtime.calibrate()
+    library.generation='new-generation'
+    runtime.select_person(runtime.person_id)
+    assert runtime.calibration is None and runtime.model is None
+    assert store.source_selection('media-a')['generation']=='new-generation'
+    store.close()

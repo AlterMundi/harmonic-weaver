@@ -3372,3 +3372,18 @@ pruebas Chrome con API/WebSocket sintéticos interceptados pasan: límite fijo,
 ampliación explícita, salida, controles disponibles en Performance y preset intacto.
 TypeScript/Vite build pasa. Sesión actual conservada pausada. No se inició tracking,
 reproducción ni audio físico; el cambio backend carga en el próximo arranque normal.
+
+### Confirmar selección automática sin cortar sonido — 2026-10-05
+
+Confirmar la misma persona, en la generación ya activa, ahora fija la selección
+sin reemplazar modelo/ruteo/calibración ni enviar silencio al motor. Elegir otro
+cuerpo o una nueva generación con el mismo nombre de slot sigue descartando escala
+y reiniciando. Fuente y Performance ofrecen Fijar esta persona cuando la elección
+es automática. El backend anuncia soporte; la UI no muestra esta acción contra
+una instancia anterior que todavía pudiera descartar la escala.
+
+48 tests runtime/API/evaluación pasan, incluidos salida activa antes de confirmar,
+cero submits durante confirmación, objetos/historia conservados, selección guardada
+y reinicio al cambiar cuerpo/generación. Seis pruebas Chrome interceptadas y build
+pasan: confirmación explícita envía sólo selección, conserva controles y queda
+oculta con backend anterior. Sin nueva escucha ni modificación de sesión corporal.
