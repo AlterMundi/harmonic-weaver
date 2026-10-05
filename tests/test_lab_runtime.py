@@ -348,7 +348,10 @@ def test_tracked_prefix_loop_is_explicit_fixed_and_resets_history(tmp_path):
     runtime = LaboratoryRuntime(store, library=library, audio=audio, clock=lambda:now[0])
     runtime.kind, runtime.job_id = 'video','test'
     runtime.tick()
-    runtime.control(tracked_prefix=True, playing=True)
+    runtime._autoplay_pending = True
+    runtime.control(tracked_prefix=True)
+    assert not runtime.transport.playing and not runtime._autoplay_pending
+    runtime.control(playing=True)
     runtime.tick()
     assert store.snapshot()['session']['loop_end_s'] == 1.
     epoch = runtime.transport.epoch

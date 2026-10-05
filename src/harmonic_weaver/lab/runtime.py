@@ -142,7 +142,7 @@ class LaboratoryRuntime:
                 if tracked_prefix:
                     self.transport.loop = True
                 self.transport.seek(self.transport.position())
-            if playing is not None or position_s is not None:
+            if playing is not None or position_s is not None or tracked_prefix is not None:
                 self._autoplay_pending = False
             if position_s is not None:
                 if self.kind != "video":
