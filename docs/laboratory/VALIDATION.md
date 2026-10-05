@@ -3302,3 +3302,12 @@ Receta r03_centers/controls.py y evidencia sintética pública: matching repetid
 idéntico en dos archivos nuevos por condición. Marcas/señales/identidades son
 sintéticas; no cuerpo real, anotaciones humanas, pose nueva, R24/cámara, síntesis
 o escucha/aceptación. No ranking causal de centros ni validación Jpsh/HIT.
+
+### Vista Performance — 2026-10-05
+
+Tres pruebas Chrome sobre el bundle productivo, con HTTP/WebSocket sintéticos
+interceptados: cambiar de vista conserva la fuente montada y el reloj avanzando
+sin escrituras; controles/macros, persona, guardado portable y marca explícita;
+persistencia visual y avisos de calibración/audio. TypeScript/Vite build pasa.
+No se modificó la sesión de Nicolás. Estas pruebas verifican el recorrido de UI;
+la escucha y comodidad de esta vista con movimiento real quedan para su uso.

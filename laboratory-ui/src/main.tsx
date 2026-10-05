@@ -1,5 +1,6 @@
 import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
+import {PerformanceControls} from "./PerformanceControls";
 
 import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
@@ -400,6 +401,9 @@ function Fields({
 }
 
 function App() {
+  const [performance, setPerformance] = useState(() => {
+    try { return localStorage.getItem("weaver-lab-performance") === "true"; } catch { return false; }
+  });
   const [state, setState] = useState<Data>({}),
     [schemas, setSchemas] = useState<Data>({}),
     [draft, setDraft] = useState<Data | null>(null);
@@ -715,8 +719,17 @@ function App() {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  const saveCurrentPreset = () => run(async () => {
+    const preset = {...current.current, id:crypto.randomUUID().replaceAll("-", ""), name:presetName || draft.name};
+    await api("presets",preset);
+    await refresh();
+  });
+  const changeView = (value:boolean) => {
+    setPerformance(value);
+    try { localStorage.setItem("weaver-lab-performance",String(value)); } catch { /* view still works without browser storage */ }
+  };
   return (
-    <main>
+    <main className={performance ? "performance-mode" : undefined}>
       <datalist id="signal-catalog">
         {Object.entries(signalUnits).map(([key, unit]) => (
           <option key={key} value={key}>
@@ -730,6 +743,10 @@ function App() {
           <h1>
             Weaver <span>/ laboratorio corporal</span>
           </h1>
+        </div>
+        <div className="actions" role="group" aria-label="Vista del laboratorio">
+          <button aria-pressed={!performance} onClick={()=>changeView(false)}>Explorar</button>
+          <button aria-pressed={performance} onClick={()=>changeView(true)}>Performance</button>
         </div>
         <div className="status">
           <i className={connected ? "lit" : ""} />
@@ -908,7 +925,7 @@ function App() {
       )}
       <div className="workspace">
         <section className="controls">
-          <nav>
+          <nav hidden={performance}>
             {[
               "Fuente",
               "Instrumento",
@@ -930,6 +947,13 @@ function App() {
             ))}
           </nav>
           <div className="panel">
+            {performance && <PerformanceControls draft={draft} presets={presets} pending={pending}
+              change={change} applyPreset={applyPreset} applyMacro={applyMacro} save={saveCurrentPreset}
+              exportPreset={exportPreset} name={presetName} setName={setPresetName} personId={session.person_id}
+              personIds={[...new Set<string>([session.person_id,...(job?.person_ids || []),...(state.motion_frame?.persons || []).map((p:Data)=>p.person_id)].filter(Boolean))]}
+              choosePerson={id=>run(()=>api("person",{person_id:id}))}
+              mark={()=>run(()=>api("marks",{text:"Se siente bien",category:"experience"}))}/>}
+            <div hidden={performance}>
             {tab === "Investigación" && <Suspense fallback={<p>Cargando bancos de investigación…</p>}><ResearchPanel api={api} run={run}/></Suspense>}
             {tab === "Captura" && <CapturePanel api={api} run={run}/>}
             {tab === "Comparar" && (
@@ -1405,17 +1429,8 @@ function App() {
                 </label>
                 <div className="actions">
                   <button
-                    onClick={() =>
-                      run(async () => {
-                        const preset = {
-                          ...current.current,
-                          id: crypto.randomUUID().replaceAll("-", ""),
-                          name: presetName || draft.name,
-                        };
-                        await api("presets", preset);
-                        await refresh();
-                      })
-                    }
+                    disabled={pending}
+                    onClick={saveCurrentPreset}
                   >
                     Guardar como nuevo
                   </button>
@@ -1477,6 +1492,7 @@ function App() {
                 </p>
               </>
             )}
+            </div>
           </div>
         </section>
         <aside className="inspector">
@@ -1562,7 +1578,7 @@ function App() {
               );
             })}
           </div>
-          <MovementMarks api={api} run={run} sourceId={session.source_id} personId={session.person_id} currentSessionId={session.session_id} observedEpoch={state.runtime?.observed_epoch}/>
+          <div hidden={performance}><MovementMarks api={api} run={run} sourceId={session.source_id} personId={session.person_id} currentSessionId={session.session_id} observedEpoch={state.runtime?.observed_epoch}/></div>
           <details>
             <summary>Diagnóstico del modelo</summary>
             <pre>{JSON.stringify(state.features?.diagnostics, null, 2)}</pre>

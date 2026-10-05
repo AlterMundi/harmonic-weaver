@@ -423,3 +423,16 @@ footer {
     overflow: auto;
   }
 }
+
+/* Performance changes presentation only; the source/figure stay mounted. */
+[hidden] { display: none !important; }
+.performance-mode .video-wrap,
+.performance-mode .figure-view canvas { height: min(48vh, 520px); }
+.performance-sliders input[type="range"] { min-height: 30px; width: 100%; }
+.performance-voices { display: grid; grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); gap: 8px; }
+.performance-voices fieldset { margin: 0; }
+@media (max-width: 950px) {
+  header { flex-wrap: wrap; gap: 12px; }
+  .performance-mode .video-wrap,
+  .performance-mode .figure-view canvas { height: 320px; }
+}

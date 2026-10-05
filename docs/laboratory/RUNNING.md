@@ -5,6 +5,21 @@ aceptación de Nicolás no se infieren de las pruebas automatizadas.
 
 [Evidencia, mediciones y límites conocidos](VALIDATION.md).
 
+## Vista Performance
+
+El botón **Performance** del encabezado reúne intensidad, realce, articulación,
+macros, mute/solo de las seis voces, selección de persona y presets. **Explorar**
+recupera los paneles completos. El cambio de vista conserva video, figura,
+transporte y configuración; la preferencia visual se recuerda sólo en ese navegador.
+Los diagnósticos de modelo, calibración y audio permanecen visibles.
+
+**Guardar configuración actual** crea un preset nuevo portable entre fuentes;
+**Exportar JSON** permite llevarlo a otro laboratorio. **Marcar «se siente bien»**
+registra una marca explícita de experiencia para la persona seleccionada, sin
+convertirla en medición automática ni corregir el tiempo de reacción.
+Cambiar de vista no modifica defaults sonoros. Recargar la web carga esta vista
+sin requerir reiniciar los servicios.
+
 ## Dependencias
 
 En Legion, el comando corto prepara la web e inicia la sesión:
