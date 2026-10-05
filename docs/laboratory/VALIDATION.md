@@ -3576,3 +3576,19 @@ roundtrip completo de fixtures; 11 tests contracts/store pasan. No cambian códi
 runtime, configuración persistida ni datos corporales. CONTRIBUTING ahora dirige
 al main consolidado de Weaver/Shaper y al único comando cotidiano, evitando las
 instrucciones obsoletas de instalaciones paralelas.
+
+### 2026-10-05 — Smoothing genérico con reloj productor opt-in (#77)
+
+One-pole/ramp aceptan source_capture con gap explícito, inputs observed alineados
+y deltas reales; engine permanece default. Duplicados/atrasos no mutan chain;
+held/invalid, gaps o épocas reinician sólo el suavizado de captura, preservando
+suavizado legacy. Metadata ausente no cae al reloj de engine. Stage guarda y
+recupera reloj/gap. Nuevo control no modifica One-Euro ni configuración musical.
+
+40 tests capture smoothing/derivative, smoothing legacy, ingreso por slot y
+aggregators pasan; luego 11 smoothing específicos incluyen chain smoothing→
+derivative y reset que preserva legacy. Otros 19 tests derivative/derived scenes/
+patchbay pasan. Chrome derivada pasa; prueba smoothing detectó falta de rerender
+al elegir reloj y pasó tras corregirla (API real, fixture sintético, sin hardware).
+Sin reinicio de servicios cotidianos ni nuevos datos privados. Quedan otros
+transforms/relojes de múltiples productores y medición física en #77.

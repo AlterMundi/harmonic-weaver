@@ -138,3 +138,21 @@ controles contra el Stage API real con fixture sintético aislado.
 `tests/test_aggregator_capture.py` verifica combinaciones encadenadas, bin_2d,
 frames/tiempos distintos, held/legacy, selección/predicados, y entrega de dos
 personas al motor seguida de ticks sin un nuevo cuadro.
+
+## Suavizado en reloj de captura (opt-in)
+
+Además de `derivative`, `smoothing` acepta `clock=source_capture` y
+`max_gap_ms` (default 500). Stage permite elegir ambos controles; omitir `clock`
+conserva `engine`. One-pole/ramp usan el delta real del productor, independientemente
+del jitter de llegada. En este modo `max_dt_ms` no recorta un delta válido;
+`max_gap_ms` determina cuándo iniciar una historia nueva. Todos los inputs deben
+ser observed y compartir identidad de captura/timestamp; no hay fallback al reloj
+operativo cuando falta metadata. Duplicados/atrasos se suprimen antes de modificar
+cualquier estado del chain. Tras held/invalid, cambio de stream/calibración o gap,
+el primer target inicializa el suavizador, sin interpolar desde datos previos.
+
+Puede encadenarse a una derivada con el mismo reloj. Otros transforms del chain
+siguen usando su reloj declarado/default: esta opción no convierte automáticamente
+integradores, eventos o clocks de distintos productores. No cambia el filtro
+corporal del laboratorio ni presets aceptados. Tests `test_capture_smoothing.py`
+y el recorrido Stage verifican cálculo/persistencia; no sincronía física.

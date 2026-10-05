@@ -24,7 +24,9 @@ preset = scene(
                     "clamp": True,
                 },
             ],
-        )
+        ),
+        route('capture-smoothing',channel='sensor.slot_0_pos',voice=1,
+              transforms=[{'type':'smoothing','kind':'one_pole','time_ms':35.}]),
     ]
 )
 engine.upsert_scene(preset, engine.stage_revision)

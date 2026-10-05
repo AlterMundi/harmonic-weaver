@@ -480,7 +480,7 @@
     if (transform.type === "derivative") return `derivative · ${transform.clock === "source_capture" ? "source capture" : "engine clock"}`;
     if (transform.type === "scale_range") return `scale ${rangeText(transform.in)} → ${rangeText(transform.out)}`;
     if (transform.type === "curve") return `curve · ${transform.kind}`;
-    if (transform.type === "smoothing") return `${transform.kind} · ${fmt(transform.time_ms)}ms`;
+    if (transform.type === "smoothing") return `${transform.kind} · ${fmt(transform.time_ms)}ms · ${transform.clock === "source_capture" ? "source capture" : "engine clock"}`;
     if (transform.type === "gate") return `gate · ${transform.mode}`;
     if (transform.type === "combine") return `combine · ${transform.operator}`;
     return transform.type;
@@ -604,7 +604,7 @@
     const outputRange = match?.capability.arguments.find((item) => item.name === view.editingRoute.destination.argument)?.range || [0, 1];
     if (type === "scale_range") return {type, in: clone(inputRange), out: clone(outputRange), clamp: true};
     if (type === "curve") return {type, kind: "linear"};
-    if (type === "smoothing") return {type, kind: "one_pole", time_ms: 35};
+    if (type === "smoothing") return {type, kind: "one_pole", time_ms: 35, clock: "engine", max_gap_ms: 500};
     if (type === "derivative") return {type, window_ms: 40, max_abs: 10, max_dt_ms: 1000, clock: "engine", max_gap_ms: 500};
     if (type === "gate") return {type, threshold: .5, hysteresis: .05, mode: "level", closed: "suppress"};
     return {type: "combine", operator: "mean"};
@@ -642,7 +642,9 @@
       return fields;
     }
     if (transform.type === "smoothing") {
-      return `${selectField("Kind", "kind", [["one_pole", "One pole"], ["ramp", "Bounded ramp"]], transform.kind)}${numberField("Time (ms)", "time_ms", transform.time_ms, 'min="0"')}`;
+      return `${selectField("Kind", "kind", [["one_pole", "One pole"], ["ramp", "Bounded ramp"]], transform.kind)}${numberField("Time (ms)", "time_ms", transform.time_ms, 'min="0"')}`
+        + selectField("Smoothing clock", "clock", [["engine", "Engine scheduling"], ["source_capture", "Source capture (aligned observed frames)"]], transform.clock || "engine")
+        + (transform.clock === "source_capture" ? numberField("Maximum capture gap (ms)", "max_gap_ms", transform.max_gap_ms ?? 500, 'min="0.000001"') : '');
     }
     if (transform.type === "gate") {
       const closedMode = transform.closed === "suppress" ? "suppress" : "value";
@@ -715,7 +717,7 @@
     }
     const value = input.type === "checkbox" ? input.checked : input.type === "number" ? Number(input.value) : input.value;
     setNested(transform, field, value);
-    if (transform.type === "derivative" && field === "clock") renderTransformEditor();
+    if (["derivative", "smoothing"].includes(transform.type) && field === "clock") renderTransformEditor();
     if (transform.type === "curve" && field === "kind") {
       delete transform.gamma;
       delete transform.amount;

@@ -260,6 +260,7 @@ class GeometryExpansion:
 class RouteRuntime:
     smooth_values: dict[int, float] = field(default_factory=dict)
     smooth_at_us: dict[int, int] = field(default_factory=dict)
+    smooth_capture_samples: dict[int, tuple] = field(default_factory=dict)
     gate_states: dict[int, bool] = field(default_factory=dict)
     phase_values: dict[int, float] = field(default_factory=dict)
     phase_at_us: dict[int, int] = field(default_factory=dict)
@@ -285,6 +286,10 @@ class RouteRuntime:
     invalid_reset_sent: bool = False
 
     def reset_observation_history(self) -> None:
+        for index in self.smooth_capture_samples:
+            self.smooth_values.pop(index, None)
+            self.smooth_at_us.pop(index, None)
+        self.smooth_capture_samples.clear()
         self.derivative_values.clear()
         self.derivative_at_us.clear()
         self.derivative_capture_samples.clear()
@@ -557,6 +562,10 @@ def compile_route(
             if transform.get("kind") not in {"one_pole", "ramp"}:
                 raise validation(f"{tpath}.kind is invalid")
             nonnegative(transform.get("time_ms"), f"{tpath}.time_ms")
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms", 500.0), f"{tpath}.max_gap_ms")
             # Optional gap clamp: when set, must be strictly positive. None/absent
             # keeps legacy behaviour (raw dt, network gaps can jump alpha≈1).
             if "max_dt_ms" in transform and transform["max_dt_ms"] is not None:
@@ -721,9 +730,11 @@ def evaluate_route(
         if usable:
             return (runtime.last_usable_output, "usable") if runtime.last_usable_output is not None else (None, "suppress")
     if not usable:
+        if any(t["type"] == "smoothing" and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
+            runtime.reset_observation_history()
         return _invalid_route_output(policy, runtime, now_us)
     capture_sample = None
-    if any(t["type"] == "derivative" and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
+    if any(t["type"] in {"derivative", "smoothing"} and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
         if any(e.state != OBSERVED or type(e.captured_at_us) is not int or e.captured_at_us < 0
                or not isinstance(e.capture_identity, tuple) or len(e.capture_identity) != 6
                or type(e.capture_identity[-1]) is not int or e.capture_identity[-1] < 0
@@ -738,9 +749,10 @@ def evaluate_route(
             return _invalid_route_output(policy, runtime, now_us)
         capture_sample = (envelopes[0].capture_identity, envelopes[0].captured_at_us)
         for index, transform in enumerate(route.definition["transforms"]):
-            if transform["type"] != "derivative" or transform.get("clock") != "source_capture":
+            if transform["type"] not in {"derivative", "smoothing"} or transform.get("clock") != "source_capture":
                 continue
-            prior = runtime.derivative_capture_samples.get(index)
+            samples = runtime.derivative_capture_samples if transform["type"] == "derivative" else runtime.smooth_capture_samples
+            prior = samples.get(index)
             if prior and capture_sample[0][:-1] == prior[0][:-1] and (
                 capture_sample[0][-1] <= prior[0][-1] or capture_sample[1] <= prior[1]
             ):
@@ -782,12 +794,24 @@ def evaluate_route(
             time_ms = float(transform["time_ms"])
             previous_value = runtime.smooth_values.get(transform_index)
             previous_at_us = runtime.smooth_at_us.get(transform_index)
+            smooth_now_us = now_us
+            capture_mode = transform.get("clock") == "source_capture"
+            if capture_mode:
+                identity, smooth_now_us = capture_sample
+                prior = runtime.smooth_capture_samples.get(transform_index)
+                if prior is None or identity[:-1] != prior[0][:-1]:
+                    previous_value = previous_at_us = None
+                    runtime.sample_reason = "capture_epoch_warming"
+                elif smooth_now_us-prior[1] > float(transform.get("max_gap_ms",500.0))*1000:
+                    previous_value = previous_at_us = None
+                    runtime.sample_reason = "capture_gap_warming"
+                runtime.smooth_capture_samples[transform_index] = capture_sample
             if previous_value is not None and previous_at_us is not None and time_ms > 0:
                 # Work in seconds for the optional max_dt_ms clamp, then convert
                 # back to ms for the existing alpha formulas (time_ms units).
-                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                dt_s = max(0.0, (smooth_now_us - previous_at_us) / 1_000_000.0)
                 max_dt_ms = transform.get("max_dt_ms")
-                if max_dt_ms is not None:
+                if max_dt_ms is not None and not capture_mode:
                     dt_s = min(dt_s, float(max_dt_ms) / 1000.0)
                 dt_ms = dt_s * 1000.0
                 if transform["kind"] == "one_pole":
@@ -796,7 +820,7 @@ def evaluate_route(
                     alpha = min(1.0, dt_ms / time_ms)
                 current = previous_value + alpha * (current - previous_value)
             runtime.smooth_values[transform_index] = current
-            runtime.smooth_at_us[transform_index] = now_us
+            runtime.smooth_at_us[transform_index] = smooth_now_us
         elif kind == "gate":
             assert isinstance(current, float)
             threshold = float(transform["threshold"])
