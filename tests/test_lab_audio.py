@@ -94,3 +94,17 @@ def test_explicit_no_audio_still_reports_control_failures():
         assert snapshot['shaper']['acknowledged_revision']==-1
     finally:
         output.close()
+
+
+def test_voice_contract_accepts_health_and_does_not_invent_it_for_older_shaper():
+    from harmonic_weaver.lab.contracts import VoiceFrame
+    import pytest
+    from pydantic import ValidationError
+    raw={'schema_version':1,'sample_index':1024,'sample_rate':48000,'block_frames':1024,
+         'generated_monotonic_s':0.,'running':True,'voices':[]}
+    assert VoiceFrame.model_validate(raw).audio_health is None
+    raw['audio_health']={'engine_id':'one','status_events':2,'output_underflows':1,
+                         'last_status':'output underflow','last_status_sample_index':512}
+    assert VoiceFrame.model_validate(raw).audio_health.output_underflows==1
+    raw['audio_health']['output_underflows']=-1
+    with pytest.raises(ValidationError):VoiceFrame.model_validate(raw)

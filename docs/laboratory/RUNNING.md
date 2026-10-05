@@ -1041,6 +1041,18 @@ y sin status de error reportado por el callback. El audio y la configuración
 quedan en el directorio privado de checks. Se conserva el estado probado;
 esto no identifica aún la causa ni demuestra ausencia de clicks en otros cortes.
 
+Diagnóstico añadido después de esa escucha: «Lo que está pasando» muestra buffer
+y frecuencia efectivos, contador de `output_underflow` reportado por PortAudio
+y último estado/muestra del motor. La identidad del motor permite distinguir sus
+contadores tras un reinicio; el contador abarca la vida de esa instancia, no un
+fragmento seleccionado. Información ausente/vieja se muestra como no disponible,
+nunca como cero. Cero cortes reportados no demuestra ausencia de clicks de
+síntesis ni fallos posteriores a PortAudio. El render offline no emite ese
+diagnóstico de dispositivo. La ampliación es opcional en VoiceFrame y acepta
+Shapers anteriores. No altera samples, voces ni el cálculo del instrumento.
+Requiere el siguiente arranque normal para cargar el nuevo código; la sesión
+que Nicolás escuchó se conservó sin reiniciarla.
+
 ### Ajuste de clickeo y colectivo (2026-10-04)
 
 Los presets de fábrica 02–05 ahora dejan pitch/fase desactivados y suavizan gain

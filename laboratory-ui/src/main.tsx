@@ -1534,9 +1534,19 @@ function App() {
             </dd>
             <dt>Edad de telemetría</dt>
             <dd>{state.shaper?.telemetry_age_ms?.toFixed(0) || "—"} ms</dd>
+            <dt>Buffer / frecuencia efectivos</dt>
+            <dd>{state.shaper?.telemetry_valid ? `${state.voice_frame.block_frames} muestras / ${state.voice_frame.sample_rate} Hz` : "Sin telemetría vigente"}</dd>
+            <dt>Cortes reportados por PortAudio (desde inicio del motor)</dt>
+            <dd>{state.shaper?.telemetry_valid && state.voice_frame?.audio_health
+              ? state.voice_frame.audio_health.output_underflows : "Diagnóstico no disponible"}</dd>
+            {state.shaper?.telemetry_valid && state.voice_frame?.audio_health?.last_status && <>
+              <dt>Último estado de PortAudio</dt>
+              <dd>{state.voice_frame.audio_health.last_status} (muestra {state.voice_frame.audio_health.last_status_sample_index})</dd>
+            </>}
           </dl>
           <p className="muted">
             Estas medidas no equivalen a latencia física movimiento → sonido.
+            Un contador de cortes en cero no descarta clicks producidos por la síntesis ni fallos posteriores en la salida.
           </p>
           <div className="meters">
             {draft.voices.map((v: Data) => {

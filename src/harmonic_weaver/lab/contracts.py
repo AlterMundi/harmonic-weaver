@@ -381,11 +381,20 @@ class EffectiveVoice(Contract):
     releasing: bool
 
 
+class AudioHealth(Contract):
+    engine_id: str
+    status_events: int = Field(ge=0)
+    output_underflows: int = Field(ge=0)
+    last_status: str | None = None
+    last_status_sample_index: int | None = Field(default=None, ge=0)
+
+
 class VoiceFrame(Contract):
     schema_version: Literal[1] = 1
     sample_index: int = Field(ge=0)
     sample_rate: int = Field(gt=0)
     block_frames: int = Field(gt=0)
+    audio_health: AudioHealth | None = None
     generated_monotonic_s: Number
     control_owner: str | None = None
     control_sequence: int | None = Field(default=None, ge=0)
