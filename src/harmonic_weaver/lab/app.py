@@ -1183,6 +1183,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r07-transfer')
     def transfer_jobs():return transfer.list()
 
+    @app.get('/api/research/r07-readout/{ident}/request')
+    def readout_replay_request(ident:str):return readouts.replay_request(ident)
+
     @app.post('/api/research/r07-readout/configuration')
     def readout_configuration(body: ReadoutConfig):
         return body.model_dump()

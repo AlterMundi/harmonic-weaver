@@ -3473,3 +3473,22 @@ silencio por dependencia frente a cero permitido, ausencia de ruteo y conteo sep
 de fuentes usadas. Chrome: siete pruebas Performance pasan, incluida explicación
 por voz sin escrituras live. TypeScript/Vite build pasa. Sesión cotidiana confirmada
 pausada y cero voces; backend sin reinicio. Escucha de todos los modelos pendiente.
+
+
+### 2026-10-05 — Controles R07 y recuperación de corridas desde web
+
+Controles directos para reserva/normalización/ridge/embargo/semilla y método/cobertura/
+observaciones/gap de etiquetas. Perfil seleccionado se sincroniza con preset portable;
+perfil vacío no se exporta como configuración inválida. Tabla de casos permite cambiar
+rol/quitar, y la creación evita IDs repetidos tras eliminaciones. JSON sigue editable.
+
+GET readout request reconstruye selecciones desde dataset íntegro, preservando perfiles
+calculados por caso; sólo incluye perfil común si coinciden. Recuperación carga borrador,
+no reinterpreta identidad ni reconstruye fuentes/calibraciones. Archive sintético sin
+proyección permanece legible pero no inventa una selección local.
+
+Siete pruebas API/archive pasan: recuperación declarada y calculada, repetición numérica
+tras recuperar, perfiles mixtos y rechazo sintético sin IDs. Chrome: una prueba aislada
+pasa para controles, exportación portable, recuperación/edición y ausencia de writes
+live. TypeScript/Vite build pasa. Sesión cotidiana confirmada pausada con cero voces.
+Sin nuevos scores corporales ni aceptación humana; no cambia defaults del instrumento.

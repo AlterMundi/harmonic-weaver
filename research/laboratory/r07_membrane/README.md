@@ -503,3 +503,25 @@ recomputación del decoder. Render Shaper preservó byte por byte la traza EVAL 
 features/targets anterior. No nueva escucha humana ni toma independiente.
 Comparar con R05 requiere declarar ambos mapeos y conservar medio/sample rate,
 ventanas, etiquetas y reservas; una diferencia no identifica qué etapa la causa.
+
+
+## Controles y recuperación de selecciones
+
+En Recuperación R07, reserva (misma toma/tomas/grupos corporales), normalización,
+ridge, separación temporal y semilla tienen controles directos. El perfil de etiquetas
+ofrece mean/rms/std/peak_abs, mínimo de observaciones, cobertura y gap, y eliminación
+de señales. Al editarlo se descarta el valor calculado pendiente y, si tiene señales,
+se sincroniza con el preset portable. JSON queda disponible para importar/exportar.
+Sin señal elegida no se añade un perfil vacío inválido al preset.
+
+La tabla local permite cambiar rol y quitar casos; agregar luego reutiliza sólo IDs
+libres. **Recuperar configuración y casos R07** lee el dataset verificado de una
+corrida y carga su selección en el borrador. Conserva los perfiles específicos de
+cada caso; propone perfil común sólo cuando todos coinciden. No recalcula la corrida,
+modifica figuras antiguas ni cambia preset/calibración/fuente del instrumento live.
+Para ejecutar la selección de nuevo deben seguir disponibles figuras y, para labels
+calculados, su origen EVAL/PCM. Los resultados congelados siguen legibles sin fuentes.
+Un archive sintético sin selección local no inventa IDs de figuras para recuperarse.
+
+API de recuperación: GET `/api/research/r07-readout/{id}/request`. Devuelve configuración
+más casos locales; la exportación portable del panel continúa excluyendo esos casos.

@@ -69,3 +69,13 @@ def test_rehashed_reserved_targets_are_not_accepted_as_frozen_labels(tmp_path):
     atomic_json(folder / "manifest.json", manifest)
     with pytest.raises(ValueError, match="target"):
         verify(folder)
+
+
+def test_synthetic_archive_is_readable_but_does_not_invent_local_selection(tmp_path):
+    from harmonic_weaver.lab.research.membrane_readout_service import ReadoutService
+    service=ReadoutService(tmp_path,None)
+    ident='a'*32
+    run(fixture(),service.root/ident)
+    assert service.artifact(ident,'result.json').is_file()
+    with pytest.raises(ValueError,match='no recoverable'):
+        service.replay_request(ident)

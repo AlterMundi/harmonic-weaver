@@ -5,7 +5,8 @@ import re
 import threading
 from uuid import uuid4
 
-from .membrane_readout import Request, snapshot
+from .membrane_readout import Request, Dataset, snapshot
+from .membrane_labels import Settings as LabelSettings
 from .membrane_readout_run import run, verify
 
 
@@ -41,6 +42,28 @@ class ReadoutService:
     def verification(self, ident, *, recompute=False):
         with self.lock:
             return {**verify(self.folder(ident), recompute=recompute), "id": ident}
+
+    def replay_request(self, ident):
+        """Recover local selections, not body identity or current live state."""
+        with self.lock:
+            dataset = Dataset.model_validate_json(self.artifact(ident, "dataset.json").read_text())
+            if dataset.provider != "r07_snapshot" or any(c.projection_run_id is None for c in dataset.cases):
+                raise ValueError("This archive has no recoverable local projection selection")
+            cases, profiles = [], []
+            for case in dataset.cases:
+                value = {key:getattr(case,key) for key in
+                         ("id","projection_run_id","role","recording_id","subject_group","targets")}
+                profile = None
+                if case.computed_label is not None:
+                    profile = LabelSettings.model_validate({k:v for k,v in case.computed_label["request"].items()
+                                                           if k != "projection_run_id"}).model_dump()
+                    value["computed_label"] = profile
+                profiles.append(profile)
+                cases.append(value)
+            common = profiles[0] if all(p == profiles[0] for p in profiles) else None
+            return Request(reservation=dataset.reservation, attribute_ids=dataset.attribute_ids,
+                           attribute_units=dataset.attribute_units, settings=dataset.settings,
+                           label_settings=common, cases=cases).model_dump()
 
     def list(self):
         with self.lock:

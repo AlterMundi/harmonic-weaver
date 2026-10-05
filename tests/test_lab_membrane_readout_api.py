@@ -32,6 +32,11 @@ def test_verified_figures_api_repeat_restart_and_explicit_recomputation(tmp_path
             )
             assert result.status_code == 200
             results.append(result.content)
+            restored = client.get(f"/api/research/r07-readout/{ident}/request")
+            assert restored.status_code == 200, restored.text
+            from harmonic_weaver.lab.research.membrane_readout import Request
+            assert restored.json() == Request.model_validate(request).model_dump()
+
             assert (
                 result.json()["mean_squared_error"]["rms_full"][0]
                 < result.json()["mean_squared_error"]["training_mean"][0] / 1000

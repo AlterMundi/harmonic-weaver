@@ -70,6 +70,24 @@ def test_label_api_binds_eval_sound_and_decoder_with_original_figure_preserved(
         result = client.post("/api/research/r07-readout", json=config)
         assert result.status_code == 200, result.text
         ident = result.json()["id"]
+        restored = client.get(f"/api/research/r07-readout/{ident}/request")
+        assert restored.status_code == 200, restored.text
+        recovered = restored.json()
+        assert recovered["label_settings"]["signal_ids"] == ["zone.1.speed"]
+        assert recovered["cases"][0]["computed_label"]["method"] == "mean"
+        repeated = client.post("/api/research/r07-readout", json=recovered)
+        assert repeated.status_code == 200, repeated.text
+        original_result = client.get(f"/api/research/r07-readout/{ident}/artifacts/result.json")
+        repeated_id = repeated.json()["id"]
+        assert client.get(f"/api/research/r07-readout/{repeated_id}/artifacts/result.json").content == original_result.content
+        mixed = copy.deepcopy(recovered)
+        mixed["cases"][-1]["computed_label"]["min_observations"] = 4
+        mixed_result = client.post("/api/research/r07-readout", json=mixed)
+        assert mixed_result.status_code == 200, mixed_result.text
+        mixed_id = mixed_result.json()["id"]
+        mixed_recovered = client.get(f"/api/research/r07-readout/{mixed_id}/request").json()
+        assert "label_settings" not in mixed_recovered
+        assert mixed_recovered["cases"][-1]["computed_label"]["min_observations"] == 4
         dataset = client.get(
             f"/api/research/r07-readout/{ident}/artifacts/dataset.json"
         ).json()
