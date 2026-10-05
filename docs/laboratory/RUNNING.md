@@ -1015,6 +1015,23 @@ Sin soporte hay ausencia de puntuación. **Guardar comparación R03** descarga
 intervalos/candidatos/procedencia localmente. No decide un centro causal ni
 recalcula pose/audio. Marcas humanas y cobertura no se fabrican.
 
+### Prueba de buffer para clicks (2026-10-05)
+
+Prueba solicitada por Nicolás: bloque del callback de Shaper de 256 a 1024
+frames, manteniendo la R24 a 48 kHz, el filtro, los ruteos y el video actuales.
+PipeWire ya usaba quantum 1024: esta prueba alinea el bloque de síntesis con ese
+quantum y reduce la frecuencia de callbacks; no fuerza cambios globales del servidor.
+La mejora audible sigue pendiente de escucha. No se cambiaron defaults permanentes.
+
+```bash
+./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu --audio-block-size 1024
+```
+
+El argumento admite 128, 256, 512, 1024 y 2048 frames; omitirlo conserva el default
+de Shaper (256). Se aplica al iniciar el Shaper propio. Mayor bloque puede reducir
+la carga de callbacks y aumentar la latencia; no corrige discontinuidades de síntesis.
+El tamaño efectivo y la frecuencia aparecen en `/api/audio/voices` de Shaper.
+
 ### Ajuste de clickeo y colectivo (2026-10-04)
 
 Los presets de fábrica 02–05 ahora dejan pitch/fase desactivados y suavizan gain

@@ -34,6 +34,8 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--shaper-port", type=int, default=8085)
     parser.add_argument("--external-shaper", action="store_true")
+    parser.add_argument("--audio-block-size", type=int, choices=[128, 256, 512, 1024, 2048],
+                        help="Frames per owned Shaper audio callback; default unchanged")
     parser.add_argument("--shaper-dir", type=Path, default=Path(os.environ.get("SHAPER_DIR", "../harmonic-shaper")))
     parser.add_argument("--shaper-python", default=os.environ.get("SHAPER_PYTHON"))
     parser.add_argument("--device", help="Shaper audio device name or ID")
@@ -66,6 +68,8 @@ def main():
             python = args.shaper_python or str(shaper/".venv/bin/python")
             command = [python, "-m", "harmonic_shaper", "--no-midi", "--no-osc",
                        "--api-host", "127.0.0.1", "--api-port", str(args.shaper_port)]
+            if args.audio_block_size is not None:
+                command += ["--audio-block-size", str(args.audio_block_size)]
             jack = args.audio_backend == "jack" or (args.audio_backend == "auto" and shutil.which("pw-jack"))
             device = args.device
             if jack and not args.no_audio:
