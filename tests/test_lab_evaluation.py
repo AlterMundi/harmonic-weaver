@@ -457,3 +457,23 @@ def test_native_conditioner_change_rejects_partial_resume_without_touching_compl
     with pytest.raises(ValueError,match='Replay code'):
         run(req,folder,resume=True)
     assert (folder/'manifest.json').read_bytes()==manifest_before and trace.read_bytes()==trace_before
+
+
+def test_per_voice_activity_distinguishes_muted_voice_and_matches_trace(tmp_path):
+    source, _, _ = source_fixture(tmp_path)
+    preset = next(p for p in initial_presets() if p.id == 'lab-v1-baseline-sustained')
+    preset.voices[0].muted = True
+    folder = tmp_path/'activity'
+    report = run(Request(presets=[preset], sources=[source]), folder)
+    entry = report['runs'][0]
+    rows = [json.loads(line) for line in (folder/entry['file']).read_text().splitlines()]
+    assert entry['sounding_fraction'] > 0
+    assert entry['voice_activity']['1']['sounding_fraction'] == 0
+    assert entry['voice_activity']['1']['peak_target_gain'] == 0
+    for voice in preset.voices:
+        gains = [next((t['gain'] for t in row['targets'] if t['id'] == voice.id), 0.) for row in rows]
+        summary = entry['voice_activity'][str(voice.id)]
+        assert summary['label'] == voice.label
+        assert summary['sounding_fraction'] == pytest.approx(sum(g > 1e-6 for g in gains)/len(gains))
+        assert summary['mean_target_gain'] == pytest.approx(sum(gains)/len(gains))
+        assert summary['peak_target_gain'] == max(gains)

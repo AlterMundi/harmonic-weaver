@@ -3311,3 +3311,19 @@ sin escrituras; controles/macros, persona, guardado portable y marca explícita;
 persistencia visual y avisos de calibración/audio. TypeScript/Vite build pasa.
 No se modificó la sesión de Nicolás. Estas pruebas verifican el recorrido de UI;
 la escucha y comodidad de esta vista con movimiento real quedan para su uso.
+
+### Modelos con suavizado HarMoCAP y actividad por voz — 2026-10-05
+
+Replay local del clip actual entre 2–60 s, cinco presets de referencia (sostenido,
+local, relacional, angular y colectivo), misma persona/calibración medida y
+parámetros de tracking de la sesión. Los cinco produjeron targets activos y cada
+una de sus seis voces tuvo actividad. Solicitud, manifest y traces privados en
+`~/.local/share/harmonic-weaver/laboratory/checks/models-20261005/`.
+Esto descarta silencio total en esa corrida; no verifica escucha, calidad de pose,
+clicks ni preferencia perceptual en los otros modelos. La sesión live no se editó.
+
+Se añade resumen por voz al comparador para que el indicador global no esconda
+voces apagadas. Prueba sintética con una voz muteada y otras activas contrasta
+fracciones/medias/picos con los traces; los informes previos no se modifican.
+Verificación de esta ampliación: 40 tests de evaluación/packages/profiles pasan;
+TypeScript/Vite build pasa. No se abrieron dispositivos ni se generó escucha.

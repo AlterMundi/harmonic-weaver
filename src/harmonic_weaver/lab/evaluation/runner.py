@@ -317,6 +317,8 @@ def _run(request: Request, output: Path, *, progress=None, resume=False, max_run
                     if candidate.is_symlink(): raise ValueError('Invalid partial-run artifact')
                 support, summaries = {}, {}
                 gain_sum, sounding, nrows = 0., 0, 0
+                voice_totals = {v.id: {"label": v.label, "active_ticks": 0,
+                                      "gain_sum": 0., "peak_gain": 0.} for v in preset.voices}
                 writer = PCMWriter(output/Path(name).with_suffix('.wav'), request.pcm,
                     begin_s=max(0.,source.start_s-request.preroll_s),
                     start_s=source.start_s,end_s=source.end_s) if request.pcm.enabled else None
@@ -331,6 +333,11 @@ def _run(request: Request, output: Path, *, progress=None, resume=False, max_run
                             active = [t["gain"] for t in row["targets"]]
                             gain_sum += sum(active)
                             sounding += any(g > 1e-6 for g in active)
+                            for target in row["targets"]:
+                                totals = voice_totals[target["id"]]
+                                totals["active_ticks"] += target["gain"] > 1e-6
+                                totals["gain_sum"] += target["gain"]
+                                totals["peak_gain"] = max(totals["peak_gain"], target["gain"])
                             signals = (row["features"] or {}).get("signals", {})
                             for key, signal in signals.items():
                                 unit = signal["unit"]
@@ -358,6 +365,10 @@ def _run(request: Request, output: Path, *, progress=None, resume=False, max_run
                          "sha256": sha256_file(output/name), "rows": nrows,
                          "sounding_fraction": sounding/max(1,nrows),
                          "mean_sum_target_gain": gain_sum/max(1,nrows),
+                         "voice_activity": {str(ident): {"label": totals["label"],
+                             "sounding_fraction": totals["active_ticks"]/max(1,nrows),
+                             "mean_target_gain": totals["gain_sum"]/max(1,nrows),
+                             "peak_target_gain": totals["peak_gain"]} for ident,totals in voice_totals.items()},
                          "signals": {k: {"unit": v["unit"], "observed_count": v["count"],
                                         "mean_available": v["sum"]/v["count"] if v["count"] else None,
                                         "states": v["states"], "invalid_reasons": v["reasons"],

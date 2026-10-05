@@ -71,8 +71,8 @@ PYTHONPATH=src .venv/bin/python -m harmonic_weaver.lab.evaluation \
   /ruta/local/request.json --output /ruta/local/resultado-nuevo
 ```
 
-El destino debe ser nuevo. En el worktree de Legion, usar el Python de
-`../harmonic-weaver/.venv/bin/python` si no hay `.venv` propio. El JSON acepta
+El destino debe ser nuevo. En Legion se usa `.venv/bin/python` desde el checkout
+único `~/Projects/harmonic-weaver`. El JSON acepta
 `presets` completos, `sources` con media_path/cache_manifest/person_id/inicio-fin,
 `control_hz` y `preroll_s`; consultar los modelos Request/Source del runner para
 los nombres exactos (`start_s`, `end_s`, `torso_scale`, `calibration_provenance`).
@@ -84,7 +84,8 @@ repetición: eso cambia la procedencia y debe ser una corrida nueva.
 Integra las precauciones de Sai recogidas en NEXT_ITERATION: causalidad,
 cobertura, separación geometría/tiempo y soporte común. La PR #36 de Oliva fue
 revisada y sus ocho pruebas/banco sintético ejecutados contra esta iteración;
-no se fusionó ni se introdujo en el runtime. Antes de extender su adaptador a
+esa referencia histórica precede a la integración de #36/#97/#107 en `main`.
+El bridge sigue separado de los modelos productivos. Antes de extender su adaptador a
 loops/múltiples épocas debe conservar la clave de época o rechazar duplicados.
 Q diagonal no reemplaza un tensor/subespacio; R de fase no es R transversal de
 Anni. El banco no valida HIT ni eficacia corporal.
@@ -128,15 +129,14 @@ Se requiere un Shaper compatible con `render_block`. El launcher pasa el checkou
 seleccionado mediante `SHAPER_DIR`; la CLI acepta esa variable. No sustituye el
 motor silenciosamente si falta o si ya se importó otro checkout. Instalar Weaver
 con extras `[lab]` incluye soundfile; Shaper sigue siendo un repositorio separado.
-En Legion, el desarrollo está en `harmonic-weaver-dev` / `harmonic-shaper-dev`;
-la carpeta de prueba `harmonic-weaver-lab` sigue en la entrega anterior hasta
-aplicar explícitamente esta revisión.
+En Legion se usa `~/Projects/harmonic-weaver` con `~/Projects/harmonic-shaper`;
+el comparador corre sin controlar el motor de audio en vivo.
 
 Ejemplo de render desde desarrollo, sin reiniciar ni tocar la salida R24:
 
 ```sh
-SHAPER_DIR=../harmonic-shaper-dev PYTHONPATH=src \
-  ../harmonic-weaver/.venv/bin/python -m harmonic_weaver.lab.evaluation \
+SHAPER_DIR=../harmonic-shaper PYTHONPATH=src \
+  .venv/bin/python -m harmonic_weaver.lab.evaluation \
   /ruta/local/request-con-pcm.json --output /ruta/local/resultado-nuevo
 ```
 
@@ -423,3 +423,13 @@ proveedor externo sólo cuando se usa, cambio de dependencia externa que rechaza
 continuación sin tocar lo completado, recuperación por servicio, filtros en cinco
 modelos, paquetes/perfiles y paridad/repetición PCM. Configuración sonora activa
 preservada; pruebas offline no reproducen audio por la R24.
+
+## Actividad por voz
+
+Las nuevas corridas incluyen `voice_activity` y **Detalle por voz** en el informe:
+fracción de ticks con gain objetivo mayor que 1e-6, gain medio y pico, por voz.
+El denominador son todos los ticks evaluados; una voz ausente del target (por
+mute, pérdida de pose o silencio) aporta cero. No es cobertura de pose, loudness
+ni una comparación sobre soporte observado común. Permite detectar voces que
+quedan apagadas aunque el indicador global marque sonido previsto.
+Los informes anteriores siguen abriendo y no se recalculan automáticamente.

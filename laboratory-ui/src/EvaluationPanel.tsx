@@ -347,7 +347,16 @@ export function EvaluationPanel({
                   <td>{r.preset_id}</td>
                   <td>{r.rows}</td>
                   <td><a href={`/api/evaluations/${report.job_id}/artifacts/${r.file}`} download>Features y targets</a></td>
-                  <td>{(r.sounding_fraction * 100).toFixed(1)}%</td>
+                  <td>{(r.sounding_fraction * 100).toFixed(1)}%
+                    {r.voice_activity && <details><summary>Detalle por voz</summary>
+                      {Object.entries(r.voice_activity).map(([id, value]) => {
+                        const voice = value as Data;
+                        return <p key={id}>{voice.label} · activa {(voice.sounding_fraction * 100).toFixed(1)}%
+                          {" · gain medio "}{voice.mean_target_gain.toFixed(3)}
+                          {" · pico "}{voice.peak_target_gain.toFixed(3)}</p>;
+                      })}
+                    </details>}
+                  </td>
                   <td>
                     {r.pcm ? (
                       <>
