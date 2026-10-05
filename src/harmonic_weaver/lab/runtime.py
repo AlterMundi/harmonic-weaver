@@ -129,8 +129,19 @@ class LaboratoryRuntime:
             self.model = None
             self.store.record_event("source", {"kind":None})
 
-    def control(self, *, playing=None, position_s=None, loop=None):
+    def control(self, *, playing=None, position_s=None, loop=None, tracked_prefix=None):
         with self._lock:
+            if tracked_prefix is not None:
+                if self.kind != "video":
+                    raise ValueError("only file sources support tracked-prefix loops")
+                metadata = self.library.snapshot(self.job_id)
+                prefix = metadata.get("prefix_s", 0.)
+                if tracked_prefix and (metadata["status"] not in {"building", "ready"} or not prefix or prefix <= 0):
+                    raise ValueError("wait for a non-empty tracked prefix")
+                self.transport.loop_end_s = prefix if tracked_prefix else None
+                if tracked_prefix:
+                    self.transport.loop = True
+                self.transport.seek(self.transport.position())
             if playing is not None or position_s is not None:
                 self._autoplay_pending = False
             if position_s is not None:
@@ -139,11 +150,14 @@ class LaboratoryRuntime:
                 self.transport.seek(position_s)
             if loop is not None:
                 self.transport.loop = loop
+                if not loop:
+                    self.transport.loop_end_s = None
             if playing is not None:
                 self.transport.play(playing)
             self._reset()
             self.store.record_event("transport", {"playing":self.transport.playing,
-                "position_s":self.transport.position(), "loop":self.transport.loop, "epoch":self.transport.epoch})
+                "position_s":self.transport.position(), "loop":self.transport.loop,
+                "loop_end_s":self.transport.loop_end_s, "epoch":self.transport.epoch})
         return self.snapshot()
 
     def select_person(self, person_id):
@@ -302,6 +316,7 @@ class LaboratoryRuntime:
             state = dict(source_id=current.source_id if current else None, person_id=self.person_id,
                          calibration_id=self.calibration.id if self.calibration else None,
                          position_s=position, playing=self.transport.playing, loop=self.transport.loop,
+                         loop_end_s=self.transport.loop_end_s,
                          status="playing" if self.transport.playing and valid else "waiting" if self.transport.playing else "paused",
                          error=None)
             if audio["applied_revision"] is not None and audio["applied_revision"] >= 0:

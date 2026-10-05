@@ -145,3 +145,30 @@ def test_frozen_mark_cursor_repeats_after_new_marks(tmp_path):
         assert client.get('/api/marks/snapshot',params={'through_sequence':0}).json()['marks']==[]
         for cursor in (-1,999999):
             assert client.get('/api/marks/snapshot',params={'through_sequence':cursor}).status_code==422
+
+
+def test_transport_api_exposes_explicit_prefix_boundary_and_rejects_bad_inputs(tmp_path):
+    from harmonic_weaver.lab.runtime import LaboratoryRuntime
+    from harmonic_weaver.lab.store import SessionStore
+    from harmonic_weaver.lab.routing import PreparedRoutes
+    from test_lab_runtime import Library, Audio
+    store = SessionStore(tmp_path, prepare=PreparedRoutes)
+    library = Library()
+    library.snapshot = lambda job: {'status':'building','duration_s':3.,'prefix_s':1.}
+    runtime = LaboratoryRuntime(store, library=library, audio=Audio(), clock=lambda:0.)
+    runtime.kind, runtime.job_id = 'video','test'
+    runtime.start = lambda:None
+    runtime.close = lambda:None
+    try:
+        with TestClient(create_app(tmp_path,store=store,runtime=runtime),base_url='http://127.0.0.1') as client:
+            assert client.post('/api/transport',json={'tracked_prefix':True,'playing':True}).status_code == 200
+            runtime.tick()
+            assert client.get('/api/state').json()['session']['loop_end_s'] == 1.
+            assert client.post('/api/transport',json={'tracked_prefix':False}).status_code == 200
+            runtime.tick()
+            assert client.get('/api/state').json()['session']['loop_end_s'] is None
+            assert client.post('/api/transport',json={'tracked_prefix':'yes'}).status_code == 422
+            assert client.post('/api/transport',json={'loop_end_s':999}).status_code == 422
+            assert runtime.transport.loop_end_s is None
+    finally:
+        store.close()

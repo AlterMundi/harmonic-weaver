@@ -20,6 +20,17 @@ convertirla en medición automática ni corregir el tiempo de reacción.
 Cambiar de vista no modifica defaults sonoros. Recargar la web carga esta vista
 sin requerir reiniciar los servicios.
 
+## Explorar mientras se procesa un video
+
+Cuando hay tracking parcial, el transporte ofrece **Loop sobre prefijo trackeado**.
+La selección fija el final al último timestamp procesado disponible y activa loop;
+no inicia la reproducción si estaba pausada. **Ampliar al prefijo disponible**
+actualiza ese límite explícitamente cuando hay más cuadros. Terminar el tracking
+no amplía el loop elegido. Desmarcar la opción o apagar Loop recupera el recorrido
+normal; abrir otra fuente elimina el límite. El límite pertenece al transporte,
+no viaja en presets. Cada vuelta reinicia historia y ruteo como un loop completo.
+Es tracking parcial identificado, no un cache completo ni una nueva inferencia.
+
 ## Dependencias
 
 En Legion, el comando corto prepara la web e inicia la sesión:

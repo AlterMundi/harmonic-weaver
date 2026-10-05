@@ -13,17 +13,24 @@ class Transport:
         self.duration_s = 0.
         self.playing = False
         self.loop = True
+        self.loop_end_s = None
         self.epoch = 0
+
+    def boundary(self):
+        if self.loop and self.loop_end_s is not None:
+            return min(self.duration_s, self.loop_end_s) if self.duration_s > 0 else self.loop_end_s
+        return self.duration_s
 
     def position(self):
         position = self.anchor_position + (self.clock() - self.anchor_clock if self.playing else 0.)
-        if self.duration_s > 0 and position >= self.duration_s:
+        boundary = self.boundary()
+        if boundary > 0 and position >= boundary:
             if self.loop and self.playing:
-                loops = int(position / self.duration_s)
-                position %= self.duration_s
+                loops = int(position / boundary)
+                position %= boundary
                 self.epoch += loops
             else:
-                position = self.duration_s
+                position = boundary
                 if self.playing:
                     self.playing = False
                     self.epoch += 1
@@ -33,14 +40,14 @@ class Transport:
     def seek(self, position):
         if isinstance(position, bool) or not isinstance(position, (float, int)) or not math.isfinite(position) or position < 0:
             raise ValueError("seek requires a non-negative source time")
-        if self.duration_s > 0:
-            position = min(position, self.duration_s)
+        if self.boundary() > 0:
+            position = min(position, self.boundary())
         self.anchor_position, self.anchor_clock = float(position), self.clock()
         self.epoch += 1
 
     def play(self, enabled):
         position = self.position()
-        if enabled and self.duration_s > 0 and position >= self.duration_s:
+        if enabled and self.boundary() > 0 and position >= self.boundary():
             position = 0.
         if self.playing != enabled:
             self.epoch += 1
@@ -49,6 +56,7 @@ class Transport:
 
     def reset(self, *, duration_s=0., playing=False):
         self.duration_s = duration_s
+        self.loop_end_s = None
         self.anchor_position, self.anchor_clock = 0., self.clock()
         self.playing = playing
         self.epoch += 1

@@ -26,6 +26,10 @@ async function setup(page:any,calibrations:any[]=[]) {
    const body=request.postDataJSON();writes.push({path,body});
    if(path==='/api/configuration'){preset=body.preset;state.preset=preset;state.session.desired_revision++;}
    if(path==='/api/person')state.session.person_id=body.person_id;
+   if(path==='/api/transport'){
+    if(body.tracked_prefix!=null)state.session.loop_end_s=body.tracked_prefix ? state.source.job.prefix_s : null;
+    if(body.loop!=null){state.session.loop=body.loop;if(!body.loop)state.session.loop_end_s=null;}
+   }
    if(path==='/api/calibrate')state.calibration=calibrations.find(c=>c.id===body.reuse_id) || {torso_scale:.2,provenance:'synthetic measurement'};
    if(path==='/api/presets')saved.push(body);
    if(path==='/api/macros/intensity'){state.preset.macros[0].value=body.value;state.preset.master=body.value;state.session.desired_revision++;}
@@ -129,4 +133,24 @@ test('performance recovery lists only matching scales and measurement needs sele
  await expect(all.locator('option[value="other-body"]')).toContainText('two');
  await expect(all.locator('option[value="other-source"]')).toContainText('another');
  expect(errors).toEqual([]);
+});
+
+test('tracked-prefix controls freeze and explicitly expand the loop without changing preset',async({page})=>{
+ const {state,writes,errors}=await setup(page);
+ state.source.job={id:'synthetic-prefix',status:'building',prefix_s:2,duration_s:60,person_ids:['one']};
+ const before=JSON.stringify(state.preset);
+ const prefix=page.getByRole('checkbox',{name:'Loop sobre prefijo trackeado'});
+ await expect(prefix).toBeVisible();await prefix.click();await expect(prefix).toBeChecked();
+ await expect.poll(()=>state.session.loop_end_s).toBe(2);
+ await expect(page.getByText('Hasta 2.0 s · límite fijo')).toBeVisible();
+ const expand=page.getByRole('button',{name:'Ampliar al prefijo disponible'});
+ await expect(expand).toBeDisabled();
+ state.source.job.prefix_s=4;
+ await expect(expand).toBeEnabled();expect(state.session.loop_end_s).toBe(2);
+ await expand.click();await expect.poll(()=>state.session.loop_end_s).toBe(4);
+ await page.getByRole('button',{name:'Performance',exact:true}).click();
+ await expect(prefix).toBeVisible();
+ await prefix.click();await expect(prefix).not.toBeChecked();await expect.poll(()=>state.session.loop_end_s).toBeNull();
+ expect(writes.map(w=>w.body)).toEqual([{tracked_prefix:true},{tracked_prefix:true},{tracked_prefix:false}]);
+ expect(JSON.stringify(state.preset)).toBe(before);expect(errors).toEqual([]);
 });

@@ -334,3 +334,43 @@ def test_marks_distinguish_observed_epoch_from_pending_transport_seek(tmp_path):
         assert after['payload']['observed_epoch']==after['payload']['transport_epoch']
         assert after['payload']['frame_time_s']>=1.
     finally:store.close()
+
+
+def test_tracked_prefix_loop_is_explicit_fixed_and_resets_history(tmp_path):
+    import pytest
+    now = [0.]
+    store = SessionStore(tmp_path, prepare=PreparedRoutes)
+    library = TwoPeopleLibrary(status='building')
+    original_snapshot = library.snapshot
+    prefix = [1.]
+    library.snapshot = lambda job: {**original_snapshot(job), 'prefix_s':prefix[0]}
+    audio = Audio()
+    runtime = LaboratoryRuntime(store, library=library, audio=audio, clock=lambda:now[0])
+    runtime.kind, runtime.job_id = 'video','test'
+    runtime.tick()
+    runtime.control(tracked_prefix=True, playing=True)
+    runtime.tick()
+    assert store.snapshot()['session']['loop_end_s'] == 1.
+    epoch = runtime.transport.epoch
+    now[0] = 1.05
+    runtime.tick()
+    assert runtime.transport.epoch > epoch
+    assert runtime.transport.position() == pytest.approx(.05)
+    assert len(runtime.model.kinematics.history) <= 1
+    prefix[0] = 2.
+    runtime.tick()
+    assert runtime.transport.loop_end_s == 1.
+    runtime.control(tracked_prefix=True)
+    assert runtime.transport.loop_end_s == 2.
+    library.status = 'ready'
+    runtime.tick()
+    assert runtime.transport.loop_end_s == 2.
+    runtime.control(loop=False)
+    assert runtime.transport.loop_end_s is None
+    prefix[0] = 0.
+    with pytest.raises(ValueError,match='non-empty'):
+        runtime.control(tracked_prefix=True)
+    runtime.kind = 'camera'
+    with pytest.raises(ValueError,match='only file'):
+        runtime.control(tracked_prefix=True)
+    store.close()

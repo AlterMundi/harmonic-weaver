@@ -353,6 +353,7 @@ class SessionState(Contract):
     position_s: Number = Field(default=0, ge=0)
     playing: bool = False
     loop: bool = True
+    loop_end_s: Number | None = Field(default=None, gt=0)
     status: str = "idle"
     error: str | None = None
 

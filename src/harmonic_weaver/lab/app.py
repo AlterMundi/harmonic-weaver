@@ -289,6 +289,7 @@ class TransportRequest(Contract):
     playing: bool | None = None
     position_s: Number | None = Field(default=None, ge=0)
     loop: bool | None = None
+    tracked_prefix: bool | None = None
 
 
 class SourcePreferencesRequest(Contract):

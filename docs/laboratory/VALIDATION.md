@@ -3358,3 +3358,17 @@ restringida del inspector, inventario completo etiquetado, selección explícita
 reuse_id, habilitación de medición por soporte seleccionado y controles previos
 Performance. TypeScript/Vite build pasa. No cambia calibración/runtime ni defaults;
 no acredita continuidad de identidad entre generaciones ni una medición corporal.
+
+### Loop explícito sobre tracking parcial — 2026-10-05
+
+El transporte puede repetir un prefijo fijo antes de conocer la duración completa.
+La UI distingue límite elegido y prefijo disponible; ampliar, salir y reproducir
+son acciones explícitas. Completar el cache no amplía el límite, abrir fuente lo
+borra. No cambia presets/defaults ni tracking/cache. Fronteras incrementan época y
+reinician análisis/ruteo sin fabricar desplazamientos.
+
+39 tests transporte/runtime/evaluación, 10 contratos/store y 10 API pasan. Cinco
+pruebas Chrome con API/WebSocket sintéticos interceptados pasan: límite fijo,
+ampliación explícita, salida, controles disponibles en Performance y preset intacto.
+TypeScript/Vite build pasa. Sesión actual conservada pausada. No se inició tracking,
+reproducción ni audio físico; el cambio backend carga en el próximo arranque normal.

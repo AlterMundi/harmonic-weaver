@@ -880,6 +880,16 @@ function App() {
               />
               Loop
             </label>
+            {(job?.status === 'building' || session.loop_end_s != null) && <>
+              <label className="check"><input type="checkbox" checked={session.loop_end_s != null}
+                disabled={pending || !(job?.prefix_s > 0)}
+                onChange={e=>transport({tracked_prefix:e.target.checked})}/>Loop sobre prefijo trackeado</label>
+              {session.loop_end_s != null && <span>
+                Hasta {session.loop_end_s.toFixed(1)} s · límite fijo
+                <button disabled={pending || !(job?.prefix_s > session.loop_end_s)}
+                  onClick={()=>transport({tracked_prefix:true})}>Ampliar al prefijo disponible</button>
+              </span>}
+            </>}
           </div>
         </section>
         <section className="figure-view">
