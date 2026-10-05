@@ -1032,6 +1032,15 @@ de Shaper (256). Se aplica al iniciar el Shaper propio. Mayor bloque puede reduc
 la carga de callbacks y aumentar la latencia; no corrige discontinuidades de síntesis.
 El tamaño efectivo y la frecuencia aparecen en `/api/audio/voices` de Shaper.
 
+Seguimiento del 2026-10-05: Nicolás informó que la primera prueba con buffer
+1024 todavía tenía clicks. En una prueba posterior de 20 segundos, con la
+configuración actual y calibración explícitamente recuperada para la misma
+fuente/persona, informó «ahora en tu prueba no escucho ningún click».
+La captura digital terminó con 960000 muestras a 48 kHz, cero bloques perdidos
+y sin status de error reportado por el callback. El audio y la configuración
+quedan en el directorio privado de checks. Se conserva el estado probado;
+esto no identifica aún la causa ni demuestra ausencia de clicks en otros cortes.
+
 ### Ajuste de clickeo y colectivo (2026-10-04)
 
 Los presets de fábrica 02–05 ahora dejan pitch/fase desactivados y suavizan gain
