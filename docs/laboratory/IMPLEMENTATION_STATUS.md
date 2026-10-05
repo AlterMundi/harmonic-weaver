@@ -100,7 +100,11 @@ corporal usa PCM post-Shaper a 48 kHz, con features/targets idénticos a EVAL si
 Dataset/readout repetidos y contraparte R05 comparada en soporte/medio/muestreo común.
 La siguiente evidencia de generalización necesita tomas/personas independientes;
 la escucha humana y el contraste físico no se dan por realizados.
-#77 conserva el trabajo de procedencia temporal y productores adicionales.
+#77 completó su entrega técnica: eventos OSC v2 por slot, relojes separados,
+ingreso parcial y consumo sin muestras duplicadas, con selección explícita en
+el harness histórico. Los productores adicionales y la sincronía física
+permanecen como extensiones de R09; no bloquean esa entrega ni cambian el
+transporte PyAV del laboratorio cotidiano.
 La causa CUDA y las mediciones físicas siguen abiertas. No se declara terminado
 el roadmap ni validadas sus hipótesis al entregar herramientas.
 

@@ -1,6 +1,7 @@
 # Observaciones OSC por slot — extensión v2
 
-Estado: receptor, ingreso parcial al motor y launcher histórico opt-in.
+Estado: entrega técnica #77 implementada y verificada; receptor, ingreso parcial
+al motor y launcher histórico opt-in.
 Relación: #77 y R09. No cambia la sesión web
 cotidiana, sus fuentes PyAV/HarMoCAP ni los defaults de audio.
 
@@ -203,3 +204,21 @@ La opción de reloj no agrega un debounce de estabilidad ni cambia sonido actual
 metadata perdida y validación; el editor Stage verifica persistencia y decay
 fijo/automático con fixtures sintéticos. Son controles de software, no eventos
 corporales confirmados ni sincronía física.
+
+## Cierre de la entrega técnica #77 — 2026-10-05
+
+Los criterios originales están cubiertos: dos bundles del mismo frame actualizan
+slots independientes; repetidos, desordenados, expiración y tombstones no
+resucitan observaciones; stream/calibración y observed/held/invalid cortan la
+historia; traza conserva IDs originales y relojes sin conversión ficticia.
+El ingreso real del harness v2 está probado con paquetes OSC codificados.
+Los consumidores de derivada, suavizado, fase, slew y eventos usan captura sólo
+cuando se elige explícitamente y tienen warmup tras pérdida/gap/identidad.
+
+76 pruebas de driver, ingreso al motor y transforms de captura pasan sobre el
+checkout consolidado. Los recorridos Stage de selección/persistencia conservan
+su evidencia previa. El modo legacy permanece disponible con sus límites
+documentados; este cierre no cambia defaults ni afirma corrección de una sesión
+que todavía use ese callback. Tampoco acredita exposición óptica, sincronía
+física o adquisición con otros productores. Esas dependencias permanecen en R09
+y #23, separadas de la entrega de contrato/software resuelta aquí.

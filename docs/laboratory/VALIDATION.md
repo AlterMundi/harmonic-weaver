@@ -3673,3 +3673,16 @@ pendiente, sin consultas posteriores. Una prueba Chrome y TypeScript/Vite pasan.
 Se corrigió la descripción obsoleta de EVALUATION que presentaba exportación
 video/audio/figura como pendiente; su implementación y evidencia anteriores
 siguen válidas, no se repitió el banco de encoding por este cambio de polling.
+
+### 2026-10-05 — Auditoría de aceptación técnica #77
+
+Se contrastó el alcance original con ObservationEvent v2, OSC_OBSERVATIONS y los
+fixtures wire/engine/consumidores: evento sólo por slot actualizado; duplicates,
+reorder, stream/calibración, expiry/tombstone y held/invalid; IDs/relojes separados
+en trace; derivada/fase/gaps sin remuestreo por el segundo cuerpo o ticks.
+Resultado conjunto: 76 passed, 1,46 s (test_harmocap_observation_events,
+test_engine_driver_observations, test_capture_derivative, test_capture_smoothing,
+test_capture_phase_slew, test_capture_events). No se reanudó la sesión sonora.
+La entrega técnica puede cerrarse; clocks físicos/productores adicionales siguen
+R09/#23. No se declara reparado el callback legacy ni se atribuye a este contrato
+la desaparición de clicks informada por Nicolás.
