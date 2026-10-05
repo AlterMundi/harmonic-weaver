@@ -3686,3 +3686,25 @@ test_capture_phase_slew, test_capture_events). No se reanudó la sesión sonora.
 La entrega técnica puede cerrarse; clocks físicos/productores adicionales siguen
 R09/#23. No se declara reparado el callback legacy ni se atribuye a este contrato
 la desaparición de clicks informada por Nicolás.
+
+### 2026-10-05 — R07 reservado entre dos grabaciones corporales
+
+EVAL nuevo desde caches existentes y escalas guardadas por fuente/persona, mismo
+preset: toma individual train y slot derecho previamente seleccionado en dúo test.
+No se transfiere calibración ni se inventa identidad. PCM post-Shaper 48 kHz sin
+abrir dispositivos; tres ventanas train y dos test preseleccionadas antes de score.
+Receta pública reserved_recordings.py y plan genérico en el banco R07; referencias,
+calibraciones, traces, PCM, figuras y resultados permanecen locales en
+checks/r07-cross-recordings-20261005. No copia ni procesa de nuevo videos.
+
+Cinco proyecciones por condición, etiquetas verificadas por producción y readout
+recomputado; dos ejecuciones con dataset/resultados idénticos. Siete lectores y
+controles puntúan los mismos dos casos reservados. 24 pruebas de preflight,
+readout y labels pasan (0,67 s). Un primer comando preparatorio usó Python del
+sistema sin PYTHONPATH y no creó request/resultados; se corrigió usando el venv
+actual. No cambia el runtime cotidiano, presets, calificación humana o audio.
+
+Reserva por hash de archivo, no garantía de independencia de adquisición o
+participantes. Muestra test muy pequeña, etiquetas de tracking y medio teórico;
+no prueba generalización/HIT, sincronía física ni aceptación perceptual. Más
+tomas/participantes y un observable discriminante siguen pendientes.

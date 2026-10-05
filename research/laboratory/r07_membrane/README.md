@@ -525,3 +525,43 @@ Un archive sintético sin selección local no inventa IDs de figuras para recupe
 
 API de recuperación: GET `/api/research/r07-readout/{id}/request`. Devuelve configuración
 más casos locales; la exportación portable del panel continúa excluyendo esos casos.
+
+## Reserva entre archivos corporales — 2026-10-05
+
+`reserved_recordings.py` extiende la receta local a ventanas de distintas corridas
+PCM de un mismo EVAL congelado. El plan declara `run_index`, rol y tiempos; exige
+reserva `take`, hashes de grabación distintos entre train/test, al menos tres
+ventanas train y dos test. Rechaza la reserva inválida antes de proyectar. No
+asigna identidades ni trata dos archivos como adquisición independiente probada.
+Las etiquetas se calculan después de las figuras, vinculadas a su trace/PCM.
+Medio/grilla comunes y normalización train-only usan el readout productivo.
+La web ya permite seleccionar proyecciones, roles y reserva por toma; esta receta
+conserva el recorrido completo en un comando sin operar la sesión live.
+
+```sh
+cd ~/Projects/harmonic-weaver
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 .venv/bin/python \
+  research/laboratory/r07_membrane/reserved_recordings.py \
+  --evaluation-dir /ruta/local/eval-completo \
+  --plan /ruta/local/plan-con-roles.json --output /ruta/local/resultado-nuevo
+```
+
+[Ejemplo de plan](reserved_recordings_example.json): números de corrida y tiempos
+son elecciones explícitas; deben corresponder al EVAL elegido. No contiene medios,
+tracking, calibraciones o resultados corporales. El EVAL debe tener PCM; las
+calibraciones se establecen al prepararlo y no son inferidas por esta receta.
+
+Ejecución corporal privada: una toma individual para train y el cuerpo seleccionado
+a la derecha de la toma dúo para test. Mismo preset, caches existentes y calibraciones
+guardadas vinculadas a cada fuente/persona; sin transferir escala. Tres ventanas
+train y dos test, fijadas antes de observar scores. Shaper PCM 48 kHz offline,
+mezcla estéreo mean, membrana 4×4 modos/grilla 5×5 y etiqueta media de velocidad de
+caderas con cobertura mínima explícita. Dos ejecuciones y recomputación produjeron
+dataset/resultados idénticos en este entorno. Métricas y recetas con datos corporales
+permanecen privadas en checks/r07-cross-recordings-20261005.
+
+Se comparan siete lectores/controles existentes sobre los mismos dos casos test.
+Dos casos no establecen generalización, estabilidad estadística ni equivalencia
+anatómica entre perspectivas. Etiquetas derivadas de tracking no son ground truth,
+PCM offline no es una escucha R24 y la membrana no es cymatics físico. 24 pruebas
+pasan de reserva previa, readout train-only y vinculación de etiquetas; no validan HIT.

@@ -57,7 +57,7 @@ roles o etiquetas en un contrato no equivale a haber realizado el experimento.
 | [R04](../../research/laboratory/r04_relational/README.md) | Interferencia Anni/Sai, banco de controles y snapshots EVAL | Referencia/observable definidos y contrastes en tomas reservadas; no validar HIT con I local |
 | [R05](../../research/laboratory/r05_resonators/README.md) | Resonadores configurables y excitación congelada desde EVAL, renders/bancos | Escucha comparada y calibración de niveles/latencia; el medio añade su propia organización |
 | [R06](../../research/laboratory/r06_activation/README.md) | Calendarios racional/phi/otras perturbaciones, controles de dosis/espectro/shifts y manifests | Observable discriminante y medio/ensayo físico; el nombre phi no demuestra una ventaja |
-| [R07](../../research/laboratory/r07_membrane/README.md) | R05 o EVAL/Shaper PCM→membrana teórica, reducción estéreo explícita, campos/RMS, controles directos y decoder de atributos reservados con recuperación de casos | Banco con features corporales y tomas independientes; actuador/medio/observación calibrados para cymatics físico |
+| [R07](../../research/laboratory/r07_membrane/README.md) | R05 o EVAL/Shaper PCM→membrana teórica, reducción estéreo explícita, campos/RMS, controles directos y decoder de atributos reservados con recuperación de casos | Primer contraste entre dos archivos corporales distintos ejecutado/repetido; más tomas/personas y adquisición independiente por establecer; actuador/medio/observación calibrados para cymatics físico |
 | [R08](../../research/laboratory/r08_rope/README.md) | Lectura de frames, anotación/máscaras, flujo/trayectorias, benchmarks y overlays | Referencias manuales de cuerda en clips reales; cruces 2D no son nudos 3D |
 | [R09](../../research/laboratory/r09_spatial/README.md) | Streams espaciales, adapter HarMoCAP, clocks afines, comparación y DLT multivista | Cámaras/sensores, calibración y anchors medidos; profundidad inferida conserva su condición |
 | [R10](../../research/laboratory/r10_experience/README.md) | Protocolos, player/transportes, respuestas/pares/análisis y borradores recuperables | Participantes, practicante/observador, exposición y respuestas reales; niveles/sincronía físicos |
@@ -98,7 +98,11 @@ el 2026-10-05; resultados privados, receta en el banco R07. El origen EVAL/Shape
 está disponible en web/API y receta local, con labels/offset. Su primera corrida
 corporal usa PCM post-Shaper a 48 kHz, con features/targets idénticos a EVAL sin PCM.
 Dataset/readout repetidos y contraparte R05 comparada en soporte/medio/muestreo común.
-La siguiente evidencia de generalización necesita tomas/personas independientes;
+El contraste R07 posterior reserva otro archivo corporal para test, con escala
+guardada por fuente/persona y preset común; tres ventanas train y dos test,
+repetidas con resultados idénticos. Esto amplía el soporte fuera de un archivo,
+pero dos casos test no prueban generalización ni adquisición independiente.
+La siguiente evidencia de generalización necesita más tomas/personas independientes;
 la escucha humana y el contraste físico no se dan por realizados.
 #77 completó su entrega técnica: eventos OSC v2 por slot, relojes separados,
 ingreso parcial y consumo sin muestras duplicadas, con selección explícita en
