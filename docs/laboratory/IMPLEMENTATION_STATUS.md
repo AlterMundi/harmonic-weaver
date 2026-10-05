@@ -73,8 +73,10 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 
 Diagnóstico CUDA acotado disponible por comando, sin escribir/invalidatear cache:
 worker productivo en proceso nuevo, prefijo y dispositivo explícitos, comparación
-normal/síncrona, etapa/frame/traceback locales. Dos prefijos reales de 240 frames
-completaron en CUDA; no reproducen ni resuelven el fallo histórico de espalda.
+normal/síncrona, etapa/frame/traceback locales. Además de los prefijos de 240 frames, el minuto actual completo (1.800 cuadros)
+y el fragmento histórico de espalda (360 cuadros, normal/síncrono) completaron
+en CUDA. Checkpoint/extractor coinciden con los manifests históricos de espalda;
+no se reprodujo el error ni se determinó su causa.
 CPU cotidiana intacta. Comando y límites en RUNNING/VALIDATION; #31 sigue abierto.
 
 One-Euro incorpora corrección opcional de continuidad de etiquetas de caderas

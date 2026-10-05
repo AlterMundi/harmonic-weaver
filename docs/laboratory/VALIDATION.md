@@ -3638,3 +3638,26 @@ realmente aparecen en el diagnóstico. No cambian defaults ni síntesis.
 Verificación: TypeScript/Vite y dos pruebas Chrome de estado efectivo y control
 portable de continuidad de caderas. La sesión real siguió pausada con cero
 voces; no se reprodujo ni se declaró nueva aceptación auditiva.
+
+### 2026-10-05 — CUDA: minuto completo y fragmento histórico de espalda
+
+El diagnóstico aislado completó el video cotidiano entero: 1.800 cuadros,
+29,83 s, salida de proceso 0. Se localizó el fragmento de espalda original de la
+biblioteca que había fallado en el cuadro 166; completó sus 360 cuadros en modo
+normal (7,85 s) y síncrono (12,26 s), ambos con salida 0. GPU RTX 2060,
+Torch 2.6.0+cu124, CUDA runtime 12.4; device cuda:0 explícito, imgsz 320.
+El hash de checkpoint y la procedencia del extractor coinciden con los manifests
+históricos CPU/auto de espalda. Esto no reconstruye el estado interno del proceso
+fallido ni demuestra equivalencia del entorno histórico completo.
+
+Cada condición usó un proceso nuevo, sin persistir poses ni publicar generaciones.
+Los archivos del cache de espalda conservaron sus hashes entre las condiciones
+normal y síncrona. La sesión cotidiana no se reprodujo ni cambió a CUDA.
+Informes, requests y logs privados en checks/cuda-diagnostic-20261005/:
+async-1800, back-async-360 y back-sync-360. El request de cada condición permite
+repetir exactamente sus flags/entrada con otro directorio de salida.
+
+Resultado: el fallo no se reprodujo en estas condiciones. No se atribuye a una
+causa ni se considera reparado por ausencia en tres corridas. #31 sigue abierto;
+CPU permanece como configuración cotidiana explícita. No repetir este mismo
+banco sin un nuevo fallo o una diferencia concreta de entorno/condición.
