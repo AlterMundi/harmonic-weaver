@@ -59,15 +59,16 @@ runtime desde el checkout:
 PYTHONPATH=src:tests .venv/bin/python -m pytest -q tests/test_lab_*.py
 ```
 
-Cuando un cambio requiere verificar toda la integración, con Shaper-dev como
+Cuando un cambio requiere verificar toda la integración, con Shaper como
 directorio hermano:
 
 ```sh
-SHAPER_DIR=../harmonic-shaper-dev PYTHONPATH=src:tests:../harmonic-shaper-dev/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q tests --maxfail=5
+SHAPER_DIR=../harmonic-shaper PYTHONPATH=src:tests:../harmonic-shaper/src OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 .venv/bin/python -m pytest -q tests --maxfail=5
 ```
 
-Las pruebas PCM requieren el renderer declarado; no sustituirlo por main para
-obtener un resultado compatible. Los bancos web nuevos se prueban con una fixture
+Las pruebas PCM usan el checkout consolidado de Shaper indicado arriba. Al
+comparar una corrida histórica, conservar la revisión declarada en su manifest;
+no atribuir a esa revisión resultados obtenidos con otro motor. Los bancos web nuevos se prueban con una fixture
 aislada/API real o con `--no-audio`, sin abrir dispositivos ni datos corporales.
 El comando de desarrollo y su alias están documentados en RUNNING; `--describe`
 muestra selección, `--check` verifica imports, ninguno acredita hardware/escucha.

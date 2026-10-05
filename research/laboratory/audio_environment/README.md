@@ -6,8 +6,8 @@ No llama AudioEngine.start ni abre dispositivos. Raw float estéreo, control has
 archivos del motor y versiones permiten revisar la comparación.
 
 ```bash
-cd ~/Projects/harmonic-weaver-dev
-.venv/bin/python research/laboratory/audio_environment/compare.py --weaver-python .venv/bin/python --shaper-python ../harmonic-shaper-dev/.venv/bin/python --shaper-dir ../harmonic-shaper-dev --output /tmp/pcm-environment-new-run
+cd ~/Projects/harmonic-weaver
+.venv/bin/python research/laboratory/audio_environment/compare.py --weaver-python .venv/bin/python --shaper-python ../harmonic-shaper/.venv/bin/python --shaper-dir ../harmonic-shaper --output /tmp/pcm-environment-new-run
 ```
 
 Output debe ser nuevo. `--voices` admite 1, 6 o 32; evidencia incluida corresponde

@@ -143,11 +143,17 @@ Es una semilla sintética: sin intervalo de confianza, generalización corporal
 ni conclusión HIT. La rotación global sirve como control de representación;
 shuffle conserva vectores pero cambia la cronología.
 
-Reproducir con el checkout/paquetes de la evidencia, en un directorio nuevo:
+La reproducción exacta siguiente corresponde a la revisión histórica de la
+evidencia, no al head actual. El script rechaza por diseño otro hash de módulo.
+Para una corrida nueva con el código actual, importar sus configuraciones en la
+web o usar el CLI de Operación; el nuevo manifest identifica el código utilizado.
+No cambiar de instalación cotidiana para ejecutar este banco.
+
+En la revisión y paquetes declarados por la evidencia, en un directorio nuevo:
 
 ```bash
-cd ~/Projects/harmonic-weaver-dev
-OPENBLAS_NUM_THREADS=1 .venv/bin/python research/laboratory/r01_grassmann/reproduce_horizons.py --output /tmp/r01-horizons-reproduction
+cd ~/Projects/harmonic-weaver
+PYTHONPATH=src OPENBLAS_NUM_THREADS=1 .venv/bin/python research/laboratory/r01_grassmann/reproduce_horizons.py --output /tmp/r01-horizons-reproduction
 ```
 
 El script exige identidad del módulo y hashes exactos de entradas/traces;

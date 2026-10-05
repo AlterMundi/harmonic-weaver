@@ -33,7 +33,7 @@ con intervalos disjuntos. Cada condición se repite en un archivo nuevo; no se
 sobrescriben resultados. [Evidencia](evidence-2026-10-03.json).
 
 ```bash
-cd ~/Projects/harmonic-weaver-dev
+cd ~/Projects/harmonic-weaver
 PYTHONPATH=src:. OPENBLAS_NUM_THREADS=1 .venv/bin/python \
   research/laboratory/r03_centers/controls.py --output /tmp/r03-centers-new
 ```
