@@ -7,8 +7,9 @@ carpetas `-dev` y trabajo sin instalar no describen la instalación actual.
 ## Instalación y evidencia reciente
 
 Una instalación: `~/Projects/harmonic-weaver`, web 8765 y Shaper 8085.
-Base consultada: Weaver `4bf4eb2`; este corte agrega el origen Shaper para R07.
-Heads adyacentes consultados: Shaper `36dc005`,
+Base consultada: Weaver `bd4a0a8`; cortes recientes agregan el origen Shaper para
+R07, diagnóstico por voz, salida/buffer web, continuidad opcional de caderas y
+reproductor CUDA acotado sin cache. Heads adyacentes consultados: Shaper `dcebaf8`,
 HarMoCAP `25fda8d`. No hay PRs de laboratorio abiertas; permanece la PR histórica
 #2 de beat envelope, fuera de estas entregas. Los cambios de backend recientes
 cargan en el próximo arranque normal; se conservó la sesión que Nicolás escuchó,

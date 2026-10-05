@@ -11,6 +11,34 @@ Las secciones siguientes conservan el alcance y los pendientes; no asignan
 trabajo automáticamente a otra persona.
 Programa #7; continuidad de LAB-08, EVAL #18 y agenda R01–R13.
 
+## Continuación vigente — 2026-10-05
+
+Trabajar en `~/Projects/harmonic-weaver`, `main`, con el comando de RUNNING.
+La recuperación del baseline y los contratos de sesión están terminados;
+no repetir esa migración ni crear workspaces/instalaciones nuevos. El
+[mapa actual](IMPLEMENTATION_STATUS.md) identifica software disponible y
+dependencias que todavía necesitan personas o hardware.
+
+Prioridad cotidiana: escucha más larga y de los modelos angular/colectivo con
+tracking suavizado, observación de saltos de pose y feedback sobre controles.
+Se preserva la escucha sin clicks informada por Nicolás; no se extrapola a toda
+modalidad. Nuevos controles opt-in de continuidad de caderas antes de One-Euro
+y salida/buffer desde la web están integrados, sin modificar la sesión pausada.
+El diagnóstico CUDA acotado no reemplaza caches ni acredita causa del fallo.
+
+Comparador PCM, captura opcional y bancos R01–R13 ya existen: continuar desde
+sus experimentos y pendientes concretos, sin reimplementar el plan histórico.
+No cerrar hipótesis por completar herramientas. No contactar colaboradores ni
+asignar trabajo automáticamente; conservar el territorio reservado a Oliva.
+
+<details>
+<summary>Plan histórico de segunda iteración y aportes de Sai/Oliva — 2026-09-29</summary>
+
+Las ramas, worktrees y entregas marcadas pendientes abajo describen ese corte;
+no determinan la instalación ni las instrucciones actuales. El registro del
+2026-10-04 y la continuación vigente prevalecen. Se conserva el detalle para
+no perder preguntas, contratos ni aportes de investigación.
+
 ## Estado que debe preservarse
 
 Base revisada: Weaver feat/laboratory-live, commit 0b9766a (PR #30, sobre #29);
@@ -297,3 +325,5 @@ La preparación de archivo local está cubierta; publicación externa, corpus co
 inputs públicos/consentidos, protocolos/feedback humanos y medición física siguen
 pendientes. Un resumen sin IDs sigue pudiendo contener resultados sensibles.
 Ningún video/tracking se copia al paquete ni se publica automáticamente.
+
+</details>

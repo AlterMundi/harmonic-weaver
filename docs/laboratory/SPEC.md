@@ -1,12 +1,14 @@
 # Laboratorio corporal — especificación de construcción
 
-Estado: plan de construcción y backlog; sin implementación del laboratorio iniciada. 2026-09-29.
+Estado 2026-10-05: instrumento y bancos implementados en `main`; esta
+especificación conserva los requisitos del programa. Consultar
+[entregas y pendientes actuales](IMPLEMENTATION_STATUS.md) y [arranque](RUNNING.md).
 
-**Prerequisito descubierto:** el baseline local no está en main remoto. HEAD
-local `7aaa8c0` contiene siete commits no publicados en `upstream/main`, y hay
-modificaciones/archivos nuevos relevantes. Main remoto `726f3bf` tiene además
-correcciones portables de tests. LAB-00 debe preservar y reconciliar ese estado
-antes de integrar el laboratorio. Ver [inventario](BASELINE_INVENTORY.json).
+**Antecedente resuelto (LAB-00):** el baseline local `7aaa8c0` y los cambios
+sin commit se preservaron en `2089ed3`, reconciliados con `726f3bf` en `18ddec0`
+e integrados mediante PR #29. Se conservaron las correcciones portables de tests.
+El [inventario](BASELINE_INVENTORY.json) y la [procedencia](../LABORATORY_BASELINE.md)
+describen esa recuperación; no son instrucciones para crear otra instalación.
 
 Esta especificación y [DECISIONS](DECISIONS.md) reemplazan las decisiones
 incompatibles del plan exploratorio anterior. La [agenda](../../research/laboratory/AGENDA.md)
