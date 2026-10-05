@@ -3624,3 +3624,17 @@ Siete recorridos Chrome Stage reales guardan/recuperan relojes, gaps y controles
 incluyendo decay beat fijo→automático. Sin hardware/medios; fixture de siete rutas
 sintéticas, no siete voces del instrumento corporal. Fixture detenido. Restan
 sincronía entre productores/medición física y escucha de modelos.
+
+### 2026-10-05 — Estado efectivo del suavizado en la web
+
+El aviso de Modelos usa el preset aplicado y el diagnóstico del último cuadro,
+en vez de presentar la configuración editable como un filtro ya activo.
+Distingue ausencia de pose filtrada, persona no observada, falta de escala para
+el filtro bounded y corrección opcional de caderas no disponible por falta de
+escala. En este último caso One-Euro puede seguir suavizando. Los límites de
+aceleración se muestran sólo para bounded; las correcciones se informan cuando
+realmente aparecen en el diagnóstico. No cambian defaults ni síntesis.
+
+Verificación: TypeScript/Vite y dos pruebas Chrome de estado efectivo y control
+portable de continuidad de caderas. La sesión real siguió pausada con cero
+voces; no se reprodujo ni se declaró nueva aceptación auditiva.

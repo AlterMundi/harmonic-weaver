@@ -249,3 +249,26 @@ test('new Shaper stream clears figure history even when sample index repeats',as
  expect(await page.evaluate(()=>(window as any).__figureClears)).toBe(after);
  expect(writes).toEqual([]);expect(errors).toEqual([]);
 });
+
+
+test('filter status reports effective observations and unavailable hip repair',async({page})=>{
+ const {state,writes,errors}=await setup(page);
+ state.preset.algorithm.tracking_filter_enabled=true;
+ state.preset.algorithm.tracking_smoother='harmocap_one_euro';
+ await page.getByRole('button',{name:'Modelos',exact:true}).click();
+ const status=page.getByRole('status',{name:'Estado efectivo del filtro'});
+ await expect(status).toContainText('no hay una pose filtrada disponible');
+ await expect(status).not.toContainText('Filtro procesando');
+ state.features={diagnostics:{tracking_filter:{enabled:true,state:'conditioned',smoother:'harmocap_one_euro',hip_swap_guard_enabled:true,hip_swap_guard_available:false}}};
+ await expect(status).toContainText('Filtro procesando: harmocap_one_euro');
+ await expect(status).toContainText('Corrección de caderas pendiente: falta escala');
+ await expect(status).not.toContainText('Articulaciones limitadas ahora');
+ state.features.diagnostics.tracking_filter.hip_swap_guard_available=true;
+ state.features.diagnostics.tracking_filter.hip_labels_swapped=true;
+ await expect(status).toContainText('Intercambio de caderas corregido');
+ await expect(status).not.toContainText('Corrección de caderas pendiente');
+ state.features.diagnostics.tracking_filter={enabled:true,state:'missing',reason:'selected person missing'};
+ await expect(status).toContainText('No se observa a la persona seleccionada');
+ await expect(status).not.toContainText('Filtro procesando');
+ expect(writes).toEqual([]);expect(errors).toEqual([]);
+});

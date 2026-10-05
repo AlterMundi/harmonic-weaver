@@ -1406,11 +1406,17 @@ function App() {
                   }
                 </p>
                 {form("algorithm")}
-                {draft.algorithm.tracking_filter_enabled && <p role="status">
-                  Filtro causal activo: {draft.algorithm.tracking_smoother || "bounded"}. {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped ? "Intercambio de caderas corregido en este cuadro. " : ""}
-                  Joints limitados ahora: {(state.features?.diagnostics?.tracking_filter?.acceleration_limited_joints || []).join(", ") || "ninguno"}.
+                {state.preset?.algorithm?.tracking_filter_enabled && <p role="status" aria-label="Estado efectivo del filtro">
+                  {state.features?.diagnostics?.tracking_filter?.state === "conditioned"
+                    ? `Filtro procesando: ${state.features.diagnostics.tracking_filter.smoother}. `
+                    : "Filtro configurado; no hay una pose filtrada disponible. "}
+                  {state.features?.diagnostics?.tracking_filter?.reason === "selected person missing" && "No se observa a la persona seleccionada. "}
+                  {state.features?.diagnostics?.tracking_filter?.reason === "torso scale unavailable" && "Falta escala de torso para filtrar. "}
+                  {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped && "Intercambio de caderas corregido en este cuadro. "}
+                  {state.features?.diagnostics?.tracking_filter?.hip_swap_guard_enabled && !state.features.diagnostics.tracking_filter.hip_swap_guard_available && "Corrección de caderas pendiente: falta escala de torso. One-Euro puede seguir suavizando. "}
+                  {state.features?.diagnostics?.tracking_filter?.smoother === "bounded" && `Articulaciones limitadas ahora: ${(state.features.diagnostics.tracking_filter.acceleration_limited_joints || []).join(", ") || "ninguna"}. `}
                   En Figura podés alternar el esqueleto crudo y el filtrado.
-                  {draft.algorithm.tracking_smoother === "harmocap_one_euro" && " One-Euro reemplaza la mediana y el límite de aceleración. La corrección de caderas es opcional e independiente: puede confundir un giro real con un intercambio de etiquetas. No rellena articulaciones perdidas."}
+                  {state.preset.algorithm.tracking_smoother === "harmocap_one_euro" && " One-Euro reemplaza la mediana y el límite de aceleración. La corrección de caderas es opcional e independiente: puede confundir un giro real con un intercambio de etiquetas. No rellena articulaciones perdidas."}
                 </p>}
               </>
             )}
