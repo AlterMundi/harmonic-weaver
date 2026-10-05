@@ -55,6 +55,7 @@ class Kinematics:
         self.positions = [CausalSlope(settings.derivative_window_s, settings.max_gap_s) for _ in range(17)]
         self.velocities = [CausalSlope(settings.derivative_window_s, settings.max_gap_s) for _ in range(17)]
         self.filtered = np.full((17, 2), np.nan)
+        self.continuous_since = np.full(17, np.nan)
         self.last_t = None
         self.history = deque(maxlen=2048)
 
@@ -66,7 +67,11 @@ class Kinematics:
             for estimator in self.positions+self.velocities:
                 estimator.clear()
             self.filtered[:] = np.nan
+            self.continuous_since[:] = np.nan
             self.history.clear()
+        observed = np.isfinite(points).all(axis=1)
+        self.continuous_since[~observed] = np.nan
+        self.continuous_since[observed & ~np.isfinite(self.continuous_since)] = t
         if self.settings.smoothing_s and dt > 0:
             alpha = -math.expm1(-dt/self.settings.smoothing_s)
             valid = np.isfinite(points).all(axis=1) & np.isfinite(self.filtered).all(axis=1)
@@ -87,6 +92,10 @@ class Kinematics:
             pt, pp, pv = prior
             position_error = np.linalg.norm(points-pp, axis=1)
             velocity_error = np.linalg.norm(points-(pp+pv*(t-pt)), axis=1)
+            # A reappearing joint cannot be compared with its pre-loss trajectory.
+            supported = observed & (self.continuous_since <= pt)
+            position_error[~supported] = np.nan
+            velocity_error[~supported] = np.nan
         self.history.append((t, points.copy(), velocity.copy()))
         while self.history and self.history[0][0] < t-max(2*self.settings.horizon_s, 1.):
             self.history.popleft()

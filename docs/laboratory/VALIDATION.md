@@ -3327,3 +3327,22 @@ voces apagadas. Prueba sintética con una voz muteada y otras activas contrasta
 fracciones/medias/picos con los traces; los informes previos no se modifican.
 Verificación de esta ampliación: 40 tests de evaluación/packages/profiles pasan;
 TypeScript/Vite build pasa. No se abrieron dispositivos ni se generó escucha.
+
+### Predicción después de perder una articulación — 2026-10-05
+
+Caso sintético reproducido: al recuperar una cadera desplazada tras un cuadro
+missing, su velocidad era inválida pero `velocity_error` comparaba contra la
+trayectoria anterior al hueco (≈10 longitudes de torso). El ruteo local podía
+convertir ese salto de reacquisición en sonido. Se exige soporte continuo por
+articulación para errores de posición/predicción; missing/held/omitted reinician
+esa historia, sin descartar la de articulaciones todavía observadas. La predicción
+vuelve tras reunir historia nueva. El filtro bounded descarta también articulaciones
+omitidas, sin rellenarlas al recuperar.
+
+55 tests de filtros/modelos/colectivo/evaluación pasan. Otros 18 tests de recuperación
+y runtime pasan, incluida integración local→ruteo: la cadera recuperada no activa
+su voz y las voces con soporte válido siguen funcionando. No cambian controles,
+ratios, síntesis ni cache. No se atribuye esta corrección al click que Nicolás ya
+había dejado de escuchar; no se hizo una nueva escucha ni se reinició su sesión.
+Los 8 tests de PCM cross-repo pasan con el checkout Shaper actual añadido a
+PYTHONPATH: repetibilidad, paridad de targets/render, bloque causal y procedencia.

@@ -37,6 +37,13 @@ Offline evaluation uses the same MotionModel stage. Conditioning changes spectra
 correlations and geometry: research comparisons must preserve/declare these settings.
 No inference about HIT follows from smoother tracking or smaller residuals.
 
+Recovery correction, 2026-10-05: position/prediction errors require uninterrupted
+observations for that joint between the historical reference and the current sample.
+Reacquisition after a missing, held or omitted joint warms a new prediction history;
+it cannot measure displacement from a pre-loss coordinate. Other joints retain
+their valid histories. The bounded filter also forgets joints omitted from a frame,
+as the native One-Euro path already did. No raw cache or preset default changes.
+
 Verification: isolated hip swaps, irregular source cadence/acceleration bounds,
 preservation of steady motion, no filling missing/held joints, seeks and all model
 paths. Local body comparison/configuration/plots stay in the private data directory;

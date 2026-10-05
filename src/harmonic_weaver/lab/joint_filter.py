@@ -46,6 +46,8 @@ class JointMotionFilter:
         if person is None:
             self.states.clear()
             return frame, {"enabled": True, "state": "missing", "reason": "selected person missing"}
+        for index in set(self.states)-{q.index for q in person.joints}:
+            self.states.pop(index)
         if self.settings.tracking_smoother == "harmocap_one_euro":
             return self._one_euro(frame, person_id, person)
         if self.scale is None:
@@ -117,8 +119,6 @@ class JointMotionFilter:
         settings = self.settings
         estimates = []
         t = frame.source_time_s
-        for index in set(self.states)-{q.index for q in person.joints}:
-            self.states.pop(index)
         for q in person.joints:
             estimate = q.model_copy(deep=True)
             if q.state != "observed" or q.position is None:

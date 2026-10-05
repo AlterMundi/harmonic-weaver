@@ -148,3 +148,19 @@ def test_native_one_euro_is_shared_by_models_and_resets_at_seek(native_one_euro,
     assert z.diagnostics['tracking_filter']['smoother']=='harmocap_one_euro'
     first=observation(.05,1);m.observe(first,'one',2.)
     assert point(m.conditioned_frame,11)==pytest.approx(point(first,11))
+
+
+def test_bounded_filter_forgets_omitted_joint_without_filling_reacquisition():
+    f = JointMotionFilter(settings(), .2)
+    base = observation(0., 0)
+    f.push(base, 'one')
+    lost = observation(.03, 1)
+    lost.persons[0].joints = [q for q in lost.persons[0].joints if q.index != 11]
+    out, _ = f.push(lost, 'one')
+    assert 11 not in f.states
+    assert all(q.index != 11 for q in out.persons[0].joints)
+    found = observation(.06, 2)
+    found.persons[0].joints[11].position = [.9,.8]
+    out, _ = f.push(found, 'one')
+    assert point(out, 11) == pytest.approx([.9,.8])
+    assert f.states[11]['velocity'] == pytest.approx(np.zeros(2))
