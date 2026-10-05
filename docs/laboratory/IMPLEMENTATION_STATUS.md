@@ -38,7 +38,8 @@ colectivo. Datos y resultados corporales permanecen privados.
 Cambios recientes que se pueden probar: Performance, recuperación explícita de
 escala desde el inspector, fijar persona automática sin perder calibración,
 loop del prefijo, filtro One-Euro nativo, invalidación de predicción tras pérdida
-de articulación y diagnóstico pasivo de underflows. No cambiaron defaults
+de articulación, diagnóstico por voz/dependencias efectivas y diagnóstico pasivo
+de underflows. No cambiaron defaults
 sonoros en estos últimos cortes. [Recorrido](RUNNING.md).
 
 ## Investigación: herramientas y lo que falta observar

@@ -3456,3 +3456,20 @@ receta/origen Shaper/labels/readout pasan, con fuente sintética y Shaper real.
 Nueva receta no modifica artifacts EVAL y repite readout; la sesión cotidiana sigue
 pausada y con cero voces. Sin escucha nueva, toma independiente, medio físico o
 validación HIT/perceptual. Los resultados de dos ventanas reservadas son descriptivos.
+
+
+### 2026-10-05 — Diagnóstico de dependencias por voz (#32)
+
+PreparedRoutes conserva causas por voz/ruta/señal, distingue missing=silence/zero,
+unit mismatch/overflow y controles mute/solo/master/ganancia. El inspector muestra
+ganancia enviada y dependencias usadas por rutas habilitadas; no toma señales
+opcionales fuera del ruteo como requisitos del instrumento. Descriptores colectivos
+conservan la causa real del subespacio, ausencia de base anterior y modos superiores
+a los componentes establecidos. No modifica targets ni defaults, ni confirma audio
+físico por tener ganancia de control.
+
+47 pruebas pertinentes de rutas/runtime/modelos/colectivo/PCM verificadas; incluyen
+silencio por dependencia frente a cero permitido, ausencia de ruteo y conteo separado
+de fuentes usadas. Chrome: siete pruebas Performance pasan, incluida explicación
+por voz sin escrituras live. TypeScript/Vite build pasa. Sesión cotidiana confirmada
+pausada y cero voces; backend sin reinicio. Escucha de todos los modelos pendiente.

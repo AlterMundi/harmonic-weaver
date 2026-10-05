@@ -50,3 +50,13 @@ def test_new_models_require_explicit_scale():
         features = model.observe(observation(i/30, i), "one", i/30)
     assert features.signals["zone.1.speed"].state == "missing"
     assert features.diagnostics["scale"] is None
+
+
+def test_collective_missing_signal_keeps_actual_support_reason():
+    model=MotionModel(Preset(algorithm={'id':'collective'}),scale=.2)
+    features=model.observe(observation(0.,0),'one',0.)
+    collective=features.diagnostics['collective']
+    assert collective['state']=='missing'
+    for key in ('collective.residual','collective.change','collective.mode.1'):
+        assert features.signals[key].state=='missing'
+        assert features.signals[key].reason==collective['reason']

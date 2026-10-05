@@ -141,13 +141,15 @@ class MotionModel:
         put("global.angle_deg", orientation.get("angle_deg"), "deg")
         collective = self.subspace.push(t, selected.ravel(), [f"{j}.{axis}" for j in settings.joints for axis in "xy"])
         collective["speed_support"] = [joint for joint, valid in zip(settings.joints, speed_support) if valid]
-        put("collective.rank", collective.get("rank"))
-        put("collective.residual", collective.get("residual"))
+        collective_reason = collective.get("reason") or "requested collective descriptor not established"
+        put("collective.rank", collective.get("rank"), reason=collective_reason)
+        put("collective.residual", collective.get("residual"), reason=collective_reason)
         principal = collective.get("principal_angles_deg")
-        put("collective.change", max(principal) if principal else None, "deg")
+        put("collective.change", max(principal) if principal else None, "deg", reason=collective_reason if collective.get("state") != "observed" else "no previous collective basis for angle comparison")
         for i in range(12):
             amplitudes = collective.get("amplitudes", [])
-            put(f"collective.mode.{i+1}", amplitudes[i] if i < len(amplitudes) else None, "T/s")
+            put(f"collective.mode.{i+1}", amplitudes[i] if i < len(amplitudes) else None, "T/s",
+                reason=collective_reason if collective.get("state") != "observed" else "requested mode exceeds established collective components")
         if settings.id == "collective":
             residual = collective.get("residual")
             for z, (gain, _) in self.responses.items():

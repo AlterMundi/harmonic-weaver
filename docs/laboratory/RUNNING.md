@@ -1111,10 +1111,28 @@ usa articulaciones observadas en ese instante y no se presenta como modo PCA.
 
 ### Filtrar saltos de tracking
 
-En Modelos, activar **Filtrar glitches de tracking**. Ajustar mediana causal,
-suavizado y aceleración máxima por articulación. La sesión actual de Nicolás lo
-prueba con mediana de 3 cuadros, respuesta de 50 ms, caderas 35 y muñecas 240 T/s².
-El control de corrección de caderas atiende intercambios de etiquetas, no cambios
-reales de cuerpo. Figura permite **Ver esqueleto crudo en vez del filtrado**.
-Los ajustes se guardan con el preset; apagar el filtro recupera la entrada original.
-No se recalcula ni sobrescribe tracking. [Funcionamiento y opciones 3D](TRACKING.md).
+En Modelos, activar **Filtrar glitches de tracking** y elegir el suavizador:
+
+- **HarMoCAP One-Euro** usa el filtro del checkout local: mincutoff, beta y dcutoff.
+  No añade mediana, corrección de caderas ni límite de aceleración.
+- **Bounded** ofrece mediana causal, suavizado y aceleración máxima por articulación.
+  Su corrección de caderas atiende intercambios de etiquetas, no cambios de cuerpo.
+
+Figura permite **Ver esqueleto crudo en vez del filtrado**. Los ajustes se guardan
+con el preset; apagar el filtro recupera la entrada original. No se recalcula ni
+sobrescribe tracking. [Funcionamiento y opciones 3D](TRACKING.md).
+
+### Entender una voz que no suena
+
+En «Lo que está pasando», abrir **Qué ocurre en cada voz**. Muestra ganancia enviada
+a Shaper y distingue señales que bloquean la voz, ausencias permitidas como cero,
+mute/solo, ganancias en cero y falta de ruteo de ganancia. Las causas colectivas
+indican si falta historia, soporte o un componente establecido. Las seis voces
+siguen siendo independientes de cuántos componentes haya en el análisis.
+
+«Señales usadas por el ruteo» cuenta sólo dependencias de rutas habilitadas;
+«Por qué faltan señales» muestra esas ausencias, no todos los descriptores opcionales.
+Ganancia enviada no demuestra audio audible: revisar salida R24 y diagnóstico
+Shaper si hay targets activos pero no se escucha. No hace calibración automática,
+cambia defaults ni altera el sonido. El backend nuevo carga en el siguiente arranque
+normal; no hace falta interrumpir una sesión sólo para instalar el diagnóstico.

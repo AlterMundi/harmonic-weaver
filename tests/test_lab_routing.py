@@ -139,3 +139,29 @@ def test_tenfold_expression_keeps_static_level_and_increases_gesture():
         gains.append(graph.evaluate(f, .03)[0][0].gain)
     assert gains[1] > gains[0] > .31
     assert gains[1]-.31 == pytest.approx(10*(gains[0]-.31))
+
+
+def test_per_voice_diagnostic_distinguishes_blocking_from_zero_and_mute():
+    preset=Preset()
+    missing=complete_frame()
+    missing.signals['zone.1.detune'].state='held'
+    missing.signals['zone.1.detune'].reason='warming collective window'
+    targets,status=PreparedRoutes(preset).evaluate(missing,0.)
+    assert targets[0].gain==0 and targets[1].gain>0
+    assert status['voices']['1']['state']=='invalid'
+    issue=status['voices']['1']['issues'][0]
+    assert issue['source']=='zone.1.detune' and issue['target']=='detune'
+    assert issue['reason']=='warming collective window' and issue['effect']=='silence'
+    assert status['voices']['2']['state']=='active'
+    preset.routes[1].missing='zero'
+    targets,status=PreparedRoutes(preset).evaluate(missing,0.)
+    assert targets[0].gain>0 and status['voices']['1']['state']=='active'
+    assert status['voices']['1']['issues'][0]['effect']=='zero'
+    preset.voices[0].muted=True
+    _,status=PreparedRoutes(preset).evaluate(complete_frame(),0.)
+    assert status['voices']['1']['state']=='muted'
+    assert 'mute' in status['voices']['1']['reason']
+    preset.voices[0].muted=False
+    preset.routes=[r for r in preset.routes if not(r.voice==1 and r.target=='gain')]
+    _,status=PreparedRoutes(preset).evaluate(complete_frame(),0.)
+    assert status['voices']['1']['reason']=='Sin ruteo de ganancia habilitado'

@@ -335,6 +335,10 @@ class LaboratoryRuntime:
         missing = {k: v.reason or "Sin observación o historia suficiente"
                    for k, v in signals.items() if v.state != "observed"}
         observed = sum(v.state == "observed" for v in signals.values())
+        routed = {term.source for route in self.routes.routes for term in route.terms} if self.routes else set()
+        routed_missing = {name: missing.get(name, "La señal no está disponible en este modelo")
+                          for name in sorted(routed) if name not in signals or signals[name].state != "observed" or signals[name].value is None}
+        routed_observed = len(routed)-len(routed_missing)
         code, message = "active", "Modelo activo: señales disponibles."
         if self.kind is None:
             code, message = "no_source", "Elegí un video o cámara."
@@ -353,7 +357,9 @@ class LaboratoryRuntime:
         elif not any(t.gain > 1e-6 for t in self.last_targets):
             code, message = "silent_mapping", "Hay señales; el movimiento, mute/solo o mapeo produce silencio."
         self.diagnostic = {"code": code, "message": message, "observed_signals": observed,
-                           "missing_signals": missing, "pose": current_quality(self.frame, self.person_id),
+                           "missing_signals": missing, "routed_missing_signals":routed_missing,
+                           "routed_observed_signals":routed_observed, "routed_signal_count":len(routed),
+                           "pose": current_quality(self.frame, self.person_id),
                            "audio_error": audio.get("error"),
                            "audio_status": "disabled" if audio.get("audio_disabled") else
                                            "unavailable" if audio.get("error") else "connected"}

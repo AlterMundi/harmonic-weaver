@@ -169,3 +169,21 @@ test('pinning the automatic body sends only its selection and preserves current 
  expect(writes).toEqual([{path:'/api/person',body:{person_id:'one'}}]);
  expect(JSON.stringify(state.preset)).toBe(before);expect(state.calibration).toBe(scale);expect(errors).toEqual([]);
 });
+
+test('inspector explains each voice and only relevant missing signals without writes',async({page})=>{
+ const {state,writes,errors}=await setup(page);
+ state.runtime.diagnostic={...state.runtime.diagnostic,routed_signal_count:4,routed_observed_signals:3,
+  routed_missing_signals:{'collective.mode.3':'requested mode exceeds established collective components'},
+  missing_signals:{'unrouted.example':'not used'}};
+ state.runtime.routing={voices:{'1':{label:'Caderas',state:'invalid',target_gain:0,
+  reason:'El ruteo requiere señales que no están disponibles',issues:[{source:'collective.mode.3',target:'gain',
+  effect:'silence',reason:'requested mode exceeds established collective components'}]},
+  '2':{label:'Hombros',state:'active',target_gain:.25,reason:'Ganancia enviada a Shaper; no confirma salida audible',issues:[]}}};
+ await page.getByText('Qué ocurre en cada voz',{exact:true}).click();
+ await expect(page.getByText(/Este modo excede los componentes colectivos establecidos/)).toBeVisible();
+ await expect(page.getByText(/ganancia enviada: 0.250/)).toBeVisible();
+ await expect(page.getByText(/Señales usadas por el ruteo: 3\/4 disponibles/)).toBeVisible();
+ await page.getByText('Por qué faltan señales',{exact:true}).click();
+ await expect(page.getByText('not used',{exact:false})).not.toBeVisible();
+ expect(writes).toEqual([]);expect(errors).toEqual([]);
+});

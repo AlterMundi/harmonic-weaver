@@ -11,6 +11,16 @@ import { createRoot } from "react-dom/client";
 import { Figure } from "./figure";
 import "./style.css";
 
+const diagnosticReason = (reason:string) => ({
+  'warming collective window':'Acumulando historia de movimiento colectivo',
+  'missing collective support':'Faltan articulaciones para el análisis colectivo',
+  'insufficient common observed collective support':'Faltan articulaciones observadas en común dentro de la ventana',
+  'no established collective mode':'Todavía no hay un modo colectivo establecido',
+  'degenerate component boundary':'Los componentes elegidos no se distinguen de forma estable',
+  'requested mode exceeds established collective components':'Este modo excede los componentes colectivos establecidos',
+  'no previous collective basis for angle comparison':'Falta una base colectiva anterior para comparar su cambio',
+  'missing observation or warming history':'Faltan observaciones o historia suficiente',
+} as Record<string,string>)[reason] || reason;
 const ResearchPanel = lazy(() => import("./ResearchPanel").then(module => ({default: module.ResearchPanel})));
 
 type Data = Record<string, any>;
@@ -1512,11 +1522,23 @@ function App() {
           {state.runtime?.diagnostic?.audio_error && (
             <p role="alert">Audio: {state.runtime.diagnostic.audio_error}</p>
           )}
+          {state.runtime?.diagnostic?.routed_signal_count != null && <p>
+            Señales usadas por el ruteo: {state.runtime.diagnostic.routed_observed_signals}/{state.runtime.diagnostic.routed_signal_count} disponibles.
+          </p>}
+          {state.runtime?.routing?.voices && <details>
+            <summary>Qué ocurre en cada voz</summary>
+            {Object.entries(state.runtime.routing.voices).map(([id,value])=>{const v=value as Data;return <div key={id}>
+              <strong>{v.label || `Voz ${id}`}</strong> · {v.reason} · ganancia enviada: {Number(v.target_gain).toFixed(3)}
+              {v.issues?.length>0 && <ul>{v.issues.map((issue:Data,index:number)=><li key={index}>
+                {issue.source || issue.route_id}: {diagnosticReason(issue.reason)} · {issue.target} {issue.effect==='zero'?'usa cero en este término':'bloquea esta voz'}.
+              </li>)}</ul>}
+            </div>;})}
+          </details>}
           <details>
             <summary>Por qué faltan señales</summary>
             <pre>
               {JSON.stringify(
-                state.runtime?.diagnostic?.missing_signals,
+                state.runtime?.diagnostic?.routed_missing_signals ?? state.runtime?.diagnostic?.missing_signals,
                 null,
                 2,
               )}

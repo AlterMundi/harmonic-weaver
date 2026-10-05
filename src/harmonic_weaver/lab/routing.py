@@ -90,6 +90,10 @@ class PreparedRoutes:
         dt = max(0., now-self.last_time) if self.last_time is not None else None
         self.last_time = now
         values, invalid, diagnostics = {}, set(), []
+        issues = {voice.id: [] for voice in self.preset.voices}
+        def issue(route, source, state, reason, effect="silence"):
+            issues[route.voice].append({"route_id":route.id, "target":route.target,
+                "source":source, "state":state, "reason":reason, "effect":effect})
         for route in self.routes:
             terms = []
             missing = False
@@ -97,6 +101,9 @@ class PreparedRoutes:
                 signal = features.signals.get(term.source)
                 if signal is None or signal.state != "observed" or signal.value is None:
                     missing = True
+                    issue(route, term.source, signal.state if signal else "absent",
+                          signal.reason if signal and signal.reason else "Sin observación o historia suficiente",
+                          "zero" if route.missing == "zero" else "silence")
                     if route.missing == "zero":
                         terms.append(0.)
                     continue
@@ -104,6 +111,7 @@ class PreparedRoutes:
                     missing = True
                     invalid.add(route.voice)
                     diagnostics.append(f"unit mismatch at {term.source}")
+                    issue(route, term.source, "unit_mismatch", f"Unidad {signal.unit}; el ruteo requiere {term.input_unit}")
                     continue
                 x = signal.value
                 if abs(x) < term.deadband:
@@ -117,6 +125,7 @@ class PreparedRoutes:
                 if not math.isfinite(value):
                     invalid.add(route.voice)
                     diagnostics.append(f"numeric overflow at {term.source}")
+                    issue(route, term.source, "numeric_overflow", "Transformación fuera del rango numérico")
                     continue
                 terms.append(value)
             if missing and route.missing == "silence":
@@ -137,6 +146,7 @@ class PreparedRoutes:
             if not math.isfinite(value):
                 invalid.add(route.voice)
                 diagnostics.append(f"numeric overflow in route {route.id}")
+                issue(route, None, "numeric_overflow", "Mezcla fuera del rango numérico")
                 continue
             value = max(route.clamp_min, min(route.clamp_max, value))
             if route.smoothing_s and dt is not None and route.id in self.smoothed:
@@ -146,6 +156,7 @@ class PreparedRoutes:
             values[(route.voice, route.target)] = value
         solo = any(v.solo for v in self.preset.voices)
         targets = []
+        voice_status = {}
         for voice in self.preset.voices:
             drive = values.get((voice.id, "gain"), 0.)
             # Transient contrast around a causal per-voice moving baseline.
@@ -180,4 +191,23 @@ class PreparedRoutes:
                 gain=min(1., max(0., gain)), phase_deg=voice.phase_deg+values.get((voice.id, "phase_deg"), 0.),
                 pan=max(-1., min(1., voice.pan+values.get((voice.id, "pan"), 0.))), shape=voice.shape,
                 release_s=self.preset.release_ms/1000))
-        return targets, {"invalid_voices": sorted(invalid), "messages": diagnostics}
+            effective = targets[-1].gain
+            if voice.id in invalid:
+                state, reason = "invalid", "El ruteo requiere señales que no están disponibles"
+            elif voice.muted:
+                state, reason = "muted", "Voz silenciada con mute"
+            elif solo and not voice.solo:
+                state, reason = "muted", "Otra voz tiene solo activo"
+            elif self.preset.master == 0:
+                state, reason = "silent", "Intensidad general en cero"
+            elif voice.gain == 0:
+                state, reason = "silent", "Ganancia de esta voz en cero"
+            elif not any(r.voice == voice.id and r.target == "gain" for r in self.routes):
+                state, reason = "silent", "Sin ruteo de ganancia habilitado"
+            elif effective <= 1e-6:
+                state, reason = "silent", "El mapeo o la articulación envía ganancia nula o muy baja"
+            else:
+                state, reason = "active", "Ganancia enviada a Shaper; no confirma salida audible"
+            voice_status[str(voice.id)] = {"label":voice.label, "state":state, "reason":reason,
+                "target_gain":effective, "issues":issues[voice.id]}
+        return targets, {"invalid_voices": sorted(invalid), "messages": diagnostics, "voices":voice_status}

@@ -418,3 +418,26 @@ def test_same_slot_cannot_preserve_scale_when_cache_generation_changed(tmp_path)
     assert runtime.calibration is None and runtime.model is None
     assert store.source_selection('media-a')['generation']=='new-generation'
     store.close()
+
+
+def test_diagnostic_counts_only_routed_dependencies_separately(tmp_path):
+    from harmonic_weaver.lab.contracts import FeatureFrame, Signal
+    store=SessionStore(tmp_path)
+    try:
+        runtime=LaboratoryRuntime(store,audio=Audio(),library=Library())
+        preset=Preset()
+        runtime.routes=PreparedRoutes(preset)
+        runtime.features=FeatureFrame(source_time_s=0.,available_monotonic_s=0.,
+            person_id='one',algorithm_id='baseline',signals={
+                'unrouted.example':Signal(value=1.,unit='1'),
+                'zone.1.gain':Signal(value=.5,unit='1'),
+                'zone.1.detune':Signal(value=None,state='missing',unit='1',reason='warming collective window')})
+        runtime._diagnose(preset,True,{},None)
+        d=runtime.diagnostic
+        assert d['observed_signals']==2
+        assert d['routed_observed_signals']==1
+        assert d['routed_signal_count']==18
+        assert 'unrouted.example' not in d['routed_missing_signals']
+        assert d['routed_missing_signals']['zone.1.detune']=='warming collective window'
+        assert d['routed_missing_signals']['zone.2.gain']=='La señal no está disponible en este modelo'
+    finally: store.close()
