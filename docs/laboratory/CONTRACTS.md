@@ -11,6 +11,12 @@ Los fixtures son sintéticos. El de voces contiene seis osciladores con fases
 conocidas; no es una grabación ni una medida de latencia. El preset tiene seis
 voces y tres componentes PCA configurables de forma independiente.
 
+Los schemas publicados describen el contrato actual de `/api/schemas`, incluidas
+opciones de suavizado/continuidad, soporte colectivo y diagnóstico de audio.
+Regenerarlos al modificar el contrato central evita que consumidores rechacen
+configuraciones válidas. Los presets históricos v1 siguen cargando con defaults
+de campos opcionales; exportar resuelve esos defaults explícitamente.
+
 ## Semántica
 
 - JSON versionado, campos extra/versiones desconocidas rechazados, números

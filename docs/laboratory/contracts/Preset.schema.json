@@ -55,6 +55,78 @@
           "title": "Joints",
           "type": "array"
         },
+        "tracking_filter_enabled": {
+          "default": false,
+          "title": "Tracking Filter Enabled",
+          "type": "boolean"
+        },
+        "tracking_smoother": {
+          "default": "bounded",
+          "enum": [
+            "bounded",
+            "harmocap_one_euro"
+          ],
+          "title": "Tracking Smoother",
+          "type": "string"
+        },
+        "tracking_one_euro_mincutoff": {
+          "default": 1.0,
+          "maximum": 30,
+          "minimum": 0.01,
+          "title": "Tracking One Euro Mincutoff",
+          "type": "number"
+        },
+        "tracking_one_euro_beta": {
+          "default": 0.15,
+          "maximum": 20,
+          "minimum": 0,
+          "title": "Tracking One Euro Beta",
+          "type": "number"
+        },
+        "tracking_one_euro_dcutoff": {
+          "default": 1.0,
+          "maximum": 30,
+          "minimum": 0.01,
+          "title": "Tracking One Euro Dcutoff",
+          "type": "number"
+        },
+        "tracking_one_euro_hip_swap_guard": {
+          "default": false,
+          "description": "Optional decisive hip-label continuity repair before native One-Euro; does not enable bounded smoothing or acceleration limits.",
+          "title": "Tracking One Euro Hip Swap Guard",
+          "type": "boolean"
+        },
+        "tracking_hip_swap_guard": {
+          "default": true,
+          "title": "Tracking Hip Swap Guard",
+          "type": "boolean"
+        },
+        "tracking_median_frames": {
+          "default": 3,
+          "maximum": 9,
+          "minimum": 1,
+          "title": "Tracking Median Frames",
+          "type": "integer"
+        },
+        "tracking_smoothing_s": {
+          "default": 0.05,
+          "maximum": 0.5,
+          "minimum": 0,
+          "title": "Tracking Smoothing S",
+          "type": "number"
+        },
+        "tracking_joint_accel_limits": {
+          "description": "Per COCO-17 joint acceleration limits in projected torso lengths/s²; tuning parameters, not anatomical bounds.",
+          "items": {
+            "maximum": 2000,
+            "minimum": 0.1,
+            "type": "number"
+          },
+          "maxItems": 17,
+          "minItems": 17,
+          "title": "Tracking Joint Accel Limits",
+          "type": "array"
+        },
         "smoothing_s": {
           "default": 0,
           "maximum": 2,
@@ -119,6 +191,16 @@
           "minimum": 1,
           "title": "Components",
           "type": "integer"
+        },
+        "collective_support": {
+          "default": "fixed",
+          "description": "fixed requires every selected coordinate; observed uses only coordinates observed throughout the current causal window, without filling gaps.",
+          "enum": [
+            "fixed",
+            "observed"
+          ],
+          "title": "Collective Support",
+          "type": "string"
         },
         "ridge": {
           "default": 0.1,
@@ -510,6 +592,28 @@
           "default": true,
           "title": "Show Skeleton",
           "type": "boolean"
+        },
+        "show_raw_tracking": {
+          "default": false,
+          "title": "Show Raw Tracking",
+          "type": "boolean"
+        },
+        "collective_view": {
+          "default": "off",
+          "enum": [
+            "off",
+            "projector",
+            "basis"
+          ],
+          "title": "Collective View",
+          "type": "string"
+        },
+        "collective_max_axes": {
+          "default": 12,
+          "maximum": 34,
+          "minimum": 2,
+          "title": "Collective Max Axes",
+          "type": "integer"
         },
         "on_disconnect": {
           "default": "clear",

@@ -3,6 +3,7 @@
   "sample_index": 0,
   "sample_rate": 48000,
   "block_frames": 256,
+  "audio_health": null,
   "generated_monotonic_s": 0.0,
   "control_owner": null,
   "control_sequence": null,

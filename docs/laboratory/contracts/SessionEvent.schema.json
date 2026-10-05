@@ -32,7 +32,10 @@
         "configuration",
         "preset_save",
         "mark",
-        "calibration"
+        "calibration",
+        "source",
+        "transport",
+        "person"
       ],
       "title": "Kind",
       "type": "string"

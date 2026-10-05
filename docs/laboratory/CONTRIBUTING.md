@@ -1,15 +1,13 @@
 # Aportes al laboratorio
 
-Estado consultado 2026-10-03: main contiene el instrumento hasta #85 (`cc5fb57`).
-La pila de desarrollo posterior llega a
-[PR #138](https://github.com/AlterMundi/harmonic-weaver/pull/138),
-`feat/r12-clock-sensitivity`, `76f4228`; no está mergeada ni instalada sobre el
-laboratorio cotidiano. #29/#30 son referencias históricas, no la base actual para
-extender las herramientas nuevas. Confirmar el head de la integración pertinente
-antes de elegir base y declararlo en la PR. No copiar cambios por encima del
-workspace original con modificaciones locales ni cambiar el entorno cotidiano
-silenciosamente. `harmonic-weaver-dev` contiene desarrollo; `harmonic-weaver-lab`
-mantiene la versión de prueba habitual.
+Estado 2026-10-05: instrumento y bancos integrados en `main`. Una instalación
+cotidiana: `~/Projects/harmonic-weaver` con el comando de RUNNING. #29/#30 y las
+ramas/workspaces históricos no son una base alternativa de uso. Partir del head
+actual; preservar cambios locales antes de actualizar. Integrar trabajo terminado
+continuamente, sin acumular PRs pendientes de otra aprobación rutinaria. Las PRs
+sirven para colaboración cuando hace falta; no crear instalaciones separadas salvo
+indicación de Nicolás. Registrar la base en una contribución permite ubicar el
+cambio, no exige igualdad de hashes entre entornos ni nuevas rondas de revisión.
 
 Leer SPEC, DECISIONS e IMPLEMENTATION_STATUS antes de tomar una tarea. Registrar
 en la issue correspondiente qué módulo se modifica y qué depende de otra PR.
@@ -35,9 +33,8 @@ esperando otro aporte ni asignar personas/agentes automáticamente.
   no enviar audio desde un algoritmo. PCA y número de voces son independientes.
 - Fuentes/cache: `perception_worker.py`, `perception.py`, `cache.py`, `media.py`.
   Cambios en percepción deben invalidar el cache; cambios sonoros no deben hacerlo.
-- Síntesis/telemetría: repositorio harmonic-shaper. La pila actual requiere su
-  desarrollo [PR #7](https://github.com/AlterMundi/harmonic-shaper/pull/7),
-  `feat/capture-recovery-jobs`, `516ebde`; main sigue en `f8bfe07`.
+- Síntesis/telemetría: repositorio harmonic-shaper, `main`, incluyendo la
+  [PR #7](https://github.com/AlterMundi/harmonic-shaper/pull/7) y controles de salida.
   #2 es la frontera inicial histórica. Publicar cambios del motor allí y enlazar
   su PR desde Weaver. No simular fases en la interfaz.
 - Interfaz: consumir los contratos HTTP/WS y estado efectivo; no derivar otra

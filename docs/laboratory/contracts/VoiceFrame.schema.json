@@ -1,5 +1,56 @@
 {
   "$defs": {
+    "AudioHealth": {
+      "additionalProperties": false,
+      "properties": {
+        "engine_id": {
+          "title": "Engine Id",
+          "type": "string"
+        },
+        "status_events": {
+          "minimum": 0,
+          "title": "Status Events",
+          "type": "integer"
+        },
+        "output_underflows": {
+          "minimum": 0,
+          "title": "Output Underflows",
+          "type": "integer"
+        },
+        "last_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Status"
+        },
+        "last_status_sample_index": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Status Sample Index"
+        }
+      },
+      "required": [
+        "engine_id",
+        "status_events",
+        "output_underflows"
+      ],
+      "title": "AudioHealth",
+      "type": "object"
+    },
     "EffectiveVoice": {
       "additionalProperties": false,
       "properties": {
@@ -101,6 +152,17 @@
       "exclusiveMinimum": 0,
       "title": "Block Frames",
       "type": "integer"
+    },
+    "audio_health": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AudioHealth"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "generated_monotonic_s": {
       "title": "Generated Monotonic S",

@@ -88,6 +88,19 @@
       "title": "Loop",
       "type": "boolean"
     },
+    "loop_end_s": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Loop End S"
+    },
     "status": {
       "default": "idle",
       "title": "Status",

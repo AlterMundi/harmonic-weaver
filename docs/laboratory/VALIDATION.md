@@ -3566,3 +3566,13 @@ conservan persistencia. Prueba falló antes del fix y pasa después, junto al ca
 de vista que conserva la fuente, y TypeScript/Vite pasa. Telemetría/GL sintéticos;
 ninguna escritura de instrumento/audio. No modifica DSP, fases, ratios ni
 transporte; no acredita sincronía física. Bundle actualizado sin reiniciar servicios.
+
+### 2026-10-05 — Schemas públicos y guía de contribución vigentes
+
+Regenerados schemas/fixtures sintéticos desde los contratos actuales: controles
+One-Euro/continuidad, soporte colectivo, estado/eventos y AudioHealth faltaban en
+los JSON publicados. Nueva prueba verifica equivalencia con contratos runtime y
+roundtrip completo de fixtures; 11 tests contracts/store pasan. No cambian código
+runtime, configuración persistida ni datos corporales. CONTRIBUTING ahora dirige
+al main consolidado de Weaver/Shaper y al único comando cotidiano, evitando las
+instrucciones obsoletas de instalaciones paralelas.

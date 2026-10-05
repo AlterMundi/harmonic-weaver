@@ -8,6 +8,17 @@ from harmonic_weaver.lab.contracts import Calibration, MotionFrame, Preset, Visu
 from harmonic_weaver.lab.store import RevisionConflict, SessionStore
 
 
+def test_published_schemas_and_synthetic_fixtures_match_current_contract():
+    from pathlib import Path
+    from harmonic_weaver.lab.contracts import PERSISTED_CONTRACTS, VoiceFrame
+    root=Path(__file__).resolve().parents[1]/'docs/laboratory/contracts'
+    for contract in PERSISTED_CONTRACTS:
+        assert json.loads((root/f'{contract.__name__}.schema.json').read_text())==contract.model_json_schema(), contract.__name__
+    for contract,name in [(Preset,'preset-six-zones'),(MotionFrame,'motion-frame'),(VoiceFrame,'voice-frame-six')]:
+        fixture=json.loads((root/'fixtures'/f'{name}.json').read_text())
+        assert contract.model_validate(fixture).model_dump(mode='json')==fixture
+
+
 def test_preset_is_portable_and_versions_fail_closed():
     preset = Preset()
     assert len(preset.voices) == 6 and preset.algorithm.components == 3
