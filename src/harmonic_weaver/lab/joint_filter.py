@@ -5,6 +5,7 @@ No missing coordinate is filled; estimated positions are exposed separately.
 """
 from collections import deque
 from functools import lru_cache
+from hashlib import sha256
 import importlib
 import math
 import os
@@ -28,7 +29,8 @@ def harmocap_one_euro():
         sys.path.remove(str(source))
     if not Path(module.__file__).resolve().is_relative_to(source.resolve()):
         raise RuntimeError("HarMoCAP import differs from HARMOCAP_DIR; restart with the intended checkout")
-    return module.OneEuroFilter, str(Path(module.__file__).resolve())
+    implementation = Path(module.__file__).resolve()
+    return module.OneEuroFilter, str(implementation), sha256(implementation.read_bytes()).hexdigest()
 
 
 class JointMotionFilter:
@@ -111,7 +113,7 @@ class JointMotionFilter:
             "interpretation": "causal position estimates, not new raw observations or anatomical limits"}
 
     def _one_euro(self, frame, person_id, person):
-        factory, source = harmocap_one_euro()
+        factory, source, source_hash = harmocap_one_euro()
         settings = self.settings
         estimates = []
         t = frame.source_time_s
@@ -135,6 +137,7 @@ class JointMotionFilter:
         conditioned = frame.model_copy(deep=True)
         next(p for p in conditioned.persons if p.person_id == person_id).joints = estimates
         return conditioned, {"enabled": True, "state": "conditioned", "smoother": "harmocap_one_euro",
-            "implementation": source, "unit": frame.unit, "hip_labels_swapped": False,
+            "implementation": source, "implementation_sha256": source_hash,
+            "unit": frame.unit, "hip_labels_swapped": False,
             "acceleration_limited_joints": [],
             "interpretation": "HarMoCAP One-Euro on observed coordinates; no hold, median, swap repair or acceleration cap"}

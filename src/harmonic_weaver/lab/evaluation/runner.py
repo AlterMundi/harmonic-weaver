@@ -154,24 +154,32 @@ def replay(preset, source, frames, duration, request, *, include_preroll=False):
             store.close()
 
 
-def code_identity():
+def code_identity(presets=()):
     root = Path(__file__).resolve().parents[4]
     files = sorted((root/"src/harmonic_weaver/lab").rglob("*.py"))
     files += sorted((root/"research/movement-consonance/consonance").glob("*.py"))
     hashes = {str(p.relative_to(root)): sha256_file(p) for p in files}
     replay_names = {'analysis_math.py', 'collective.py', 'contracts.py', 'kinematics.py',
                     'legacy.py', 'models.py', 'routing.py', 'runtime.py', 'store.py',
-                    'transport.py', 'quality.py', 'cache.py'}
+                    'transport.py', 'quality.py', 'cache.py', 'joint_filter.py'}
     replay_files = {name: checksum for name, checksum in hashes.items()
         if (Path(name).parent == Path('src/harmonic_weaver/lab') and Path(name).name in replay_names)
         or name in ('src/harmonic_weaver/lab/evaluation/runner.py', 'src/harmonic_weaver/lab/evaluation/pcm.py')
         or name.startswith('research/movement-consonance/consonance/')}
+    external = {}
+    if any(p.algorithm.tracking_filter_enabled and p.algorithm.tracking_smoother == 'harmocap_one_euro' for p in presets):
+        from ..joint_filter import harmocap_one_euro
+        _, source, checksum = harmocap_one_euro()
+        external['harmocap_one_euro'] = {'path': source, 'sha256': checksum,
+                                       'scope': 'conditioning module loaded for this process'}
+        replay_files['external:harmocap_one_euro'] = checksum
     def git(*args):
         result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
         return result.stdout.strip() if result.returncode == 0 else None
     return {"head": git("rev-parse", "HEAD"), "working_tree": git("status", "--porcelain"),
             "files": hashes, "code_sha256": digest(hashes),
             "replay_files": replay_files, "replay_sha256": digest(replay_files),
+            "external_replay_dependencies": external,
             "python": platform.python_version(), "platform": platform.platform(),
             "packages": {n: importlib.metadata.version(n) for n in ("numpy", "pydantic")}}
 
@@ -266,7 +274,7 @@ def _run(request: Request, output: Path, *, progress=None, resume=False, max_run
         request.pcm.environment_sha256 = identity['environment_sha256']
     budget = request.max_runs_per_invocation if max_runs is None else max_runs
     frozen = request.model_dump()
-    code = code_identity()
+    code = code_identity(request.presets)
     previous = resume_manifest(request, output, code) if resume else None
     if not resume: atomic_json(output/"request.json", frozen)
     manifest = {"format": 1, "status": "running", "request_sha256": digest(frozen),

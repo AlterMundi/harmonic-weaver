@@ -303,7 +303,7 @@ def test_budget_and_resume_reuse_whole_runs_and_preserve_common_support(tmp_path
         return original(preset, *args, **kwargs)
     monkeypatch.setattr(runner, 'replay', observed)
     identity=runner.code_identity();identity['head']='metadata-only';identity['code_sha256']='unrelated research change'
-    monkeypatch.setattr(runner,'code_identity',lambda:identity)
+    monkeypatch.setattr(runner,'code_identity',lambda *_:identity)
     complete = run(request, folder, resume=True, max_runs=3)
     assert complete['status'] == 'complete' and replayed == ['second','first','second']
     assert complete['execution_budget']['max_runs']==3
@@ -331,7 +331,7 @@ def test_resume_rejects_changed_completed_inputs_before_writing_manifest(tmp_pat
         p=Path(source.cache_manifest);p.write_text(p.read_text()+'\n')
     else:
         identity=runner.code_identity();identity['replay_sha256']='changed'
-        monkeypatch.setattr(runner,'code_identity',lambda:identity)
+        monkeypatch.setattr(runner,'code_identity',lambda *_:identity)
     with pytest.raises(ValueError): run(request, folder, resume=True)
     assert (folder/'manifest.json').read_bytes() == before
 
@@ -416,3 +416,44 @@ def test_resume_api_accepts_execution_budget_and_rejects_invalid_budget(tmp_path
         report=client.get(f'/api/evaluations/{ident}/report').json()['manifest']
         assert report['execution_budget']['max_runs']==2
         assert report['request']['max_runs_per_invocation']==1
+
+
+def test_replay_identity_covers_conditioning_code_and_only_selected_external_provider(monkeypatch):
+    import harmonic_weaver.lab.evaluation.runner as runner
+    import harmonic_weaver.lab.joint_filter as filters
+    def unexpected():raise AssertionError('unused provider must not be imported')
+    monkeypatch.setattr(filters,'harmocap_one_euro',unexpected)
+    plain=runner.code_identity([Preset()])
+    assert 'src/harmonic_weaver/lab/joint_filter.py' in plain['replay_files']
+    assert plain['external_replay_dependencies']=={}
+    p=Preset();p.algorithm.tracking_smoother='harmocap_one_euro'
+    assert runner.code_identity([p])['external_replay_dependencies']=={}
+    p.algorithm.tracking_filter_enabled=True
+    monkeypatch.setattr(filters,'harmocap_one_euro',lambda:(None,'/synthetic/harmocap/smoothing.py','a'*64))
+    active=runner.code_identity([p])
+    assert active['external_replay_dependencies']['harmocap_one_euro']['sha256']=='a'*64
+    assert active['replay_files']['external:harmocap_one_euro']=='a'*64
+    assert active['replay_sha256']!=plain['replay_sha256']
+
+
+def test_native_conditioner_change_rejects_partial_resume_without_touching_completed_runs(tmp_path,monkeypatch):
+    import harmonic_weaver.lab.joint_filter as filters
+    class IdentityFilter:
+        def __init__(self,*args):pass
+        def __call__(self,x,dt):return x
+    checksum=['a'*64]
+    monkeypatch.setattr(filters,'harmocap_one_euro',lambda:(IdentityFilter,'/synthetic/smoothing.py',checksum[0]))
+    source,_,_=source_fixture(tmp_path)
+    first=Preset(id='first');first.algorithm.tracking_filter_enabled=True
+    first.algorithm.tracking_smoother='harmocap_one_euro'
+    second=first.model_copy(deep=True);second.id='second'
+    req=Request(presets=[first,second],sources=[source],max_runs_per_invocation=1)
+    folder=tmp_path/'native-partial';partial=run(req,folder)
+    assert partial['status']=='partial'
+    assert partial['code']['external_replay_dependencies']['harmocap_one_euro']['sha256']==checksum[0]
+    manifest_before=(folder/'manifest.json').read_bytes()
+    trace=folder/partial['runs'][0]['file'];trace_before=trace.read_bytes()
+    checksum[0]='b'*64
+    with pytest.raises(ValueError,match='Replay code'):
+        run(req,folder,resume=True)
+    assert (folder/'manifest.json').read_bytes()==manifest_before and trace.read_bytes()==trace_before

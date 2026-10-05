@@ -114,7 +114,7 @@ class EvaluationService:
             if not same_request_content(json.loads(self._artifact_path(folder,'request.json').read_text()), request.model_dump()):
                 raise ValueError('La configuración congelada cambió desde la corrida')
             # Fail before clearing cancellation or writing worker state.
-            resume_manifest(request, folder/'result', code_identity())
+            resume_manifest(request, folder/'result', code_identity(request.presets))
             return self._spawn(ident, resume=True, max_runs=max_runs)
 
     def _launch(self, request):

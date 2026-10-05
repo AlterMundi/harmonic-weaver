@@ -395,3 +395,31 @@ iniciada conserva su request congelada, independientemente del perfil cargado.
 
 API local GET/POST /api/evaluation-profiles, POST /validate y GET /{id}. Validar no
 guarda ni inicia. No migra sesiones ni registra datos corporales.
+
+## Procedencia del acondicionamiento y continuación (2026-10-05)
+
+La identidad de replay incluye ahora `joint_filter.py`, además de modelos,
+kinemática y runtime. Antes se archivaba su hash entre los archivos del checkout,
+pero no formaba parte del conjunto que decide si una corrida parcial puede
+continuar: podía combinar resultados de versiones distintas del filtro.
+
+Si algún preset usa el filtro habilitado `harmocap_one_euro`, el manifest registra
+el path y hash del módulo de HarMoCAP cargado por ese proceso. Su hash participa
+en la identidad de replay; la comprobación se aplica tanto al worker como al
+pedido de continuación desde la web. El diagnóstico de features también lleva
+esa identidad. Un preset con filtro apagado, o con `bounded`, no importa HarMoCAP
+para esta comprobación. El tracking crudo y sus generaciones no se invalidan.
+
+Un cambio en estas dependencias impide continuar la corrida parcial y pide una
+nueva comparación; conserva las traces y el manifest anteriores sin modificarlos.
+Archivos históricos completos siguen disponibles para lectura. Es una condición
+de integridad de esa continuación congelada, no igualdad de hashes entre entornos
+distintos ni prueba de equivalencia numérica o precisión corporal. La identificación
+corresponde a la primera carga del módulo en el proceso; cambiar el archivo externo
+requiere un nuevo proceso para ejecutar esa nueva versión.
+
+Regresiones verificadas: inclusión del filtro local, selección/importación del
+proveedor externo sólo cuando se usa, cambio de dependencia externa que rechaza
+continuación sin tocar lo completado, recuperación por servicio, filtros en cinco
+modelos, paquetes/perfiles y paridad/repetición PCM. Configuración sonora activa
+preservada; pruebas offline no reproducen audio por la R24.
