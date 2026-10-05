@@ -70,6 +70,12 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 
 ## Continuación
 
+Salida/buffer/frecuencia configurables desde el inspector, con pausa obligatoria,
+validación previa, recuperación del stream anterior y revisión de configuración.
+JACK distingue frecuencia solicitada y efectiva. Ajustes de sesión, separados del
+preset portable; requieren el próximo arranque normal de Weaver y Shaper para
+cargar las API nuevas. No se modificó la R24 ni se reanudó la fuente en esta entrega.
+
 Prioridad cotidiana: escuchar los otros modelos con tracking suavizado, probar
 Performance y reportar fallos concretos. La primera corrida corporal R07 dentro
 de una toma, con reserva temporal y targets EVAL explícitos, quedó ejecutada y repetida

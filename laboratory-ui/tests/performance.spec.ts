@@ -187,3 +187,28 @@ test('inspector explains each voice and only relevant missing signals without wr
  await expect(page.getByText('not used',{exact:false})).not.toBeVisible();
  expect(writes).toEqual([]);expect(errors).toEqual([]);
 });
+
+test('audio output controls are explicit, pause gated and separate from presets',async({page})=>{
+ const {state,writes,errors}=await setup(page);
+ const outputWrites:any[]=[];
+ const devices=[{id:0,name:'R24 Analog Stereo',hostapi:'JACK',default_sample_rate:48000}];
+ await page.route('**/api/audio/output',async route=>{
+  if(route.request().method()==='POST'){
+   const body=route.request().postDataJSON();outputWrites.push(body);
+   await route.fulfill({json:{revision:1,device:body.device,sample_rate:48000,requested_sample_rate:body.sample_rate,block_size:body.block_size,devices}});
+  }else await route.fulfill({json:{revision:0,device:'R24 Analog Stereo',sample_rate:48000,requested_sample_rate:48000,block_size:1024,devices}});
+ });
+ await page.getByText('Salida y buffer de audio',{exact:true}).click();
+ await page.getByRole('button',{name:'Consultar salidas de Shaper',exact:true}).click();
+ await expect(page.getByLabel('Salida Shaper',{exact:true})).toHaveValue('R24 Analog Stereo');
+ await expect(page.getByRole('button',{name:'Aplicar salida y buffer',exact:true})).toBeDisabled();
+ state.session.playing=false;
+ await expect(page.getByRole('button',{name:'Aplicar salida y buffer',exact:true})).toBeEnabled();
+ await page.getByLabel('Salida Shaper',{exact:true}).selectOption('0');
+ await page.getByLabel('Frecuencia pedida (Hz)',{exact:true}).fill('96000');
+ await page.getByLabel('Buffer Shaper',{exact:true}).selectOption('512');
+ await page.getByRole('button',{name:'Aplicar salida y buffer',exact:true}).click();
+ await expect(page.getByText(/Salida actual: R24 Analog Stereo · efectiva 48000 Hz \/ 512 muestras/)).toBeVisible();
+ expect(outputWrites).toEqual([{expected_revision:0,device:0,sample_rate:96000,block_size:512}]);
+ expect(writes).toEqual([]);expect(errors).toEqual([]);
+});

@@ -37,6 +37,24 @@ normal; abrir otra fuente elimina el límite. El límite pertenece al transporte
 no viaja en presets. Cada vuelta reinicia historia y ruteo como un loop completo.
 Es tracking parcial identificado, no un cache completo ni una nueva inferencia.
 
+## Salida y buffer desde la web
+
+En el inspector, abrir **Salida y buffer de audio** y pulsar **Consultar salidas
+de Shaper**. Pausar la fuente y detener capturas antes de aplicar otra salida,
+frecuencia o buffer. El motor verifica compatibilidad antes de cerrar el stream;
+si falla la apertura nueva intenta recuperar la salida anterior. Aplicar ajustes
+idénticos no reabre el stream. La fuente, calibración y preset se conservan.
+
+La lista corresponde al backend del proceso actual. JACK usa la frecuencia de
+su servidor: una solicitud de 96 kHz puede seguir dando 48 kHz efectivos, que el
+panel muestra explícitamente. Cambiar el backend o la frecuencia global de
+PipeWire requiere configuración externa. Los ajustes de salida son de la sesión;
+el próximo arranque usa los flags del comando, por ejemplo
+`--audio-block-size 1024`. No se incluyen en presets musicales portables.
+
+La API nueva de Weaver/Shaper estará disponible tras el próximo arranque normal
+de los servicios actualizados. No se reinicia automáticamente la sesión abierta.
+
 ## Dependencias
 
 En Legion, el comando corto prepara la web e inicia la sesión:

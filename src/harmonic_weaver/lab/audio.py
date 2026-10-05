@@ -104,6 +104,13 @@ class ShaperOutput:
                 except httpx.HTTPError:
                     pass  # the Shaper-owned lease releases our voices without a global panic
 
+    def output_settings(self, body=None):
+        """Control-side request only; never runs in the analysis/audio callback."""
+        with self._client_factory() as client:
+            response = client.get("/api/audio/output") if body is None else client.post("/api/audio/output",json=body,timeout=5.)
+            response.raise_for_status()
+            return response.json()
+
     def snapshot(self):
         with self._lock:
             now = time.monotonic()

@@ -445,6 +445,27 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             state.update(runtime.snapshot())
         return state
 
+    def output_request(body=None):
+        import httpx
+        if runtime is None: raise ValueError('Audio output requires the laboratory runtime')
+        try: return runtime.audio.output_settings(body)
+        except httpx.HTTPStatusError as exc:
+            try: detail=exc.response.json().get('detail',str(exc))
+            except ValueError: detail=str(exc)
+            return JSONResponse({'detail':detail},status_code=exc.response.status_code)
+        except httpx.HTTPError as exc:
+            return JSONResponse({'detail':str(exc)},status_code=503)
+
+    @app.get('/api/audio/output')
+    def audio_output_settings():return output_request()
+
+    @app.post('/api/audio/output')
+    def audio_output_apply(body:dict):
+        if runtime is None: raise ValueError('Audio output requires the laboratory runtime')
+        with runtime._lock:
+            if runtime.transport.playing: raise ValueError('Pausá la fuente antes de cambiar salida/buffer de audio')
+            return output_request(body)
+
     def rope_media_path(ident):
         if runtime is None:
             raise ValueError('Video library requires the laboratory runtime')

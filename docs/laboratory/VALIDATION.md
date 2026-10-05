@@ -3492,3 +3492,22 @@ tras recuperar, perfiles mixtos y rechazo sintético sin IDs. Chrome: una prueba
 pasa para controles, exportación portable, recuperación/edición y ausencia de writes
 live. TypeScript/Vite build pasa. Sesión cotidiana confirmada pausada con cero voces.
 Sin nuevos scores corporales ni aceptación humana; no cambia defaults del instrumento.
+
+### 2026-10-05 — Salida y buffer desde el inspector
+
+Shaper expone GET/POST `/api/audio/output`: inventario estéreo, frecuencia
+solicitada/efectiva, buffer y revisión. Weaver conserva errores del motor y
+serializa aplicar con su transporte pausado. El panel consulta explícitamente;
+no cambia presets, fuente, persona ni calibración. Capturas/voces activas impiden
+reabrir el stream. Compatibilidad se verifica antes de cerrarlo; apertura fallida
+recupera la configuración anterior. Ajustes idénticos no reabren el stream.
+
+27 tests Shaper (`test_audio_output`, `test_audio_smoke`, `test_laboratory`,
+`test_shaper_contract`), 1 test proxy Weaver y el recorrido Chrome de salida en
+`performance.spec.ts` pasan; TypeScript/Vite pasa. Dispositivos simulados:
+validación, revisión obsoleta, captura/voz activas, JACK 96 kHz solicitado/48 kHz
+efectivo, rollback, preservación de fase y reloj nuevo. UI verifica pausa, salida
+por nombre/índice y payload sin escrituras de preset. Sin cambio real a R24,
+reproducción, captura o configuración global de PipeWire. No acredita operación
+física a 96 kHz ni ausencia universal de clicks. Backend nuevo carga en el próximo
+arranque normal; ajustes de salida son de sesión, no persistentes.

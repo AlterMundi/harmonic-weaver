@@ -11,6 +11,7 @@ import { createRoot } from "react-dom/client";
 import { Figure } from "./figure";
 import "./style.css";
 
+import {AudioOutputPanel} from './AudioOutputPanel';
 const diagnosticReason = (reason:string) => ({
   'warming collective window':'Acumulando historia de movimiento colectivo',
   'missing collective support':'Faltan articulaciones para el análisis colectivo',
@@ -1567,6 +1568,7 @@ function App() {
                 reuse={id=>run(async()=>{await api("calibrate",{reuse_id:id});await refresh();})}/>
             </div>
           )}
+          <AudioOutputPanel api={api} playing={session.playing}/>
           <dl>
             <dt>Algoritmo</dt>
             <dd>{state.features?.algorithm_id || draft.algorithm.id}</dd>

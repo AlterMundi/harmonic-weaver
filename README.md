@@ -101,4 +101,7 @@ audit.
 El [índice del laboratorio](docs/laboratory/README.md) reúne la especificación,
 los milestones y las tareas para explorar movimiento, sonido y geometría
 en tiempo real, junto con la agenda de investigación y evaluación posterior.
-Estado: plan publicado; implementación pendiente.
+El instrumento y los bancos están implementados en el checkout consolidado.
+Consultar el [estado actual](docs/laboratory/IMPLEMENTATION_STATUS.md) y el
+[comando de arranque](docs/laboratory/RUNNING.md); las pruebas automáticas no
+sustituyen la escucha ni las mediciones físicas pendientes.
