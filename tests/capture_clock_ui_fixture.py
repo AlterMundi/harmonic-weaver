@@ -27,6 +27,11 @@ preset = scene(
         ),
         route('capture-smoothing',channel='sensor.slot_0_pos',voice=1,
               transforms=[{'type':'smoothing','kind':'one_pole','time_ms':35.}]),
+        route('capture-phase',channel='sensor.slot_0_pos',voice=2,
+              transforms=[{'type':'phase_accumulator','wrap_deg':360.,'max_dt_ms':100.},
+                          {'type':'scale_range','in':[0.,360.],'out':[0.,1.],'clamp':True}]),
+        route('capture-slew',channel='sensor.slot_0_pos',voice=3,
+              transforms=[{'type':'slew_limiter','max_rate':2.,'max_dt_ms':100.}]),
     ]
 )
 engine.upsert_scene(preset, engine.stage_revision)

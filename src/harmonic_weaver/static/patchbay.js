@@ -605,6 +605,8 @@
     if (type === "scale_range") return {type, in: clone(inputRange), out: clone(outputRange), clamp: true};
     if (type === "curve") return {type, kind: "linear"};
     if (type === "smoothing") return {type, kind: "one_pole", time_ms: 35, clock: "engine", max_gap_ms: 500};
+    if (type === "phase_accumulator") return {type, wrap_deg:360, max_dt_ms:100, clock:"engine", max_gap_ms:500};
+    if (type === "slew_limiter") return {type, max_rate:2, max_dt_ms:100, clock:"engine", max_gap_ms:500};
     if (type === "derivative") return {type, window_ms: 40, max_abs: 10, max_dt_ms: 1000, clock: "engine", max_gap_ms: 500};
     if (type === "gate") return {type, threshold: .5, hysteresis: .05, mode: "level", closed: "suppress"};
     return {type: "combine", operator: "mean"};
@@ -623,6 +625,18 @@
   }
 
   function transformFields(transform) {
+    if (["phase_accumulator", "slew_limiter"].includes(transform.type)) {
+      const phase = transform.type === "phase_accumulator";
+      let fields = selectField(phase ? "Phase clock" : "Slew clock", "clock", [["engine", "Engine scheduling"], ["source_capture", "Source capture (aligned observed frames)"]], transform.clock || "engine");
+      if (phase) {
+        fields += numberField("Phase wrap (deg)", "wrap_deg", transform.wrap_deg ?? 360, 'min="0.000001"');
+        fields += `<label class="transform-field check"><input type="checkbox" data-field="phaseRateLimit" ${transform.max_rate != null ? "checked" : ""}> Limit phase rate</label>`;
+        if (transform.max_rate != null) fields += numberField("Maximum phase rate (deg/s)", "max_rate", transform.max_rate, 'min="0.000001"');
+      } else fields += numberField("Maximum slew rate (/s)", "max_rate", transform.max_rate, 'min="0.000001"');
+      return fields + (transform.clock === "source_capture"
+        ? numberField("Maximum capture gap (ms)", "max_gap_ms", transform.max_gap_ms ?? 500, 'min="0.000001"')
+        : numberField("Maximum engine delta (ms)", "max_dt_ms", transform.max_dt_ms ?? 100, 'min="0"'));
+    }
     if (transform.type === "derivative") {
       return selectField("Derivative clock", "clock", [["engine", "Engine scheduling"], ["source_capture", "Source capture (aligned observed frames)"]], transform.clock || "engine")
         + numberField("Maximum absolute derivative", "max_abs", transform.max_abs, 'min="0.000001"')
@@ -704,6 +718,12 @@
     const transform = view.editorTransforms[index];
     const field = input.dataset.field;
     if (!transform || !field) return;
+    if (field === "phaseRateLimit") {
+      if (input.checked) transform.max_rate = 360;
+      else delete transform.max_rate;
+      renderTransformEditor();
+      return;
+    }
     if (field === "closedMode") {
       transform.closed = input.value === "suppress" ? "suppress" : {value: 0};
       renderTransformEditor();
@@ -717,7 +737,7 @@
     }
     const value = input.type === "checkbox" ? input.checked : input.type === "number" ? Number(input.value) : input.value;
     setNested(transform, field, value);
-    if (["derivative", "smoothing"].includes(transform.type) && field === "clock") renderTransformEditor();
+    if (["derivative", "smoothing", "phase_accumulator", "slew_limiter"].includes(transform.type) && field === "clock") renderTransformEditor();
     if (transform.type === "curve" && field === "kind") {
       delete transform.gamma;
       delete transform.amount;

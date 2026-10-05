@@ -3592,3 +3592,19 @@ patchbay pasan. Chrome derivada pasa; prueba smoothing detectó falta de rerende
 al elegir reloj y pasó tras corregirla (API real, fixture sintético, sin hardware).
 Sin reinicio de servicios cotidianos ni nuevos datos privados. Quedan otros
 transforms/relojes de múltiples productores y medición física en #77.
+
+### 2026-10-05 — Integrador de fase y slew con reloj captura (#77)
+
+Opciones source_capture/gap añadidas a phase_accumulator/slew_limiter; engine
+permanece default. Guard común por ruta evita que frames duplicados/atrasados
+muten cualquier estado del chain. Primer frame tras pérdida/gap/época establece
+fase cero convencional o target inicial de slew; no integra tiempo perdido ni
+convierte clocks entre productores. Controles completos agregados a Stage.
+
+54 tests de capture phase/slew, legacy phase/slew, capture smoothing/derivative
+pasan. Otros 29 tests engine/aggregators/derived/patchbay/contratos (4 subtests)
+pasan. Cuatro Chrome sobre API Stage real verifican relojes/gaps persistidos para
+derivative/smoothing/phase/slew, rate y límite opcional de fase, sin errores JS.
+Fixture sintético: no audio/hardware. No modifica DSP, presets aceptados,
+tracking/cache ni sesión cotidiana; fixture detenido. Otros clocks de eventos y
+sincronía física siguen pendientes en #77.

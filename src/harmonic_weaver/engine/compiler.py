@@ -264,8 +264,10 @@ class RouteRuntime:
     gate_states: dict[int, bool] = field(default_factory=dict)
     phase_values: dict[int, float] = field(default_factory=dict)
     phase_at_us: dict[int, int] = field(default_factory=dict)
+    phase_capture_samples: dict[int, tuple] = field(default_factory=dict)
     slew_values: dict[int, float] = field(default_factory=dict)
     slew_at_us: dict[int, int] = field(default_factory=dict)
+    slew_capture_samples: dict[int, tuple] = field(default_factory=dict)
     derivative_values: dict[int, float] = field(default_factory=dict)
     derivative_at_us: dict[int, int] = field(default_factory=dict)
     derivative_capture_samples: dict[int, tuple] = field(default_factory=dict)
@@ -290,6 +292,11 @@ class RouteRuntime:
             self.smooth_values.pop(index, None)
             self.smooth_at_us.pop(index, None)
         self.smooth_capture_samples.clear()
+        for index in self.slew_capture_samples:
+            self.slew_values.pop(index, None)
+            self.slew_at_us.pop(index, None)
+        self.slew_capture_samples.clear()
+        self.phase_capture_samples.clear()
         self.derivative_values.clear()
         self.derivative_at_us.clear()
         self.derivative_capture_samples.clear()
@@ -586,6 +593,10 @@ def compile_route(
             if mode in {"rising_edge", "falling_edge"}:
                 current_range = (0.0, 1.0) if closed == "suppress" else (min(1.0, closed_value), max(1.0, closed_value))
         elif kind == "phase_accumulator":
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms",500.0), f"{tpath}.max_gap_ms")
             # Integrator: input is an angular velocity (deg/s), output is the
             # running phase wrapped to [0, wrap_deg). Output range is bounded by
             # the modulus regardless of the incoming velocity range.
@@ -596,6 +607,10 @@ def compile_route(
                 nonnegative(transform["max_dt_ms"], f"{tpath}.max_dt_ms")
             current_range = (0.0, wrap_deg)
         elif kind == "slew_limiter":
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms",500.0), f"{tpath}.max_gap_ms")
             # Rate-limited chase of a continuous target. Output stays inside the
             # incoming static range (does not expand or shrink bounds).
             positive(transform.get("max_rate"), f"{tpath}.max_rate")
@@ -702,6 +717,25 @@ def _invalid_route_output(policy, runtime, now_us):
     return None, "reset"
 
 
+_CAPTURE_FIELDS = {"derivative":"derivative_capture_samples", "smoothing":"smooth_capture_samples",
+                   "phase_accumulator":"phase_capture_samples", "slew_limiter":"slew_capture_samples"}
+
+
+def _capture_clock_step(runtime, transform, index, sample):
+    """Called only after the route-wide freshness/alignment guard."""
+    identity, stamp = sample
+    samples = getattr(runtime, _CAPTURE_FIELDS[transform['type']])
+    prior = samples.get(index)
+    reset = prior is None or identity[:-1] != prior[0][:-1]
+    if reset:
+        runtime.sample_reason = "capture_epoch_warming"
+    elif stamp-prior[1] > float(transform.get('max_gap_ms',500.0))*1000:
+        reset = True
+        runtime.sample_reason = "capture_gap_warming"
+    samples[index] = sample
+    return stamp, reset
+
+
 def evaluate_route(
     route: CompiledRoute,
     runtime: RouteRuntime,
@@ -730,11 +764,11 @@ def evaluate_route(
         if usable:
             return (runtime.last_usable_output, "usable") if runtime.last_usable_output is not None else (None, "suppress")
     if not usable:
-        if any(t["type"] == "smoothing" and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
+        if any(t["type"] in {"smoothing", "phase_accumulator", "slew_limiter"} and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
             runtime.reset_observation_history()
         return _invalid_route_output(policy, runtime, now_us)
     capture_sample = None
-    if any(t["type"] in {"derivative", "smoothing"} and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
+    if any(t["type"] in _CAPTURE_FIELDS and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
         if any(e.state != OBSERVED or type(e.captured_at_us) is not int or e.captured_at_us < 0
                or not isinstance(e.capture_identity, tuple) or len(e.capture_identity) != 6
                or type(e.capture_identity[-1]) is not int or e.capture_identity[-1] < 0
@@ -749,9 +783,9 @@ def evaluate_route(
             return _invalid_route_output(policy, runtime, now_us)
         capture_sample = (envelopes[0].capture_identity, envelopes[0].captured_at_us)
         for index, transform in enumerate(route.definition["transforms"]):
-            if transform["type"] not in {"derivative", "smoothing"} or transform.get("clock") != "source_capture":
+            if transform["type"] not in _CAPTURE_FIELDS or transform.get("clock") != "source_capture":
                 continue
-            samples = runtime.derivative_capture_samples if transform["type"] == "derivative" else runtime.smooth_capture_samples
+            samples = getattr(runtime, _CAPTURE_FIELDS[transform["type"]])
             prior = samples.get(index)
             if prior and capture_sample[0][:-1] == prior[0][:-1] and (
                 capture_sample[0][-1] <= prior[0][-1] or capture_sample[1] <= prior[1]
@@ -855,20 +889,26 @@ def evaluate_route(
                 velocity = min(max(velocity, -limit), limit)
             previous_phase = runtime.phase_values.get(transform_index, 0.0)
             previous_at_us = runtime.phase_at_us.get(transform_index)
+            phase_now_us = now_us
+            capture_mode = transform.get('clock') == 'source_capture'
+            if capture_mode:
+                phase_now_us, reset = _capture_clock_step(runtime,transform,transform_index,capture_sample)
+                if reset:
+                    previous_phase, previous_at_us = 0., None
             if previous_at_us is None:
                 # First evaluation for this transform: establish the epoch, do
                 # not integrate an undefined dt.
                 phase = previous_phase % wrap_deg
             else:
-                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                dt_s = max(0.0, (phase_now_us - previous_at_us) / 1_000_000.0)
                 # Clamp dt so a gap (route unusable, then usable again) cannot
                 # produce a large phase jump on resume.
                 max_dt_s = float(transform.get("max_dt_ms", 100.0)) / 1000.0
-                if dt_s > max_dt_s:
+                if not capture_mode and dt_s > max_dt_s:
                     dt_s = max_dt_s
                 phase = (previous_phase + velocity * dt_s) % wrap_deg
             runtime.phase_values[transform_index] = phase
-            runtime.phase_at_us[transform_index] = now_us
+            runtime.phase_at_us[transform_index] = phase_now_us
             current = phase
         elif kind == "slew_limiter":
             assert isinstance(current, float)
@@ -877,13 +917,19 @@ def evaluate_route(
             max_dt_s = float(transform["max_dt_ms"]) / 1000.0
             previous_value = runtime.slew_values.get(transform_index)
             previous_at_us = runtime.slew_at_us.get(transform_index)
+            slew_now_us = now_us
+            capture_mode = transform.get('clock') == 'source_capture'
+            if capture_mode:
+                slew_now_us, reset = _capture_clock_step(runtime,transform,transform_index,capture_sample)
+                if reset:
+                    previous_value = previous_at_us = None
             if previous_value is None or previous_at_us is None:
                 # Cold start: no history — snap to target (do not invent a dt).
                 out = target
             else:
-                dt_s = max(0.0, (now_us - previous_at_us) / 1_000_000.0)
+                dt_s = max(0.0, (slew_now_us - previous_at_us) / 1_000_000.0)
                 # Clamp dt so a network gap cannot jump the parameter.
-                if dt_s > max_dt_s:
+                if not capture_mode and dt_s > max_dt_s:
                     dt_s = max_dt_s
                 max_delta = max_rate * dt_s
                 delta = target - previous_value
@@ -893,7 +939,7 @@ def evaluate_route(
                     delta = -max_delta
                 out = previous_value + delta
             runtime.slew_values[transform_index] = out
-            runtime.slew_at_us[transform_index] = now_us
+            runtime.slew_at_us[transform_index] = slew_now_us
             current = out
         elif kind == "derivative":
             assert isinstance(current, float)

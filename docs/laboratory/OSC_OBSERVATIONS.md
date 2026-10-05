@@ -156,3 +156,24 @@ siguen usando su reloj declarado/default: esta opción no convierte automáticam
 integradores, eventos o clocks de distintos productores. No cambia el filtro
 corporal del laboratorio ni presets aceptados. Tests `test_capture_smoothing.py`
 y el recorrido Stage verifican cálculo/persistencia; no sincronía física.
+
+## Fase integrada y slew en reloj productor (opt-in)
+
+`phase_accumulator` y `slew_limiter` también aceptan `clock=source_capture` y
+`max_gap_ms` (500 default). Stage los ofrece al agregar transforms y muestra
+wrap/límite de fase opcional, rate de slew, reloj y gap/delta. Engine sigue siendo
+el default; los cambios de chain activan una historia nueva mediante el mecanismo
+existente de escena. Cada transform requiere inputs observed alineados y avanza
+una sola vez por captura; `max_dt_ms` limita sólo el modo engine.
+
+En captura, fase integra la velocidad actual (deg/s) con delta productor y wrap.
+Tras pérdida/época/gap, empieza en cero: es origen convencional del integrador,
+no fase física medida ni estimación del desplazamiento durante la pérdida. Slew
+inicia el primer target sin inventar un intervalo. Held/invalid y cambios de
+stream/calibración reinician esas historias; slew engine conserva comportamiento
+legacy. Los relojes de otros productores no se convierten por esta opción.
+Esto no cambia las fases de los osciladores ni el preset afinado del laboratorio.
+
+`test_capture_phase_slew.py` cubre jitter, duplicados/atrasos, pérdida, gap,
+stream, metadata/alineación y validación. Los recorridos Stage verifican opciones,
+persistencia, vuelta al reloj engine y quitar el límite opcional de fase.
