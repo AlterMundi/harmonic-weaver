@@ -3432,3 +3432,27 @@ Prueba Chrome aislada del instrumento comprueba selección/payload/preset y ause
 de escrituras live. Configuraciones R05 históricas siguen omitiendo stereo_mix None.
 La sesión cotidiana se verificó pausada, con cero voces; no se reinició para esto.
 El contraste corporal y la aceptación humana del banco Shaper siguen pendientes.
+
+
+### 2026-10-05 — Primera corrida corporal con origen Shaper
+
+Receta R07 acepta origen EVAL/Shaper además de R05. Congela referencia al PCM usado
+in-place, mantiene offset fuente y distingue audio_provider en el manifest. Ejemplo
+público body_readout_shaper_example.json; alias EVAL local no se registra como job web.
+No recalcula tracking, copia el video ni cambia la configuración live.
+
+EVAL corporal con PCM post-Shaper a 48 kHz: preset baseline congelado del recorrido
+anterior, seis voces. La traza de features/targets es byte-idéntica a EVAL sin PCM.
+Plan elegido antes de scores: tres ventanas train/dos test, embargo 0.5 s. Corrida y
+repetición producen datasets y resultados numéricos idénticos; decoder recomputado.
+Contraparte R05 usa los mismos 48 kHz, medio/grilla, ventanas, labels y configuración
+de decoder. Se comprobó soporte corporal y reserva comunes antes de registrar sus
+métricas. Ambos caminos de sonificación son distintos: no aisla una causa única.
+
+Archivos/datasets/PCM/scores privados:
+`~/.local/share/harmonic-weaver/laboratory/checks/r07-shaper-body-20261005/`.
+Informe comparison-private.json; no valores corporales publicados. 26 pruebas de
+receta/origen Shaper/labels/readout pasan, con fuente sintética y Shaper real.
+Nueva receta no modifica artifacts EVAL y repite readout; la sesión cotidiana sigue
+pausada y con cero voces. Sin escucha nueva, toma independiente, medio físico o
+validación HIT/perceptual. Los resultados de dos ventanas reservadas son descriptivos.

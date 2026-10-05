@@ -72,9 +72,12 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 Prioridad cotidiana: escuchar los otros modelos con tracking suavizado, probar
 Performance y reportar fallos concretos. La primera corrida corporal R07 dentro
 de una toma, con reserva temporal y targets EVAL explícitos, quedó ejecutada y repetida
-el 2026-10-05; resultados privados, receta en el banco R07. El origen EVAL/Shaper ya está implementado en web/API con labels y offset fuente;
-falta ejecutar el contraste corporal con este origen. El siguiente contraste
-necesita tomas independientes o un origen de PCM explícito de Shaper.
+el 2026-10-05; resultados privados, receta en el banco R07. El origen EVAL/Shaper
+está disponible en web/API y receta local, con labels/offset. Su primera corrida
+corporal usa PCM post-Shaper a 48 kHz, con features/targets idénticos a EVAL sin PCM.
+Dataset/readout repetidos y contraparte R05 comparada en soporte/medio/muestreo común.
+La siguiente evidencia de generalización necesita tomas/personas independientes;
+la escucha humana y el contraste físico no se dan por realizados.
 #77 conserva el trabajo de procedencia temporal y productores adicionales.
 La causa CUDA y las mediciones físicas siguen abiertas. No se declara terminado
 el roadmap ni validadas sus hipótesis al entregar herramientas.

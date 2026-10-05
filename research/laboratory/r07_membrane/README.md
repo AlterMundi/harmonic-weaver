@@ -475,5 +475,31 @@ sin volver a renderizar la membrana dos veces como hacía el worker anterior.
 Pruebas nuevas usan movimiento sintético → EVAL → motor Shaper real → membrana,
 reducciones/particiones/repetición, worker, labels/cola, integridad y reproducción
 estéreo con rangos HTTP. No constituyen aceptación auditiva ni cymatics físico.
-Este origen habilita el contraste con R05; todavía falta ejecutarlo y evaluar
-atributos reservados con el audio Shaper sobre datos corporales locales.
+Este origen habilita el contraste con R05. La primera corrida corporal Shaper
+con reserva temporal y repetición está realizada; no establece generalización
+entre tomas/personas ni equivalencia de mecanismos.
+
+
+## Receta repetible con Shaper
+
+La misma receta admite un origen `source.provider: evaluation_shaper`, `run_index`
+y `projection.stereo_mix` explícitos. El EVAL debe estar completo y tener PCM:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m research.laboratory.r07_membrane.body_readout \
+  --evaluation-dir /ruta/local/evaluacion/result \
+  --plan research/laboratory/r07_membrane/body_readout_shaper_example.json \
+  --output /ruta/local/check-shaper
+```
+
+El ejemplo declara 48 kHz; ajustar al sample rate de la corrida antes de ejecutarlo.
+Las ventanas son tiempos fuente, no tiempos desde el comienzo del archivo PCM.
+Se usa el PCM in-place y se congela su referencia, no se copia ni rerenderiza.
+`origin-manifest.json` distingue R05/Shaper; `dataset.json` permite repetir sólo
+el decoder con sus controles mean/shape/magnitude/full y targets mezclados.
+
+Corrida corporal local: cinco ventanas (tres train/dos test), plan congelado y
+recomputación del decoder. Render Shaper preservó byte por byte la traza EVAL de
+features/targets anterior. No nueva escucha humana ni toma independiente.
+Comparar con R05 requiere declarar ambos mapeos y conservar medio/sample rate,
+ventanas, etiquetas y reservas; una diferencia no identifica qué etapa la causa.

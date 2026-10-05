@@ -982,3 +982,11 @@ R07 — 2026-10-05: origen EVAL/Shaper post-shape/master/limitador disponible en
 con reducción estéreo explícita/portable y labels de la misma corrida/offset. Pruebas
 sintéticas con motor real, HTTP y Chrome; sin cambio live. Pendiente: contraste local
 corporal R05/Shaper con reservas/controles; no ensayo físico ni validación HIT.
+
+
+R07 — 2026-10-05: primera corrida corporal Shaper a 48 kHz, receta de origen configurable
+R05/Shaper y ejemplo sin datos. Features/targets preservados byte por byte respecto de
+EVAL sin PCM, tres ventanas train/dos test y repetición dataset/readout. Contraparte
+R05 con mismo muestreo/medio/labels/reservas; métricas comparadas sólo en soporte común.
+Todo resultado corporal permanece local. Pendientes: tomas/personas independientes,
+contrastes que aíslen etapas y experiencia/medio físico; no se valida HIT ni intención.

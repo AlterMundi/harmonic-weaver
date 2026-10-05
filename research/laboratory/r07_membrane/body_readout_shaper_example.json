@@ -1,0 +1,58 @@
+{
+  "projection": {
+    "membrane": {
+      "sample_rate": 48000,
+      "modes_x": 4,
+      "modes_y": 4
+    },
+    "grid_x": 5,
+    "grid_y": 5,
+    "stereo_mix": "mean"
+  },
+  "labels": {
+    "signal_ids": [
+      "zone.1.speed"
+    ],
+    "method": "mean",
+    "min_observed_fraction": 0.95,
+    "min_observations": 20,
+    "max_gap_s": 0.1
+  },
+  "readout": {
+    "ridge": 0.1,
+    "normalization": "standardize_train",
+    "embargo_s": 0.5,
+    "shuffle_seed": 17
+  },
+  "windows": [
+    {
+      "role": "train",
+      "start_s": 4,
+      "end_s": 6
+    },
+    {
+      "role": "train",
+      "start_s": 8,
+      "end_s": 10
+    },
+    {
+      "role": "train",
+      "start_s": 12,
+      "end_s": 14
+    },
+    {
+      "role": "test",
+      "start_s": 24,
+      "end_s": 26
+    },
+    {
+      "role": "test",
+      "start_s": 30,
+      "end_s": 32
+    }
+  ],
+  "source": {
+    "provider": "evaluation_shaper",
+    "run_index": 0
+  }
+}
