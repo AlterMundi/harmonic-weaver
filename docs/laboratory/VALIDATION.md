@@ -3661,3 +3661,15 @@ Resultado: el fallo no se reprodujo en estas condiciones. No se atribuye a una
 causa ni se considera reparado por ausencia en tres corridas. #31 sigue abierto;
 CPU permanece como configuración cotidiana explícita. No repetir este mismo
 banco sin un nuevo fallo o una diferencia concreta de entorno/condición.
+
+### 2026-10-05 — Consultas de exportación sin acumulación
+
+ComparisonExport espera la respuesta de su inventario antes de programar la
+siguiente consulta; desmontar el reproductor cancela el fetch pendiente y el
+reloj de consultas. No cambian encoder, figuras, PCM ni síntesis live.
+Chrome retiene artificialmente una respuesta durante 3,5 s de reloj: sólo una
+consulta, reanudación tras respuesta y ERR_ABORTED al desmontar con otra consulta
+pendiente, sin consultas posteriores. Una prueba Chrome y TypeScript/Vite pasan.
+Se corrigió la descripción obsoleta de EVALUATION que presentaba exportación
+video/audio/figura como pendiente; su implementación y evidencia anteriores
+siguen válidas, no se repitió el banco de encoding por este cambio de polling.

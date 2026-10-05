@@ -92,8 +92,10 @@ Anni. El banco no valida HIT ni eficacia corporal.
 
 Permanecen en #18/#19 y agenda R01–R13: predicción con targets independientes,
 reservas por sesión, controles marginales/no lineales y selección predeclarada,
-publicación formal, exportación de video/figura, grabación opcional (#17), sensores/3D,
-comparación de cymatics físicos y aceptación humana. No son requisitos para jugar.
+publicación formal, sensores/3D, comparación de cymatics físicos y aceptación
+humana. La exportación de video/figura y la captura opcional (#17) están
+implementadas; sus mediciones físicas y aceptación siguen pendientes. Ninguna
+es requisito para jugar.
 
 ## Render PCM opcional
 
@@ -171,7 +173,14 @@ formatos pueden limitar reproducción (usar MP4 H.264 cuando sea necesario).
 Esta coordinación usa relojes de elementos HTML media, no una salida audiovisual
 con reloj físico común: la prueba de navegador usa tolerancia de 0.25 s para el
 video y verifica pausa/seek/dibujo. El JSONL conserva el reloj exacto de muestras
-para análisis. Exportar un video sincronizado de la figura sigue pendiente.
+para análisis. **Exportar video, audio y figura** permite crear un archivo local
+con video a la izquierda y la suma de todos los armónicos a la derecha, usando
+el PCM y el estado de osciladores congelados. MKV conserva el PCM; MP4 lo
+codifica en AAC con pérdida. FPS, resolución y aspecto de la figura son
+configurables, con JSON portable, cancelación y descarga del manifest/timeline.
+Máximo 120 s de PCM incluida la cola; exporta a 1× sin el ajuste visual del
+reproductor. No recalcula tracking ni mide sincronía física. Las consultas de
+estado esperan la respuesta anterior y se cancelan al cerrar el reproductor.
 
 Si WebGL no está disponible, se informa la ausencia de figura y video/audio
 siguen coordinados. El reproductor no necesita WebGL para avanzar el video.

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 type Data = Record<string, any>;
 const defaults = {schema_version:1, fps:30, width:1280, height:720, format:"mkv", video_crf:18, audio_kbps:192, visual:null};
-async function api(path:string, body?:Data) {
-  const response=await fetch(`/api/${path}`, body === undefined ? {} : {method:"POST", headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+async function api(path:string, body?:Data, signal?:AbortSignal) {
+  const response=await fetch(`/api/${path}`, body === undefined ? {signal} : {signal,method:"POST", headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const value=await response.json();
   if(!response.ok) throw Error(value.detail || JSON.stringify(value));
   return value;
@@ -11,9 +11,17 @@ export function ComparisonExport({report,run}: {report:Data;run:Data}) {
   const [settings,setSettings]=useState<Data>(defaults),[jobs,setJobs]=useState<Data[]>([]),[error,setError]=useState(""),[busy,setBusy]=useState(false);
   useEffect(()=>{
     let live=true;
-    const poll=()=>api("comparison-exports").then(rows=>{if(live)setJobs(rows)}).catch(e=>{if(live)setError(String(e))});
-    void poll();const timer=setInterval(poll,1000);
-    return()=>{live=false;clearInterval(timer)};
+    let timer:ReturnType<typeof setTimeout> | undefined;
+    const controller=new AbortController();
+    const poll=async()=>{
+      try {
+        const rows=await api("comparison-exports",undefined,controller.signal);
+        if(live)setJobs(rows);
+      } catch(e) {if(live)setError(String(e));}
+      finally {if(live)timer=setTimeout(()=>void poll(),1000);}
+    };
+    void poll();
+    return()=>{live=false;clearTimeout(timer);controller.abort()};
   },[]);
   const action=async(path:string,body:Data)=>{
     setBusy(true);setError("");
