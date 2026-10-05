@@ -212,3 +212,17 @@ test('audio output controls are explicit, pause gated and separate from presets'
  expect(outputWrites).toEqual([{expected_revision:0,device:0,sample_rate:96000,block_size:512}]);
  expect(writes).toEqual([]);expect(errors).toEqual([]);
 });
+
+test('native hip continuity option is explicit and portable without changing six voice ratios',async({page})=>{
+ const {state,writes,errors}=await setup(page);
+ const ratios=state.preset.voices.map((v:any)=>v.ratio);
+ await page.getByRole('button',{name:'Modelos',exact:true}).click();
+ await page.getByLabel('Filtro: bounded = mediana/límite; harmocap_one_euro = HarMoCAP',{exact:true}).selectOption('harmocap_one_euro');
+ const control=page.getByRole('checkbox',{name:'One-Euro: corregir intercambios de caderas antes de suavizar',exact:true});
+ await expect(control).not.toBeChecked();
+ await control.check();
+ await expect.poll(()=>state.preset.algorithm.tracking_one_euro_hip_swap_guard).toBe(true);
+ expect(state.preset.voices.map((v:any)=>v.ratio)).toEqual(ratios);
+ expect(writes.every(w=>w.path==='/api/configuration')).toBe(true);
+ expect(errors).toEqual([]);
+});

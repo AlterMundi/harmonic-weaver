@@ -138,10 +138,12 @@ def test_native_one_euro_recovers_missing_person_without_calibration(native_one_
 
 
 @pytest.mark.parametrize('algorithm',['baseline','local','relational','angular','collective'])
-def test_native_one_euro_is_shared_by_models_and_resets_at_seek(native_one_euro,algorithm):
+@pytest.mark.parametrize('guard',[False,True])
+def test_native_one_euro_is_shared_by_models_and_resets_at_seek(native_one_euro,algorithm,guard):
     p=next(p for p in initial_presets() if p.algorithm.id==algorithm)
     p.algorithm.tracking_filter_enabled=True
     p.algorithm.tracking_smoother='harmocap_one_euro'
+    p.algorithm.tracking_one_euro_hip_swap_guard=guard
     m=MotionModel(p,.2)
     for i in range(8):
         z=m.observe(observation(i/30,i),'one',i/30)
@@ -164,3 +166,52 @@ def test_bounded_filter_forgets_omitted_joint_without_filling_reacquisition():
     out, _ = f.push(found, 'one')
     assert point(out, 11) == pytest.approx([.9,.8])
     assert f.states[11]['velocity'] == pytest.approx(np.zeros(2))
+
+
+def test_native_optional_hip_repair_matches_unswapped_reference_and_keeps_other_joints(native_one_euro):
+    cfg=settings(tracking_smoother='harmocap_one_euro',tracking_one_euro_hip_swap_guard=True)
+    repaired=JointMotionFilter(cfg,.2)
+    reference=JointMotionFilter(settings(tracking_smoother='harmocap_one_euro'),.2)
+    for i in range(12):
+        expected_frame=observation(i/30,i)
+        raw=expected_frame.model_copy(deep=True)
+        # Both a persistent mislabeled run and return to the original labels.
+        if 3 <= i <= 8:
+            a,b=raw.persons[0].joints[11:13]
+            a.position,b.position=b.position,a.position
+            a.confidence,b.confidence=.4,.9
+        before=raw.model_dump()
+        out,diag=repaired.push(raw,'one')
+        expected,_=reference.push(expected_frame,'one')
+        assert diag['hip_labels_swapped']==(3 <= i <= 8)
+        assert not diag['acceleration_limited_joints']
+        for index in range(17):assert point(out,index)==pytest.approx(point(expected,index))
+        if 3 <= i <= 8:
+            assert out.persons[0].joints[11].confidence==.9
+        assert raw.model_dump()==before
+
+
+@pytest.mark.parametrize('loss',['missing','held','omitted','seek','gap'])
+def test_native_hip_repair_does_not_reuse_assignment_across_lost_support(native_one_euro,loss):
+    f=JointMotionFilter(settings(tracking_smoother='harmocap_one_euro',tracking_one_euro_hip_swap_guard=True),.2)
+    base=observation(0.,0);f.push(base,'one')
+    found=base.model_copy(deep=True);found.source_time_s=.1
+    if loss in ('missing','held','omitted'):
+        lost=base.model_copy(deep=True);lost.source_time_s=.03
+        if loss=='omitted':lost.persons[0].joints=[q for q in lost.persons[0].joints if q.index!=11]
+        else:lost.persons[0].joints[11]=Joint(index=11,state=loss,position=None if loss=='missing' else [1.,1.])
+        f.push(lost,'one')
+    elif loss=='seek':found.source_time_s=0.
+    else:found.source_time_s=3.
+    a,b=found.persons[0].joints[11:13];a.position,b.position=b.position,a.position
+    out,diag=f.push(found,'one')
+    assert not diag['hip_labels_swapped']
+    assert point(out,11)==pytest.approx(point(found,11))
+
+
+def test_native_guard_option_is_portable_and_defaults_off():
+    from harmonic_weaver.lab.contracts import Preset
+    preset=Preset()
+    assert not preset.algorithm.tracking_one_euro_hip_swap_guard
+    preset.algorithm.tracking_one_euro_hip_swap_guard=True
+    assert Preset.model_validate_json(preset.model_dump_json()).algorithm.tracking_one_euro_hip_swap_guard

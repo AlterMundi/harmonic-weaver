@@ -151,6 +151,8 @@ class AlgorithmSettings(Contract):
     tracking_one_euro_mincutoff: Number = Field(default=1., ge=.01, le=30)
     tracking_one_euro_beta: Number = Field(default=.15, ge=0, le=20)
     tracking_one_euro_dcutoff: Number = Field(default=1., ge=.01, le=30)
+    tracking_one_euro_hip_swap_guard: bool = Field(default=False,
+        description="Optional decisive hip-label continuity repair before native One-Euro; does not enable bounded smoothing or acceleration limits.")
     tracking_hip_swap_guard: bool = True
     tracking_median_frames: int = Field(default=3, ge=1, le=9)
     tracking_smoothing_s: Number = Field(default=.05, ge=0, le=.5)

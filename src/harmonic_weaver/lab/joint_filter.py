@@ -55,20 +55,7 @@ class JointMotionFilter:
         if self.scale is None:
             return frame, {"enabled": True, "state": "missing", "reason": "torso scale unavailable"}
         t = frame.source_time_s
-        observations = {q.index:q for q in person.joints}
-        swapped = False
-        # A per-joint acceleration limiter cannot distinguish an isolated swap.
-        # Repair only a decisive continuity mismatch, not every projected crossing.
-        if self.settings.tracking_hip_swap_guard and all(i in observations and observations[i].state == "observed" and i in self.states for i in (11, 12)):
-            dt = [t-self.states[i]["time"] for i in (11,12)]
-            if all(0 < d <= self.settings.max_gap_s for d in dt):
-                raw = [np.array(observations[i].position[:2])/self.scale for i in (11,12)]
-                predicted = [self.states[i]["position"]+self.states[i]["velocity"]*d for i,d in zip((11,12),dt)]
-                direct = sum(float(np.sum((x-y)**2)) for x,y in zip(raw,predicted))
-                crossed = sum(float(np.sum((x-y)**2)) for x,y in zip(raw[::-1],predicted))
-                if crossed < .35*direct and direct-crossed > .05**2:
-                    observations[11], observations[12] = observations[12], observations[11]
-                    swapped = True
+        observations, swapped = self._hip_assignment(person, t, self.settings.tracking_hip_swap_guard)
         estimates, limited = [], []
         for original in person.joints:
             q = observations[original.index]
@@ -114,30 +101,59 @@ class JointMotionFilter:
             "acceleration_limited_joints": limited,
             "interpretation": "causal position estimates, not new raw observations or anatomical limits"}
 
+    def _hip_assignment(self, person, t, enabled):
+        observations = {q.index:q for q in person.joints}
+        swapped = False
+        # A per-joint acceleration limiter cannot distinguish an isolated swap.
+        # Repair only a decisive continuity mismatch, not every projected crossing.
+        if enabled and self.scale is not None and all(i in observations and observations[i].state == "observed" and i in self.states and "position" in self.states[i] for i in (11, 12)):
+            dt = [t-self.states[i]["time"] for i in (11,12)]
+            if all(0 < d <= self.settings.max_gap_s for d in dt):
+                raw = [np.array(observations[i].position[:2])/self.scale for i in (11,12)]
+                predicted = [self.states[i]["position"]+self.states[i]["velocity"]*d for i,d in zip((11,12),dt)]
+                direct = sum(float(np.sum((x-y)**2)) for x,y in zip(raw,predicted))
+                crossed = sum(float(np.sum((x-y)**2)) for x,y in zip(raw[::-1],predicted))
+                if crossed < .35*direct and direct-crossed > .05**2:
+                    observations[11], observations[12] = observations[12], observations[11]
+                    swapped = True
+        return observations, swapped
+
     def _one_euro(self, frame, person_id, person):
         factory, source, source_hash = harmocap_one_euro()
         settings = self.settings
         estimates = []
         t = frame.source_time_s
-        for q in person.joints:
-            estimate = q.model_copy(deep=True)
+        guard = settings.tracking_one_euro_hip_swap_guard
+        if guard and self.scale is None:
+            self.scale = torso_scale(observed_xy(person))
+        observations, swapped = self._hip_assignment(person, t, guard)
+        for original in person.joints:
+            q = observations[original.index]
+            estimate = original.model_copy(deep=True)
             if q.state != "observed" or q.position is None:
                 self.states.pop(q.index, None)
             else:
-                previous = self.states.get(q.index)
+                previous = self.states.get(original.index)
                 dt = t-previous["time"] if previous else 0.
+                old_position = previous.get("position") if previous else None
                 if previous is None or dt <= 0 or dt > settings.max_gap_s:
                     previous = {"filters": [factory(settings.tracking_one_euro_mincutoff,
                         settings.tracking_one_euro_beta, settings.tracking_one_euro_dcutoff)
                         for _ in q.position]}
-                    self.states[q.index] = previous
+                    self.states[original.index] = previous
                 estimate.position = [f(x, dt) for f,x in zip(previous["filters"], q.position)]
+                estimate.confidence = q.confidence
+                if guard and self.scale is not None and original.index in (11,12):
+                    position = np.array(q.position[:2], dtype=float)/self.scale
+                    previous["velocity"] = (position-old_position)/dt if old_position is not None and 0 < dt <= settings.max_gap_s else np.zeros(2)
+                    previous["position"] = position
                 previous["time"] = t
             estimates.append(estimate)
         conditioned = frame.model_copy(deep=True)
         next(p for p in conditioned.persons if p.person_id == person_id).joints = estimates
         return conditioned, {"enabled": True, "state": "conditioned", "smoother": "harmocap_one_euro",
             "implementation": source, "implementation_sha256": source_hash,
-            "unit": frame.unit, "hip_labels_swapped": False,
+            "unit": frame.unit, "hip_labels_swapped": swapped,
+            "hip_swap_guard_enabled": guard, "hip_swap_guard_available": guard and self.scale is not None,
             "acceleration_limited_joints": [],
-            "interpretation": "HarMoCAP One-Euro on observed coordinates; no hold, median, swap repair or acceleration cap"}
+            "interpretation": "HarMoCAP One-Euro with optional hip-label continuity repair; no hold, median or acceleration cap"}

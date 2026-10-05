@@ -1132,7 +1132,10 @@ usa articulaciones observadas en ese instante y no se presenta como modo PCA.
 En Modelos, activar **Filtrar glitches de tracking** y elegir el suavizador:
 
 - **HarMoCAP One-Euro** usa el filtro del checkout local: mincutoff, beta y dcutoff.
-  No añade mediana, corrección de caderas ni límite de aceleración.
+  No añade mediana ni límite de aceleración. **One-Euro: corregir intercambios de
+  caderas antes de suavizar** habilita una corrección independiente, apagada por
+  defecto. Probarla comparando esqueleto crudo/filtrado: puede confundir un giro
+  real con un cambio de etiquetas. Desactivarla si distorsiona movimiento real.
 - **Bounded** ofrece mediana causal, suavizado y aceleración máxima por articulación.
   Su corrección de caderas atiende intercambios de etiquetas, no cambios de cuerpo.
 

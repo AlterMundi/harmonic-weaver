@@ -70,6 +70,12 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 
 ## Continuación
 
+One-Euro incorpora corrección opcional de continuidad de etiquetas de caderas
+antes de suavizar. Apagada por defecto, portable y sin mediana/límite añadido;
+replay del cache corporal produjo correcciones con las demás articulaciones
+idénticas. Puede confundir giros reales: requiere inspección/escucha, no se afirma
+exactitud anatómica. Sesión cotidiana y defaults conservados.
+
 Salida/buffer/frecuencia configurables desde el inspector, con pausa obligatoria,
 validación previa, recuperación del stream anterior y revisión de configuración.
 JACK distingue frecuencia solicitada y efectiva. Ajustes de sesión, separados del

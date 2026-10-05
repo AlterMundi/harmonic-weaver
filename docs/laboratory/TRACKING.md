@@ -71,11 +71,25 @@ domain errors but does not add temporal reasoning, 3D or joint rotations to YOLO
 `harmocap.smoothing.OneEuroFilter` (implementation path in diagnostics), with
 native defaults: minimum cutoff 1 Hz, beta .15, derivative cutoff 1 Hz. It replaces
 the bounded median/response/acceleration/hip-guard path; it does not stack with it.
-Three parameters are editable in Modelos and stored in portable presets. The
+Three smoothing parameters are editable in Modelos and stored in portable presets. The
 HarMoCAP checkout selected by `HARMOCAP_DIR` is required when using this option.
 Positions use the raw frame's coordinate units, as in native HarMoCAP; beta is
 unit-dependent. Missing/held support resets the joint; no retained coordinate is
 promoted to observed, and no hold-last motion is generated for synthesis.
+
+2026-10-05: an independent, opt-in `tracking_one_euro_hip_swap_guard` now
+repairs decisive hip-label continuity mismatches before native smoothing. Default
+false preserves the accepted One-Euro response. It shares the existing bounded
+assignment criterion (crossed cost <35% of direct cost and improvement >0.05²
+projected torso units), using the previous corrected measurement/velocity for
+native One-Euro, not its delayed smoothed position. Confidence follows the assigned
+measurement; raw labels/cache remain unchanged. A missing/held/omitted hip or time
+discontinuity removes that assignment history. No median or acceleration cap is
+enabled. Torso scale, if absent, is estimated only to normalize this heuristic's
+threshold; it does not calibrate the movement model. Without usable scale,
+One-Euro continues and diagnostics report the guard unavailable. This cannot
+distinguish every true turn from detector relabeling; disable it when it damages
+real movement. Modelos exposes the switch and diagnostics report corrections.
 
 Native smoothing was replayed on the existing private 60-second cache, including
 the two previously inspected jumps. Local configuration/results/scripts remain

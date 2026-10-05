@@ -67,6 +67,7 @@ const labels: Record<string, string> = {
   tracking_one_euro_beta: "One-Euro: respuesta a velocidad (β)",
   tracking_one_euro_dcutoff: "One-Euro: corte de derivada (Hz)",
   tracking_hip_swap_guard: "Corregir intercambios de caderas por continuidad",
+  tracking_one_euro_hip_swap_guard: "One-Euro: corregir intercambios de caderas antes de suavizar",
   tracking_median_frames: "Mediana causal (cuadros)",
   tracking_smoothing_s: "Suavizado del tracking (s)",
   tracking_joint_accel_limits: "Aceleración máxima por joint (T/s²)",
@@ -1401,7 +1402,7 @@ function App() {
                   Filtro causal activo: {draft.algorithm.tracking_smoother || "bounded"}. {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped ? "Intercambio de caderas corregido en este cuadro. " : ""}
                   Joints limitados ahora: {(state.features?.diagnostics?.tracking_filter?.acceleration_limited_joints || []).join(", ") || "ninguno"}.
                   En Figura podés alternar el esqueleto crudo y el filtrado.
-                  {draft.algorithm.tracking_smoother === "harmocap_one_euro" && " One-Euro reemplaza la mediana, el límite de aceleración y la corrección de caderas. No rellena articulaciones perdidas."}
+                  {draft.algorithm.tracking_smoother === "harmocap_one_euro" && " One-Euro reemplaza la mediana y el límite de aceleración. La corrección de caderas es opcional e independiente: puede confundir un giro real con un intercambio de etiquetas. No rellena articulaciones perdidas."}
                 </p>}
               </>
             )}

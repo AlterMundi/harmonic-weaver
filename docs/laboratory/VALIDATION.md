@@ -3511,3 +3511,26 @@ por nombre/índice y payload sin escrituras de preset. Sin cambio real a R24,
 reproducción, captura o configuración global de PipeWire. No acredita operación
 física a 96 kHz ni ausencia universal de clicks. Backend nuevo carga en el próximo
 arranque normal; ajustes de salida son de sesión, no persistentes.
+
+### 2026-10-05 — Continuidad opcional de caderas antes de One-Euro
+
+`tracking_one_euro_hip_swap_guard` portable, default false, permite reparar
+asignaciones de caderas decisivamente inconsistentes antes del suavizador nativo.
+Criterio compartido con bounded; para One-Euro usa mediciones corregidas previas
+con su velocidad, sin mediana ni límite de aceleración. Confianza sigue a la
+medición asignada. Missing/held/omitted y discontinuidades no reutilizan historia
+para corregir una nueva adquisición; no se modifica cache ni calibración.
+
+Pruebas filtros/modelos/colectivo/evaluación pasan: 58 antes de ampliar la matriz
+de modelos, luego 10 casos One-Euro×cinco modelos con guard on/off. Recuperación y
+runtime: 22 tests; PCM cross-repo: 8 tests. Chrome verifica control inicialmente
+apagado, edición portable y seis ratios intactos; TypeScript/Vite pasa. Pruebas
+sintéticas verifican intercambio persistente/retorno, posiciones equivalentes a
+referencia sin intercambio, confianza asociada, crudo intacto y pérdidas/seeks.
+
+Replay read-only del cache corporal de 60 s con configuración de la escucha sin
+clicks produjo correcciones de caderas; salidas de todas las demás articulaciones
+idénticas. Script/configuración/resultados quedan locales en
+`checks/one-euro-hip-continuity-20261005/`. Esto no prueba exactitud anatómica ni
+corrección de cada giro, ni aceptación auditiva. No se aplicó la opción a la sesión
+cotidiana ni se reanudó la fuente. Backend requiere próximo arranque normal.
