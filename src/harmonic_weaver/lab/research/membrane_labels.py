@@ -55,24 +55,44 @@ def context(projections, evaluation, ident):
     manifest = json.loads(manifest_path.read_text())
     if sha256_file(manifest_path) != figure["source_manifest_sha256"]:
         raise ValueError("Label source manifest differs from frozen figure")
-    input_path = audio.with_name("input.json")
-    document = json.loads(input_path.read_text())
-    if sha256_file(input_path) != manifest["input_hashes"]["input.json"]:
-        raise ValueError("Label PCM input changed")
-    selection = document["request"]
-    evaluated = evaluation.report(selection["evaluation_id"])["manifest"]
-    index = selection["run_index"]
-    if not 0 <= index < len(evaluated["runs"]):
-        raise ValueError("Bound label run outside evaluation")
-    run = evaluated["runs"][index]
-    provenance = document["provenance"]
-    if (
-        provenance.get("evaluation_id") != selection["evaluation_id"]
-        or provenance.get("run_index") != index
-        or provenance.get("trace_sha256") != run["sha256"]
-        or provenance.get("request_sha256") != evaluated["request_sha256"]
-    ):
-        raise ValueError("PCM input is not bound to this frozen evaluation trace")
+    source_origin = figure.get("source_origin", {})
+    if source_origin.get("provider") == "evaluation_shaper":
+        selection = source_origin
+        evaluated = evaluation.report(selection["evaluation_id"])["manifest"]
+        index = selection["run_index"]
+        if not 0 <= index < len(evaluated["runs"]):
+            raise ValueError("Bound label run outside evaluation")
+        run = evaluated["runs"][index]
+        pcm = run.get("pcm", {})
+        origin = pcm.get("segment_source_start_s")
+        end = origin + (pcm["samples"]-pcm["tail_samples"])/pcm["settings"]["sample_rate"]
+        if (selection["trace_sha256"] != run["sha256"]
+            or selection["request_sha256"] != evaluated["request_sha256"]
+            or selection["start_s"] != origin or selection["end_s"] != end
+            or figure["source_component_sha256"] != pcm["sha256"]
+            or evaluation.artifact(selection["evaluation_id"], pcm["file"]) != audio):
+            raise ValueError("Shaper PCM is not bound to this evaluation trace")
+        paths = {audio: pcm["sha256"]}
+    else:
+        input_path = audio.with_name("input.json")
+        document = json.loads(input_path.read_text())
+        if sha256_file(input_path) != manifest["input_hashes"]["input.json"]:
+            raise ValueError("Label PCM input changed")
+        selection = document["request"]
+        evaluated = evaluation.report(selection["evaluation_id"])["manifest"]
+        index = selection["run_index"]
+        if not 0 <= index < len(evaluated["runs"]):
+            raise ValueError("Bound label run outside evaluation")
+        run = evaluated["runs"][index]
+        provenance = document["provenance"]
+        if (
+            provenance.get("evaluation_id") != selection["evaluation_id"]
+            or provenance.get("run_index") != index
+            or provenance.get("trace_sha256") != run["sha256"]
+            or provenance.get("request_sha256") != evaluated["request_sha256"]
+        ):
+            raise ValueError("PCM input is not bound to this frozen evaluation trace")
+        paths = {input_path: manifest["input_hashes"]["input.json"]}
     field = figure["window"]
     origin = selection["start_s"]
     start = origin + field["start_sample"] / field["sample_rate"]
@@ -93,7 +113,7 @@ def context(projections, evaluation, ident):
         "paths": {
             report_path: report_hash,
             manifest_path: figure["source_manifest_sha256"],
-            input_path: manifest["input_hashes"]["input.json"],
+            **paths,
         },
     }
 

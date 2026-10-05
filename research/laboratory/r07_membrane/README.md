@@ -448,3 +448,32 @@ Este corte mide el canal configurado del mapeo experimental R05 y la membrana
 teórica. Compararlo con Shaper requiere otro origen de PCM declarado. Dentro de
 una toma no hay generalización entre recordings/personas ni muestras independientes;
 features de tracking no son ground truth corporal y la membrana no es cymatics físico.
+
+
+## Origen Shaper desde la web
+
+En Investigación → R07, elegir «EVAL · motor Shaper», una evaluación completa
+con PCM habilitado y su corrida. El banco usa el WAV estéreo posterior a shape,
+master y limitador, producido por el kernel offline de Shaper. No abre la R24 ni
+cambia el instrumento live. Elegir explícitamente promedio `(L+R)/2`, izquierdo
+o derecho para excitar la membrana: son condiciones diferentes, no normalización.
+El reproductor conserva el audio estéreo original; la figura usa la reducción
+congelada. La selección ajusta la frecuencia de muestreo al render; no hay resampling.
+
+Los controles de medio, ventana, grilla y trayectoria siguen disponibles. El preset
+portable conserva la reducción estéreo, sin IDs ni rutas de fuentes. La figura
+registra evaluación/corrida, hashes de manifest/PCM/trace, etapa de síntesis y offset
+fuente. Las etiquetas corporales leen la misma corrida; rechazan ventanas en el tail
+sonoro, porque no tienen features contemporáneas. El readout conserva ese offset
+para las reservas temporales. No copia video, tracking ni PCM.
+
+La ruta POST `/api/research/r07/from-evaluation` recibe `evaluation_id`, `run_index`
+y `settings` (incluidos `arm: single` y `stereo_mix`). Las fuentes R05 y sus artifacts
+previos siguen disponibles. Publicación verifica hashes del origen antes/después,
+sin volver a renderizar la membrana dos veces como hacía el worker anterior.
+
+Pruebas nuevas usan movimiento sintético → EVAL → motor Shaper real → membrana,
+reducciones/particiones/repetición, worker, labels/cola, integridad y reproducción
+estéreo con rangos HTTP. No constituyen aceptación auditiva ni cymatics físico.
+Este origen habilita el contraste con R05; todavía falta ejecutarlo y evaluar
+atributos reservados con el audio Shaper sobre datos corporales locales.

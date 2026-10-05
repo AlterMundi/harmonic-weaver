@@ -246,8 +246,8 @@ def snapshot(request, service, evaluation=None):
                 raise ValueError(
                     "Computed label/attributes differ from current verified selection; calculate again"
                 )
-        origin = None
-        if hasattr(service, "audio_source"):
+        origin = report.get("source_origin", {}).get("start_s")
+        if origin is None and hasattr(service, "audio_source"):
             try:
                 audio = service.audio_source(selection.projection_run_id)
                 manifest_path = audio.with_name("manifest.json")

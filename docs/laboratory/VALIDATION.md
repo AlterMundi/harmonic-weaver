@@ -3413,3 +3413,22 @@ No se anuncia un resultado numérico corporal públicamente. Dos ventanas de una
 toma no son sujetos/tomas independientes; labels derivados de tracking no son
 verdad de movimiento. Mapeo experimental R05 requiere contraste separado con
 PCM de Shaper; membrana teórica no es ensayo físico ni validación HIT/perceptual.
+
+
+### 2026-10-05 — R07 con PCM de Shaper
+
+Origen EVAL/Shaper completo habilitado desde web/API: referencia congelada al WAV
+post-shape/master/limitador, reducción estéreo mean/left/right portable, reproducción
+estéreo conservada, labels EVAL sin cola sonora y offset para reservas del readout.
+No cambia parámetros ni abre el dispositivo live. Worker reutiliza su cálculo y
+verifica origen al publicar; elimina los dos renders redundantes anteriores.
+
+43 pruebas de integración/core/audio/R05/labels/readout pasan; una prueba adicional
+del worker rechaza mutación del origen tras el cálculo sin repetir el render.
+Chrome: 1 prueba pasa; TypeScript/Vite build pasa.
+Pruebas con Shaper real y fuente sintética comprueban equivalencia con el kernel
+causal, repetición/particiones, worker, integridad, labels/cola y rangos HTTP estéreo.
+Prueba Chrome aislada del instrumento comprueba selección/payload/preset y ausencia
+de escrituras live. Configuraciones R05 históricas siguen omitiendo stereo_mix None.
+La sesión cotidiana se verificó pausada, con cero voces; no se reinició para esto.
+El contraste corporal y la aceptación humana del banco Shaper siguen pendientes.

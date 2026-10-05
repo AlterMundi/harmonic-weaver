@@ -7,7 +7,8 @@ carpetas `-dev` y trabajo sin instalar no describen la instalación actual.
 ## Instalación y evidencia reciente
 
 Una instalación: `~/Projects/harmonic-weaver`, web 8765 y Shaper 8085.
-Heads locales y remotos consultados: Weaver `6ab48aa`, Shaper `36dc005`,
+Base consultada: Weaver `4bf4eb2`; este corte agrega el origen Shaper para R07.
+Heads adyacentes consultados: Shaper `36dc005`,
 HarMoCAP `25fda8d`. No hay PRs de laboratorio abiertas; permanece la PR histórica
 #2 de beat envelope, fuera de estas entregas. Los cambios de backend recientes
 cargan en el próximo arranque normal; se conservó la sesión que Nicolás escuchó,
@@ -54,7 +55,7 @@ roles o etiquetas en un contrato no equivale a haber realizado el experimento.
 | [R04](../../research/laboratory/r04_relational/README.md) | Interferencia Anni/Sai, banco de controles y snapshots EVAL | Referencia/observable definidos y contrastes en tomas reservadas; no validar HIT con I local |
 | [R05](../../research/laboratory/r05_resonators/README.md) | Resonadores configurables y excitación congelada desde EVAL, renders/bancos | Escucha comparada y calibración de niveles/latencia; el medio añade su propia organización |
 | [R06](../../research/laboratory/r06_activation/README.md) | Calendarios racional/phi/otras perturbaciones, controles de dosis/espectro/shifts y manifests | Observable discriminante y medio/ensayo físico; el nombre phi no demuestra una ventaja |
-| [R07](../../research/laboratory/r07_membrane/README.md) | PCM→membrana teórica, campos/RMS, resolución/controles y decoder de atributos reservados | Banco con features corporales y tomas independientes; actuador/medio/observación calibrados para cymatics físico |
+| [R07](../../research/laboratory/r07_membrane/README.md) | R05 o EVAL/Shaper PCM→membrana teórica, reducción estéreo explícita, campos/RMS, controles y decoder de atributos reservados | Banco con features corporales y tomas independientes; actuador/medio/observación calibrados para cymatics físico |
 | [R08](../../research/laboratory/r08_rope/README.md) | Lectura de frames, anotación/máscaras, flujo/trayectorias, benchmarks y overlays | Referencias manuales de cuerda en clips reales; cruces 2D no son nudos 3D |
 | [R09](../../research/laboratory/r09_spatial/README.md) | Streams espaciales, adapter HarMoCAP, clocks afines, comparación y DLT multivista | Cámaras/sensores, calibración y anchors medidos; profundidad inferida conserva su condición |
 | [R10](../../research/laboratory/r10_experience/README.md) | Protocolos, player/transportes, respuestas/pares/análisis y borradores recuperables | Participantes, practicante/observador, exposición y respuestas reales; niveles/sincronía físicos |
@@ -71,7 +72,8 @@ bridge de Oliva conserva su separación y autoría. No se inicia contacto autón
 Prioridad cotidiana: escuchar los otros modelos con tracking suavizado, probar
 Performance y reportar fallos concretos. La primera corrida corporal R07 dentro
 de una toma, con reserva temporal y targets EVAL explícitos, quedó ejecutada y repetida
-el 2026-10-05; resultados privados, receta en el banco R07. El siguiente contraste
+el 2026-10-05; resultados privados, receta en el banco R07. El origen EVAL/Shaper ya está implementado en web/API con labels y offset fuente;
+falta ejecutar el contraste corporal con este origen. El siguiente contraste
 necesita tomas independientes o un origen de PCM explícito de Shaper.
 #77 conserva el trabajo de procedencia temporal y productores adicionales.
 La causa CUDA y las mediciones físicas siguen abiertas. No se declara terminado

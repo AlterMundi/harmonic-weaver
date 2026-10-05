@@ -272,6 +272,12 @@ class MembraneStart(Contract):
     settings:MembraneRequest
 
 
+class MembraneEvaluationStart(Contract):
+    evaluation_id: str = Field(pattern=r'^[a-f0-9]{32}$')
+    run_index: int = Field(ge=0)
+    settings: MembraneRequest
+
+
 class ResonatorConfig(Contract):
     schema_version: Literal[1] = 1
     resonators: ResonatorSettings = Field(default_factory=ResonatorSettings)
@@ -1250,6 +1256,11 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         source=resonators.folder(body.source_run_id)
         return membrane.start(source,body.settings.model_dump())
 
+    @app.post('/api/research/r07/from-evaluation')
+    def membrane_evaluation_start(body:MembraneEvaluationStart):
+        if evaluation is None: raise ValueError('Evaluation service unavailable')
+        return membrane.start_evaluation(evaluation,body.evaluation_id,body.run_index,body.settings)
+
     @app.get('/api/research/r07/{ident}')
     def membrane_report(ident:str):return membrane.report(ident)
 
@@ -1263,7 +1274,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get('/api/research/r07/{ident}/listen')
     def membrane_listen(ident:str,request:Request,gain:float=Query(default=1,ge=0,le=10)):
         from .research.audio_preview import preview_response
-        return preview_response(membrane.audio_source(ident),gain=gain,range_header=request.headers.get('range'))
+        return preview_response(membrane.audio_source(ident),gain=gain,range_header=request.headers.get('range'),allow_stereo=True)
 
     @app.post("/api/research/r06/configuration")
     def activation_configuration(body:ActivationConfig):

@@ -28,6 +28,8 @@ def run(source, request, folder):
                                for name in ('membrane.py', 'membrane_pcm.py', 'membrane_run.py')},
                 'environment': {'python': platform.python_version(), 'numpy': np.__version__,
                                 'scipy': scipy.__version__}, 'limits': result['limits']}
+    if isinstance(source, dict):
+        manifest['code_hashes']['membrane_eval_source.py'] = sha256_file(Path(__file__).with_name('membrane_eval_source.py'))
     atomic_json(folder/'manifest.json', manifest)
     return manifest
 

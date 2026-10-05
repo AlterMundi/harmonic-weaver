@@ -976,3 +976,9 @@ repetición PCM/dataset/resultados y recálculo verificados. Datos/scores privad
 adquisición, cambios de sonido ni validación física. Siguientes contrastes: tomas
 independientes y origen PCM de Shaper explícito. No continuidad de identidad
 inferida entre archivos, información natural preservada ni evidencia HIT.
+
+
+R07 — 2026-10-05: origen EVAL/Shaper post-shape/master/limitador disponible en web,
+con reducción estéreo explícita/portable y labels de la misma corrida/offset. Pruebas
+sintéticas con motor real, HTTP y Chrome; sin cambio live. Pendiente: contraste local
+corporal R05/Shaper con reservas/controles; no ensayo físico ni validación HIT.

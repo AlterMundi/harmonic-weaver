@@ -26,3 +26,25 @@ def test_worker_failed_source_has_no_published_result(tmp_path):
     manifest = json.loads((folder/'manifest.json').read_text())
     assert manifest['status'] == 'failed' and 'output' not in manifest
     assert not (folder/'result.json').exists()
+
+
+def test_publication_rechecks_source_without_recomputing(tmp_path, monkeypatch):
+    from harmonic_weaver.lab.research import membrane_run
+    source = tmp_path/'source'
+    fixture(source)
+    folder = tmp_path/'worker'
+    folder.mkdir()
+    atomic_json(folder/'source.json', {'directory': str(source)})
+    atomic_json(folder/'request.json', {'membrane': {'sample_rate': 8000}, 'stop_sample_exclusive': 800})
+    original = membrane_run.project
+    calls = []
+    def mutated(*args):
+        result = original(*args)
+        calls.append(1)
+        with (source/'sum.wav').open('ab') as handle: handle.write(b'changed')
+        return result
+    monkeypatch.setattr(membrane_run, 'project', mutated)
+    with pytest.raises(ValueError): run_frozen(folder)
+    assert calls == [1]
+    assert json.loads((folder/'manifest.json').read_text())['status'] == 'failed'
+    assert not (folder/'result.json').exists()

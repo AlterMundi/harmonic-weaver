@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from ..cache import atomic_json, sha256_file
 from .membrane_run import run, verify
-from .membrane_pcm import project
+from .membrane_pcm import verify_source_binding
 
 
 def run_frozen(folder):
@@ -26,26 +26,29 @@ def run_frozen(folder):
         atomic_json(folder/'manifest.json', manifest)
         try:
             source = json.loads((folder/'source.json').read_text())
-            if set(source) != {'directory'} or not isinstance(source['directory'], str):
-                raise ValueError('Exact local source directory reference required')
+            if source.get('provider') == 'evaluation_shaper':
+                from .membrane_eval_source import Reference
+                source = Reference.model_validate(source).model_dump()
+                selected = source
+            elif set(source) == {'directory'} and isinstance(source['directory'], str):
+                selected = source['directory']
+            else:
+                raise ValueError('Exact local source reference required')
             request = json.loads((folder/'request.json').read_text())
-            computed = run(source['directory'], request, folder/'computed')
+            computed = run(selected, request, folder/'computed')
             verify(folder/'computed')
             for name, digest in hashes.items():
                 if (folder/name).is_symlink() or sha256_file(folder/name) != digest:
                     raise ValueError('Frozen R07 input changed')
             # Rebind the source immediately before publication, independently
             # of the hashes stored in the internal result.
-            current = project(source['directory'], request)
             stored = json.loads((folder/'computed/result.json').read_text())
-            if current != stored:
-                raise ValueError('R07 source/result changed before publication')
+            verify_source_binding(selected, request, stored)
             target = folder/'result.json'
             if target.exists() or target.is_symlink():
                 raise ValueError('R07 publication target exists')
             (folder/'computed/result.json').replace(target)
-            if project(source['directory'], request) != stored:
-                raise ValueError('R07 source changed during promotion')
+            verify_source_binding(selected, request, stored)
             for name, digest in {**hashes, 'result.json': computed['output']['sha256']}.items():
                 if (folder/name).is_symlink() or sha256_file(folder/name) != digest:
                     raise ValueError('R07 input/result changed during promotion')
