@@ -3556,3 +3556,13 @@ espalda de 360 frames ni acredita causa o solución de #31. Reportes/logs locale
 agregado final de campos de procedencia/returncode del reproductor; su worker
 productivo y parámetros de inferencia no cambiaron. No medios/coords publicados,
 ninguna generación reemplazada, sesión audio conservada pausada.
+
+### 2026-10-05 — Figura tras reabrir el stream de Shaper
+
+Regresión Chrome reproducida: cambiar `audio_health.engine_id` conservaba el
+trazo del stream anterior. Figura ahora limpia una vez por nueva identidad de
+stream y observa ese campo aunque `sample_index` se repita; bloques posteriores
+conservan persistencia. Prueba falló antes del fix y pasa después, junto al cambio
+de vista que conserva la fuente, y TypeScript/Vite pasa. Telemetría/GL sintéticos;
+ninguna escritura de instrumento/audio. No modifica DSP, fases, ratios ni
+transporte; no acredita sincronía física. Bundle actualizado sin reiniciar servicios.

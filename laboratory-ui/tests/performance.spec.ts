@@ -226,3 +226,26 @@ test('native hip continuity option is explicit and portable without changing six
  expect(writes.every(w=>w.path==='/api/configuration')).toBe(true);
  expect(errors).toEqual([]);
 });
+
+test('new Shaper stream clears figure history even when sample index repeats',async({page})=>{
+ await page.addInitScript(()=>{
+  (window as any).__figureClears=0;
+  const clear=WebGLRenderingContext.prototype.clear;
+  WebGLRenderingContext.prototype.clear=function(mask){(window as any).__figureClears++;return clear.call(this,mask);};
+ });
+ const {state,writes,errors}=await setup(page);
+ Object.defineProperty(state.voice_frame,'sample_index',{get:()=>100,set:()=>{},configurable:true});
+ state.voice_frame.audio_health={engine_id:'stream-a',status_events:0,output_underflows:0,last_status:null,last_status_sample_index:null};
+ state.voice_frame.voices=[{voice_id:1,harmonic_n:1,frequency_hz:40.4,phase_rad:0,gain:.5}];
+ await expect(page.getByText('1 osciladores efectivos',{exact:false})).toBeVisible();
+ const before=await page.evaluate(()=>(window as any).__figureClears);
+ state.voice_frame.audio_health.engine_id='stream-b';state.voice_frame.voices=[];
+ await expect(page.getByText('0 osciladores efectivos',{exact:false})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>(window as any).__figureClears)).toBe(before+1);
+ const after=await page.evaluate(()=>(window as any).__figureClears);
+ // Subsequent frames of the same stream retain the chosen visual persistence.
+ state.voice_frame.voices=[{voice_id:1,harmonic_n:1,frequency_hz:40.4,phase_rad:1,gain:.5}];
+ await expect(page.getByText('1 osciladores efectivos',{exact:false})).toBeVisible();
+ expect(await page.evaluate(()=>(window as any).__figureClears)).toBe(after);
+ expect(writes).toEqual([]);expect(errors).toEqual([]);
+});

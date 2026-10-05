@@ -52,6 +52,10 @@ PipeWire requiere configuración externa. Los ajustes de salida son de la sesió
 el próximo arranque usa los flags del comando, por ejemplo
 `--audio-block-size 1024`. No se incluyen en presets musicales portables.
 
+La figura limpia su historia al recibir la identidad del stream nuevo, incluso
+si repite el índice de muestra anterior. Dentro de ese stream conserva la
+persistencia visual elegida; el transporte de video no se reinicia.
+
 La API nueva de Weaver/Shaper estará disponible tras el próximo arranque normal
 de los servicios actualizados. No se reinicia automáticamente la sesión abierta.
 

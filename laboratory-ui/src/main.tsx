@@ -445,6 +445,7 @@ function App() {
   const video = useRef<HTMLVideoElement>(null),
     canvas = useRef<HTMLCanvasElement>(null),
     figure = useRef<Figure | null>(null);
+  const figureStream = useRef<string | null>(null);
   const macroQueue = useRef<{ id: string; value: number } | null>(null);
   const macroBusy = useRef(false);
   const presetBusy = useRef(false);
@@ -678,6 +679,7 @@ function App() {
     if (!canvas.current) return;
     try {
       figure.current = new Figure(canvas.current);
+      figureStream.current = null;
     } catch (e) {
       setFigureError(String(e));
     }
@@ -685,16 +687,22 @@ function App() {
   }, [!!draft, !!schemas.Preset]);
   useEffect(() => {
     if (!figure.current || !draft) return;
-    if (connected && state.shaper?.telemetry_valid)
+    if (connected && state.shaper?.telemetry_valid) {
+      const stream = state.voice_frame?.audio_health?.engine_id;
+      if (stream && stream !== figureStream.current) {
+        figure.current.clear();
+        figureStream.current = stream;
+      }
       figure.current.draw(
         state.voice_frame.voices,
         draft.visual,
         draft.fundamental_hz,
       );
-    else if (draft.visual.on_disconnect === "clear") figure.current.clear();
+    } else if (draft.visual.on_disconnect === "clear") figure.current.clear();
   }, [
     connected,
     state.voice_frame?.sample_index,
+    state.voice_frame?.audio_health?.engine_id,
     state.shaper?.telemetry_valid,
     draft?.visual,
     draft?.fundamental_hz,
