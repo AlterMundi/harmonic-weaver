@@ -1,7 +1,7 @@
 # Laboratorio corporal: punto de entrada
 
-Estado: primera iteración local disponible; ver [arranque](RUNNING.md),
-[validación y límites](VALIDATION.md) y [estado](IMPLEMENTATION_STATUS.md). 2026-09-29.
+Estado: desarrollo consolidado en `main`, 2026-10-05. Ver [arranque](RUNNING.md),
+[validación y límites](VALIDATION.md) y [entregas y dependencias actuales](IMPLEMENTATION_STATUS.md).
 
 Para aportar cambios o presets: [fronteras y flujo de contribución](CONTRIBUTING.md).
 

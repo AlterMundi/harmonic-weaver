@@ -1,3 +1,84 @@
+# Estado actual del laboratorio
+
+Actualizado 2026-10-05. Este mapa describe el checkout consolidado; el historial
+al final conserva los cortes anteriores. Las menciones históricas de ramas,
+carpetas `-dev` y trabajo sin instalar no describen la instalación actual.
+
+## Instalación y evidencia reciente
+
+Una instalación: `~/Projects/harmonic-weaver`, web 8765 y Shaper 8085.
+Heads locales y remotos consultados: Weaver `6ab48aa`, Shaper `36dc005`,
+HarMoCAP `25fda8d`. No hay PRs de laboratorio abiertas; permanece la PR histórica
+#2 de beat envelope, fuera de estas entregas. Los cambios de backend recientes
+cargan en el próximo arranque normal; se conservó la sesión que Nicolás escuchó,
+pausada, con su preset y calibración intactos.
+
+[Arranque y recorrido](RUNNING.md) · [pruebas y límites](VALIDATION.md) ·
+[comparador](EVALUATION.md) · [tracking y futuras alternativas 3D](TRACKING.md).
+
+Nicolás informó ausencia de clicks en la prueba actual de 20 s. Eso es escucha
+real de ese recorrido, no aceptación de todos los modelos ni identificación de
+la causa. Replay posterior de cinco referencias con tracking suavizado y escala
+medida produjo targets activos en las seis voces de cada modelo, incluido
+colectivo. Datos y resultados corporales permanecen privados.
+
+## Entregas disponibles
+
+| Entrega | Disponible en main | Verificación y siguiente dependencia concreta |
+|---|---|---|
+| LAB-00/01 | Baseline preservado/integrado; contratos, presets portables, revisiones, macros, undo/redo y marcas | Inventario original en BASELINE_INVENTORY; pruebas de contratos/store. Sin medios corporales publicados |
+| LAB-02 | Biblioteca, archivo/cámara, cache persistente por contenido, generaciones, forzado/CPU explícitos y loop del prefijo fijo | Pruebas cache/percepción/transporte/API; CUDA intermitente conserva causa abierta en #31 |
+| LAB-03/06/07 | Runtime causal, matriz editable, seis voces, modelos baseline/local/relacional/angular/colectivo y centros múltiples | Pruebas modelos/ruteo/replay; recuperación por articulación corregida. Escucha de los otros modelos con filtros actuales pendiente |
+| LAB-04/05 | Figura de todos los osciladores efectivos, controles completos, presets y Performance | Pruebas de figura/UI; Performance conserva fuente al alternar. Comodidad con uso corporal nuevo pendiente |
+| LAB-08 | Launcher único, errores/recuperación y diagnóstico visible de modelo/audio/calibración | Pruebas de integración y evidencia local previa; latencia física y recorrido humano completo pendientes |
+| LAB-09 | Captura opcional PCM/journal/video, export MKV/MP4/preview, figura/esqueleto y recuperación de prefijos | Controles digitales de sincronía y pruebas export/cancelación; cámara/sincronía físicas pendientes |
+| EVAL | Núcleo causal compartido, reloj/preroll, PCM offline, presets×segmentos, manifests, soporte común y reproductor | Pruebas de paridad/repetición, resultados privados; nuevo detalle de actividad por voz. No estima eficacia corporal |
+
+Cambios recientes que se pueden probar: Performance, recuperación explícita de
+escala desde el inspector, fijar persona automática sin perder calibración,
+loop del prefijo, filtro One-Euro nativo, invalidación de predicción tras pérdida
+de articulación y diagnóstico pasivo de underflows. No cambiaron defaults
+sonoros en estos últimos cortes. [Recorrido](RUNNING.md).
+
+## Investigación: herramientas y lo que falta observar
+
+Cada fila enlaza el banco y su protocolo/evidencia, sin sustituirlos por esta tabla.
+Los controles sintéticos son pruebas del mecanismo declarado. Reservar muestras,
+roles o etiquetas en un contrato no equivale a haber realizado el experimento.
+
+| Línea | Herramienta disponible / entrada | Próxima observación o decisión necesaria |
+|---|---|---|
+| [R01](../../research/laboratory/r01_grassmann/README.md) | Subespacios/forecasts causales, familias declaradas, controles temporales, horizontes y comparación de corridas | Predicción específica que distinga HIT y tomas reservadas; familias adicionales deben responder a esa pregunta |
+| R02 | Organización colectiva live, geometría de base/proyector, retardos e indicadores locales/colectivos | Comparación corporal sobre tomas comunes y calidad de pose; no inferir organización física de PCA |
+| [R03](../../research/laboratory/r03_centers/README.md) | Marcas tipadas, candidatos regionales y matching/comparación sobre soporte común | Marcas humanas nuevas, incertidumbre temporal y centros alternativos; precedencia no establece causalidad |
+| [R04](../../research/laboratory/r04_relational/README.md) | Interferencia Anni/Sai, banco de controles y snapshots EVAL | Referencia/observable definidos y contrastes en tomas reservadas; no validar HIT con I local |
+| [R05](../../research/laboratory/r05_resonators/README.md) | Resonadores configurables y excitación congelada desde EVAL, renders/bancos | Escucha comparada y calibración de niveles/latencia; el medio añade su propia organización |
+| [R06](../../research/laboratory/r06_activation/README.md) | Calendarios racional/phi/otras perturbaciones, controles de dosis/espectro/shifts y manifests | Observable discriminante y medio/ensayo físico; el nombre phi no demuestra una ventaja |
+| [R07](../../research/laboratory/r07_membrane/README.md) | PCM→membrana teórica, campos/RMS, resolución/controles y decoder de atributos reservados | Banco con features corporales y tomas independientes; actuador/medio/observación calibrados para cymatics físico |
+| [R08](../../research/laboratory/r08_rope/README.md) | Lectura de frames, anotación/máscaras, flujo/trayectorias, benchmarks y overlays | Referencias manuales de cuerda en clips reales; cruces 2D no son nudos 3D |
+| [R09](../../research/laboratory/r09_spatial/README.md) | Streams espaciales, adapter HarMoCAP, clocks afines, comparación y DLT multivista | Cámaras/sensores, calibración y anchors medidos; profundidad inferida conserva su condición |
+| [R10](../../research/laboratory/r10_experience/README.md) | Protocolos, player/transportes, respuestas/pares/análisis y borradores recuperables | Participantes, practicante/observador, exposición y respuestas reales; niveles/sincronía físicos |
+| [R11](../../research/laboratory/r11_neuro/README.md) | Streams/CSV archivados, SNR sintético/observaciones y clocks declarados | Inventario OpenBCI, canales/referencia/unidades, adquisición y sincronización medidos |
+| [R12](../../research/laboratory/R12_MEASUREMENT_PROTOCOL.md) | Mediciones/tarea, imports CSV y sensibilidad a clocks; potencia medida integrable | Instrumentación/participantes y definición de trabajo útil; HR no se convierte en eficiencia/calorías |
+| [R13](../../research/laboratory/R13_TRANSFER_PROTOCOL.md) | Reservas por recording, normalización train-only, adaptación prefijo, controles y comparación pareada | Nuevas personas/tareas, equivalencias funcionales e intervenciones; beneficio/prótesis necesita diseño propio |
+
+[Agenda completa](../../research/laboratory/AGENDA.md) conserva las preguntas del
+hilo y sus fuentes. Los aportes #36/#97/#107 están integrados; el territorio del
+bridge de Oliva conserva su separación y autoría. No se inicia contacto autónomo.
+
+## Continuación
+
+Prioridad cotidiana: escuchar los otros modelos con tracking suavizado, probar
+Performance y reportar fallos concretos. El primer experimento corporal R07 puede
+usar las fuentes locales existentes y targets calculados explícitamente desde
+EVAL; no requiere membrana física, pero su reserva temporal debe quedar declarada.
+#77 conserva el trabajo de procedencia temporal y productores adicionales.
+La causa CUDA y las mediciones físicas siguen abiertas. No se declara terminado
+el roadmap ni validadas sus hipótesis al entregar herramientas.
+
+<details>
+<summary>Historial de implementación anterior a este mapa</summary>
+
 > 2026-10-04: integración continua en `main` hasta #152, Shaper #7 y HarMoCAP #1.
 > Instalación única: `~/Projects/harmonic-weaver`, web 8765 y Shaper 8085.
 > Las menciones históricas de pila separada/no instalada quedan superadas.
@@ -1856,3 +1937,5 @@ umbrales/unidades/candidatos/procedencia. Inventario de nuevas corridas identifi
 señal/crop/conteo sin cargar todas las traces.45 pruebas backend/temporal y2 Chrome
 pasan, receta sintética repetida pública. No marcas humanas nuevas, tracking,
 sonido, offset óptimo, centro causal ni validación Jpsh/HIT.
+
+</details>
