@@ -273,6 +273,9 @@ class RouteRuntime:
     derivative_capture_samples: dict[int, tuple] = field(default_factory=dict)
     sample_reason: str | None = None
     beat_state: dict[int, dict] = field(default_factory=dict)
+    beat_capture_samples: dict[int, tuple] = field(default_factory=dict)
+    peak_capture_samples: dict[int, tuple] = field(default_factory=dict)
+    dwell_capture_samples: dict[int, tuple] = field(default_factory=dict)
     # peak_detector per-transform: last TWO samples (prev_prev, prev) and last
     # fire timestamp (us). Three-sample window needed to detect a local max:
     # the previous step was strictly above the one before it AND the current
@@ -297,6 +300,16 @@ class RouteRuntime:
             self.slew_at_us.pop(index, None)
         self.slew_capture_samples.clear()
         self.phase_capture_samples.clear()
+        for index in self.beat_capture_samples:
+            self.beat_state.pop(index, None)
+        for index in self.peak_capture_samples:
+            self.peak_last_fire_us.pop(index, None)
+        for index in self.dwell_capture_samples:
+            self.dwell_value.pop(index, None)
+            self.dwell_last_change_us.pop(index, None)
+        self.beat_capture_samples.clear()
+        self.peak_capture_samples.clear()
+        self.dwell_capture_samples.clear()
         self.derivative_values.clear()
         self.derivative_at_us.clear()
         self.derivative_capture_samples.clear()
@@ -627,6 +640,10 @@ def compile_route(
                 positive(transform.get("max_gap_ms", 500.0), f"{tpath}.max_gap_ms")
             current_range = (-max_abs, max_abs)
         elif kind == "beat_envelope":
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms",500.0), f"{tpath}.max_gap_ms")
             # Rising-edge trigger -> decaying gain envelope: on each edge the
             # output snaps to `peak` and relaxes toward `floor` with a time
             # constant (auto-scaled from the measured inter-beat interval, or a
@@ -655,6 +672,10 @@ def compile_route(
                 )
             current_range = (0.0, 1.0)
         elif kind == "peak_detector":
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms",500.0), f"{tpath}.max_gap_ms")
             # Fires an impulse (1.0) when the input just turned over a local
             # maximum: previous sample was strictly greater than the one
             # before that (rising), this sample is non-greater (falling/stop),
@@ -667,6 +688,10 @@ def compile_route(
             nonnegative(transform.get("refractory_ms", 250.0), f"{tpath}.refractory_ms")
             current_range = (0.0, 1.0)
         elif kind == "pad_dwell":
+            if transform.get("clock", "engine") not in {"engine", "source_capture"}:
+                raise validation(f"{tpath}.clock must be engine or source_capture")
+            if "max_gap_ms" in transform or transform.get("clock") == "source_capture":
+                positive(transform.get("max_gap_ms",500.0), f"{tpath}.max_gap_ms")
             # Debounces a discrete (or pseudo-discrete) input value: holds
             # the committed output until the input has been different for at
             # least `dwell_ms`, then commits the new value in a single step.
@@ -718,7 +743,9 @@ def _invalid_route_output(policy, runtime, now_us):
 
 
 _CAPTURE_FIELDS = {"derivative":"derivative_capture_samples", "smoothing":"smooth_capture_samples",
-                   "phase_accumulator":"phase_capture_samples", "slew_limiter":"slew_capture_samples"}
+                   "phase_accumulator":"phase_capture_samples", "slew_limiter":"slew_capture_samples",
+                   "beat_envelope":"beat_capture_samples", "peak_detector":"peak_capture_samples",
+                   "pad_dwell":"dwell_capture_samples"}
 
 
 def _capture_clock_step(runtime, transform, index, sample):
@@ -764,7 +791,7 @@ def evaluate_route(
         if usable:
             return (runtime.last_usable_output, "usable") if runtime.last_usable_output is not None else (None, "suppress")
     if not usable:
-        if any(t["type"] in {"smoothing", "phase_accumulator", "slew_limiter"} and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
+        if any(t["type"] in _CAPTURE_FIELDS and t.get("clock") == "source_capture" for t in route.definition["transforms"]):
             runtime.reset_observation_history()
         return _invalid_route_output(policy, runtime, now_us)
     capture_sample = None
@@ -773,8 +800,7 @@ def evaluate_route(
                or not isinstance(e.capture_identity, tuple) or len(e.capture_identity) != 6
                or type(e.capture_identity[-1]) is not int or e.capture_identity[-1] < 0
                or e.capture_clock != "producer_monotonic_us_unmapped" for e in envelopes):
-            if any(e.state != OBSERVED for e in envelopes):
-                runtime.reset_observation_history()
+            runtime.reset_observation_history()
             runtime.sample_reason = "capture_metadata_required"
             return _invalid_route_output(policy, runtime, now_us)
         if any(e.capture_identity != envelopes[0].capture_identity
@@ -992,36 +1018,48 @@ def evaluate_route(
             tau_ratio = float(transform.get("tau_ratio", 0.3))
             fixed_tau_ms = transform.get("tau_ms")
             min_interval_us = int(float(transform.get("min_interval_ms", 250.0)) * 1000)
+            beat_now_us = now_us
+            capture_mode = transform.get('clock') == 'source_capture'
+            if capture_mode:
+                beat_now_us, reset = _capture_clock_step(runtime,transform,transform_index,capture_sample)
+                if reset: runtime.beat_state.pop(transform_index,None)
             state = runtime.beat_state.get(transform_index)
             if state is None:
                 state = {
                     "value": floor_value, "beat_us": None, "eval_us": None,
-                    "last_in": 0.0,
+                    "last_in": current if capture_mode else 0.0,
                     "tau_ms": float(fixed_tau_ms) if fixed_tau_ms is not None else 250.0,
                 }
             # Decay toward floor over the time since the last evaluation.
             if state["eval_us"] is not None:
-                dt_s = max(0.0, (now_us - state["eval_us"]) / 1_000_000.0)
+                dt_s = max(0.0, (beat_now_us - state["eval_us"]) / 1_000_000.0)
                 tau_s = max(1e-3, state["tau_ms"] / 1000.0)
                 state["value"] = floor_value + (state["value"] - floor_value) * math.exp(-dt_s / tau_s)
             # Rising edge -> fire the pulse (with a refractory guard).
             fired = state["last_in"] < threshold <= current
-            if fired and (state["beat_us"] is None or now_us - state["beat_us"] >= min_interval_us):
+            if fired and (state["beat_us"] is None or beat_now_us - state["beat_us"] >= min_interval_us):
                 if fixed_tau_ms is not None:
                     state["tau_ms"] = float(fixed_tau_ms)
                 elif state["beat_us"] is not None:
-                    interval_ms = (now_us - state["beat_us"]) / 1000.0
+                    interval_ms = (beat_now_us - state["beat_us"]) / 1000.0
                     state["tau_ms"] = max(1.0, tau_ratio * interval_ms)
                 state["value"] = peak
-                state["beat_us"] = now_us
+                state["beat_us"] = beat_now_us
             state["last_in"] = current
-            state["eval_us"] = now_us
+            state["eval_us"] = beat_now_us
             runtime.beat_state[transform_index] = state
             current = state["value"]
         elif kind == "peak_detector":
             assert isinstance(current, float)
             threshold = float(transform.get("threshold", 0.0))
             refractory_us = int(float(transform.get("refractory_ms", 250.0)) * 1000)
+            peak_now_us = now_us
+            capture_mode = transform.get('clock') == 'source_capture'
+            if capture_mode:
+                peak_now_us, reset = _capture_clock_step(runtime,transform,transform_index,capture_sample)
+                if reset:
+                    runtime.peak_history.pop(transform_index,None)
+                    runtime.peak_last_fire_us.pop(transform_index,None)
             history = runtime.peak_history.get(transform_index)
             last_fire_us = runtime.peak_last_fire_us.get(transform_index)
             fire = 0.0
@@ -1038,14 +1076,14 @@ def evaluate_route(
                 # the last fire.
                 refractory_ok = (
                     last_fire_us is None
-                    or (now_us - last_fire_us) >= refractory_us
+                    or (peak_now_us - last_fire_us) >= refractory_us
                 )
                 if rising_then_turning and crosses_threshold and refractory_ok:
                     fire = 1.0
-                    runtime.peak_last_fire_us[transform_index] = now_us
+                    runtime.peak_last_fire_us[transform_index] = peak_now_us
             # Update history: shift (prev_prev, prev) <- (prev, current).
             if history is None:
-                runtime.peak_history[transform_index] = (0.0, current)
+                runtime.peak_history[transform_index] = (current if capture_mode else 0.0, current)
             else:
                 _, prev = history
                 runtime.peak_history[transform_index] = (prev, current)
@@ -1058,13 +1096,19 @@ def evaluate_route(
             min_change_us = (
                 int(float(min_change_ms) * 1000.0) if min_change_ms is not None else 0
             )
+            dwell_now_us = now_us
+            if transform.get('clock') == 'source_capture':
+                dwell_now_us, reset = _capture_clock_step(runtime,transform,transform_index,capture_sample)
+                if reset:
+                    runtime.dwell_value.pop(transform_index,None)
+                    runtime.dwell_last_change_us.pop(transform_index,None)
             held = runtime.dwell_value.get(transform_index)
             last_change_us = runtime.dwell_last_change_us.get(transform_index)
             if held is None:
                 # Cold start: commit immediately so the first audio frame
                 # after the route activates does not wait an artificial dwell.
                 runtime.dwell_value[transform_index] = current
-                runtime.dwell_last_change_us[transform_index] = now_us
+                runtime.dwell_last_change_us[transform_index] = dwell_now_us
                 current = current
             elif current == held:
                 # No change requested: emit the held value.
@@ -1074,15 +1118,15 @@ def evaluate_route(
                 # anti-bounce), then the dwell_ms debounce.
                 min_change_ok = (
                     last_change_us is None
-                    or (now_us - last_change_us) >= min_change_us
+                    or (dwell_now_us - last_change_us) >= min_change_us
                 )
                 dwell_ok = (
                     last_change_us is None
-                    or (now_us - last_change_us) >= dwell_us
+                    or (dwell_now_us - last_change_us) >= dwell_us
                 )
                 if min_change_ok and dwell_ok:
                     runtime.dwell_value[transform_index] = current
-                    runtime.dwell_last_change_us[transform_index] = now_us
+                    runtime.dwell_last_change_us[transform_index] = dwell_now_us
                     current = current
                 else:
                     # Dwell or anti-bounce still active: keep the held value.

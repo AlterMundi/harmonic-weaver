@@ -3608,3 +3608,19 @@ derivative/smoothing/phase/slew, rate y límite opcional de fase, sin errores JS
 Fixture sintético: no audio/hardware. No modifica DSP, presets aceptados,
 tracking/cache ni sesión cotidiana; fixture detenido. Otros clocks de eventos y
 sincronía física siguen pendientes en #77.
+
+### 2026-10-05 — Reloj captura y warmup de eventos (#77)
+
+Beat/peak/dwell agregan source_capture opt-in y controles Stage. Beat/peak no
+inventan subida/pico desde un cero anterior a la primera muestra o reacquisición;
+metadata temporal ausente también rompe la historia. Dwell conserva intervalo
+mínimo de commit (no exige estabilidad continua del candidato). Engine default,
+presets/DSP/servicios cotidianos intactos.
+
+85 tests iniciales eventos/capture/legacy pasan; tras añadir reset por metadata
+perdida pasan 60 capture finales (events/derivative/smoothing/phase/slew). Otros
+29 tests de integración/aggregators/derived/patchbay/contratos y 4 subtests pasan.
+Siete recorridos Chrome Stage reales guardan/recuperan relojes, gaps y controles,
+incluyendo decay beat fijo→automático. Sin hardware/medios; fixture de siete rutas
+sintéticas, no siete voces del instrumento corporal. Fixture detenido. Restan
+sincronía entre productores/medición física y escucha de modelos.

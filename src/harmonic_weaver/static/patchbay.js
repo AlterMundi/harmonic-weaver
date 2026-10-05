@@ -607,6 +607,9 @@
     if (type === "smoothing") return {type, kind: "one_pole", time_ms: 35, clock: "engine", max_gap_ms: 500};
     if (type === "phase_accumulator") return {type, wrap_deg:360, max_dt_ms:100, clock:"engine", max_gap_ms:500};
     if (type === "slew_limiter") return {type, max_rate:2, max_dt_ms:100, clock:"engine", max_gap_ms:500};
+    if (type === "beat_envelope") return {type, peak:1, floor:0, threshold:.5, tau_ratio:.3, min_interval_ms:250, clock:"engine", max_gap_ms:500};
+    if (type === "peak_detector") return {type, threshold:0, refractory_ms:250, clock:"engine", max_gap_ms:500};
+    if (type === "pad_dwell") return {type, dwell_ms:80, min_change_ms:0, clock:"engine", max_gap_ms:500};
     if (type === "derivative") return {type, window_ms: 40, max_abs: 10, max_dt_ms: 1000, clock: "engine", max_gap_ms: 500};
     if (type === "gate") return {type, threshold: .5, hysteresis: .05, mode: "level", closed: "suppress"};
     return {type: "combine", operator: "mean"};
@@ -625,6 +628,26 @@
   }
 
   function transformFields(transform) {
+    if (["beat_envelope", "peak_detector", "pad_dwell"].includes(transform.type)) {
+      const label = {beat_envelope:"Beat", peak_detector:"Peak", pad_dwell:"Dwell"}[transform.type];
+      let fields = selectField(`${label} clock`, "clock", [["engine", "Engine scheduling"], ["source_capture", "Source capture (aligned observed frames)"]], transform.clock || "engine");
+      if (transform.clock === "source_capture") fields += numberField("Maximum capture gap (ms)", "max_gap_ms", transform.max_gap_ms ?? 500, 'min="0.000001"');
+      if (transform.type === "beat_envelope") {
+        fields += numberField("Beat threshold", "threshold", transform.threshold ?? .5)
+          + numberField("Envelope peak", "peak", transform.peak ?? 1)
+          + numberField("Envelope floor", "floor", transform.floor ?? 0)
+          + numberField("Minimum beat interval (ms)", "min_interval_ms", transform.min_interval_ms ?? 250, 'min="0"');
+        fields += `<label class="transform-field check"><input type="checkbox" data-field="beatFixedDecay" ${transform.tau_ms != null ? "checked" : ""}> Fixed envelope decay</label>`;
+        fields += transform.tau_ms != null
+          ? numberField("Envelope decay (ms)", "tau_ms", transform.tau_ms, 'min="0.000001"')
+          : numberField("Decay / beat interval", "tau_ratio", transform.tau_ratio ?? .3, 'min="0.000001"');
+      } else if (transform.type === "peak_detector") {
+        fields += numberField("Peak threshold", "threshold", transform.threshold ?? 0)
+          + numberField("Peak refractory (ms)", "refractory_ms", transform.refractory_ms ?? 250, 'min="0"');
+      } else fields += numberField("Minimum dwell commit interval (ms)", "dwell_ms", transform.dwell_ms ?? 80, 'min="0"')
+        + numberField("Minimum change interval (ms)", "min_change_ms", transform.min_change_ms ?? 0, 'min="0"');
+      return fields;
+    }
     if (["phase_accumulator", "slew_limiter"].includes(transform.type)) {
       const phase = transform.type === "phase_accumulator";
       let fields = selectField(phase ? "Phase clock" : "Slew clock", "clock", [["engine", "Engine scheduling"], ["source_capture", "Source capture (aligned observed frames)"]], transform.clock || "engine");
@@ -718,6 +741,12 @@
     const transform = view.editorTransforms[index];
     const field = input.dataset.field;
     if (!transform || !field) return;
+    if (field === "beatFixedDecay") {
+      if (input.checked) transform.tau_ms = 250;
+      else delete transform.tau_ms;
+      renderTransformEditor();
+      return;
+    }
     if (field === "phaseRateLimit") {
       if (input.checked) transform.max_rate = 360;
       else delete transform.max_rate;
@@ -737,7 +766,7 @@
     }
     const value = input.type === "checkbox" ? input.checked : input.type === "number" ? Number(input.value) : input.value;
     setNested(transform, field, value);
-    if (["derivative", "smoothing", "phase_accumulator", "slew_limiter"].includes(transform.type) && field === "clock") renderTransformEditor();
+    if (["derivative", "smoothing", "phase_accumulator", "slew_limiter", "beat_envelope", "peak_detector", "pad_dwell"].includes(transform.type) && field === "clock") renderTransformEditor();
     if (transform.type === "curve" && field === "kind") {
       delete transform.gamma;
       delete transform.amount;

@@ -177,3 +177,29 @@ Esto no cambia las fases de los osciladores ni el preset afinado del laboratorio
 `test_capture_phase_slew.py` cubre jitter, duplicados/atrasos, pérdida, gap,
 stream, metadata/alineación y validación. Los recorridos Stage verifican opciones,
 persistencia, vuelta al reloj engine y quitar el límite opcional de fase.
+
+## Eventos en reloj productor (opt-in)
+
+`beat_envelope`, `peak_detector` y `pad_dwell` aceptan `clock=source_capture` y
+`max_gap_ms` (500 default). Stage expone sus umbrales, tiempos, niveles y reloj;
+beat puede elegir decay fijo o ratio del intervalo entre beats. El modo engine
+conserva comportamiento anterior. Decay/refractory/intervalos de commit usan el
+reloj elegido; duplicados/atrasos no avanzan estados ni renuevan su baseline.
+
+Tras pérdida, metadata de captura ausente, gap o cambio de stream/calibración,
+beat inicia en floor con el primer input como baseline (sin inventar una subida);
+peak inicia con dos valores iguales (sin inventar ascenso desde cero). Dwell
+inicia en el primer target. No se integra tiempo perdido. Inputs desalineados se
+suprimen conservando la última captura común; una segunda llegada del mismo
+frame puede completar el conjunto sin borrar aquella historia. No se establece
+sincronía entre productores independientes.
+
+`pad_dwell` mantiene su semántica existente: intervalo mínimo desde el último
+commit, junto con min_change_ms. No garantiza que el candidato se haya mantenido
+estable durante todo dwell_ms; el editor lo etiqueta como intervalo de commit.
+La opción de reloj no agrega un debounce de estabilidad ni cambia sonido actual.
+
+`test_capture_events.py` verifica jitter, duplicates/order, warmup, gaps/épocas,
+metadata perdida y validación; el editor Stage verifica persistencia y decay
+fijo/automático con fixtures sintéticos. Son controles de software, no eventos
+corporales confirmados ni sincronía física.
