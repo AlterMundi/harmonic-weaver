@@ -23,7 +23,7 @@ Fuentes originales, preservadas sin reescritura:
 | R06 | Activación HIT: consulta no bloqueante, phi y alternativas | Perturbaciones racionales, phi, otras irracionales y aleatorias con condiciones comparables | Un medio y observable definidos; hipótesis, no privilegio asumido |
 | R07 | Dibujo→sonido→Lissajous/cimática: semejanza vs información preservada | Recuperar atributos reservados desde señales/figuras y controles | Diferenciar estado de voces, PCM y medio físico |
 | R08 | Cuerda: trayectorias, cruces, propagación desde manos | Anotación y segmentación asistida en clips cortos | Calidad verificada; cruces 2D no demuestran nudos 3D |
-| R09 | 3D y sensores de movimiento | Comparar monocular con multivista calibrada; IMUs cuando resuelvan incertidumbres | Sincronización, escala y evidencia independiente |
+| R09 | 3D, rotaciones y sensores de movimiento; etapa VR/MR | Primero multivista calibrada; [setups y lista de compras de sensores/VR · #153](https://github.com/AlterMundi/harmonic-weaver/issues/153) para ampliar core, brazos y manos | Sincronización, escala y evidencia independiente; distinguir orientación sensada de pose estimada |
 | R10 | Experiencia de practicantes/observadores: placer, disfrute, belleza, agencia | Video solo, sonido solo y ambos; orden/control de niveles | Protocolos y registros subjetivos explícitos |
 | R11 | OpenBCI y SNR | Definir señal de interés, ruido/artefactos y controles por condición | Protocolo separado y sincronización; no equiparar un índice EEG con placer |
 | R12 | Fisiología/eficiencia: corazón, costo energético, trabajo, rendimiento | Instrumentación apropiada y tareas delimitadas; contrastar belleza y eficiencia | No inferir calorías ni trabajo mecánico de a·v 2D |
@@ -32,6 +32,14 @@ Fuentes originales, preservadas sin reescritura:
 Cada experimento añade una nota fechada con fuente, configuración, condiciones,
 evidencia, resultado (también nulo/negativo), límites y siguiente pregunta.
 Cerrar una issue de software no resuelve automáticamente la pregunta científica.
+
+R09 — 2026-10-06: Nicolás indica que instalar varias cámaras es sencillo y que
+los sensores requieren una lista de compras. #153 conserva la etapa posterior
+de sensores y Oculus/Meta Quest u otros dispositivos VR/MR: ensayo de pelvis/tórax
+con dos sensores, ampliación a seis para brazos/antebrazos y ocho si se agregan manos.
+Son setups propuestos para nuestro laboratorio, no kits FBT ya verificados.
+La multivista puede avanzar sin sensores ni visor; cotización e integración física
+siguen pendientes, con el interés prioritario en entender rotaciones.
 
 R12 — 2026-10-03: [sensibilidad al reloj declarado](r12_clock/README.md) en
 web/API/CLI con archivos reproducibles. Intersección entre offsets y canales
