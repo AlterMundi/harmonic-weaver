@@ -20,6 +20,18 @@
       "title": "Person Id",
       "type": "string"
     },
+    "stream_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stream Id"
+    },
     "torso_scale": {
       "exclusiveMinimum": 0,
       "title": "Torso Scale",

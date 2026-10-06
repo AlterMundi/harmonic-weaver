@@ -295,11 +295,25 @@ def initial_routes():
             for i in range(1, 7) for target in ("gain", "detune", "phase_deg")]
 
 
+class Calibration(Contract):
+    schema_version: Literal[1] = 1
+    id: Identifier = Field(default_factory=lambda: uuid4().hex)
+    source_id: str
+    person_id: str
+    stream_id: str | None = None
+    torso_scale: Number = Field(gt=0)
+    measured_at: str
+    provenance: str
+    policy: Literal["new_source", "reuse_explicit"] = "new_source"
+
+
 class Preset(Contract):
     schema_version: Literal[1] = 1
     id: Identifier = Field(default_factory=lambda: uuid4().hex)
     name: str = Field(default="Seis zonas · plucks", min_length=1, max_length=100)
     favorite: bool = False
+    calibration: Calibration | None = Field(default=None,
+        description="Optional saved scale and source/person/tracking binding. Same capture restores it by default; other captures require an explicit choice.")
     algorithm: AlgorithmSettings = Field(default_factory=AlgorithmSettings)
     response: ResponseSettings = Field(default_factory=ResponseSettings)
     fundamental_hz: Number = Field(default=40.4, ge=10, le=440)
@@ -334,17 +348,6 @@ class Preset(Contract):
         if len({m.id for m in self.macros}) != len(self.macros):
             raise ValueError("duplicate macro ID")
         return self
-
-
-class Calibration(Contract):
-    schema_version: Literal[1] = 1
-    id: Identifier = Field(default_factory=lambda: uuid4().hex)
-    source_id: str
-    person_id: str
-    torso_scale: Number = Field(gt=0)
-    measured_at: str
-    provenance: str
-    policy: Literal["new_source", "reuse_explicit"] = "new_source"
 
 
 class SessionState(Contract):

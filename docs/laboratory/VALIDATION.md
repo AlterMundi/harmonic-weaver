@@ -3738,3 +3738,28 @@ pasan; TypeScript/Vite build pasa. Replay local del minuto con el preset colecti
 actual produce actividad en las seis voces con el filtro; los informes corporales
 quedan privados. La preferencia humana sobre este filtro y la sincronización
 visual mejorada todavía debe observarse durante el uso.
+
+### 2026-10-06 — Presets con calibración y sobrescritura por nombre
+
+Nicolás aceptó el instrumento de la prueba y pidió guardar también su escala.
+Preset incorpora un snapshot opcional de Calibration; guardar/exportar toma la
+activa. Misma fuente/persona/stream recupera la guardada por defecto; otra captura
+abre una elección guardada/actual. Preguntar siempre es una opción de la web.
+Un preset viejo sin snapshot conserva la calibración activa. Aplicar antes de
+abrir la fuente mantiene el snapshot pendiente; recuperar la misma captura al
+arrancar restaura la escala. Los medios y la historia no viajan en el preset.
+
+Nombre repetido pide confirmar sobrescritura en guardado/importación; cancelar
+no escribe. Backend rechaza crear otro ID con el mismo nombre sin overwrite;
+sobrescribir conserva el ID y limpia duplicados anteriores de ese nombre.
+Se conservó el último de los dos presets personales aceptados y se recuperó su
+calibración original desde el evento de guardado, sin cambiar sus ajustes sonoros.
+Backup y evidencias en checks/preset-calibration-20261006, privados.
+
+71 pruebas de contratos, runtime, API, calibración y evaluación pasan; 16
+recorridos Chrome, incluyendo elección de escala y cancelación/sobrescritura,
+pasan. TypeScript/Vite build pasa. Carga local del preset sobre su captura verifica
+la escala original, parámetros idénticos y un único preset del nombre; cache hit.
+R24/JACK 48 kHz/1024, misma persona y posición, sesión conservada pausada y sin
+error de audio. No se declara una nueva escucha ni identidad de PCM instantáneo:
+se restaura configuración/escala; el análisis causal vuelve a calentar su historia.

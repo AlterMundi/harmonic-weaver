@@ -269,7 +269,7 @@ test("full application uses cached video calibrates and explores every tuned des
   await page.getByRole("button", { name: "Presets", exact: true }).click();
   await page.getByLabel("Nombre", { exact: true }).fill(presetName);
   await page
-    .getByRole("button", { name: "Guardar como nuevo", exact: true })
+    .getByRole("button", { name: "Guardar preset", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: presetName, exact: true }),
@@ -288,7 +288,9 @@ test("full application uses cached video calibrates and explores every tuned des
   expect(saved.algorithm.joints).not.toContain(10);
   expect(saved.source_id).toBeUndefined();
   expect(saved.person_id).toBeUndefined();
-  expect(saved.calibration).toBeUndefined();
+  expect(saved.calibration.torso_scale).toBe(calibration.torso_scale);
+  expect(saved.calibration.source_id).toBe(calibration.source_id);
+  expect(saved.calibration.person_id).toBe(selected);
   const referencePreset = page.getByRole("button", {
     name: /06 · Referencia 01c/,
   });

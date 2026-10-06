@@ -231,12 +231,71 @@ class LaboratoryRuntime:
                     raise ValueError("both shoulders and hips must be observed to measure torso scale")
                 provenance, policy = f"observed torso at source time {self.frame.source_time_s:.6f}", "new_source"
             self.calibration = Calibration(source_id=self.frame.source_id, person_id=self.person_id,
-                torso_scale=scale, measured_at=datetime.now(timezone.utc).isoformat(), provenance=provenance, policy=policy)
+                stream_id=self.frame.stream_id, torso_scale=scale,
+                measured_at=datetime.now(timezone.utc).isoformat(), provenance=provenance, policy=policy)
             self.store.save_calibration(self.calibration)
             self.calibration_notice = None
             self.model = None
             self._reset()
             return self.calibration.model_dump()
+
+    def calibration_snapshot(self):
+        """Attach a capture binding to old calibrations without remeasuring scale."""
+        with self._lock:
+            if self.calibration is None:
+                return None
+            saved = self.calibration.model_copy(deep=True)
+            if self._calibration_matches(saved):
+                saved.stream_id = self.frame.stream_id
+            return saved
+
+    def _calibration_matches(self, calibration):
+        return bool(self.frame is not None and self.person_id is not None
+            and calibration.source_id == self.frame.source_id
+            and calibration.person_id == self.person_id
+            and (calibration.stream_id is None or calibration.stream_id == self.frame.stream_id))
+
+    def save_preset(self, preset, *, overwrite=False):
+        with self._lock:
+            # An explicitly imported snapshot stays intact. Saving the current
+            # instrument captures its active scale, including a deliberate None.
+            if "calibration" not in preset.model_fields_set:
+                preset = preset.model_copy(deep=True)
+                preset.calibration = self.calibration_snapshot()
+            return self.store.save(preset, overwrite=overwrite)
+
+    def apply_preset(self, preset, expected_revision, calibration_policy="auto"):
+        with self._lock:
+            saved = preset.calibration
+            if calibration_policy == "auto" and saved and self.frame is not None and not self._calibration_matches(saved):
+                raise ValueError("El preset trae una calibración de otra fuente/persona o generación de tracking. Elegí traerla o conservar la actual.")
+            if calibration_policy == "saved" and (saved is None or self.frame is None or self.person_id is None):
+                raise ValueError("Para traer la calibración guardada, abrí una fuente y elegí una persona.")
+            chosen = self.calibration_snapshot()
+            applied = preset.model_copy(deep=True)
+            if saved and calibration_policy != "current":
+                if self._calibration_matches(saved):
+                    chosen = saved.model_copy(deep=True)
+                    chosen.stream_id = self.frame.stream_id
+                elif calibration_policy == "saved":
+                    chosen = Calibration(source_id=self.frame.source_id, person_id=self.person_id,
+                        stream_id=self.frame.stream_id, torso_scale=saved.torso_scale,
+                        measured_at=datetime.now(timezone.utc).isoformat(),
+                        provenance=f"explicit reuse of preset {preset.id} calibration {saved.id}", policy="reuse_explicit")
+                else:
+                    # Applying before opening a source keeps the snapshot pending.
+                    chosen = None
+            applied.calibration = chosen or (saved if calibration_policy == "auto" and self.frame is None else None)
+            # Validate/compile and check revision before changing active scale.
+            self.store.edit(applied, expected_revision, reason="preset_apply")
+            if chosen is not None and chosen != self.calibration:
+                self.store.save_calibration(chosen)
+            self.calibration = chosen
+            self.store.set_runtime(calibration_id=chosen.id if chosen else None)
+            self.calibration_notice = None
+            self._reset()
+            self.model = None
+            return {**self.store.snapshot(), **self.snapshot()}
 
     def tick(self):
         started = self.clock()
@@ -304,6 +363,12 @@ class LaboratoryRuntime:
                 # reset() preserves scale; a different body needs a fresh model.
                 if self.model.scale is not None:
                     self.model = MotionModel(preset, None)
+            if self.calibration is None and preset.calibration is not None and self._calibration_matches(preset.calibration):
+                self.calibration = preset.calibration.model_copy(deep=True)
+                self.calibration_notice = None
+                self.store.save_calibration(self.calibration)
+                self.model = MotionModel(preset, self.calibration.torso_scale)
+                self._reset()
             valid = current is not None and any(p.person_id == self.person_id for p in current.persons)
             if self.kind == "video" and current:
                 valid &= position-current.source_time_s <= preset.algorithm.max_gap_s

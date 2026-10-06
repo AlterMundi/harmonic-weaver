@@ -7,7 +7,10 @@
 2. Cache persistente de tracking junto al video o biblioteca. Content hash,
    extractor, pesos y parámetros determinan validez; reprocesamiento forzado.
    Cambiar sonido o filtros posteriores no reinfiere pose.
-3. Presets portables: independientes de fuente, calibración e historia.
+3. Presets portables sin medios ni historia. Actualización de Nicolás, 2026-10-06:
+   guardar también la calibración activa y su referencia de captura/persona;
+   recuperar por defecto en la misma captura y elegir traer/conservar en otra.
+   Un nombre existente pide confirmar sobrescritura, sin crear otra copia.
 4. Seis voces iniciales. Componentes PCA/SVD y voces son cantidades independientes.
 5. Preservar la suma polifónica, no el aspecto viejo del visualizador. Rediseñar
    para precisión y legibilidad; todos los armónicos activos participan.

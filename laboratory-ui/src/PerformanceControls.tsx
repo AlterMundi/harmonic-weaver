@@ -1,7 +1,8 @@
 type Data = Record<string, any>;
-export function PerformanceControls({draft,presets,pending,change,applyPreset,applyMacro,save,exportPreset,name,setName,personId,personIds,selectionStatus,canConfirmPerson,choosePerson,mark}:{
+export function PerformanceControls({draft,presets,pending,change,applyPreset,applyMacro,save,exportPreset,name,setName,personId,personIds,selectionStatus,canConfirmPerson,choosePerson,mark,askCalibration=false,setAskCalibration}:{
  draft:Data;presets:Data[];pending:boolean;change:(key:string,value:any)=>void;
  applyPreset:(preset:Data)=>void;applyMacro:(id:string,value:number)=>unknown;
+ askCalibration?:boolean;setAskCalibration?:(value:boolean)=>void;
  save:()=>void;exportPreset:()=>void;name:string;setName:(name:string)=>void;
  personId?:string;personIds:string[];selectionStatus?:string;canConfirmPerson?:boolean;choosePerson:(id:string)=>void;mark:()=>void;
 }) {
@@ -42,6 +43,8 @@ export function PerformanceControls({draft,presets,pending,change,applyPreset,ap
   {canConfirmPerson && ['automatic','automatic_changed'].includes(selectionStatus || '') && <button disabled={pending || !personId}
     onClick={()=>personId && choosePerson(personId)}>Fijar esta persona</button>}
   <h3>Configuraciones guardadas</h3>
+  {setAskCalibration && <label className="check"><input type="checkbox" checked={askCalibration}
+    onChange={e=>setAskCalibration(e.target.checked)}/>Preguntar siempre por la calibración</label>}
   <div className="preset-list">{presets.map(p=><button key={p.id} disabled={pending} onClick={()=>applyPreset(p)}>{p.name}</button>)}</div>
   <label>Nombre para guardar<input value={name} onChange={e=>setName(e.target.value)} placeholder={draft.name}/></label>
   <div className="actions">
@@ -49,6 +52,6 @@ export function PerformanceControls({draft,presets,pending,change,applyPreset,ap
    <button onClick={exportPreset}>Exportar JSON</button>
    <button disabled={!personId} onClick={mark}>Marcar «se siente bien»</button>
   </div>
-  <p className="muted">Guardar crea un preset nuevo. La marca registra tu sensación al presionar; no mide intención ni corrige el tiempo de reacción.</p>
+  <p className="muted">Guardar incluye la calibración activa; un nombre existente pide confirmar sobrescritura. La marca registra tu sensación al presionar; no mide intención ni corrige el tiempo de reacción.</p>
  </section>;
 }

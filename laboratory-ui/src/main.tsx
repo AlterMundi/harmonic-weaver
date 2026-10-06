@@ -2,6 +2,7 @@ import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 import {PerformanceControls} from "./PerformanceControls";
 import {CalibrationReuse} from "./CalibrationReuse";
+import {PresetCalibrationChoice} from "./PresetCalibrationChoice";
 
 import { CapturePanel } from "./CapturePanel";
 import { VideoFollower } from "./videoFollower";
@@ -439,6 +440,12 @@ function App() {
     [presets, setPresets] = useState<Data[]>([]);
   const [presetName, setPresetName] = useState(""),
     [savedCalibrations, setSavedCalibrations] = useState<Data[]>([]);
+  const [calibrationChoice,setCalibrationChoice]=useState<Data|null>(null);
+  const [askPresetCalibration,setAskPresetCalibration]=useState(false);
+  const sameCalibrationCapture=(preset:Data)=>!!preset.calibration &&
+    preset.calibration.source_id===state.session?.source_id &&
+    preset.calibration.person_id===state.session?.person_id &&
+    (!preset.calibration.stream_id || preset.calibration.stream_id===state.motion_frame?.stream_id);
   const [sourcePreferences, setSourcePreferences] = useState<Data>({default_person:"best_coverage", autoplay_video:true});
   const [qualityResult, setQuality] = useState<{jobId:string,report:Data} | null>(null);
   const quality = qualityResult?.jobId === state.source?.job?.id ? qualityResult?.report : null;
@@ -458,7 +465,7 @@ function App() {
   const macroQueue = useRef<{ id: string; value: number } | null>(null);
   const macroBusy = useRef(false);
   const presetBusy = useRef(false);
-  const presetQueue = useRef<{preset: Data; generation: number} | null>(null);
+  const presetQueue = useRef<{preset: Data; generation: number; calibrationPolicy: string} | null>(null);
   const [presetProgress, setPresetProgress] = useState("");
   const run = async (action: () => Promise<any>) => {
     try {
@@ -468,8 +475,13 @@ function App() {
       setError(String(e));
     }
   };
-  const applyPreset = (preset: Data) => {
-    presetQueue.current = {preset, generation: generation.current};
+  const applyPreset = (preset: Data, calibrationPolicy = "auto") => {
+    const hasCapture=!!state.motion_frame && !!state.session?.source_id && !!state.session?.person_id;
+    if(calibrationPolicy==="auto" && preset.calibration && hasCapture && (askPresetCalibration || !sameCalibrationCapture(preset))){
+      setCalibrationChoice(preset);return;
+    }
+    setCalibrationChoice(null);
+    presetQueue.current = {preset, generation: generation.current, calibrationPolicy};
     setPresetProgress(`Elegido: ${preset.name}`);
     if (presetBusy.current) return;
     presetBusy.current = true;
@@ -482,6 +494,7 @@ function App() {
           if (choice.generation !== generation.current) continue;
           const next = await api(`presets/${choice.preset.id}/apply`, {
             expected_revision: revision.current,
+            calibration_policy: choice.calibrationPolicy,
           });
           if (choice.generation !== generation.current ||
               next.session.desired_revision < revision.current) continue;
@@ -740,8 +753,10 @@ function App() {
       onChange={(v) => change(key, v)}
     />
   );
+  const presetWithCalibration = () => ({...current.current, calibration:state.calibration
+    ? {...state.calibration,stream_id:state.motion_frame?.stream_id || state.calibration.stream_id || null} : null});
   const exportPreset = () => {
-    const blob = new Blob([JSON.stringify(current.current, null, 2)], {
+    const blob = new Blob([JSON.stringify(presetWithCalibration(), null, 2)], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob),
@@ -751,17 +766,25 @@ function App() {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  const saveCurrentPreset = () => run(async () => {
-    const preset = {...current.current, id:crypto.randomUUID().replaceAll("-", ""), name:presetName || draft.name};
-    await api("presets",preset);
+  const savePresetData = async (value:Data) => {
+    const name=value.name.trim();
+    const existing=presets.find(p=>p.name.trim().toLocaleLowerCase()===name.toLocaleLowerCase());
+    if(existing && !window.confirm(`Ya existe «${existing.name}». ¿Querés sobrescribir su configuración y calibración?`))return;
+    const preset = {...value, id:existing?.id || value.id || crypto.randomUUID().replaceAll("-", ""), name};
+    await api(existing ? "presets?overwrite=true" : "presets",preset);
     await refresh();
-  });
+  };
+  const saveCurrentPreset = () => run(() => savePresetData({...presetWithCalibration(),
+    id:crypto.randomUUID().replaceAll("-", ""), name:presetName || draft.name}));
   const changeView = (value:boolean) => {
     setPerformance(value);
     try { localStorage.setItem("weaver-lab-performance",String(value)); } catch { /* view still works without browser storage */ }
   };
   return (
     <main className={performance ? "performance-mode" : undefined}>
+      {calibrationChoice && <PresetCalibrationChoice preset={calibrationChoice} current={state.calibration}
+        sameCapture={sameCalibrationCapture(calibrationChoice)} cancel={()=>setCalibrationChoice(null)}
+        choose={policy=>applyPreset(calibrationChoice,policy)}/>}
       <datalist id="signal-catalog">
         {Object.entries(signalUnits).map(([key, unit]) => (
           <option key={key} value={key}>
@@ -991,6 +1014,7 @@ function App() {
           <div className="panel">
             {performance && <PerformanceControls draft={draft} presets={presets} pending={pending}
               change={change} applyPreset={applyPreset} applyMacro={applyMacro} save={saveCurrentPreset}
+              askCalibration={askPresetCalibration} setAskCalibration={setAskPresetCalibration}
               exportPreset={exportPreset} name={presetName} setName={setPresetName} personId={session.person_id}
               personIds={[...new Set<string>([session.person_id,...(job?.person_ids || []),...(state.motion_frame?.persons || []).map((p:Data)=>p.person_id)].filter(Boolean))]}
               choosePerson={id=>run(()=>api("person",{person_id:id}))}
@@ -1473,7 +1497,7 @@ function App() {
                     disabled={pending}
                     onClick={saveCurrentPreset}
                   >
-                    Guardar como nuevo
+                    Guardar preset
                   </button>
                   <button onClick={exportPreset}>Exportar JSON</button>
                   <label className="file-button">
@@ -1486,14 +1510,15 @@ function App() {
                         if (f)
                           void run(async () => {
                             const p = JSON.parse(await f.text());
-                            await api("presets", p);
-                            await refresh();
+                            await savePresetData(p);
                           });
                       }}
                     />
                   </label>
                 </div>
                 {presetProgress && <p role="status">{presetProgress} · esperando confirmación</p>}
+                <label className="check"><input type="checkbox" checked={askPresetCalibration}
+                  onChange={e=>setAskPresetCalibration(e.target.checked)}/>Preguntar siempre por la calibración</label>
                 <div className="preset-list">
                   {presets.map((p) => (
                     <button
@@ -1528,8 +1553,10 @@ function App() {
                   </button>
                 </div>
                 <p>
-                  Los presets no llevan video, identidad, calibración ni
-                  historia del análisis.
+                  Guardar y exportar incluyen la calibración activa. En la misma
+                  captura/persona se recupera por defecto; en otra, elegís traerla
+                  o conservar la actual. No incluyen video, tracking ni historia
+                  del análisis.
                 </p>
               </>
             )}

@@ -3,6 +3,7 @@
   "id": "six-zones",
   "name": "Seis zonas · plucks",
   "favorite": false,
+  "calibration": null,
   "algorithm": {
     "id": "baseline",
     "version": 1,

@@ -91,8 +91,8 @@ formatos persistidos; no inventar un contrato OSC paralelo para cada modelo.
 | MotionFrame | fuente/stream/persona, timestamp fuente, secuencia, marco, unidad, joints con posición/confianza/observed-held-missing; dimensión explícita |
 | FeatureFrame | timestamp y tiempo de disponibilidad, valores con unidades/validez; historia/lookahead declarado por productor |
 | AlgorithmDescriptor | ID/versión, entradas/salidas, controles con tipo/rango/default/unidad/ayuda, warmup, costo y causalidad |
-| Preset | versión, algoritmos y parámetros, grafo/ruteos, voces, macros, visualización; sin identidad de toma ni estado dinámico |
-| Calibration | referencia corporal y escala, procedencia, fecha y política de adaptación; independiente del preset |
+| Preset | versión, algoritmos y parámetros, grafo/ruteos, voces, macros, visualización y snapshot opcional de calibración; sin medios ni estado dinámico |
+| Calibration | escala corporal, procedencia y vínculo de captura/persona; puede guardarse en el preset; otra captura requiere elegir traerla o conservar la activa |
 | SessionState | fuente, posición, loop, dispositivos, revisión deseada/aplicada, estado y diagnósticos |
 | SessionEvent | reloj/tiempo fuente y evento de edición, preset o marca voluntaria |
 | VoiceFrame | sample index/rate, tiempo de generación, voces con IDs, freq, ganancia efectiva, fase integrada, envolvente, validez y etapa de señal |
@@ -163,9 +163,11 @@ Mute/solo y master son acciones claras, sin destruir los pesos originales.
 Presets guardan configuración completa, defaults resueltos y versiones; no
 dependen de cambios futuros del default. Guardar como, duplicar, favoritos,
 importar/exportar, deshacer y restaurar. Unsupported plugin/version no se
-sustituye silenciosamente. Calibración separada: política visible de nueva
-calibración o reutilización explícita. Aplicar preset no traslada historia PCA,
-fase temporal de la toma, identidad ni muestras antiguas.
+sustituye silenciosamente. Guardar incluye la calibración activa; la misma
+captura/persona recupera esa escala por defecto y otra captura requiere elegir
+traerla o conservar la actual. Un preset sin calibración conserva la activa.
+Sobrescribir un nombre existente requiere confirmación. Aplicar preset no
+traslada historia PCA, fase temporal de la toma ni muestras antiguas.
 
 Bitácora automática guarda solo cambios, IDs/versiones y marcas. Ningún
 tracking ni audio/video live por defecto. Cache de archivo es deliberadamente
@@ -280,7 +282,7 @@ jitter por tramo; no anunciar latencia total desde FPS de inferencia. Si el
 hardware no alcanza, exponer límite y priorizar el gesto reciente sobre colas.
 
 Validaciones: cache hit/invalidación/fuerza/corrupción; timestamps VFR;
-presets fuente-independientes; cambios atómicos; seek/loop/persona sin impulsos;
+presets portables con elección de calibración; cambios atómicos; seek/loop/persona sin impulsos;
 all voices en figura; continuidad de fase/bases; múltiples eventos; tracking
 perdido; carga/cancelación sin bloquear audio; recorrido web end-to-end.
 

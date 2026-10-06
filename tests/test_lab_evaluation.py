@@ -366,7 +366,7 @@ def test_service_continues_same_job_after_restart_and_rejects_complete(tmp_path)
     from harmonic_weaver.lab.evaluation.service import EvaluationService
     source, _, _ = source_fixture(tmp_path)
     store=SessionStore(tmp_path/'session',prepare=PreparedRoutes)
-    for p in (Preset(id='first'),Preset(id='second')):store.save(p)
+    for p in (Preset(id='first',name='First'),Preset(id='second',name='Second')):store.save(p)
     class Library:
         def list_assets(self):return [{'id':'fixture','path':source.media_path,'cache_location':source.cache_manifest}]
     service=EvaluationService(store.data_dir,store,Library())

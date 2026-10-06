@@ -31,7 +31,11 @@ async function setup(page:any,calibrations:any[]=[]) {
     if(body.loop!=null){state.session.loop=body.loop;if(!body.loop)state.session.loop_end_s=null;}
    }
    if(path==='/api/calibrate')state.calibration=calibrations.find(c=>c.id===body.reuse_id) || {torso_scale:.2,provenance:'synthetic measurement'};
-   if(path==='/api/presets')saved.push(body);
+   if(path==='/api/presets'){
+    const existing=saved.findIndex(p=>p.id===body.id);
+    if(existing>=0 && new URL(request.url()).searchParams.get('overwrite')==='true')saved[existing]=body;
+    else saved.push(body);
+   }
    if(path==='/api/macros/intensity'){state.preset.macros[0].value=body.value;state.preset.master=body.value;state.session.desired_revision++;}
    if(path.endsWith('/apply')){state.preset={...preset,master:.42};state.session.desired_revision++;}
    await route.fulfill({json:state});return;
@@ -44,8 +48,65 @@ async function setup(page:any,calibrations:any[]=[]) {
  });
  const errors:string[]=[];page.on('pageerror',(e:any)=>errors.push(String(e)));
  await page.goto('/');await expect(page.getByRole('button',{name:'Performance',exact:true})).toBeVisible();
- return {writes,state,errors};
+ return {writes,state,errors,saved};
 }
+
+function calibration(source='synthetic',person='one') {
+ return {schema_version:1,id:'scale',source_id:source,person_id:person,stream_id:'generation',
+   torso_scale:.24,measured_at:'synthetic',provenance:'synthetic scale',policy:'new_source'};
+}
+
+test('save includes current calibration and overwrite asks, cancel keeps the original',async({page})=>{
+ const {writes,state,saved,errors}=await setup(page);
+ state.calibration=calibration();state.motion_frame.stream_id='generation';
+ await page.getByRole('button',{name:'Performance',exact:true}).click();
+ await page.getByLabel('Nombre para guardar',{exact:true}).fill(saved[0].name);
+ const before=JSON.stringify(saved);
+ page.once('dialog',dialog=>dialog.dismiss());
+ await page.getByRole('button',{name:'Guardar configuración actual',exact:true}).click();
+ expect(writes).toEqual([]);expect(JSON.stringify(saved)).toBe(before);
+ page.once('dialog',dialog=>dialog.accept());
+ const request=page.waitForRequest(r=>r.url().includes('/api/presets')&&r.method()==='POST');
+ await page.getByRole('button',{name:'Guardar configuración actual',exact:true}).click();
+ expect((await request).url()).toContain('overwrite=true');
+ await expect.poll(()=>writes.filter(w=>w.path==='/api/presets').length).toBe(1);
+ expect(writes[0].body.id).toBe(saved[0].id);
+ expect(writes[0].body.calibration).toEqual(state.calibration);
+ expect(saved).toHaveLength(1);expect(errors).toEqual([]);
+});
+
+test('same capture restores automatically and optional choice can retain the current scale',async({page})=>{
+ const {writes,state,saved}=await setup(page);
+ const p={...state.preset,id:'calibrated',name:'Calibrated synthetic',calibration:calibration()};
+ saved.push(p);state.motion_frame.stream_id='generation';state.calibration={...calibration(),torso_scale:.5};
+ await page.reload();await page.getByRole('button',{name:'Presets',exact:true}).click();
+ await page.getByRole('button',{name:p.name,exact:true}).click();
+ await expect.poll(()=>writes.filter(w=>w.path.endsWith('/apply')).length).toBe(1);
+ expect(writes.at(-1)!.body.calibration_policy).toBe('auto');
+ await expect(page.getByRole('dialog')).toHaveCount(0);
+ await page.getByLabel('Preguntar siempre por la calibración',{exact:true}).check();
+ await page.getByRole('button',{name:p.name,exact:true}).click();
+ await expect(page.getByRole('dialog')).toContainText('esta captura y persona');
+ await page.getByRole('button',{name:'Conservar la calibración actual',exact:true}).click();
+ await expect.poll(()=>writes.filter(w=>w.path.endsWith('/apply')).length).toBe(2);
+ expect(writes.at(-1)!.body.calibration_policy).toBe('current');
+});
+
+test('another capture asks before applying and sends only the explicit scale choice',async({page})=>{
+ const {writes,state,saved}=await setup(page);
+ const p={...state.preset,id:'foreign',name:'Another capture',calibration:calibration('elsewhere')};
+ saved.push(p);state.calibration=calibration();state.motion_frame.stream_id='generation';
+ await page.reload();await page.getByRole('button',{name:'Performance',exact:true}).click();
+ await page.getByRole('button',{name:p.name,exact:true}).click();
+ await expect(page.getByRole('dialog')).toContainText('otra fuente');
+ expect(writes).toEqual([]);
+ await page.getByRole('button',{name:'Cancelar',exact:true}).click();
+ expect(writes).toEqual([]);
+ await page.getByRole('button',{name:p.name,exact:true}).click();
+ await page.getByRole('button',{name:'Traer la calibración guardada',exact:true}).click();
+ await expect.poll(()=>writes.filter(w=>w.path.endsWith('/apply')).length).toBe(1);
+ expect(writes[0].body.calibration_policy).toBe('saved');
+});
 
 test('view switch keeps source mounted and makes no changes to sound or transport',async({page})=>{
  const {writes,state,errors}=await setup(page);

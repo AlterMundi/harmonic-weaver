@@ -41,7 +41,7 @@ test("live instrument edits, portable preset and effective audio figure", async 
   await page
     .getByRole("textbox", { name: "Nombre", exact: true })
     .fill(presetName);
-  await page.getByRole("button", { name: "Guardar como nuevo" }).click();
+  await page.getByRole("button", { name: "Guardar preset" }).click();
   await expect(
     page.getByRole("button", { name: presetName, exact: true }),
   ).toBeVisible();

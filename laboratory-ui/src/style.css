@@ -310,6 +310,15 @@ details > .fields {
   overscroll-behavior: contain;
   overflow-wrap: anywhere;
 }
+.preset-calibration-choice {
+  width: min(540px, 92vw);
+  background: #101a25;
+  color: #d8e5e9;
+  border: 1px solid #49877c;
+  border-radius: 12px;
+  padding: 24px;
+}
+.preset-calibration-choice::backdrop { background: #070d14bb; }
 dl {
   display: grid;
   grid-template-columns: 1fr auto;

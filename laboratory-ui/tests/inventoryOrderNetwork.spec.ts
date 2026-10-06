@@ -12,7 +12,7 @@ for(const oldFails of [false,true])test('late preset inventory '+(oldFails?'fail
  const errors:string[]=[];page.on('pageerror',e=>errors.push(String(e)));
  await page.goto(origin);await expect.poll(()=>reached).toBe(true);
  await page.getByRole('button',{name:'Presets',exact:true}).click();await page.getByLabel('Nombre',{exact:true}).fill(name);
- const accepted=page.waitForResponse(r=>r.url()===url&&r.request().method()==='POST');await page.getByRole('button',{name:'Guardar como nuevo',exact:true}).click();const response=await accepted;expect(response.ok()).toBe(true);
+ const accepted=page.waitForResponse(r=>r.url()===url&&r.request().method()==='POST');await page.getByRole('button',{name:'Guardar preset',exact:true}).click();const response=await accepted;expect(response.ok()).toBe(true);
  const saved=page.getByRole('button',{name,exact:true});await expect(saved).toBeVisible();
  const late=page.waitForResponse(r=>r.url()===url&&r.request().method()==='GET');release();await(await late).finished();await page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
  await expect(saved).toBeVisible();await expect(page.getByText(/old-inventory-fault-control/)).toHaveCount(0);

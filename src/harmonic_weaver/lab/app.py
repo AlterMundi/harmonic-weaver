@@ -311,6 +311,10 @@ class CalibrationRequest(Contract):
     reuse_id: str | None = None
 
 
+class PresetApplyRequest(RevisionRequest):
+    calibration_policy: Literal["auto", "saved", "current"] = "auto"
+
+
 def _local_request(headers):
     host = headers.get("host", "")
     if urlsplit(f"http://{host}").hostname not in {"localhost", "127.0.0.1", "::1"}:
@@ -1455,16 +1459,19 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return session.list_presets()
 
     @app.post("/api/presets")
-    def save_preset(body: Preset):
-        return session.save(body)
+    def save_preset(body: Preset, overwrite: bool = False):
+        return runtime.save_preset(body, overwrite=overwrite) if runtime else session.save(body, overwrite=overwrite)
 
     @app.get("/api/presets/{preset_id}")
     def export_preset(preset_id: str):
         return session.load(preset_id).model_dump()
 
     @app.post("/api/presets/{preset_id}/apply")
-    def apply_preset(preset_id: str, body: RevisionRequest):
-        return session.edit(session.load(preset_id), body.expected_revision, reason="preset_apply")
+    def apply_preset(preset_id: str, body: PresetApplyRequest):
+        preset = session.load(preset_id)
+        if runtime:
+            return runtime.apply_preset(preset, body.expected_revision, body.calibration_policy)
+        return session.edit(preset, body.expected_revision, reason="preset_apply")
 
     @app.get("/api/source-preferences")
     def source_preferences():

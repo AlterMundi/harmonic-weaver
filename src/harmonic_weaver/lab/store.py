@@ -225,12 +225,32 @@ class SessionStore:
                        for row in self._db.execute("SELECT payload FROM presets ORDER BY id")]
             return sorted(presets, key=lambda p: (not p["favorite"], p["name"].casefold()))
 
-    def save(self, preset: Preset):
+    def save(self, preset: Preset, *, overwrite=False):
         self._prepare(preset)
         with self._lock, self._db:
+            name = preset.name.strip().casefold()
+            matching = []
+            for ident,payload in self._db.execute("SELECT id,payload FROM presets"):
+                saved = json.loads(payload)
+                if saved["name"].strip().casefold() == name:
+                    matching.append((ident,saved))
+            other = [ident for ident,_ in matching if ident != preset.id]
+            if other and not overwrite:
+                raise ValueError("Ya existe un preset con ese nombre. Confirmá sobrescribirlo o elegí otro nombre.")
+            if matching and overwrite:
+                if preset.id not in {ident for ident,_ in matching}:
+                    # Keep the latest saved ID, including pre-existing duplicates.
+                    order = {json.loads(payload)["payload"].get("preset_id"):sequence
+                             for sequence,payload in self._db.execute("SELECT sequence,payload FROM events WHERE json_extract(payload,'$.kind')='preset_save'")}
+                    preset = preset.model_copy(deep=True)
+                    preset.id = max((ident for ident,_ in matching),key=lambda ident:order.get(ident,0))
+                for ident,_ in matching:
+                    if ident != preset.id:
+                        self._db.execute("DELETE FROM presets WHERE id=?", (ident,))
             self._db.execute("INSERT OR REPLACE INTO presets(id,payload) VALUES (?,?)",
                              (preset.id, preset.model_dump_json()))
-            self._event("preset_save", {"preset_id": preset.id, "name": preset.name})
+            self._event("preset_save", {"preset_id": preset.id, "name": preset.name,
+                "calibration": preset.calibration.model_dump() if preset.calibration else None})
         return preset.model_dump()
 
     def load(self, preset_id):

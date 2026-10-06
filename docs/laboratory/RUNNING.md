@@ -152,8 +152,12 @@ estado vigente en vez de reintentar una escritura sobre otra ventana silenciosam
 4. Figura: ver la suma de todos los armónicos activos y habilitar componentes.
    Las fases/ganancias vienen de Shaper. Shape y limiter pueden agregar contenido
    al audio que esta figura preprocesamiento no representa.
-5. Guardar como nuevo y exportar JSON. Reaplicar al mismo video u otro; la
-   calibración y la historia no viajan en el preset. Una marca guarda un comentario
+5. Guardar y exportar JSON incluyen la calibración activa. La misma captura/persona
+   recupera su escala guardada por defecto; en otra se elige traerla o conservar
+   la actual. Un preset viejo sin escala conserva la activa. **Preguntar siempre
+   por la calibración** permite elegir también en la misma captura. Un nombre
+   existente pide confirmar sobrescritura; cancelar no guarda otra copia.
+   Video, tracking e historia no viajan en el preset. Una marca guarda un comentario
    y contexto de sesión, no un fragmento audiovisual.
 
 La aceptación humana evalúa lo que se siente al moverse/observar/escuchar.
