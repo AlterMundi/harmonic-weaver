@@ -215,3 +215,163 @@ def test_native_guard_option_is_portable_and_defaults_off():
     assert not preset.algorithm.tracking_one_euro_hip_swap_guard
     preset.algorithm.tracking_one_euro_hip_swap_guard=True
     assert Preset.model_validate_json(preset.model_dump_json()).algorithm.tracking_one_euro_hip_swap_guard
+
+
+def gate(**kw):
+    return JointMotionFilter(settings(tracking_smoother='outlier_gate',
+        tracking_hip_swap_guard=False, **kw), .2)
+
+
+def test_outlier_gate_preserves_ordinary_motion_exactly_without_lowpass_or_raw_mutation():
+    f = gate(tracking_smoothing_s=.5, tracking_median_frames=9)
+    base = observation(0., 0)
+    t = 0.
+    for i, dt in enumerate([.02, .04, .03, .05]*8):
+        t += dt
+        frame = base.model_copy(deep=True)
+        frame.source_time_s, frame.sequence = t, i
+        for q in frame.persons[0].joints:
+            q.position[0] += .2*(.2*t + 5*t*t)
+        before = frame.model_dump()
+        out, diag = f.push(frame, 'one')
+        assert out.model_dump() == before
+        assert frame.model_dump() == before
+        assert not diag['rejected_joints']
+
+
+def test_outlier_gate_rejects_isolated_hip_jump_then_returns_without_a_smoothing_tail():
+    f = gate()
+    base = observation(0., 0)
+    for i in range(6):
+        frame = base.model_copy(deep=True)
+        frame.source_time_s, frame.sequence = i/30, i
+        frame.persons[0].joints[11].position[0] += .01*i
+        if i == 3:
+            frame.persons[0].joints[11].position[0] += .4
+        before = frame.model_dump()
+        out, diag = f.push(frame, 'one')
+        if i == 3:
+            assert diag['rejected_joints'] == [11]
+            assert out.persons[0].joints[11].state == 'missing'
+            assert out.persons[0].joints[11].position is None
+        else:
+            assert point(out, 11) == pytest.approx(point(frame, 11))
+            assert not diag['rejected_joints']
+        assert frame.model_dump() == before
+        for index in range(17):
+            if index != 11:
+                assert out.persons[0].joints[index] == frame.persons[0].joints[index]
+
+
+def test_outlier_gate_uses_per_joint_limits_and_reacquires_coherent_new_motion():
+    f = gate()
+    base = observation(0., 0)
+    for i in range(3):
+        frame = base.model_copy(deep=True)
+        frame.source_time_s = i/30
+        if i:
+            for index in (9, 11):
+                frame.persons[0].joints[index].position[0] += .02
+        out, diag = f.push(frame, 'one')
+        if i == 1:
+            assert diag['rejected_joints'] == [11]  # Same displacement, wrist passes.
+    frame = base.model_copy(deep=True)
+    frame.persons[0].joints[11].position[0] += .5
+    for i in range(3, 6):
+        frame.source_time_s = i/30
+        out, diag = f.push(frame, 'one')
+        if i < 5:
+            assert out.persons[0].joints[11].state == 'missing'
+        else:
+            assert diag['reacquired_joints'] == [11]
+            assert point(out, 11) == pytest.approx(point(frame, 11))
+            assert f.states[11]['velocity'] == pytest.approx([0., 0.])
+
+
+def test_outlier_gate_never_reacquires_an_oscillating_glitch_just_after_enough_frames():
+    f = gate()
+    base = observation(0., 0)
+    f.push(base, 'one')
+    for i in range(1, 30):
+        frame = base.model_copy(deep=True)
+        frame.source_time_s = i/30
+        frame.persons[0].joints[11].position[0] += 1. if i%2 else -1.
+        out, diag = f.push(frame, 'one')
+        assert diag['rejected_joints'] == [11]
+        assert out.persons[0].joints[11].state == 'missing'
+
+
+def test_outlier_gate_keeps_reacquired_fast_motion_and_does_not_modify_other_people():
+    f = gate()
+    base = observation(0., 0)
+    other = base.persons[0].model_copy(deep=True)
+    other.person_id = 'other'
+    base.persons.append(other)
+    f.push(base, 'one')
+    for i in range(1, 12):
+        frame = base.model_copy(deep=True)
+        frame.source_time_s = i/30
+        frame.persons[0].joints[11].position[0] += .6 + i*.03
+        out, diag = f.push(frame, 'one')
+        assert out.persons[1] == frame.persons[1]
+        if i >= 3:
+            assert not diag['rejected_joints']
+            assert point(out, 11) == pytest.approx(point(frame, 11))
+
+
+@pytest.mark.parametrize('loss', ['missing', 'held', 'omitted', 'person', 'seek', 'gap'])
+def test_outlier_gate_discards_history_at_lost_support_or_clock_boundaries(loss):
+    f = gate()
+    base = observation(0., 0)
+    f.push(base, 'one')
+    lost = base.model_copy(deep=True)
+    lost.source_time_s = .03
+    found = base.model_copy(deep=True)
+    found.source_time_s = .06
+    found.persons[0].joints[11].position = [.9, .8]
+    if loss in ('missing', 'held'):
+        lost.persons[0].joints[11] = Joint(index=11, state=loss,
+            position=None if loss=='missing' else [9., 9.])
+        out, _ = f.push(lost, 'one')
+        assert out.persons[0].joints[11].state == loss
+    elif loss == 'omitted':
+        lost.persons[0].joints = [q for q in lost.persons[0].joints if q.index != 11]
+        f.push(lost, 'one')
+    elif loss == 'person':
+        lost.persons = []
+        f.push(lost, 'one')
+    elif loss == 'seek':
+        found.source_time_s = 0.
+    else:
+        found.source_time_s = 3.
+    out, _ = f.push(found, 'one')
+    assert point(out, 11) == pytest.approx([.9, .8])
+    assert f.states[11]['velocity'] == pytest.approx([0., 0.])
+
+
+@pytest.mark.parametrize('algorithm', ['baseline','local','relational','angular','collective'])
+def test_outlier_gate_shared_models_do_not_invent_kinematic_jump_on_reacquisition(algorithm):
+    p = next(p for p in initial_presets() if p.algorithm.id == algorithm)
+    p.algorithm.tracking_filter_enabled = True
+    p.algorithm.tracking_smoother = 'outlier_gate'
+    p.algorithm.tracking_hip_swap_guard = False
+    model = MotionModel(p, .2)
+    base = observation(0., 0)
+    for i in range(15):
+        frame = base.model_copy(deep=True)
+        frame.source_time_s, frame.sequence = i/30, i
+        if i >= 10:
+            frame.persons[0].joints[11].position[0] += .5
+        features = model.observe(frame, 'one', i/30)
+        if i in (10, 11):
+            assert features.diagnostics['tracking_filter']['rejected_joints'] == [11]
+        if i == 12:
+            assert features.diagnostics['tracking_filter']['reacquired_joints'] == [11]
+            if algorithm == 'baseline':
+                for signal in ('zone.1.speed', 'zone.1.acceleration', 'zone.1.gain'):
+                    assert features.signals[signal].value == 0.
+            else:
+                for signal in ('zone.1.speed', 'zone.1.acceleration', 'zone.1.velocity_error'):
+                    assert features.signals[signal].state == 'missing'
+    model.observe(observation(.05, 1), 'one', 2.)
+    assert point(model.conditioned_frame, 11) == pytest.approx(point(observation(.05, 1), 11))

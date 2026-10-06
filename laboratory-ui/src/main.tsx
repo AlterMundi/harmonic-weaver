@@ -26,6 +26,11 @@ const ResearchPanel = lazy(() => import("./ResearchPanel").then(module => ({defa
 
 type Data = Record<string, any>;
 let signalUnits: Data = {};
+const jointNames = ["Nariz", "Ojo izquierdo", "Ojo derecho", "Oreja izquierda", "Oreja derecha",
+  "Hombro izquierdo", "Hombro derecho", "Codo izquierdo", "Codo derecho", "Muñeca izquierda",
+  "Muñeca derecha", "Cadera izquierda", "Cadera derecha", "Rodilla izquierda", "Rodilla derecha",
+  "Tobillo izquierdo", "Tobillo derecho"];
+const namedJoints = (indices: number[]) => indices.map(index => jointNames[index] || String(index)).join(", ");
 const labels: Record<string, string> = {
   master: "Master",
   transient_decay_s: "Cola de transientes (s)",
@@ -62,7 +67,9 @@ const labels: Record<string, string> = {
   fixed_y: "Origen fijo Y",
   joints: "Joints para análisis colectivo y velocidad global",
   tracking_filter_enabled: "Filtrar glitches de tracking",
-  tracking_smoother: "Filtro: bounded = mediana/límite; harmocap_one_euro = HarMoCAP",
+  tracking_smoother: "Filtro: bounded = mediana/límite; harmocap_one_euro = HarMoCAP; outlier_gate = descartar saltos",
+  tracking_outlier_tolerance: "Saltos: tolerancia al ruido de posición (T)",
+  tracking_outlier_recovery_frames: "Saltos: cuadros coherentes para recuperar trayectoria",
   tracking_one_euro_mincutoff: "One-Euro: corte mínimo (Hz)",
   tracking_one_euro_beta: "One-Euro: respuesta a velocidad (β)",
   tracking_one_euro_dcutoff: "One-Euro: corte de derivada (Hz)",
@@ -207,7 +214,9 @@ function Fields({
               (schema.title !== "AlgorithmSettings" ||
                 (key.startsWith("tracking_one_euro_")
                   ? value?.tracking_smoother === "harmocap_one_euro"
-                  : !["tracking_hip_swap_guard", "tracking_median_frames", "tracking_smoothing_s", "tracking_joint_accel_limits"].includes(key) || value?.tracking_smoother !== "harmocap_one_euro")),
+                  : key.startsWith("tracking_outlier_") ? value?.tracking_smoother === "outlier_gate"
+                  : ["tracking_median_frames", "tracking_smoothing_s"].includes(key) ? value?.tracking_smoother === "bounded"
+                  : !["tracking_hip_swap_guard", "tracking_joint_accel_limits"].includes(key) || value?.tracking_smoother !== "harmocap_one_euro")),
           )
           .map(([key, sub]) => (
             <Fields
@@ -276,7 +285,7 @@ function Fields({
     );
   if (schema.type === "array" && name === "tracking_joint_accel_limits")
     return <fieldset><legend>{labels[name]}</legend><div className="fields">
-      {["Nariz","Ojo izquierdo","Ojo derecho","Oreja izquierda","Oreja derecha","Hombro izquierdo","Hombro derecho","Codo izquierdo","Codo derecho","Muñeca izquierda","Muñeca derecha","Cadera izquierda","Cadera derecha","Rodilla izquierda","Rodilla derecha","Tobillo izquierdo","Tobillo derecho"].map((label,index) =>
+      {jointNames.map((label,index) =>
         <label key={index}>{label}<input aria-label={`Aceleración máxima ${label}`} type="number" min="0.1" max="2000" step="1" value={value[index]} onChange={e => {const next=clone(value);next[index]=Number(e.target.value);onChange(next);}}/></label>)}</div>
       <p>T = torso proyectado; son límites ajustables del filtro, no límites anatómicos.</p></fieldset>;
   if (schema.type === "array")
@@ -1415,8 +1424,10 @@ function App() {
                   {state.features?.diagnostics?.tracking_filter?.hip_labels_swapped && "Intercambio de caderas corregido en este cuadro. "}
                   {state.features?.diagnostics?.tracking_filter?.hip_swap_guard_enabled && !state.features.diagnostics.tracking_filter.hip_swap_guard_available && "Corrección de caderas pendiente: falta escala de torso. One-Euro puede seguir suavizando. "}
                   {state.features?.diagnostics?.tracking_filter?.smoother === "bounded" && `Articulaciones limitadas ahora: ${(state.features.diagnostics.tracking_filter.acceleration_limited_joints || []).join(", ") || "ninguna"}. `}
+                  {state.features?.diagnostics?.tracking_filter?.smoother === "outlier_gate" && `Saltos descartados ahora: ${namedJoints(state.features.diagnostics.tracking_filter.rejected_joints || []) || "ninguno"}. `}
                   En Figura podés alternar el esqueleto crudo y el filtrado.
                   {state.preset.algorithm.tracking_smoother === "harmocap_one_euro" && " One-Euro reemplaza la mediana y el límite de aceleración. La corrección de caderas es opcional e independiente: puede confundir un giro real con un intercambio de etiquetas. No rellena articulaciones perdidas."}
+                  {state.preset.algorithm.tracking_smoother === "outlier_gate" && " Las muestras aceptadas pasan sin suavizado. Los saltos descartados quedan como articulaciones no observadas; no se rellenan ni sostienen. Una trayectoria nueva necesita cuadros coherentes para recuperarse. Ajustá los límites por articulación y la tolerancia si descarta movimiento real."}
                 </p>}
               </>
             )}
@@ -1527,6 +1538,7 @@ function App() {
         </section>
         <aside className="inspector">
           <h2>Lo que está pasando</h2>
+          <div className="model-summary" role="region" aria-label="Diagnóstico actual" tabIndex={0}>
           <p role="status" data-testid="model-status">
             {state.runtime?.diagnostic?.message}
           </p>
@@ -1541,14 +1553,17 @@ function App() {
           {state.runtime?.diagnostic?.routed_signal_count != null && <p>
             Señales usadas por el ruteo: {state.runtime.diagnostic.routed_observed_signals}/{state.runtime.diagnostic.routed_signal_count} disponibles.
           </p>}
+          </div>
           {state.runtime?.routing?.voices && <details>
             <summary>Qué ocurre en cada voz</summary>
+            <div className="voice-diagnostics">
             {Object.entries(state.runtime.routing.voices).map(([id,value])=>{const v=value as Data;return <div key={id}>
               <strong>{v.label || `Voz ${id}`}</strong> · {v.reason} · ganancia enviada: {Number(v.target_gain).toFixed(3)}
               {v.issues?.length>0 && <ul>{v.issues.map((issue:Data,index:number)=><li key={index}>
                 {issue.source || issue.route_id}: {diagnosticReason(issue.reason)} · {issue.target} {issue.effect==='zero'?'usa cero en este término':'bloquea esta voz'}.
               </li>)}</ul>}
             </div>;})}
+            </div>
           </details>}
           <details>
             <summary>Por qué faltan señales</summary>

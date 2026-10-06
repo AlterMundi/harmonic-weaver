@@ -291,6 +291,24 @@ details > .fields {
 }
 .inspector {
   padding: 24px;
+  align-self: start;
+}
+.model-summary {
+  height: 12rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+.model-summary p:first-child {
+  margin-top: 0;
+}
+.voice-diagnostics {
+  height: 18rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
 }
 dl {
   display: grid;

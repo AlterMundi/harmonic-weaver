@@ -60,6 +60,46 @@ test('view switch keeps source mounted and makes no changes to sound or transpor
  expect(writes).toEqual([]);expect(errors).toEqual([]);
 });
 
+test('changing live diagnostic text never moves the controls below it', async ({page})=>{
+ const {state,writes,errors}=await setup(page);
+ const summary=page.getByRole('region',{name:'Diagnóstico actual',exact:true});
+ const below=page.getByText('Por qué faltan señales',{exact:true});
+ const before=await below.boundingBox();
+ state.runtime.diagnostic.message='Faltan observaciones de la persona seleccionada y algunas señales de movimiento: '.repeat(12);
+ state.runtime.diagnostic.audio_error='Dispositivo desconectado: '.repeat(8);
+ state.runtime.diagnostic.routed_signal_count=124;
+ state.runtime.diagnostic.routed_observed_signals=0;
+ await expect(page.getByTestId('model-status')).toHaveText(state.runtime.diagnostic.message);
+ expect((await below.boundingBox())!.y).toBeCloseTo(before!.y,1);
+ expect(await summary.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);
+ await summary.focus(); await page.keyboard.press('End');
+ await expect.poll(()=>summary.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+ state.runtime.diagnostic.message='En marcha';
+ delete state.runtime.diagnostic.audio_error;
+ delete state.runtime.diagnostic.routed_signal_count;
+ await expect(page.getByTestId('model-status')).toHaveText('En marcha');
+ expect((await below.boundingBox())!.y).toBeCloseTo(before!.y,1);
+ expect(writes).toEqual([]);expect(errors).toEqual([]);
+});
+
+test('outlier controls are portable and show actual rejection without editing sound',async({page})=>{
+ const {state,errors}=await setup(page);
+ const ratios=state.preset.voices.map((v:any)=>v.ratio);
+ const expression=state.preset.expression, articulation=state.preset.transient_mix;
+ await page.getByRole('button',{name:'Modelos',exact:true}).click();
+ await page.getByLabel(/^Filtro: bounded/).selectOption('outlier_gate');
+ await expect(page.getByLabel('Saltos: tolerancia al ruido de posición (T)',{exact:true})).toBeVisible();
+ await expect(page.getByLabel('Suavizado del tracking (s)',{exact:true})).not.toBeVisible();
+ await expect(page.getByLabel('One-Euro: corte mínimo (Hz)',{exact:true})).not.toBeVisible();
+ await page.getByLabel('Filtrar glitches de tracking',{exact:true}).check();
+ state.features={diagnostics:{tracking_filter:{enabled:true,state:'conditioned',smoother:'outlier_gate',rejected_joints:[11,12]}}};
+ await expect(page.getByLabel('Estado efectivo del filtro',{exact:true})).toContainText('Saltos descartados ahora: Cadera izquierda, Cadera derecha');
+ expect(state.preset.voices).toHaveLength(6);
+ expect(state.preset.voices.map((v:any)=>v.ratio)).toEqual(ratios);
+ expect(state.preset.expression).toBe(expression);expect(state.preset.transient_mix).toBe(articulation);
+ expect(errors).toEqual([]);
+});
+
 test('performance edits existing controls, keeps ratios, saves and marks explicitly',async({page})=>{
  const {writes,state,errors}=await setup(page);const ratios=state.preset.voices.map((v:any)=>v.ratio);
  await page.getByRole('button',{name:'Performance',exact:true}).click();
@@ -217,7 +257,7 @@ test('native hip continuity option is explicit and portable without changing six
  const {state,writes,errors}=await setup(page);
  const ratios=state.preset.voices.map((v:any)=>v.ratio);
  await page.getByRole('button',{name:'Modelos',exact:true}).click();
- await page.getByLabel('Filtro: bounded = mediana/límite; harmocap_one_euro = HarMoCAP',{exact:true}).selectOption('harmocap_one_euro');
+ await page.getByLabel(/^Filtro: bounded/).selectOption('harmocap_one_euro');
  const control=page.getByRole('checkbox',{name:'One-Euro: corregir intercambios de caderas antes de suavizar',exact:true});
  await expect(control).not.toBeChecked();
  await control.check();

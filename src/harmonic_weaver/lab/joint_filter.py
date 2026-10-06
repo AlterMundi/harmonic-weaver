@@ -54,6 +54,8 @@ class JointMotionFilter:
             self.scale = torso_scale(observed_xy(person))
         if self.scale is None:
             return frame, {"enabled": True, "state": "missing", "reason": "torso scale unavailable"}
+        if self.settings.tracking_smoother == "outlier_gate":
+            return self._outlier_gate(frame, person_id, person)
         t = frame.source_time_s
         observations, swapped = self._hip_assignment(person, t, self.settings.tracking_hip_swap_guard)
         estimates, limited = [], []
@@ -100,6 +102,78 @@ class JointMotionFilter:
             "unit": "projected torso lengths/s²", "hip_labels_swapped": swapped,
             "acceleration_limited_joints": limited,
             "interpretation": "causal position estimates, not new raw observations or anatomical limits"}
+
+    def _outlier_gate(self, frame, person_id, person):
+        """Reject sparse glitches without a low-pass, holding or interpolation.
+
+        Acceleration uses adjacent source-time velocity intervals and a position
+        noise allowance. A new coherent trajectory is reacquired after missing
+        samples, so downstream derivatives cannot span the rejected jump.
+        """
+        t = frame.source_time_s
+        settings = self.settings
+        observations, swapped = self._hip_assignment(person, t, settings.tracking_hip_swap_guard)
+        estimates, rejected, reacquired = [], [], []
+        for original in person.joints:
+            index = original.index
+            q = observations[index]
+            estimate = original.model_copy(deep=True)
+            if q.state != "observed" or q.position is None:
+                self.states.pop(index, None)
+                estimates.append(estimate)
+                continue
+            measurement = np.array(q.position[:2], dtype=float)/self.scale
+            previous = self.states.get(index)
+            sample_dt = t-previous["sample_time"] if previous else 0.
+            if previous is None or sample_dt <= 0 or sample_dt > settings.max_gap_s:
+                previous = {"time": t, "sample_time": t, "position": measurement.copy(),
+                            "velocity": np.zeros(2), "interval": None, "candidates": []}
+                self.states[index] = previous
+            else:
+                dt = t-previous["time"]
+                limit = settings.tracking_joint_accel_limits[index]
+                interval = previous["interval"] or dt
+                residual = measurement-(previous["position"]+previous["velocity"]*dt)
+                allowance = settings.tracking_outlier_tolerance + .5*limit*(interval+dt)*dt
+                if dt > settings.max_gap_s or np.linalg.norm(residual) > allowance:
+                    candidates = previous["candidates"]
+                    # Reacquisition also checks acceleration: a noisy, oscillating
+                    # run must not become trusted merely because it lasted longer.
+                    if len(candidates) >= 2:
+                        pt, pp = candidates[-1]
+                        ot, op = candidates[-2]
+                        cd, od = t-pt, pt-ot
+                        prediction = pp+(pp-op)/od*cd
+                        if np.linalg.norm(measurement-prediction) > settings.tracking_outlier_tolerance + .5*limit*(od+cd)*cd:
+                            candidates.clear()
+                    candidates.append((t, measurement.copy()))
+                    if len(candidates) < settings.tracking_outlier_recovery_frames:
+                        estimate.state, estimate.position, estimate.confidence = "missing", None, 0.
+                        previous["sample_time"] = t
+                        rejected.append(index)
+                        estimates.append(estimate)
+                        continue
+                    ct, cp = candidates[-2]
+                    previous["velocity"] = (measurement-cp)/(t-ct)
+                    previous["interval"] = t-ct
+                    reacquired.append(index)
+                else:
+                    previous["velocity"] = (measurement-previous["position"])/dt
+                    previous["interval"] = dt
+                previous["position"] = measurement.copy()
+                previous["time"] = previous["sample_time"] = t
+                previous["candidates"].clear()
+            # Accepted measurements are exact, including extra coordinates and
+            # confidence. A repaired hip uses its assigned measurement's values.
+            estimate.position, estimate.confidence = list(q.position), q.confidence
+            estimates.append(estimate)
+        conditioned = frame.model_copy(deep=True)
+        next(p for p in conditioned.persons if p.person_id == person_id).joints = estimates
+        return conditioned, {"enabled": True, "state": "conditioned", "smoother": "outlier_gate",
+            "scale": self.scale, "unit": "projected torso lengths/s²",
+            "hip_labels_swapped": swapped, "rejected_joints": rejected,
+            "reacquired_joints": reacquired, "acceleration_limited_joints": [],
+            "interpretation": "accepted measurements unchanged; rejected jumps missing, not held or interpolated; limits are adjustable, not anatomical"}
 
     def _hip_assignment(self, person, t, enabled):
         observations = {q.index:q for q in person.joints}

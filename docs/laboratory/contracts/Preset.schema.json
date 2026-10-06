@@ -64,10 +64,27 @@
           "default": "bounded",
           "enum": [
             "bounded",
-            "harmocap_one_euro"
+            "harmocap_one_euro",
+            "outlier_gate"
           ],
           "title": "Tracking Smoother",
           "type": "string"
+        },
+        "tracking_outlier_tolerance": {
+          "default": 0.03,
+          "description": "Position residual noise allowance in projected torso lengths; outlier_gate passes accepted positions unchanged.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Tracking Outlier Tolerance",
+          "type": "number"
+        },
+        "tracking_outlier_recovery_frames": {
+          "default": 3,
+          "description": "Consecutive acceleration-consistent candidate observations required to reacquire a displaced trajectory; rejected samples stay missing.",
+          "maximum": 10,
+          "minimum": 3,
+          "title": "Tracking Outlier Recovery Frames",
+          "type": "integer"
         },
         "tracking_one_euro_mincutoff": {
           "default": 1.0,

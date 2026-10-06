@@ -53,6 +53,25 @@ test('ordinary clock drift adjusts speed without repeatedly seeking the decoder'
   follower.dispose();
 });
 
+test('small video lead converges below 40 ms in two seconds without seeking', () => {
+ const el = new EventTarget() as HTMLVideoElement;
+ let position=10, seeks=0, clock=0;
+ Object.assign(el,{readyState:4,seeking:false,paused:false,playbackRate:1,
+   pause(){this.paused=true;},play(){return Promise.resolve();}});
+ Object.defineProperty(el,'currentTime',{get:()=>position,set:(v:number)=>{position=v;seeks++;}});
+ const state={position:10,playing:true,epoch:1};
+ const follower=new VideoFollower(el,()=>state,()=>{},()=>clock);
+ follower.sync(); position+=.15;
+ for(let i=0;i<40;i++){
+   follower.sync(); position+=.05*el.playbackRate; state.position+=.05;clock+=50;
+ }
+ expect(Math.abs(position-state.position)).toBeLessThan(.04);
+ expect(seeks).toBe(0);
+ state.playing=false;follower.sync();
+ expect(el.paused).toBe(true);expect(Math.abs(position-state.position)).toBeLessThan(.04);
+ follower.dispose();
+});
+
 
 test('real decoder advances across body-selection updates with ordinary drift', async ({ page }) => {
   test.skip(!process.env.LAB_COMPONENT_TEST_URL || !process.env.LAB_PLAYER_VIDEO, 'isolated Vite and synthetic MP4 required');

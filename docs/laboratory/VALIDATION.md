@@ -3708,3 +3708,33 @@ Reserva por hash de archivo, no garantía de independencia de adquisición o
 participantes. Muestra test muy pequeña, etiquetas de tracking y medio teórico;
 no prueba generalización/HIT, sincronía física ni aceptación perceptual. Más
 tomas/participantes y un observable discriminante siguen pendientes.
+
+### 2026-10-05 — Feedback sonoro y descarte local de saltos
+
+Nicolás confirmó: «realce y articulación parecen funcionar bien. Los clicks
+desaparecieron+». Se conserva la configuración sonora recibida; snapshot privado
+en checks/feedback-20261005. También señaló saltos de pose, demora visual y cambios
+de altura del inspector. El filtro estaba apagado en el estado recibido: no se
+atribuye esa demora a One-Euro.
+
+Nuevo `outlier_gate` causal compartido por los cinco modelos: posiciones aceptadas
+intactas, saltos rechazados missing, recuperación por trayectoria coherente sin
+compararla con la anterior al salto. Usa límites por articulación existentes;
+tolerancia 0,03 T y recuperación de 3 cuadros configurables y portables. Puede
+descartar movimiento válido y cortar señales dependientes; no es un límite
+anatómico. Las referencias conservan filtro apagado; sólo la sesión de prueba
+activa el nuevo modo. Cache original reutilizado; escala anterior reutilizada
+explícitamente en la misma fuente/persona. Sesión restaurada en pausa, R24/JACK
+48 kHz y buffer 1024, sin cambiar realce, articulación, voces ni ruteos.
+
+Inspector con resumen y detalle de voces de altura fija y scroll accesible.
+Seguidor de video corrige offsets pequeños más rápido, conservando velocidad
+0,9–1,1 y protección de seeks. Fixture: adelanto inicial de 150 ms baja a menos de
+40 ms en 2 s sin seek; no es medición de sincronía física de la sesión humana.
+
+53 tests filtro/contratos y 54 runtime/recuperación/evaluación/ruteo pasan.
+19 pruebas UI/reproductor, incluida una con decoder Chrome real y video sintético,
+pasan; TypeScript/Vite build pasa. Replay local del minuto con el preset colectivo
+actual produce actividad en las seis voces con el filtro; los informes corporales
+quedan privados. La preferencia humana sobre este filtro y la sincronización
+visual mejorada todavía debe observarse durante el uso.

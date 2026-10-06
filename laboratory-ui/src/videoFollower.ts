@@ -22,8 +22,10 @@ export class VideoFollower {
     const offset = target.position - this.el.currentTime;
     const drift = Math.abs(offset);
     // Small clock differences must not repeatedly flush the video decoder.
+    // Correct small offsets promptly: the former 0.2 gain took several seconds
+    // to remove a visible pose/video delay. Keep the same speed/seek bounds.
     this.el.playbackRate = target.playing && !discontinuity && drift < 2
-      ? Math.max(.9, Math.min(1.1, 1 + offset * .2)) : 1;
+      ? Math.max(.9, Math.min(1.1, 1 + offset)) : 1;
     if (!this.pending && !this.el.seeking && drift > (target.playing && !discontinuity ? 2 : .04) &&
       (discontinuity || !target.playing || this.now() - this.lastCorrection > 1000)) {
       this.el.currentTime = target.position;

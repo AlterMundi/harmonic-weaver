@@ -19,11 +19,12 @@ no repetir esa migración ni crear workspaces/instalaciones nuevos. El
 [mapa actual](IMPLEMENTATION_STATUS.md) identifica software disponible y
 dependencias que todavía necesitan personas o hardware.
 
-Prioridad cotidiana: escucha más larga y de los modelos angular/colectivo con
-tracking suavizado, observación de saltos de pose y feedback sobre controles.
-Se preserva la escucha sin clicks informada por Nicolás; no se extrapola a toda
-modalidad. Nuevos controles opt-in de continuidad de caderas antes de One-Euro
-y salida/buffer desde la web están integrados, sin modificar la sesión pausada.
+Nicolás confirmó que realce y articulación funcionan bien y los clicks
+desaparecieron en la prueba actual. Preservar esa respuesta sonora.
+Prioridad cotidiana: probar el nuevo descarte local `outlier_gate` y la corrección
+visual más rápida del reloj, mirando si reduce saltos sin cortar movimiento válido.
+La sesión de prueba activa ese modo; las referencias siguen con filtro apagado.
+One-Euro, continuidad de caderas y salida/buffer desde la web siguen disponibles.
 El diagnóstico CUDA acotado no reemplaza caches ni acredita causa del fallo.
 
 Comparador PCM, captura opcional y bancos R01–R13 ya existen: continuar desde

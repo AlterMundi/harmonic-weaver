@@ -25,6 +25,8 @@
     ],
     "tracking_filter_enabled": false,
     "tracking_smoother": "bounded",
+    "tracking_outlier_tolerance": 0.03,
+    "tracking_outlier_recovery_frames": 3,
     "tracking_one_euro_mincutoff": 1.0,
     "tracking_one_euro_beta": 0.15,
     "tracking_one_euro_dcutoff": 1.0,

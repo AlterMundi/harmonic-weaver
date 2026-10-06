@@ -147,7 +147,11 @@ class AlgorithmSettings(Contract):
     fixed_y: Number = Field(default=0, ge=-10, le=10)
     joints: list[int] = Field(default_factory=lambda: list(range(5, 17)), min_length=2, max_length=17)
     tracking_filter_enabled: bool = False
-    tracking_smoother: Literal["bounded", "harmocap_one_euro"] = "bounded"
+    tracking_smoother: Literal["bounded", "harmocap_one_euro", "outlier_gate"] = "bounded"
+    tracking_outlier_tolerance: Number = Field(default=.03, ge=0, le=1,
+        description="Position residual noise allowance in projected torso lengths; outlier_gate passes accepted positions unchanged.")
+    tracking_outlier_recovery_frames: int = Field(default=3, ge=3, le=10,
+        description="Consecutive acceleration-consistent candidate observations required to reacquire a displaced trajectory; rejected samples stay missing.")
     tracking_one_euro_mincutoff: Number = Field(default=1., ge=.01, le=30)
     tracking_one_euro_beta: Number = Field(default=.15, ge=0, le=20)
     tracking_one_euro_dcutoff: Number = Field(default=1., ge=.01, le=30)

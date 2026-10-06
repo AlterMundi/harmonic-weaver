@@ -1142,6 +1142,15 @@ En Modelos, activar **Filtrar glitches de tracking** y elegir el suavizador:
   real con un cambio de etiquetas. Desactivarla si distorsiona movimiento real.
 - **Bounded** ofrece mediana causal, suavizado y aceleración máxima por articulación.
   Su corrección de caderas atiende intercambios de etiquetas, no cambios de cuerpo.
+- **Outlier gate / descartar saltos** deja pasar las posiciones aceptadas sin
+  suavizado continuo. Compara el salto con la velocidad anterior, el intervalo
+  real de captura y el límite de aceleración de cada articulación. La tolerancia
+  al ruido empieza en **0,03 T** (T = torso proyectado); una trayectoria desplazada
+  se recupera después de **3 cuadros coherentes**. Los cuadros descartados quedan
+  sin observación, sin sostener ni inventar posiciones. Puede cortar señales que
+  dependan de esa articulación, especialmente con soporte colectivo `fixed`.
+  Subir tolerancia o el límite correspondiente si descarta movimiento real;
+  bajarlos si sigue aceptando saltos. Ambos controles se guardan con el preset.
 
 Figura permite **Ver esqueleto crudo en vez del filtrado**. Los ajustes se guardan
 con el preset; apagar el filtro recupera la entrada original. No se recalcula ni
