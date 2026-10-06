@@ -41,6 +41,13 @@ Son setups propuestos para nuestro laboratorio, no kits FBT ya verificados.
 La multivista puede avanzar sin sensores ni visor; cotización e integración física
 siguen pendientes, con el interés prioritario en entender rotaciones.
 
+R09 — plan de dos/tres cámaras en vivo, 2026-10-06: Nicolás confirma tres Logitech
+C920 y un hub por encontrar. [Plan práctico](../../docs/laboratory/LIVE_MULTICAMERA_PLAN.md)
+para captura USB simultánea, calibración, tiempos, triangulación, rotaciones
+disponibles con COCO-17 y ruteos web. Primero un cuerpo/dos cámaras; tercera para
+oclusiones y luego asociación de dos personas. Sólo planificación, sin cambiar
+servicios ni instalar modelos: formatos/FPS/costo y sincronía todavía por medir.
+
 R12 — 2026-10-03: [sensibilidad al reloj declarado](r12_clock/README.md) en
 web/API/CLI con archivos reproducibles. Intersección entre offsets y canales
 observados, cobertura original/pareada, dos controles sintéticos repetidos y
