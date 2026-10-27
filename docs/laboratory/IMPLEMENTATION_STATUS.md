@@ -1,5 +1,9 @@
 # Estado actual del laboratorio
 
+Continuation, 2026-10-27: [Legion recovery and proposed 13 November congress
+delivery](CONGRESS_2026-11-13.md). The retained saved state was inspected directly;
+the dated implementation history below is preserved.
+
 Actualizado 2026-10-05. Este mapa describe el checkout consolidado; el historial
 al final conserva los cortes anteriores. Las menciones históricas de ramas,
 carpetas `-dev` y trabajo sin instalar no describen la instalación actual.
