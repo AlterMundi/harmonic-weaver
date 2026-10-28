@@ -951,7 +951,7 @@ function App() {
               {state.voice_frame?.voices?.length || 0} osciladores efectivos
             </span>
           </div>
-          <canvas ref={canvas} />
+          <canvas ref={canvas} role="img" aria-label="Figura polifónica de las voces activas; representación geométrica del sonido" />
           <p className="figure-caption">
             Suma de todos los armónicos activos · antes de shape / limiter ·
             aproximación geométrica, no cymatics físico
@@ -990,7 +990,7 @@ function App() {
       )}
       <div className="workspace">
         <section className="controls">
-          <nav hidden={performance}>
+          <nav hidden={performance} aria-label="Secciones del laboratorio">
             {[
               "Fuente",
               "Instrumento",
@@ -1583,7 +1583,7 @@ function App() {
           </div>
           {state.runtime?.routing?.voices && <details>
             <summary>Qué ocurre en cada voz</summary>
-            <div className="voice-diagnostics">
+            <div className="voice-diagnostics" role="region" aria-label="Diagnóstico de las seis voces" tabIndex={0}>
             {Object.entries(state.runtime.routing.voices).map(([id,value])=>{const v=value as Data;return <div key={id}>
               <strong>{v.label || `Voz ${id}`}</strong> · {v.reason} · ganancia enviada: {Number(v.target_gain).toFixed(3)}
               {v.issues?.length>0 && <ul>{v.issues.map((issue:Data,index:number)=><li key={index}>

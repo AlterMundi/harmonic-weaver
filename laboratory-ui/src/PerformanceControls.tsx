@@ -8,20 +8,22 @@ export function PerformanceControls({draft,presets,pending,change,applyPreset,ap
 }) {
  return <section aria-label="Controles de performance">
   <h2>Jugar con el movimiento</h2>
+  <p className="performance-intro">Elegí una persona y explorá cómo su movimiento modula las seis voces. Podés volver a Explorar sin perder la fuente ni tus ajustes.</p>
   <div className="fields performance-sliders">
    <label>Intensidad general · {draft.master.toFixed(2)}
     <input aria-label="Intensidad general" type="range" min="0" max="1" step=".01" value={draft.master}
      onChange={e=>change('master',Number(e.target.value))}/>
+    <small>Nivel general del instrumento: 0 silencia y 1 es el máximo. Empezá con un nivel bajo.</small>
    </label>
    <label>Realce expresivo · {(draft.expression ?? 0).toFixed(2)}
     <input aria-label="Realce expresivo" type="range" min="-1" max="10" step=".01" value={draft.expression ?? 0}
      onChange={e=>change('expression',Number(e.target.value))}/>
-    <small>− Selectivo · 0 Neutral · 10 Máximo contraste temporal</small>
+    <small>− Reduce niveles bajos · 0 Neutral · + Resalta los cambios de intensidad</small>
    </label>
    <label>Articulación · {Math.round((draft.transient_mix ?? 0)*100)}% transientes
     <input aria-label="Articulación" type="range" min="0" max="1" step=".01" value={draft.transient_mix ?? 0}
      onChange={e=>change('transient_mix',Number(e.target.value))}/>
-    <small>0 Sostenido · 100% Impulsos de subida</small>
+    <small>Mezcla sonido sostenido con impulsos de subida. A 100%, un nivel constante termina en silencio.</small>
    </label>
    {draft.macros.map((m:Data)=><label key={m.id}>{m.label}
     <input aria-label={m.label} type="range" min="0" max="1" step=".01" value={m.value} disabled={pending}
