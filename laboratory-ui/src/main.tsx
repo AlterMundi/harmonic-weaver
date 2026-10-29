@@ -1,6 +1,7 @@
 import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 import {PerformanceControls} from "./PerformanceControls";
+import {CameraPreview} from "./CameraPreview";
 import {CalibrationReuse} from "./CalibrationReuse";
 import {PresetCalibrationChoice} from "./PresetCalibrationChoice";
 
@@ -840,10 +841,8 @@ function App() {
               />
             )}
             {state.source?.kind === "camera" && (
-              <img
-                alt="Cámara en vivo"
-                src={`/api/camera/preview?t=${state.motion_frame?.sequence ?? 0}`}
-              />
+              <CameraPreview key={state.source.camera?.stream_id}
+                streamId={state.source.camera?.stream_id}/>
             )}
             {!state.source?.kind && (
               <div className="empty">

@@ -122,6 +122,12 @@ def run(args, emit):
     count = 0
     for image, timing in frames:
         dets, _, _, (width, height) = backend.track_frame(image)
+        if not args.video and backend.device == "cpu":
+            # Ultralytics resets the CPU pool during its first prediction.
+            # Keep later live frames responsive alongside the audio process.
+            import torch
+            if torch.get_num_threads() != 1:
+                torch.set_num_threads(1)
         events = slots.update(dets, int(timing["source_time_s"] * 1e6), aspect=width / height)
         persons = []
         for event in events:
