@@ -100,8 +100,11 @@ class LaboratoryRuntime:
         self.restore_error = None
         return job
 
-    def open_camera(self, index, settings):
-        self.camera.start(index, settings)
+    def open_camera(self, index, settings, *, device_path=None, device_id=None):
+        if device_path is None:
+            self.camera.start(index,settings)
+        else:
+            self.camera.start(index,settings,device_path=device_path,device_id=device_id)
         with self._lock:
             self.kind, self.job_id = "camera", None
             self.person_id, self.calibration, self.frame = None, None, None

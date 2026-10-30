@@ -17,6 +17,14 @@ import sys
 import time
 
 
+def camera_source(value):
+    if value.isdigit():return int(value)
+    path=Path(value)
+    if '..' not in path.parts and (path.parent in (Path('/dev/v4l/by-id'),Path('/dev/v4l/by-path')) or path.parent==Path('/dev') and path.name.startswith('video') and path.name[5:].isdigit()):
+        return str(path)
+    raise argparse.ArgumentTypeError('Choose a camera index or a local V4L2 device path')
+
+
 def file_hash(path):
     digest = hashlib.sha256()
     with open(path, "rb") as handle:
@@ -161,7 +169,7 @@ def main():
     parser.add_argument("--harmocap-dir", required=True)
     parser.add_argument("--probe", action="store_true")
     parser.add_argument("--video")
-    parser.add_argument("--camera", type=int, default=0)
+    parser.add_argument("--camera", type=camera_source, default=0)
     parser.add_argument("--source-id", default="camera")
     parser.add_argument("--stream-id", default="worker")
     parser.add_argument("--config-json")

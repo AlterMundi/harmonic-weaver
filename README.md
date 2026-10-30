@@ -8,6 +8,13 @@ contract manifests. It has no UI of its own: all UIs are thin clients of the
 same contract-manifest protocol, served over WebSocket (web first,
 mobile/Quest later).
 
+## Choose a camera
+
+In Fuente, select the named USB camera or integrated webcam, then press
+Usar esta cámara. Linux refreshes the available capture devices and remembers
+your selection without opening it automatically. Missing devices never fall
+back silently to another webcam. [Camera setup and host/browser scope](docs/laboratory/CAMERAS.md).
+
 ## Recording on your own computer
 
 The **Grabar** menu configures sound, body overlay, harmonic figure and where the

@@ -19,6 +19,7 @@ from .evaluation.pcm import PCMSettings
 from .evaluation.profiles import EvaluationProfile
 from .evaluation.packages import PackageService, Selection as PackageSelection, CreateRequest as PackageCreateRequest, preview as package_preview
 from .evaluation.video_export import Settings as ComparisonExportSettings
+from .camera_devices import CameraDevices
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
 from .capture_profiles import CaptureProfile
@@ -288,6 +289,7 @@ class ResonatorConfig(Contract):
 
 
 class CameraRequest(Contract):
+    device_id: str | None = Field(default=None,pattern=r'^cam-[a-f0-9]{32}$')
     index: int = Field(default=0, ge=0, le=32)
     perception: PerceptionSettings
 
@@ -419,6 +421,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     app = FastAPI(title="Laboratorio corporal", version="1", lifespan=lifespan)
     app.state.session_store = session
     app.state.runtime = runtime
+    app.state.camera_devices = CameraDevices()
 
     @app.middleware("http")
     async def local_origin(request: Request, call_next):
@@ -1058,6 +1061,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
         return JSONResponse(session.load_capture_profile(ident).model_dump(),headers={
             'Content-Disposition':'attachment; filename="capture-profile.json"'})
 
+    @app.get('/api/cameras')
+    def cameras():return app.state.camera_devices.snapshot()
+
     @app.get("/api/captures")
     def captures():
         return {"current":capture.snapshot(), "jobs":capture.list()} if capture else {"current":{"status":"idle"}, "jobs":[]}
@@ -1664,10 +1670,17 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
 
         @app.post("/api/sources/camera")
         def open_camera(body: CameraRequest):
+            if capture and capture.snapshot().get('status') in ('starting','recording','stopping'):
+                raise ValueError('Detené la grabación antes de cambiar la cámara.')
+            if body.device_id is not None:
+                device=app.state.camera_devices.resolve(body.device_id)
+                return runtime.open_camera(device['index'],body.perception,device_path=device['_path'],device_id=device['id'])
             return runtime.open_camera(body.index, body.perception)
 
         @app.post("/api/sources/close")
         def close_source():
+            if capture and capture.snapshot().get('status') in ('starting','recording','stopping'):
+                raise ValueError('Detené la grabación antes de apagar la cámara.')
             runtime.close_source()
             return snapshot()
 

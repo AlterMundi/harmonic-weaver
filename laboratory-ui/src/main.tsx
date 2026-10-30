@@ -2,6 +2,7 @@ import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 import {PerformanceControls} from "./PerformanceControls";
 import {CameraPreview} from "./CameraPreview";
+import {CameraSource} from "./CameraSource";
 import {MotionTutorial} from "./MotionTutorial";
 import {OutputLevel} from "./OutputLevel";
 import {QuickRecorder} from "./QuickRecorder";
@@ -442,7 +443,6 @@ function App() {
     [connected, setConnected] = useState(false);
   const [perception, setPerception] = useState<Data | null>(null),
     [path, setPath] = useState(""),
-    [camera, setCamera] = useState(0),
     [assets, setAssets] = useState<Data[]>([]),
     [presets, setPresets] = useState<Data[]>([]);
   const [presetName, setPresetName] = useState(""),
@@ -1242,33 +1242,8 @@ function App() {
                     ))}
                   </select>
                 </label>
-                <div className="actions">
-                  <label>
-                    Cámara
-                    <input
-                      type="number"
-                      min="0"
-                      max="32"
-                      value={camera}
-                      onChange={(e) => setCamera(e.target.valueAsNumber)}
-                    />
-                  </label>
-                  <button
-                    onClick={() =>
-                      run(() =>
-                        api("sources/camera", { index: camera, perception }),
-                      )
-                    }
-                  >
-                    Usar cámara
-                  </button>
-                  <button
-                    disabled={!state.source?.kind}
-                    onClick={() => run(() => api("sources/close", {}))}
-                  >
-                    Cerrar fuente / apagar cámara
-                  </button>
-                </div>
+                <CameraSource api={api} state={state} perception={perception}
+                  locked={['starting','recording','stopping'].includes(recording.poll.data[0].current?.status)}/>
                 <fieldset>
                   <legend>Al abrir un video</legend>
                   <label>Cuerpo por defecto

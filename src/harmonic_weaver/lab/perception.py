@@ -116,26 +116,29 @@ class LiveCamera:
         self.error = None
         self.dropped = 0
         self.stream_id = None
+        self.index = None
+        self.device_id = None
         self._lock = threading.RLock()
         self._stop = threading.Event()
 
-    def start(self, index, settings):
+    def start(self, index, settings, *, device_path=None, device_id=None):
         self.close()
         with self._lock:
             self._stop = threading.Event()
             self.worker = self.worker_factory()
             self.stream_id = uuid4().hex
+            self.index,self.device_id=index,device_id
             self.frame, self.jpeg, self.error = None, None, None
             self.status, self.dropped = "warming", 0
-            self.thread = threading.Thread(target=self._run, args=(index, settings, self.worker, self._stop, self.stream_id), daemon=True,
+            self.thread = threading.Thread(target=self._run, args=(index, settings, self.worker, self._stop, self.stream_id,device_path), daemon=True,
                                            name="lab-camera")
             self.thread.start()
 
-    def _run(self, index, settings, worker, stop, stream_id):
+    def _run(self, index, settings, worker, stop, stream_id,device_path=None):
         previous_sequence = None
         try:
             for message in worker.messages(settings, source_id=f"camera-{index}", stream_id=stream_id,
-                                                camera=index):
+                                                camera=device_path if device_path is not None else index):
                 if stop.is_set():
                     break
                 if message.get("type") != "frame":
@@ -176,6 +179,7 @@ class LiveCamera:
         with self._lock:
             origin = self.frame.captured_monotonic_s if self.frame else None
             return {"status": self.status, "error": self.error, "dropped": self.dropped,
+                    "index":self.index,"device_id":self.device_id,
                     "stream_id": self.stream_id,
                     "sample_age_ms": (time.monotonic() - origin) * 1000 if origin is not None else None}
 
@@ -187,4 +191,5 @@ class LiveCamera:
             self.thread.join(timeout=5)
         with self._lock:
             self.status = "idle"
+            self.index,self.device_id=None,None
             self.frame, self.jpeg = None, None
