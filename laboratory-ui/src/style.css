@@ -479,23 +479,26 @@ footer {
   }
 }
 
+/* Keep the accepted large side-by-side stage; settings scroll below it. */
 @media (min-width: 951px) {
-  main { height:100dvh; display:flex; flex-direction:column; gap:14px; padding:20px 28px; overflow:hidden; }
+  main { height:100dvh; display:flex; flex-direction:column; gap:12px; padding:16px 28px; overflow:hidden; }
   main > header { flex:none; margin:0; }
   main > footer { flex:none; margin:0; padding:0; }
   .lab-notices { flex:none; max-height:18vh; overflow:auto; }
   .lab-notices:empty { display:none; }
-  .lab-content { min-height:0; flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; }
-  .stage { min-height:0; display:flex; flex-direction:column; overflow:auto; position:static; align-items:stretch; }
-  .source-view { flex:none; }
-  .video-wrap, .performance-mode .video-wrap { height:clamp(170px,29vh,360px); }
-  .figure-view { flex:1; min-height:180px; }
-  .figure-view canvas, .performance-mode .figure-view canvas { height:clamp(130px,18vh,260px); }
-  .workspace { min-height:0; margin:0; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) minmax(120px,.35fr); }
+  .lab-content { min-height:0; flex:1; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(440px,1.3fr) minmax(240px,1fr); gap:18px; }
+  .stage { min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); overflow:hidden; position:static; align-items:stretch; }
+  .source-view, .figure-view { min-height:0; display:flex; flex-direction:column; }
+  .stage-label, .transport, .figure-caption { flex:none; }
+  .video-wrap, .performance-mode .video-wrap { min-height:0; height:auto; flex:1; }
+  .figure-view canvas, .performance-mode .figure-view canvas { min-height:0; height:0; flex:1; }
+  .workspace { min-height:0; margin:0; grid-template-columns:minmax(0,1fr) 340px; grid-template-rows:minmax(0,1fr); }
   .workspace .controls { display:flex; flex-direction:column; min-height:0; align-self:stretch; }
   .controls > nav { flex:none; }
   .panel { min-height:0; max-height:none; overflow:auto; flex:1; overscroll-behavior:contain; }
   .inspector { min-height:0; overflow:auto; overscroll-behavior:contain; padding:16px; align-self:stretch; }
+  .lab-content.tutorial-open { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
+  .tutorial-open .stage { grid-template-columns:minmax(0,1fr); }
   .motion-tutorial { display:flex; flex-direction:column; min-height:0; }
   .motion-tutorial > .stage-label { flex:none; }
   .tutorial-content { min-height:0; overflow:auto; overscroll-behavior:contain; }
@@ -527,27 +530,35 @@ footer {
   .actions input[type="number"] { width: 90px; }
 }
 
-/* Listening level stays accessible independently of the settings panels. */
-.output-level { flex:none; min-width:0; background:#101a25; border:1px solid #304659; border-radius:10px; padding:12px 16px; }
-.output-level-main { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
-.output-level-main > label:first-child { flex:1; min-width:210px; }
-.output-level input[type="range"] { width:100%; min-height:30px; }
+/* A compact listening strip preserves room for movement and sound. */
+.output-level { flex:none; min-width:0; background:#101a25; border:1px solid #304659; border-radius:10px; padding:4px 12px; display:flex; gap:8px 20px; align-items:center; flex-wrap:wrap; }
+.output-level-main { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+.output-level-main > label:first-child { flex:1; max-width:420px; min-width:180px; margin:0; display:flex; flex-direction:row; align-items:center; gap:12px; }
+.output-level-main > label:first-child > span { white-space:nowrap; }
+.output-level input[type="range"] { width:100%; min-height:44px; padding:0; }
 .output-level small { font-size:14px; color:#aebfce; }
 .output-level p { font-size:14px; color:#b2c3cf; max-width:95ch; }
-.output-level .check { font-size:16px; }
-.body-volume-settings { margin-top:8px; }
-.body-volume-settings summary { cursor:pointer; min-height:30px; font-size:16px; }
-.body-volume-settings .fields { margin:12px 0; }
+.output-level .check { font-size:16px; margin:0; }
 .output-level meter { width:100%; }
-@media (min-width:951px) { .output-level { max-height:28vh; overflow:auto; } }
-
-.output-level .body-volume-settings { padding:0; margin:6px 0 0; border:0; }
-.output-level .body-volume-settings > summary { padding:3px 0; min-height:28px; }
-@media (min-width:951px) and (max-height:720px) {
-  .workspace { grid-template-rows:minmax(0,1fr) minmax(90px,.25fr); }
+.output-level .body-volume-settings { padding:0; margin:0; border:0; }
+.output-level .body-volume-settings > summary { display:flex; align-items:center; min-height:44px; padding:0 4px; }
+.output-level .body-volume-settings > summary::before { content:'▸'; margin-right:8px; }
+.output-level .body-volume-settings[open] { flex:1 0 100%; }
+.output-level .body-volume-settings[open] > summary::before { content:'▾'; }
+.output-level .body-volume-settings .fields { margin:12px 0; }
+@media (min-width:951px) {
+  .output-level { max-height:28vh; overflow:auto; }
+  main:has(.body-volume-settings[open]) { height:auto; min-height:100dvh; overflow:visible; }
+  main:has(.body-volume-settings[open]) .lab-content { flex:none; grid-template-rows:440px 380px; }
+  main:has(.body-volume-settings[open]) .lab-content.tutorial-open { grid-template-rows:600px; }
 }
-@media (min-width:951px) and (max-height:650px) {
+@media (min-width:951px) and (max-height:949px) {
   main { height:auto; min-height:100dvh; overflow:visible; }
-  .lab-content { height:520px; flex:none; }
-  .workspace { grid-template-rows:minmax(0,1fr) 90px; }
+  .lab-content { flex:none; grid-template-rows:440px 380px; }
+  .lab-content.tutorial-open { grid-template-rows:600px; }
+}
+@media (max-width:600px) {
+  .output-level { gap:0 12px; padding:4px 10px; }
+  .output-level-main { flex-basis:100%; }
+  .output-level-main > label:first-child { min-width:0; gap:8px; }
 }

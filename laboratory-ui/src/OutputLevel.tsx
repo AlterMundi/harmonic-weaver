@@ -18,15 +18,16 @@ export function OutputLevel({draft, state, change}: {draft:Data;state:Data;chang
   };
   return <section className="output-level" aria-label="Volumen del instrumento" tabIndex={0}>
     <div className="output-level-main">
-      <label>Nivel de escucha · ×{gain.toFixed(2)}
+      <label><span>Volumen · ×{gain.toFixed(2)}</span>
         <input aria-label="Nivel de escucha" type="range" min="0" max="4" step=".05" value={gain}
-          onChange={e=>change('output_gain',Number(e.target.value))}/>
-        <small>Refuerzo general · ×1 conserva el nivel de referencia.</small></label>
-      <button onClick={()=>change('output_gain',gain>0 ? 0 : lastLevel.current)}>{gain>0 ? "Silenciar instrumento" : "Reactivar sonido"}</button>
-      <label className="check"><input aria-label="Controlar volumen con apertura" type="checkbox" checked={settings.enabled}
-        onChange={e=>update({enabled:e.target.checked})}/>Controlar volumen con apertura</label>
+          onChange={e=>change('output_gain',Number(e.target.value))}/></label>
+      <button aria-label={gain>0 ? "Silenciar instrumento" : "Reactivar sonido"} onClick={()=>change('output_gain',gain>0 ? 0 : lastLevel.current)}>{gain>0 ? "Silenciar" : "Reactivar"}</button>
+
     </div>
     <details className="body-volume-settings"><summary>Apertura de brazos y respuesta</summary>
+            <label className="check"><input aria-label="Controlar volumen con apertura" type="checkbox" checked={settings.enabled}
+        onChange={e=>update({enabled:e.target.checked})}/>Controlar volumen con apertura</label>
+      <p>×1 conserva el nivel de escucha de referencia.</p>
       <div className="fields">
         <label>Cómo responde<select aria-label="Respuesta a la apertura" value={settings.mode}
           onChange={e=>update({mode:e.target.value})}>

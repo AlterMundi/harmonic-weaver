@@ -852,7 +852,7 @@ function App() {
         </aside>
       )}
       </div>
-      <div className="lab-content">
+      <div className={"lab-content"+(tutorialOpen ? " tutorial-open" : "")}>
       <div className="stage" role="region" aria-label="Visualizadores del instrumento" tabIndex={0}>
         <section className="source-view">
           <div className="stage-label">

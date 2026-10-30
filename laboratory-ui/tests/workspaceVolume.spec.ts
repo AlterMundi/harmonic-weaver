@@ -7,6 +7,12 @@ test('desktop options scroll independently and never move beneath the viewers',a
   const options=page.getByRole('region',{name:'Opciones del instrumento',exact:true});
   await page.getByRole('button',{name:'Instrumento',exact:true}).click();
   const before=await viewers.boundingBox();expect(before).not.toBeNull();
+  const camera=await page.locator('.source-view').boundingBox(),figure=await page.locator('.figure-view').boundingBox();
+  expect(camera!.width).toBeGreaterThan(600);expect(figure!.width).toBeGreaterThan(600);
+  expect(camera!.y).toBeCloseTo(figure!.y,1);expect(figure!.x).toBeGreaterThan(camera!.x);
+  expect((await page.locator('.video-wrap').boundingBox())!.height).toBeGreaterThan(300);
+  expect((await page.locator('.figure-view canvas').boundingBox())!.height).toBeGreaterThan(300);
+  expect((await page.getByRole('region',{name:'Volumen del instrumento'}).boundingBox())!.height).toBeLessThan(66);
   await options.evaluate(el=>{el.scrollTop=el.scrollHeight;});
   await expect.poll(()=>options.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
   expect((await viewers.boundingBox())!.y).toBeCloseTo(before!.y,1);
