@@ -2,6 +2,7 @@ import {expect} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {createHash} from 'node:crypto';
 
 export async function setupRecording(page:any,{camera=true,existing=false,loseStart=false,loseExport=false,failExport=false,cancelPicker=false,loseCopy=false}={}) {
  const root=resolve(process.cwd(),'..');
@@ -12,7 +13,8 @@ export async function setupRecording(page:any,{camera=true,existing=false,loseSt
  const preferences:any={schema_version:1,max_seconds:300,include_audio:true,skeleton_overlay:true,harmonic_figure:false,format:'mp4',destination_id:null};
  const destinations:any[]=[],deliveries:any[]=[];const provider:any={account:'studio@example.test',account_available:false,connect_available:true};
  const calls:any[]=[],errors:string[]=[];
- const saved=()=>{exportState.status='complete';Object.assign(exports[0],{status:'complete',skeleton_overlay:{enabled:true,frames:10},preview:{status:'complete'}});};
+ const mediaHash=createHash('sha256').update(process.env.LAB_CAPTURE_PREVIEW?readFileSync(process.env.LAB_CAPTURE_PREVIEW):Buffer.from('synthetic media')).digest('hex');
+ const saved=()=>{exportState.status='complete';Object.assign(exports[0],{status:'complete',skeleton_overlay:{enabled:true,frames:10},preview:{status:'complete',sha256:mediaHash},output:{sha256:mediaHash}});};
  if(existing){take.status='complete';inventory.current=take;inventory.jobs.push(take);exports.push({id:'export-one',capture_id:take.id});saved();}
  await page.routeWebSocket('**/ws',(ws:any)=>{const send=()=>ws.send(JSON.stringify(state));send();const timer=setInterval(send,100);ws.onClose(()=>clearInterval(timer));});
  await page.route('**/api/**',async(route:any)=>{
@@ -33,7 +35,7 @@ export async function setupRecording(page:any,{camera=true,existing=false,loseSt
    if(path==='/api/captures/start'){take.status='recording';inventory.current=take;inventory.jobs=[take];if(loseStart){loseStart=false;return route.abort();}return route.fulfill({json:take});}
    if(path==='/api/captures/stop'){take.status='stopping';return route.fulfill({json:take});}
    if(path==='/api/captures/take-one/export'){
-    exportState={id:'export-one',capture_id:take.id,status:failExport?'failed':'rendering'};exports.unshift(exportState);
+    exportState={id:'export-one',capture_id:take.id,settings:req.postDataJSON(),status:failExport?'failed':'rendering'};exports.unshift(exportState);
     if(loseExport){loseExport=false;return route.abort();}
     if(failExport){failExport=false;return route.fulfill({status:500,json:{detail:'Synthetic encoder failure'}});}
     return route.fulfill({json:exportState});

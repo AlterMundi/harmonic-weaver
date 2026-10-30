@@ -8,13 +8,22 @@ contract manifests. It has no UI of its own: all UIs are thin clients of the
 same contract-manifest protocol, served over WebSocket (web first,
 mobile/Quest later).
 
+## Recording on your own computer
+
+The **Grabar** menu configures sound, body overlay, harmonic figure and where the
+viewer saves a copy. Download through any browser, choose a client folder in a
+supported secure browser, or connect a personal Google Drive after the site has
+its public Google web configuration. Preferences belong to each browser; the
+source instrument and original archives remain on the laboratory host.
+[Setup, browser support and Drive configuration](docs/laboratory/RECORDING_SETUP.md).
+
 ## Current local movement laboratory
 
 For the video/camera laboratory with web controls, presets, tracking cache and
-comparisons, use `start-laboratory.sh` from the prepared laboratory checkout:
+comparisons, use `start-laboratory.sh` from the existing project checkout:
 
 ```sh
-cd ~/Projects/harmonic-weaver-lab
+cd ~/Projects/harmonic-weaver
 ./scripts/start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo" --tracking-device cpu
 ```
 

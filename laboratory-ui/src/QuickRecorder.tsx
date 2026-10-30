@@ -15,7 +15,7 @@ const hasVideo=(take:Data)=>take.settings?.record_camera
 
 /** A simple front door to the existing durable capture and export services. */
 export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:Data;onAdvanced:()=>void;recording:ReturnType<typeof useRecordingSetup>}) {
-  const {poll,preferences}=recording;
+  const {poll,preferences,destinationApi}=recording;
   const [inventory,exportState,exports,deliveries]=poll.data;
   const intents=useRef(new Map<string,Data>());
   const [copies,setCopies]=useState<Record<string,Data>>({});
@@ -32,7 +32,7 @@ export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:D
   const sourceReady=Boolean(state.session?.playing &&
     (source.kind==='video'||source.kind==='camera'&&source.camera?.status==='ready'&&!(source.camera?.sample_age_ms>2000)));
   const destinationKnown=!preferences.destination_id||recording.destinations.some(d=>d.id===preferences.destination_id);
-  const confirmed=poll.ready&&!poll.error&&recording.ready&&destinationKnown;
+  const confirmed=poll.ready&&!poll.error&&recording.ready&&destinationKnown&&recording.destinationReady;
   const snapshot=():Data=>({...preferences,export:{...exportSettings,include_audio:preferences.include_audio,
     skeleton_overlay:preferences.skeleton_overlay,harmonic_figure:preferences.harmonic_figure,
     figure_window_hz:state.preset?.fundamental_hz||40.4,figure_visual:state.preset?.visual||{}}});
@@ -55,13 +55,13 @@ export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:D
       if(job.status!=='complete'||config.format!=='mkv'&&job.preview?.status!=='complete'){
         setError('Los originales se conservan. No se pudo preparar el formato elegido para copiar.');continue;
       }
-      void api(`capture-exports/${encodeURIComponent(id)}/save`,{destination_id:config.destination_id,format:config.format}).catch((e:any)=>{
+      void destinationApi(`capture-exports/${encodeURIComponent(id)}/save`,{destination_id:config.destination_id,format:config.format}).catch((e:any)=>{
         if(e?.status===409){copiesSent.current.delete(id);return;}
         uncertainCopy.current=id;setError('Revisá en Tomas la confirmación del destino elegido antes de repetir el guardado.');
       });
       return;
     }
-  },[copies,exports,deliveries,api]);
+  },[copies,exports,deliveries,destinationApi]);
   useEffect(()=>{if(uncertainCopy.current&&deliveries.some((j:Data)=>j.export_id===uncertainCopy.current)){
     uncertainCopy.current=null;setError('');
   }},[deliveries]);
@@ -133,7 +133,7 @@ export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:D
   const waiting=Boolean(pending&&!active&&!blocked&&!encoding);
   const shortStatus=active ? `● Grabando ${elapsed}` : encoding ? 'Preparando video…' : waiting ? 'Guardando toma…' : deliveries.some((j:Data)=>['copying','verifying'].includes(j.status))?'Guardando copia…':'';
   return <div className="quick-recorder">
-    <button className={active?'recording-button':'record-button'} title={!sourceReady&&!active?'Encendé la cámara o reproducí un video para grabar.':undefined} disabled={busy||(!active&&(!confirmed||encoding||!!pending||!sourceReady))}
+    <button className={active?'recording-button':'record-button'} title={!sourceReady&&!active?'Encendé la cámara o reproducí un video para grabar.':!recording.destinationReady?'Autorizá tu destino en el menú Grabar, o elegí Descargar.':undefined} disabled={busy||(!active&&(!confirmed||encoding||!!pending||!sourceReady))}
       onClick={()=>void(active?stop():start())}>{busy?'Confirmando…':active?'Detener y guardar':'Grabar'}</button>
     <button ref={libraryButton} onClick={openLibrary}>Tomas ({takes.length})</button>
     {shortStatus&&<span className="recording-status" role="status">{shortStatus}</span>}
@@ -141,7 +141,7 @@ export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:D
     <dialog className="takes-dialog" ref={dialog} aria-labelledby="takes-title" onCancel={()=>setPreview(null)}
       onClose={()=>{setPreview(null);libraryButton.current?.focus();}}>
       <div className="takes-heading"><h2 id="takes-title">Tomas guardadas</h2><button onClick={closeLibrary}>Cerrar tomas</button></div>
-      <p>Grabar conserva los originales de trabajo en esta compu. El menú Grabar configura sonido, líneas corporales, visualizador y destino de la copia. Tomas de hasta 5 minutos.</p>
+      <p>Grabar conserva los originales en el laboratorio que procesa la cámara. El menú Grabar configura sonido, líneas corporales, visualizador y destino de la copia. Tomas de hasta 5 minutos.</p>
       {!sourceReady&&!active&&<p>Para una toma nueva, encendé la cámara o reproducí un video antes de pulsar Grabar.</p>}
       {error&&<p role="alert">{error}</p>}
       {poll.error&&<p role="alert">No se pudo actualizar el inventario. Se muestra el último estado confirmado.</p>}
@@ -164,10 +164,10 @@ export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:D
           </div>}
           {original&&<p><a href={media(original.id,'capture.mkv')} download={`HarmoCap-${take.id.slice(0,8)}.mkv`}>Descargar original MKV · {original.settings?.include_audio===false?'sin pista de audio':'audio sin comprimir'}</a></p>}
           {original&&preferences.destination_id&&<button disabled={busy||!confirmed||deliveries.some((j:Data)=>['copying','verifying'].includes(j.status))||preferences.format!=='mkv'&&original.preview?.status!=='complete'}
-            onClick={()=>{setError('');void api(`capture-exports/${encodeURIComponent(original.id)}/save`,{destination_id:preferences.destination_id,format:preferences.format}).catch(()=>setError('Revisá el estado del destino antes de repetir el guardado.'));}}>Guardar copia en destino elegido</button>}
+            onClick={()=>{setError('');void destinationApi(`capture-exports/${encodeURIComponent(original.id)}/save`,{destination_id:preferences.destination_id,format:preferences.format}).catch(()=>setError('Revisá el estado del destino antes de repetir el guardado.'));}}>Guardar copia en destino elegido</button>}
           {original&&deliveries.filter((j:Data)=>j.export_id===original.id).map((job:Data)=><div key={job.id}>
-            <p>{job.status==='complete'?job.destination.kind==='drive'?'Subida a Drive verificada':'Copia en carpeta verificada':job.status==='unconfirmed'?'Guardado sin confirmación':'Guardando y verificando…'} · {job.destination.label}{job.destination.account?` · ${job.destination.account}`:''}</p>
-            {job.status==='unconfirmed'&&<button disabled={busy} onClick={()=>{void api(`recording-deliveries/${encodeURIComponent(job.id)}/verify`,{}).catch(()=>setError('No se pudo verificar el destino. Conservamos los originales.'));}}>Verificar guardado</button>}
+            <p>{job.status==='complete'?job.destination.kind==='drive'?'Subida a Drive verificada':'Copia en carpeta verificada':job.status==='unconfirmed'?'Guardado sin confirmación':job.status==='not_saved'?'Copia no iniciada':'Guardando y verificando…'} · {job.destination.label}{job.destination.account?` · ${job.destination.account}`:''}</p>
+            {job.status==='unconfirmed'&&<button disabled={busy} onClick={()=>{void destinationApi(`recording-deliveries/${encodeURIComponent(job.id)}/verify`,{}).catch(()=>setError('No se pudo verificar el destino. Conservamos los originales.'));}}>Verificar guardado</button>}
           </div>)}
           {preview&&complete?.id===preview&&<video controls playsInline preload="metadata" src={media(complete.id,'preview.mp4')}/>}
           {original?.preview?.status==='failed'&&<p>No se pudo crear el MP4. El original MKV y la toma se conservan.</p>}
@@ -180,7 +180,7 @@ export function QuickRecorder({api,state,onAdvanced,recording}: {api:any;state:D
           {original?.skeleton_overlay?.enabled&&original.skeleton_overlay.frames===0&&<p>El video no tuvo puntos corporales que pudieran alinearse. Revisá el seguimiento antes de otra toma.</p>}
         </article>;
       })}</div>
-      <p className="takes-help">Esperá a “Video listo” antes de cerrar la página. Si elegiste carpeta o Drive, esperá también la copia verificada. Podés retomar desde “Preparar video de esta toma” o “Guardar copia en destino elegido”.</p>
+      <p className="takes-help">Esperá a “Video listo” antes de cerrar la página. Si elegiste carpeta o Drive, mantené esta página abierta hasta la copia verificada. Si elegiste Descargar, usá el enlace MP4 o MKV. Podés retomar desde “Preparar video de esta toma” o “Guardar copia en destino elegido”.</p>
       <p className="takes-help">El sonido se incluye según tu configuración: comprimido en MP4 y sin comprimir en MKV. Conservamos también los originales, movimientos y configuración para trabajar después; las líneas corresponden a puntos observados. La sincronía audiovisual es estimada.</p>
       <button onClick={()=>{closeLibrary();onAdvanced();}}>Abrir herramientas de captura</button>
     </dialog>
