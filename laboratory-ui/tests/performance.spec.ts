@@ -125,13 +125,14 @@ test('changing live diagnostic text never moves the controls below it', async ({
  const {state,writes,errors}=await setup(page);
  const summary=page.getByRole('region',{name:'Diagnóstico actual',exact:true});
  const below=page.getByText('Por qué faltan señales',{exact:true});
- const before=await below.boundingBox();
+ const contentTop=()=>below.evaluate(el=>{const panel=el.closest('.inspector');return el.getBoundingClientRect().top-(panel?.getBoundingClientRect().top||0)+(panel?.scrollTop||0);});
+ const before=await contentTop();
  state.runtime.diagnostic.message='Faltan observaciones de la persona seleccionada y algunas señales de movimiento: '.repeat(12);
  state.runtime.diagnostic.audio_error='Dispositivo desconectado: '.repeat(8);
  state.runtime.diagnostic.routed_signal_count=124;
  state.runtime.diagnostic.routed_observed_signals=0;
  await expect(page.getByTestId('model-status')).toHaveText(state.runtime.diagnostic.message);
- expect((await below.boundingBox())!.y).toBeCloseTo(before!.y,1);
+ expect(await contentTop()).toBeCloseTo(before,1);
  expect(await summary.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);
  await summary.focus(); await page.keyboard.press('End');
  await expect.poll(()=>summary.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
@@ -139,7 +140,7 @@ test('changing live diagnostic text never moves the controls below it', async ({
  delete state.runtime.diagnostic.audio_error;
  delete state.runtime.diagnostic.routed_signal_count;
  await expect(page.getByTestId('model-status')).toHaveText('En marcha');
- expect((await below.boundingBox())!.y).toBeCloseTo(before!.y,1);
+ expect(await contentTop()).toBeCloseTo(before,1);
  expect(writes).toEqual([]);expect(errors).toEqual([]);
 });
 

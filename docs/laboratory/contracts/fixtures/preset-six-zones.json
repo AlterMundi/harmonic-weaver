@@ -121,6 +121,14 @@
   },
   "fundamental_hz": 40.4,
   "master": 0.7,
+  "output_gain": 1.0,
+  "body_volume": {
+    "enabled": false,
+    "mode": "scale",
+    "closed_ratio": 1.0,
+    "open_ratio": 3.0,
+    "smoothing_s": 0.15
+  },
   "expression": 0.0,
   "transient_mix": 0.0,
   "transient_decay_s": 0.15,

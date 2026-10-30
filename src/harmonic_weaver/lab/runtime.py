@@ -12,6 +12,7 @@ from .models import MotionModel
 from .perception import LiveCamera
 from .transport import Transport
 from .quality import current_quality
+from .body_volume import BodyVolume
 
 
 class LaboratoryRuntime:
@@ -49,6 +50,7 @@ class LaboratoryRuntime:
         self.tick_ms = 0.
         self.last_targets = []
         self.diagnostic = {"code": "no_source", "message": "Elegí una fuente."}
+        self.body_volume = BodyVolume()
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -68,6 +70,7 @@ class LaboratoryRuntime:
                 self.restore_error = f"No se pudo recuperar el último video: {exc}"
 
     def _reset(self):
+        self.body_volume.reset()
         if self.model:
             self.model.reset()
         if self.routes:
@@ -384,7 +387,9 @@ class LaboratoryRuntime:
                 for frame in frames:
                     self.features = self.model.observe(frame, self.person_id, started)
                 self.features = self.model.tick(started)
-                targets, self.routing = self.routes.evaluate(self.features, started)
+                body = self.body_volume.update(current, self.person_id, preset.body_volume, started)
+                targets, self.routing = self.routes.evaluate(self.features, started,
+                    body_level=body["level"] if body["state"] == "observed" else None)
                 self.last_targets = targets
                 self.audio.submit(targets, revision)
             else:
@@ -490,6 +495,7 @@ class LaboratoryRuntime:
                     "calibration":self.calibration.model_dump() if self.calibration else None,
                     "calibration_notice":self.calibration_notice,
                     "runtime":{"tick_ms":self.tick_ms, "error":self.restore_error or self.error, "routing":self.routing,
+                               "body_volume":self.body_volume.diagnostic,
                                "epoch":self.transport.epoch, "observed_epoch":self.epoch if self.epoch>=0 else None, "diagnostic":self.diagnostic,
                                "selection_status":self.selection_status, "can_confirm_person":True}, **self.audio.snapshot()}
 

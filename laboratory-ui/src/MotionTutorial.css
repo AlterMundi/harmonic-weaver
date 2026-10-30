@@ -1,0 +1,25 @@
+.motion-tutorial { background:#101a25; border:1px solid #36536c; border-radius:12px; overflow:hidden; min-width:0; }
+.tutorial-content { padding:20px; }
+.tutorial-heading { display:flex; gap:12px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.tutorial-heading h2 { margin:0; }
+.tutorial-content h3 { font-size:20px; line-height:1.3; margin:18px 0 8px; }
+.tutorial-content p { font-size:16px; margin:12px 0; }
+.tutorial-content button { min-height:44px; font-size:16px; }
+.tutorial-steps { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
+.tutorial-steps button[aria-current="step"] { border-color:#79c8ff; color:#e4f4ff; background:#16384f; }
+.tutorial-demo { background:#0b1420; border-radius:12px; padding:10px 12px 16px; text-align:center; }
+.tutorial-demo svg { display:block; width:100%; max-width:260px; height:285px; margin:auto; overflow:visible; }
+.tutorial-demo svg line { stroke:#76c7ff; stroke-width:4; stroke-linecap:round; }
+.tutorial-demo svg circle { fill:#76c7ff; }
+.tutorial-demo svg .tutorial-head { fill:#122b42; stroke:#76c7ff; stroke-width:3; }
+.tutorial-demo svg .tutorial-highlight { fill:#e4f5ff; stroke:#76c7ff; stroke-width:3; }
+.tutorial-demo svg .tutorial-ground { stroke:#345068; stroke-width:2; stroke-dasharray:4 5; }
+.tutorial-demo .actions { justify-content:center; }
+.tutorial-feedback { border-left:3px solid #76c7ff; padding-left:12px; }
+.tutorial-voices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:18px 0; }
+.tutorial-voices label { display:grid; gap:6px; font-size:16px; min-width:0; }
+.tutorial-voices meter { width:100%; height:18px; accent-color:#76c7ff; }
+.tutorial-voices small, .tutorial-content .tutorial-note, .tutorial-demo p { font-size:14px; color:#adbfce; line-height:1.5; }
+.tutorial-cue { padding:12px; border:1px solid #304659; border-radius:8px; }
+.tutorial-next { display:flex; gap:12px; justify-content:space-between; flex-wrap:wrap; margin-top:20px; }
+@media (max-width:500px) { .tutorial-content { padding:16px; } .tutorial-voices { grid-template-columns:1fr; } }

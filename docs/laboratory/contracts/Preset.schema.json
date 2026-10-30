@@ -272,6 +272,48 @@
       "title": "AlgorithmSettings",
       "type": "object"
     },
+    "BodyVolumeSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "mode": {
+          "default": "scale",
+          "enum": [
+            "scale",
+            "pose"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "closed_ratio": {
+          "default": 1,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Closed Ratio",
+          "type": "number"
+        },
+        "open_ratio": {
+          "default": 3,
+          "exclusiveMinimum": 0,
+          "maximum": 10,
+          "title": "Open Ratio",
+          "type": "number"
+        },
+        "smoothing_s": {
+          "default": 0.15,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Smoothing S",
+          "type": "number"
+        }
+      },
+      "title": "BodyVolumeSettings",
+      "type": "object"
+    },
     "Calibration": {
       "additionalProperties": false,
       "properties": {
@@ -878,6 +920,16 @@
       "minimum": 0,
       "title": "Master",
       "type": "number"
+    },
+    "output_gain": {
+      "default": 1,
+      "maximum": 4,
+      "minimum": 0,
+      "title": "Output Gain",
+      "type": "number"
+    },
+    "body_volume": {
+      "$ref": "#/$defs/BodyVolumeSettings"
     },
     "expression": {
       "default": 0,

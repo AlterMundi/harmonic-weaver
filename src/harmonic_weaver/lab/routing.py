@@ -86,7 +86,7 @@ class PreparedRoutes:
         self.transient_envelopes.clear()
         self.last_time = None
 
-    def evaluate(self, features, now):
+    def evaluate(self, features, now, *, body_level=None):
         dt = max(0., now-self.last_time) if self.last_time is not None else None
         self.last_time = now
         values, invalid, diagnostics = {}, set(), []
@@ -182,7 +182,14 @@ class PreparedRoutes:
                     # Preserve the attenuating negative side the player liked.
                     drive = min(1., drive) ** math.exp(-2.5*self.preset.expression)
                 drive = (1-self.preset.transient_mix)*drive + self.preset.transient_mix*transient
-            gain = drive*voice.gain*self.preset.master
+            if self.preset.body_volume.enabled:
+                if body_level is None:
+                    drive = 0.
+                elif self.preset.body_volume.mode == "scale":
+                    drive *= body_level
+                elif any(route.voice == voice.id and route.target == "gain" for route in self.routes):
+                    drive = body_level
+            gain = drive*voice.gain*self.preset.master*self.preset.output_gain
             if voice.id in invalid or voice.muted or (solo and not voice.solo):
                 gain = 0.
             detune = voice.detune+values.get((voice.id, "detune"), 0.)

@@ -209,6 +209,20 @@ class ResponseSettings(Contract):
         ZoneSettings(distance=float(d)) for d in (0, 1, 1, 2, 2, 3)], min_length=6, max_length=6)
 
 
+class BodyVolumeSettings(Contract):
+    enabled: bool = False
+    mode: Literal["scale", "pose"] = "scale"
+    closed_ratio: Number = Field(default=1, ge=0, le=10)
+    open_ratio: Number = Field(default=3, gt=0, le=10)
+    smoothing_s: Number = Field(default=.15, ge=0, le=2)
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if self.open_ratio <= self.closed_ratio:
+            raise ValueError("open posture must have greater arm separation than closed posture")
+        return self
+
+
 class VoiceSettings(Contract):
     id: int = Field(ge=1, le=32)
     label: str = Field(max_length=80)
@@ -318,6 +332,8 @@ class Preset(Contract):
     response: ResponseSettings = Field(default_factory=ResponseSettings)
     fundamental_hz: Number = Field(default=40.4, ge=10, le=440)
     master: Number = Field(default=.7, ge=0, le=1)
+    output_gain: Number = Field(default=1, ge=0, le=4)
+    body_volume: BodyVolumeSettings = Field(default_factory=BodyVolumeSettings)
     expression: Number = Field(default=0, ge=-1, le=10)
     transient_mix: Number = Field(default=0, ge=0, le=1)
     transient_decay_s: Number = Field(default=.15, ge=.02, le=2)

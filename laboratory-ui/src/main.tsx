@@ -2,6 +2,8 @@ import {CollectiveGeometry} from "./CollectiveGeometry";
 import {MovementMarks} from "./MovementMarks";
 import {PerformanceControls} from "./PerformanceControls";
 import {CameraPreview} from "./CameraPreview";
+import {MotionTutorial} from "./MotionTutorial";
+import {OutputLevel} from "./OutputLevel";
 import {CalibrationReuse} from "./CalibrationReuse";
 import {PresetCalibrationChoice} from "./PresetCalibrationChoice";
 
@@ -425,6 +427,7 @@ function Fields({
 }
 
 function App() {
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [performance, setPerformance] = useState(() => {
     try { return localStorage.getItem("weaver-lab-performance") === "true"; } catch { return false; }
   });
@@ -778,6 +781,7 @@ function App() {
   const saveCurrentPreset = () => run(() => savePresetData({...presetWithCalibration(),
     id:crypto.randomUUID().replaceAll("-", ""), name:presetName || draft.name}));
   const changeView = (value:boolean) => {
+    setTutorialOpen(false);
     setPerformance(value);
     try { localStorage.setItem("weaver-lab-performance",String(value)); } catch { /* view still works without browser storage */ }
   };
@@ -803,6 +807,8 @@ function App() {
         <div className="actions" role="group" aria-label="Vista del laboratorio">
           <button aria-pressed={!performance} onClick={()=>changeView(false)}>Explorar</button>
           <button aria-pressed={performance} onClick={()=>changeView(true)}>Performance</button>
+          <button id="start-movement-tutorial" aria-expanded={tutorialOpen} aria-controls="movement-tutorial"
+            onClick={()=>setTutorialOpen(value=>!value)}>{tutorialOpen ? "Cerrar tutorial" : "Hacer tutorial"}</button>
         </div>
         <div className="status">
           <i className={connected ? "lit" : ""} />
@@ -814,7 +820,40 @@ function App() {
           </span>
         </div>
       </header>
-      <div className="stage">
+      <OutputLevel draft={draft} state={state} change={change}/>
+      <div className="lab-notices">
+      <CollectiveGeometry features={state.features} visual={draft.visual} algorithm={draft.algorithm.id}/>
+      {state.shaper?.audio_disabled && (
+        <aside role="status">
+          Modo diagnóstico sin audio (--no-audio). Reiniciá sin esa opción para
+          escuchar y ver la figura de las voces efectivas.
+        </aside>
+      )}
+      {(error ||
+        state.runtime?.error ||
+        state.shaper?.error ||
+        state.source?.camera?.error ||
+        job?.error) && (
+        <aside className="error" role="alert">
+          {error ||
+            state.runtime?.error ||
+            state.shaper?.error ||
+            state.source?.camera?.error ||
+            job?.error}
+          <button
+            onClick={() => {
+              dirty.current = false;
+              setPending(false);
+              setError("");
+            }}
+          >
+            Recuperar estado aplicado
+          </button>
+        </aside>
+      )}
+      </div>
+      <div className="lab-content">
+      <div className="stage" role="region" aria-label="Visualizadores del instrumento" tabIndex={0}>
         <section className="source-view">
           <div className="stage-label">
             {job?.name ||
@@ -943,7 +982,7 @@ function App() {
             </>}
           </div>
         </section>
-        <section className="figure-view">
+        <section className="figure-view" hidden={tutorialOpen}>
           <div className="stage-label">
             Figura polifónica
             <span>
@@ -958,36 +997,7 @@ function App() {
           {figureError && <p role="alert">{figureError}</p>}
         </section>
       </div>
-      <CollectiveGeometry features={state.features} visual={draft.visual} algorithm={draft.algorithm.id}/>
-      {state.shaper?.audio_disabled && (
-        <aside role="status">
-          Modo diagnóstico sin audio (--no-audio). Reiniciá sin esa opción para
-          escuchar y ver la figura de las voces efectivas.
-        </aside>
-      )}
-      {(error ||
-        state.runtime?.error ||
-        state.shaper?.error ||
-        state.source?.camera?.error ||
-        job?.error) && (
-        <aside className="error" role="alert">
-          {error ||
-            state.runtime?.error ||
-            state.shaper?.error ||
-            state.source?.camera?.error ||
-            job?.error}
-          <button
-            onClick={() => {
-              dirty.current = false;
-              setPending(false);
-              setError("");
-            }}
-          >
-            Recuperar estado aplicado
-          </button>
-        </aside>
-      )}
-      <div className="workspace">
+      <div className="workspace" hidden={tutorialOpen}>
         <section className="controls">
           <nav hidden={performance} aria-label="Secciones del laboratorio">
             {[
@@ -1010,7 +1020,7 @@ function App() {
               </button>
             ))}
           </nav>
-          <div className="panel">
+          <div className="panel" role="region" aria-label="Opciones del instrumento" tabIndex={0}>
             {performance && <PerformanceControls draft={draft} presets={presets} pending={pending}
               change={change} applyPreset={applyPreset} applyMacro={applyMacro} save={saveCurrentPreset}
               askCalibration={askPresetCalibration} setAskCalibration={setAskPresetCalibration}
@@ -1562,7 +1572,7 @@ function App() {
             </div>
           </div>
         </section>
-        <aside className="inspector">
+        <aside className="inspector" aria-label="Lecturas del instrumento" tabIndex={0}>
           <h2>Lo que está pasando</h2>
           <div className="model-summary" role="region" aria-label="Diagnóstico actual" tabIndex={0}>
           <p role="status" data-testid="model-status">
@@ -1676,6 +1686,10 @@ function App() {
             <pre>{JSON.stringify(state.runtime?.routing, null, 2)}</pre>
           </details>
         </aside>
+      </div>
+        {tutorialOpen && <MotionTutorial state={state} onClose={()=>{
+          setTutorialOpen(false); document.getElementById("start-movement-tutorial")?.focus();
+        }}/>}
       </div>
       <footer>
         Exploración en vivo · sin grabación de cámara ni audio por defecto ·
