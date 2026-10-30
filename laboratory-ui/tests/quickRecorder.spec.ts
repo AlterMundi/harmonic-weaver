@@ -1,43 +1,6 @@
 import {test,expect} from '@playwright/test';
-import {execFileSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {setupRecording as setup} from './recordingFixture';
 
-async function setup(page:any,{camera=true,existing=false,loseStart=false,loseExport=false,failExport=false}={}) {
- const root=resolve(process.cwd(),'..');
- const fixture=JSON.parse(execFileSync(resolve(root,'.venv/bin/python'),['-c','import json;from harmonic_weaver.lab.contracts import Preset;p=Preset();print(json.dumps({"preset":p.model_dump(),"schemas":{"Preset":Preset.model_json_schema()}}))'],{encoding:'utf8'}));
- const state:any={preset:fixture.preset,session:{desired_revision:8,person_id:'one',playing:true,status:'playing'},source:camera?{kind:'camera',camera:{status:'ready',stream_id:'synthetic'}}:{kind:null},runtime:{},voice_frame:{voices:[]},shaper:{}};
- const take:any={id:'take-one',status:'recording',settings:{record_camera:true},camera:{written_frames:10}};
- const inventory:any={current:{status:'idle'},jobs:[]};let exportState:any={status:'idle'};const exports:any[]=[];
- const calls:any[]=[],errors:string[]=[];
- const saved=()=>{exportState.status='complete';Object.assign(exports[0],{status:'complete',skeleton_overlay:{enabled:true,frames:10},preview:{status:'complete'}});};
- if(existing){take.status='complete';inventory.current=take;inventory.jobs.push(take);exports.push({id:'export-one',capture_id:take.id});saved();}
- await page.routeWebSocket('**/ws',(ws:any)=>{const send=()=>ws.send(JSON.stringify(state));send();const timer=setInterval(send,100);ws.onClose(()=>clearInterval(timer));});
- await page.route('**/api/**',async(route:any)=>{
-  const req=route.request(),path=new URL(req.url()).pathname;
-  if(req.method()!=='GET'){
-   calls.push({path,body:req.postDataJSON()});
-   if(path==='/api/captures/start'){take.status='recording';inventory.current=take;inventory.jobs=[take];if(loseStart){loseStart=false;return route.abort();}return route.fulfill({json:take});}
-   if(path==='/api/captures/stop'){take.status='stopping';return route.fulfill({json:take});}
-   if(path==='/api/captures/take-one/export'){
-    exportState={id:'export-one',capture_id:take.id,status:failExport?'failed':'rendering'};exports.unshift(exportState);
-    if(loseExport){loseExport=false;return route.abort();}
-    if(failExport){failExport=false;return route.fulfill({status:500,json:{detail:'Synthetic encoder failure'}});}
-    return route.fulfill({json:exportState});
-   }
-   return route.fulfill({json:{}});
-  }
-  if(path.endsWith('/artifacts/preview.mp4')&&process.env.LAB_CAPTURE_PREVIEW){
-   if(process.env.LAB_CAPTURE_MEDIA_HTTP)return route.continue();
-   return route.fulfill({contentType:'video/mp4',body:readFileSync(process.env.LAB_CAPTURE_PREVIEW)});
-  }
-  const data:any={'/api/state':state,'/api/schemas':fixture.schemas,'/api/captures':inventory,'/api/capture-exports':exportState,'/api/capture-exports/jobs':exports,'/api/media':[],'/api/presets':[],'/api/calibrations':[],'/api/signals':{},'/api/algorithms':[],'/api/environment':{perception:{}},'/api/source-preferences':{}};
-  await route.fulfill({json:data[path]??[]});
- });
- page.on('pageerror',(e:any)=>errors.push(String(e)));
- await page.goto('/');await expect(page.getByRole('button',{name:/^Tomas \(/})).toBeVisible();
- return {state,take,inventory,exports,calls,errors,saved,finish:()=>{take.status='complete';},failImages:()=>{take.camera.written_frames=0;take.status='complete';}};
-}
 const mutations=(fx:any,path:string)=>fx.calls.filter((c:any)=>c.path===path);
 
 test('record, confirm close, export overlay with audio and keep the original source/preset',async({page})=>{

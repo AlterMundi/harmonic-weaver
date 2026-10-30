@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Query
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Query, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -22,6 +22,7 @@ from .evaluation.video_export import Settings as ComparisonExportSettings
 from .capture import CaptureSettings, CaptureSession
 from .capture_export import ExportSettings, CaptureExports
 from .capture_profiles import CaptureProfile
+from .recording_storage import RecordingStorage, RecordingPreferences, CopyBusy, PickRequest as RecordingPickRequest, SaveRequest as RecordingSaveRequest
 from .research.grassmann import Settings as GrassmannSettings
 from .research.service import ResearchService
 from .research.grassmann_compare import ComparisonRequest as R01ComparisonRequest
@@ -328,6 +329,7 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     session = store or SessionStore(data_dir)
     capture = CaptureSession(data_dir, session, runtime, client_factory=capture_client_factory) if runtime is not None else None
     exports = CaptureExports(capture) if capture is not None else None
+    recording = RecordingStorage(data_dir,exports)
     research = ResearchService(data_dir)
     coincidence = CoincidenceService(data_dir)
     relational = RelationalService(data_dir)
@@ -1059,6 +1061,39 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     @app.get("/api/captures")
     def captures():
         return {"current":capture.snapshot(), "jobs":capture.list()} if capture else {"current":{"status":"idle"}, "jobs":[]}
+
+    app.state.recording_storage = recording
+
+    @app.get('/api/recording-preferences')
+    def recording_preferences():return recording.preferences()
+
+    @app.post('/api/recording-preferences')
+    def recording_preferences_save(body:RecordingPreferences):
+        if capture and capture.snapshot().get('status') in ('starting','recording','stopping'):
+            raise ValueError('Esperá a que termine la toma para cambiar su configuración.')
+        if exports and exports.snapshot().get('status')=='rendering':
+            raise ValueError('Esperá a que termine el video para cambiar su configuración.')
+        return recording.save_preferences(body)
+
+    @app.get('/api/recording-destinations')
+    def recording_destinations():return {'destinations':recording.destinations(),'provider':recording.provider()}
+
+    @app.post('/api/recording-destinations/pick')
+    def recording_destination_pick(body:RecordingPickRequest):return recording.pick(body.kind)
+
+    @app.post('/api/recording-drive/connect')
+    def recording_drive_connect():return recording.connect()
+
+    @app.get('/api/recording-deliveries')
+    def recording_deliveries():return recording.list()
+
+    @app.post('/api/capture-exports/{ident}/save')
+    def recording_deliver(ident:str,body:RecordingSaveRequest):
+        try:return recording.start(ident,body)
+        except CopyBusy as exc:raise HTTPException(409,str(exc))
+
+    @app.post('/api/recording-deliveries/{ident}/verify')
+    def recording_delivery_verify(ident:str):return recording.verify(ident)
 
     @app.get('/api/evaluation-profiles')
     def evaluation_profile_list():return session.list_evaluation_profiles()

@@ -5,6 +5,7 @@ import {CameraPreview} from "./CameraPreview";
 import {MotionTutorial} from "./MotionTutorial";
 import {OutputLevel} from "./OutputLevel";
 import {QuickRecorder} from "./QuickRecorder";
+import {RecordingSetup,useRecordingSetup} from "./RecordingSetup";
 import {CalibrationReuse} from "./CalibrationReuse";
 import {PresetCalibrationChoice} from "./PresetCalibrationChoice";
 
@@ -428,6 +429,7 @@ function Fields({
 }
 
 function App() {
+  const recording = useRecordingSetup(api);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [performance, setPerformance] = useState(() => {
     try { return localStorage.getItem("weaver-lab-performance") === "true"; } catch { return false; }
@@ -860,7 +862,7 @@ function App() {
             {job?.name ||
               (state.source?.kind === "camera" ? "Cámara" : "Tu movimiento")}
             <span>{session.status || "Sin fuente"}</span>
-            <QuickRecorder api={api} state={state} onAdvanced={()=>{
+            <QuickRecorder api={api} state={state} recording={recording} onAdvanced={()=>{
               setTutorialOpen(false); changeView(false); setTab("Captura");
             }}/>
           </div>
@@ -1013,9 +1015,11 @@ function App() {
               "Presets",
               "Comparar",
               "Captura",
+              "Grabar",
               "Investigación",
             ].map((t) => (
               <button
+                aria-label={t==="Grabar"?"Configurar grabación":undefined}
                 className={tab === t ? "active" : ""}
                 key={t}
                 onClick={() => setTab(t)}
@@ -1037,6 +1041,7 @@ function App() {
             <div hidden={performance}>
             {tab === "Investigación" && <Suspense fallback={<p>Cargando bancos de investigación…</p>}><ResearchPanel api={api} run={run}/></Suspense>}
             {tab === "Captura" && <CapturePanel api={api} run={run}/>}
+            {tab === "Grabar" && <RecordingSetup api={api} recording={recording}/>}
             {tab === "Comparar" && (
               <EvaluationPanel
                 assets={assets}

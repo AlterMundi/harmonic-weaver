@@ -30,13 +30,14 @@ class ExportSettings(Contract):
     skeleton_max_offset_s: Number = Field(default=.1,ge=0,le=1)
     skeleton_line_px: int = Field(default=2,ge=1,le=12)
     browser_preview: bool = False
+    include_audio: bool = True
     preview_audio_kbps: int = Field(default=192,ge=64,le=320)
 
 
 def browser_preview(folder, settings, cancelled):
     temporary=folder/'preview.partial.mp4';output=folder/'preview.mp4'
     command=['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y','-i',str(folder/'capture.mkv'),
-        '-map','0:v:0','-map','0:a:0','-c:v','copy','-c:a','aac','-b:a',f'{settings.preview_audio_kbps}k',
+        '-map','0:v:0',*(['-map','0:a:0','-c:a','aac','-b:a',f'{settings.preview_audio_kbps}k'] if settings.include_audio else ['-an']),'-c:v','copy',
         '-threads','2','-movflags','+faststart',str(temporary)]
     with (folder/'preview-encoder.log').open('wb') as log:
         process=subprocess.Popen(command,stdout=subprocess.DEVNULL,stderr=log)
@@ -53,8 +54,9 @@ def browser_preview(folder, settings, cancelled):
             if process.poll() is None:process.kill();process.wait(timeout=5)
     temporary.replace(output)
     return {'status':'complete','file':output.name,'sha256':sha256_file(output),
-        'video':'copied H264 stream','audio':'lossy AAC derived from confirmed PCM',
-        'audio_kbps':settings.preview_audio_kbps,'limits':['AAC may introduce padding and compression; not exact PCM']}
+        'video':'copied H264 stream','audio':'lossy AAC derived from confirmed PCM' if settings.include_audio else 'omitted',
+        'audio_kbps':settings.preview_audio_kbps if settings.include_audio else None,
+        'limits':['AAC may introduce padding and compression; not exact PCM'] if settings.include_audio else []}
 
 
 def read_lines(path, project=lambda row:row):
@@ -107,8 +109,8 @@ def render_capture(manifest, folder, settings, *, cancelled=None, progress=None)
     output=folder/'capture.mkv';temporary=folder/'capture.partial.mkv'
     command=['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y','-f','rawvideo',
              '-pix_fmt','bgr24','-s',f'{settings.width}x{settings.height}','-r',str(settings.fps),
-             '-i','pipe:0','-i',str(audio),'-map','0:v:0','-map','1:a:0','-c:v','libx264',
-             '-preset','veryfast','-threads','2','-pix_fmt','yuv420p','-c:a','pcm_f32le',str(temporary)]
+             '-i','pipe:0','-i',str(audio),'-map','0:v:0',*(['-map','1:a:0'] if settings.include_audio else ['-an']),'-c:v','libx264',
+             '-preset','veryfast','-threads','2','-pix_fmt','yuv420p',*(['-c:a','pcm_f32le'] if settings.include_audio else []),str(temporary)]
     video_width=settings.width//2 if settings.harmonic_figure else settings.width
     figure=None;figure_input=None
     if settings.harmonic_figure:
