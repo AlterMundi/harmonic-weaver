@@ -3,6 +3,7 @@ import {MovementMarks} from "./MovementMarks";
 import {PerformanceControls} from "./PerformanceControls";
 import {CameraPreview} from "./CameraPreview";
 import {CameraSource} from "./CameraSource";
+import {SourcesDialog} from "./SourcesDialog";
 import {MotionTutorial} from "./MotionTutorial";
 import {OutputLevel} from "./OutputLevel";
 import {QuickRecorder} from "./QuickRecorder";
@@ -432,6 +433,7 @@ function Fields({
 function App() {
   const recording = useRecordingSetup(api);
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [sourcesOpen,setSourcesOpen]=useState(false),[sourceChoice,setSourceChoice]=useState<'camera'|'video'|null>(null);
   const [performance, setPerformance] = useState(() => {
     try { return localStorage.getItem("weaver-lab-performance") === "true"; } catch { return false; }
   });
@@ -788,8 +790,308 @@ function App() {
     setPerformance(value);
     try { localStorage.setItem("weaver-lab-performance",String(value)); } catch { /* view still works without browser storage */ }
   };
+  const sourceLocked=['starting','recording','stopping'].includes(recording.poll.data[0].current?.status);
+  const sourceMode=sourceChoice || (state.source?.kind==='video'?'video':'camera');
+  const openSources=(choice:'camera'|'video'|null=null)=>{setSourceChoice(choice);setSourcesOpen(true);};
   return (
     <main className={performance ? "performance-mode" : undefined}>
+      <SourcesDialog open={sourcesOpen} onClose={()=>setSourcesOpen(false)}>
+        <p>Elegí una cámara en vivo o cargá un video. Cambiar de opción no cambia la fuente hasta que la activás.</p>
+        <div className="source-choices" role="group" aria-label="Tipo de fuente">
+          <button aria-pressed={sourceMode==='camera'} onClick={()=>setSourceChoice('camera')}>Cámara en vivo</button>
+          <button aria-pressed={sourceMode==='video'} onClick={()=>setSourceChoice('video')}>Cargar video</button>
+        </div>
+        {sourceMode==='camera'?<>
+                <CameraSource api={api} state={state} perception={perception}
+                  locked={['starting','recording','stopping'].includes(recording.poll.data[0].current?.status)}/>
+        </>:<section aria-label="Cargar video">
+          <h3>Video de archivo</h3>
+          <p>Elegí un archivo de esta computadora o un video de la biblioteca del laboratorio.</p>
+                <label className="file-button">
+                  Elegir y cargar un video
+                  <input
+                    disabled={sourceLocked || !perception}
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f)
+                        void run(async () => {
+                          const body = new FormData();
+                          body.append("file", f);
+                          body.append(
+                            "perception_json",
+                            JSON.stringify(perception),
+                          );
+                          const r = await fetch("/api/sources/upload", {
+                            method: "POST",
+                            body,
+                          });
+                          const d = await r.json();
+                          if (!r.ok) throw new Error(JSON.stringify(d));
+                        });
+                    }}
+                  />
+                </label>
+                <label>
+                  Videos de la biblioteca
+                  <select disabled={sourceLocked || !perception}
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setPath(e.target.value);
+                        void run(() =>
+                          api("sources/video", {
+                            path: e.target.value,
+                            perception,
+                          }),
+                        );
+                      }
+                    }}
+                  >
+                    <option value="">Elegir archivo guardado…</option>
+                    {assets.map((a) => (
+                      <option key={a.id} value={a.path}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+          {state.source?.kind==='video'&&<button disabled={sourceLocked} onClick={()=>run(()=>api('sources/close',{}))}>Cerrar video</button>}
+          {sourceLocked&&<p>Detené la grabación antes de cambiar la fuente.</p>}
+                {job && (
+                  <p className="notice">
+                    {job.status} · {job.processed_frames} frames ·{" "}
+                    {job.prefix_s?.toFixed(1)} s procesados ·{" "}
+                    {job.cache_hit ? "cache reutilizado" : "extracción"}{" "}
+                    {job.error}
+                  </p>
+                )}
+                {job && ["error", "cancelled"].includes(job.status) && (
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        await api(`media/${job.id}/retry-cpu`, {});
+                        await refresh();
+                      })
+                    }
+                  >
+                    Recuperar tracking con CPU
+                  </button>
+                )}
+                {job && (
+                  <p>
+                    Backend solicitado:{" "}
+                    {job.requested_device || job.perception?.device} · efectivo:{" "}
+                    {job.effective_device || job.perception?.device}
+                  </p>
+                )}
+                {quality && (
+                  <details>
+                    <summary>Cobertura de tracking y huecos</summary>
+                    <p>{quality.warning}</p>
+                    {Object.entries(quality.persons || {}).map(
+                      ([id, value]) => (
+                        <div key={id}>
+                          <h3>{id}</h3>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Articulación</th>
+                                <th>Observado</th>
+                                <th>Hueco máximo</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries((value as Data).joints).map(
+                                ([joint, q]) => (
+                                  <tr key={joint}>
+                                    <td>
+                                      {
+                                        [
+                                          "Nariz",
+                                          "Ojo izquierdo",
+                                          "Ojo derecho",
+                                          "Oreja izquierda",
+                                          "Oreja derecha",
+                                          "Hombro izquierdo",
+                                          "Hombro derecho",
+                                          "Codo izquierdo",
+                                          "Codo derecho",
+                                          "Muñeca izquierda",
+                                          "Muñeca derecha",
+                                          "Cadera izquierda",
+                                          "Cadera derecha",
+                                          "Rodilla izquierda",
+                                          "Rodilla derecha",
+                                          "Tobillo izquierdo",
+                                          "Tobillo derecho",
+                                        ][Number(joint)]
+                                      }
+                                    </td>
+                                    <td>
+                                      {(
+                                        (q as Data).observed_fraction * 100
+                                      ).toFixed(1)}
+                                      %
+                                    </td>
+                                    <td>
+                                      {(q as Data).max_gap_s.toFixed(2)} s
+                                    </td>
+                                  </tr>
+                                ),
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      ),
+                    )}
+                  </details>
+                )}
+          <details><summary>Video por ruta y tracking · avanzado</summary>
+            <p>El tracking del archivo se guarda y se reutiliza. Cambiar el sonido no lo recalcula.</p>
+                <label>
+                  Ruta del video
+                  <input
+                    value={path}
+                    onChange={(e) => setPath(e.target.value)}
+                    placeholder="/home/…/rope-flow.mp4"
+                  />
+                </label>
+                <div className="actions">
+                  <button
+                    disabled={sourceLocked || !path || !perception}
+                    onClick={() =>
+                      run(async () => {
+                        await api("sources/video", { path, perception });
+                        await refresh();
+                      })
+                    }
+                  >
+                    Abrir video
+                  </button>
+                  <button
+                    disabled={sourceLocked || !job}
+                    onClick={() =>
+                      run(() =>
+                        api("sources/video", {
+                          path: job.path,
+                          perception,
+                          force: true,
+                        }),
+                      )
+                    }
+                  >
+                    Forzar tracking
+                  </button>
+                  {job &&
+                    ["hashing", "probing", "building"].includes(job.status) && (
+                      <button
+                        onClick={() =>
+                          run(() => api(`media/${job.id}/cancel`, {}))
+                        }
+                      >
+                        Cancelar tracking
+                      </button>
+                    )}
+                </div>
+                <fieldset>
+                  <legend>Al abrir un video</legend>
+                  <label>Cuerpo por defecto
+                    <select value={sourcePreferences.default_person} onChange={(e) => run(async () => {
+                      const next={...sourcePreferences, default_person:e.target.value};
+                      setSourcePreferences(await api("source-preferences", next));
+                    })}>
+                      <option value="best_coverage">Mejor cobertura de tracking</option>
+                      <option value="first">Primera persona de la lista</option>
+                    </select>
+                  </label>
+                  <label><input type="checkbox" checked={sourcePreferences.autoplay_video}
+                    onChange={(e) => run(async () => {
+                      const next={...sourcePreferences, autoplay_video:e.target.checked};
+                      setSourcePreferences(await api("source-preferences", next));
+                    })}/>Reproducir automáticamente cuando el tracking esté listo</label>
+                  <small>La cobertura mide observaciones disponibles, no precisión. Una elección guardada tiene prioridad en el mismo tracking.</small>
+                </fieldset>
+          </details>
+        </section>}
+        <details><summary>Persona, calibración y percepción · avanzado</summary>
+                <label>
+                  Persona
+                  <select
+                    value={session.person_id || ""}
+                    onChange={(e) =>
+                      run(() => api("person", { person_id: e.target.value }))
+                    }
+                  >
+                    <option value="" disabled>
+                      Elegir cuerpo…
+                    </option>
+                    {[
+                      ...new Set<string>([
+                        ...(state.source?.job?.person_ids || []),
+                        ...(state.motion_frame?.persons || []).map(
+                          (p: Data) => p.person_id,
+                        ),
+                      ]),
+                    ].map((id) => (
+                      <option key={id}>{id}</option>
+                    ))}
+                  </select>
+                </label>
+                <p role="status">
+                  {
+                    (
+                      {
+                        automatic: "Selección automática del cuerpo por defecto.",
+                        explicit: "Cuerpo elegido explícitamente.",
+                        restored:
+                          "Selección recuperada de esta misma generación de tracking.",
+                        automatic_changed:
+                          "Tracking nuevo: cuerpo por defecto elegido nuevamente; verificá la selección.",
+                      } as Data
+                    )[state.runtime?.selection_status]
+                  }
+                </p>
+                {state.runtime?.can_confirm_person === true && ['automatic','automatic_changed'].includes(state.runtime?.selection_status) &&
+                  <button disabled={pending || !session.person_id}
+                    onClick={()=>run(()=>api("person",{person_id:session.person_id}))}>Fijar esta persona</button>}
+                <button
+                  disabled={!canMeasureScale}
+                  onClick={() =>
+                    run(async () => {
+                      await api("calibrate", {});
+                      await refresh();
+                    })
+                  }
+                >
+                  Calibrar escala con este cuerpo
+                </button>
+                <p>
+                  {state.calibration
+                    ? `Escala fija: ${state.calibration.torso_scale.toFixed(4)} · ${state.calibration.provenance}`
+                    : "Sin calibración. El baseline conserva su escala adaptativa; los otros modelos requieren calibrar."}
+                </p>
+                {state.calibration_notice&&<p role="status">{state.calibration_notice}</p>}
+                <CalibrationReuse calibrations={savedCalibrations} sourceId={session.source_id}
+                  personId={session.person_id} pending={pending}
+                  reuse={id=>run(()=>api("calibrate",{reuse_id:id}))}/>
+                {perception && schemas.PerceptionSettings && (
+                  <details>
+                    <summary>
+                      Configuración de percepción (aplica al abrir / reprocesar)
+                    </summary>
+                    <Fields
+                      value={perception}
+                      schema={schemas.PerceptionSettings}
+                      defs={schemas.PerceptionSettings.$defs || {}}
+                      onChange={setPerception}
+                    />
+                  </details>
+                )}
+        </details>
+      </SourcesDialog>
+
       {calibrationChoice && <PresetCalibrationChoice preset={calibrationChoice} current={state.calibration}
         sameCapture={sameCalibrationCapture(calibrationChoice)} cancel={()=>setCalibrationChoice(null)}
         choose={policy=>applyPreset(calibrationChoice,policy)}/>}
@@ -808,6 +1110,7 @@ function App() {
           </h1>
         </div>
         <div className="actions" role="group" aria-label="Vista del laboratorio">
+          <button aria-label="Abrir fuentes" aria-haspopup="dialog" onClick={()=>openSources()}>Fuentes</button>
           <button aria-pressed={!performance} onClick={()=>changeView(false)}>Explorar</button>
           <button aria-pressed={performance} onClick={()=>changeView(true)}>Performance</button>
           <button id="start-movement-tutorial" aria-expanded={tutorialOpen} aria-controls="movement-tutorial"
@@ -1022,7 +1325,7 @@ function App() {
                 aria-label={t==="Grabar"?"Configurar grabación":undefined}
                 className={tab === t ? "active" : ""}
                 key={t}
-                onClick={() => setTab(t)}
+                onClick={() => {if(t==='Fuente')openSources();else setTab(t);}}
               >
                 {t}
               </button>
@@ -1052,291 +1355,13 @@ function App() {
                 run={run}
               />
             )}
-            {tab === "Fuente" && (
-              <>
-                <h2>Fuente y percepción</h2>
-                <p>
-                  El tracking del archivo se guarda y se reutiliza. Cambiar el
-                  sonido no lo recalcula.
-                </p>
-                <label>
-                  Ruta del video
-                  <input
-                    value={path}
-                    onChange={(e) => setPath(e.target.value)}
-                    placeholder="/home/…/rope-flow.mp4"
-                  />
-                </label>
-                <div className="actions">
-                  <button
-                    disabled={!path || !perception}
-                    onClick={() =>
-                      run(async () => {
-                        await api("sources/video", { path, perception });
-                        await refresh();
-                      })
-                    }
-                  >
-                    Abrir video
-                  </button>
-                  <button
-                    disabled={!job}
-                    onClick={() =>
-                      run(() =>
-                        api("sources/video", {
-                          path: job.path,
-                          perception,
-                          force: true,
-                        }),
-                      )
-                    }
-                  >
-                    Forzar tracking
-                  </button>
-                  {job &&
-                    ["hashing", "probing", "building"].includes(job.status) && (
-                      <button
-                        onClick={() =>
-                          run(() => api(`media/${job.id}/cancel`, {}))
-                        }
-                      >
-                        Cancelar tracking
-                      </button>
-                    )}
-                </div>
-                {job && (
-                  <p className="notice">
-                    {job.status} · {job.processed_frames} frames ·{" "}
-                    {job.prefix_s?.toFixed(1)} s procesados ·{" "}
-                    {job.cache_hit ? "cache reutilizado" : "extracción"}{" "}
-                    {job.error}
-                  </p>
-                )}
-                {job && ["error", "cancelled"].includes(job.status) && (
-                  <button
-                    onClick={() =>
-                      run(async () => {
-                        await api(`media/${job.id}/retry-cpu`, {});
-                        await refresh();
-                      })
-                    }
-                  >
-                    Recuperar tracking con CPU
-                  </button>
-                )}
-                {job && (
-                  <p>
-                    Backend solicitado:{" "}
-                    {job.requested_device || job.perception?.device} · efectivo:{" "}
-                    {job.effective_device || job.perception?.device}
-                  </p>
-                )}
-                {quality && (
-                  <details>
-                    <summary>Cobertura de tracking y huecos</summary>
-                    <p>{quality.warning}</p>
-                    {Object.entries(quality.persons || {}).map(
-                      ([id, value]) => (
-                        <div key={id}>
-                          <h3>{id}</h3>
-                          <table>
-                            <thead>
-                              <tr>
-                                <th>Articulación</th>
-                                <th>Observado</th>
-                                <th>Hueco máximo</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {Object.entries((value as Data).joints).map(
-                                ([joint, q]) => (
-                                  <tr key={joint}>
-                                    <td>
-                                      {
-                                        [
-                                          "Nariz",
-                                          "Ojo izquierdo",
-                                          "Ojo derecho",
-                                          "Oreja izquierda",
-                                          "Oreja derecha",
-                                          "Hombro izquierdo",
-                                          "Hombro derecho",
-                                          "Codo izquierdo",
-                                          "Codo derecho",
-                                          "Muñeca izquierda",
-                                          "Muñeca derecha",
-                                          "Cadera izquierda",
-                                          "Cadera derecha",
-                                          "Rodilla izquierda",
-                                          "Rodilla derecha",
-                                          "Tobillo izquierdo",
-                                          "Tobillo derecho",
-                                        ][Number(joint)]
-                                      }
-                                    </td>
-                                    <td>
-                                      {(
-                                        (q as Data).observed_fraction * 100
-                                      ).toFixed(1)}
-                                      %
-                                    </td>
-                                    <td>
-                                      {(q as Data).max_gap_s.toFixed(2)} s
-                                    </td>
-                                  </tr>
-                                ),
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      ),
-                    )}
-                  </details>
-                )}
-                <label className="file-button">
-                  Elegir y cargar un video
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f)
-                        void run(async () => {
-                          const body = new FormData();
-                          body.append("file", f);
-                          body.append(
-                            "perception_json",
-                            JSON.stringify(perception),
-                          );
-                          const r = await fetch("/api/sources/upload", {
-                            method: "POST",
-                            body,
-                          });
-                          const d = await r.json();
-                          if (!r.ok) throw new Error(JSON.stringify(d));
-                        });
-                    }}
-                  />
-                </label>
-                <label>
-                  Videos de la biblioteca
-                  <select
-                    value=""
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        setPath(e.target.value);
-                        void run(() =>
-                          api("sources/video", {
-                            path: e.target.value,
-                            perception,
-                          }),
-                        );
-                      }
-                    }}
-                  >
-                    <option value="">Elegir archivo guardado…</option>
-                    {assets.map((a) => (
-                      <option key={a.id} value={a.path}>
-                        {a.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <CameraSource api={api} state={state} perception={perception}
-                  locked={['starting','recording','stopping'].includes(recording.poll.data[0].current?.status)}/>
-                <fieldset>
-                  <legend>Al abrir un video</legend>
-                  <label>Cuerpo por defecto
-                    <select value={sourcePreferences.default_person} onChange={(e) => run(async () => {
-                      const next={...sourcePreferences, default_person:e.target.value};
-                      setSourcePreferences(await api("source-preferences", next));
-                    })}>
-                      <option value="best_coverage">Mejor cobertura de tracking</option>
-                      <option value="first">Primera persona de la lista</option>
-                    </select>
-                  </label>
-                  <label><input type="checkbox" checked={sourcePreferences.autoplay_video}
-                    onChange={(e) => run(async () => {
-                      const next={...sourcePreferences, autoplay_video:e.target.checked};
-                      setSourcePreferences(await api("source-preferences", next));
-                    })}/>Reproducir automáticamente cuando el tracking esté listo</label>
-                  <small>La cobertura mide observaciones disponibles, no precisión. Una elección guardada tiene prioridad en el mismo tracking.</small>
-                </fieldset>
-                <label>
-                  Persona
-                  <select
-                    value={session.person_id || ""}
-                    onChange={(e) =>
-                      run(() => api("person", { person_id: e.target.value }))
-                    }
-                  >
-                    <option value="" disabled>
-                      Elegir cuerpo…
-                    </option>
-                    {[
-                      ...new Set<string>([
-                        ...(state.source?.job?.person_ids || []),
-                        ...(state.motion_frame?.persons || []).map(
-                          (p: Data) => p.person_id,
-                        ),
-                      ]),
-                    ].map((id) => (
-                      <option key={id}>{id}</option>
-                    ))}
-                  </select>
-                </label>
-                <p role="status">
-                  {
-                    (
-                      {
-                        automatic: "Selección automática del cuerpo por defecto.",
-                        explicit: "Cuerpo elegido explícitamente.",
-                        restored:
-                          "Selección recuperada de esta misma generación de tracking.",
-                        automatic_changed:
-                          "Tracking nuevo: cuerpo por defecto elegido nuevamente; verificá la selección.",
-                      } as Data
-                    )[state.runtime?.selection_status]
-                  }
-                </p>
-                {state.runtime?.can_confirm_person === true && ['automatic','automatic_changed'].includes(state.runtime?.selection_status) &&
-                  <button disabled={pending || !session.person_id}
-                    onClick={()=>run(()=>api("person",{person_id:session.person_id}))}>Fijar esta persona</button>}
-                <button
-                  disabled={!canMeasureScale}
-                  onClick={() =>
-                    run(async () => {
-                      await api("calibrate", {});
-                      await refresh();
-                    })
-                  }
-                >
-                  Calibrar escala con este cuerpo
-                </button>
-                <p>
-                  {state.calibration
-                    ? `Escala fija: ${state.calibration.torso_scale.toFixed(4)} · ${state.calibration.provenance}`
-                    : "Sin calibración. El baseline conserva su escala adaptativa; los otros modelos requieren calibrar."}
-                </p>
-                {state.calibration_notice&&<p role="status">{state.calibration_notice}</p>}
-                <CalibrationReuse calibrations={savedCalibrations} sourceId={session.source_id}
-                  personId={session.person_id} pending={pending}
-                  reuse={id=>run(()=>api("calibrate",{reuse_id:id}))}/>
-                {perception && schemas.PerceptionSettings && (
-                  <details>
-                    <summary>
-                      Configuración de percepción (aplica al abrir / reprocesar)
-                    </summary>
-                    <Fields
-                      value={perception}
-                      schema={schemas.PerceptionSettings}
-                      defs={schemas.PerceptionSettings.$defs || {}}
-                      onChange={setPerception}
-                    />
-                  </details>
-                )}
-              </>
-            )}
+            {tab === "Fuente" && <section aria-label="Fuentes del instrumento">
+              <h2>Fuentes</h2><p>Cargá un video o elegí y encendé una cámara.</p>
+              <div className="actions">
+                <button onClick={()=>openSources('camera')}>Elegir y encender cámara</button>
+                <button onClick={()=>openSources('video')}>Cargar un video</button>
+              </div>
+            </section>}
             {tab === "Instrumento" && (
               <>
                 <h2>El instrumento</h2>

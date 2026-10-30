@@ -22,6 +22,7 @@ export async function setupRecording(page:any,{camera=true,existing=false,loseSt
  await page.route('**/api/**',async(route:any)=>{
   const req=route.request(),path=new URL(req.url()).pathname;
   if(req.method()!=='GET'){
+   if(path==='/api/sources/upload'){calls.push({path,contentType:req.headers()['content-type']});return route.fulfill({json:{id:'synthetic-upload',status:'building'}});}
    calls.push({path,body:req.postDataJSON()});
    if(path==='/api/sources/camera'){
     const body=req.postDataJSON(),chosen=cameras.find(d=>d.id===body.device_id);

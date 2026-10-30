@@ -1,0 +1,22 @@
+.sources-dialog {
+  width: min(780px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  box-sizing: border-box;
+  overflow: auto;
+  background: #101a25;
+  color: #d8e5e9;
+  border: 1px solid #477b83;
+  border-radius: 14px;
+  padding: 24px;
+}
+.sources-dialog::backdrop { background: rgb(3 8 14 / 78%); }
+.sources-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.sources-heading h2 { margin: 0; font-size: 22px; }
+.sources-dialog .source-choices { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.sources-dialog .source-choices button { flex: 1 1 200px; min-height: 48px; }
+.sources-dialog .source-choices button[aria-pressed="true"] { background: #224646; border-color: #61bbae; color: #a3f0dc; }
+.sources-dialog input, .sources-dialog select, .sources-dialog button { font-size: 16px; max-width: 100%; }
+.sources-dialog fieldset { min-width: 0; margin: 16px 0; }
+.sources-dialog details { margin-top: 18px; }
+.sources-dialog .file-button { display: block; margin: 14px 0; }
+@media (max-width: 600px) { .sources-dialog { padding: 16px; } }

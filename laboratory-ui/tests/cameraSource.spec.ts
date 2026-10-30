@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
-import {setupRecording as setup} from './recordingFixture';
+import {setupRecording} from './recordingFixture';
+async function setup(page:any,options:any={}){const fx=await setupRecording(page,options);await page.getByRole('button',{name:'Abrir fuentes',exact:true}).click();return fx;}
 const writes=(fx:any,path:string)=>fx.calls.filter((c:any)=>c.path===path);
 const region=(page:any)=>page.getByRole('group',{name:'Conectar cámara',exact:true});
 
@@ -11,7 +12,7 @@ test('USB and integrated cameras are named and enumeration opens neither',async(
 });
 
 test('a remembered USB identity is retained after renumbering, without opening it on reload',async({page})=>{
- const fx=await setup(page,{camera:false}),p=region(page),select=p.getByRole('combobox',{name:'Cámara disponible',exact:true});await select.selectOption(fx.cameras[0].id);await page.reload();await expect(select).toHaveValue(fx.cameras[0].id);expect(fx.calls).toEqual([]);
+ const fx=await setup(page,{camera:false}),p=region(page),select=p.getByRole('combobox',{name:'Cámara disponible',exact:true});await select.selectOption(fx.cameras[0].id);await page.reload();await page.getByRole('button',{name:'Abrir fuentes',exact:true}).click();await expect(select).toHaveValue(fx.cameras[0].id);expect(fx.calls).toEqual([]);
  fx.cameras[0].index=4;await p.getByRole('button',{name:'Actualizar cámaras',exact:true}).click();await expect(select).toContainText('cámara 4');
  await p.getByRole('button',{name:'Usar esta cámara',exact:true}).evaluate(el=>{(el as HTMLButtonElement).click();(el as HTMLButtonElement).click();});
  await expect.poll(()=>writes(fx,'/api/sources/camera').length).toBe(1);expect(writes(fx,'/api/sources/camera')[0].body.device_id).toBe(fx.cameras[0].id);expect(writes(fx,'/api/sources/camera')[0].body.index).toBeUndefined();

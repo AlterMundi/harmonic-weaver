@@ -1,9 +1,16 @@
 # Choose a USB camera or integrated webcam
 
-In **Fuente → Cámara USB o webcam**, choose a named device and press
+Open **Fuentes** in the top toolbar, then **Cámara en vivo**. Choose a named device and press
 **Usar esta cámara**. The image and tracking warm up together. Connected hardware,
 a live image and an observed body are separate states shown in the panel.
 Place the body in frame when the image is live but no person has been detected.
+
+The Fuentes dialog is available in Explore, Performance and the movement tutorial.
+It contains both live-camera controls and Cargar video; opening/closing it keeps
+the current source, view and musical settings running. The camera list lives in
+the dialog above the visualizers, with its own scroll. It does not depend on the
+legacy Fuente tab being visible. Advanced video paths, tracking, calibration and
+perception controls remain in explicit disclosures.
 
 The camera belongs to the computer **running the laboratory**. For a camera
 connected to another computer, run the laboratory there. Opening a remote web
