@@ -206,6 +206,14 @@ class LaboratoryRuntime:
                         ids = metadata.get("person_ids", [])
                         self.person_id = (metadata.get("default_person_id") or (ids[0] if ids else None)) if mode == "best_coverage" else (ids[0] if ids else None)
                         self.selection_status = "automatic_changed" if saved else "automatic"
+        if (self.kind == "camera" and not self._selection_explicit and current and current.persons
+                and self.person_id is not None
+                and all(person.person_id != self.person_id for person in current.persons)):
+            # Live tracking can renew a slot generation after loss/reacquisition.
+            # Keep explicit selections pinned; automatic selection follows a
+            # currently observed body, with scale/history reset by tick().
+            self.person_id = None
+            self.selection_status = "automatic_changed"
         if self.person_id is None and current and current.persons:
             people = sorted(current.persons, key=lambda p: p.person_id)
             if self.store.source_preferences()["default_person"] == "best_coverage":
