@@ -4,6 +4,7 @@ import {PerformanceControls} from "./PerformanceControls";
 import {CameraPreview} from "./CameraPreview";
 import {MotionTutorial} from "./MotionTutorial";
 import {OutputLevel} from "./OutputLevel";
+import {QuickRecorder} from "./QuickRecorder";
 import {CalibrationReuse} from "./CalibrationReuse";
 import {PresetCalibrationChoice} from "./PresetCalibrationChoice";
 
@@ -859,6 +860,9 @@ function App() {
             {job?.name ||
               (state.source?.kind === "camera" ? "Cámara" : "Tu movimiento")}
             <span>{session.status || "Sin fuente"}</span>
+            <QuickRecorder api={api} state={state} onAdvanced={()=>{
+              setTutorialOpen(false); changeView(false); setTab("Captura");
+            }}/>
           </div>
           <div
             className={

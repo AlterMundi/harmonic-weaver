@@ -1,0 +1,21 @@
+.source-view > .stage-label:has(.quick-recorder) { padding:6px 14px; gap:6px 12px; }
+.quick-recorder { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
+.quick-recorder > button { min-height:44px; padding:6px 12px; }
+.quick-recorder .record-button { border-color:#a65469; color:#ffd7df; }
+.quick-recorder .recording-button { background:#542335; border-color:#ef9aae; color:#fff0f3; }
+.quick-recorder > .recording-status { color:#f2b5c4; font-size:14px; }
+.quick-recorder > .recording-notice { font-size:14px; max-width:32ch; color:#ffd1db; }
+.takes-dialog { width:min(760px,calc(100vw - 32px)); max-height:85dvh; padding:24px; border:1px solid #466071; border-radius:12px; background:#101a25; color:#d8e5e9; overflow:auto; }
+.takes-dialog::backdrop { background:rgba(0,0,0,.72); }
+.takes-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.takes-heading h2 { margin:0; font-size:22px; }
+.takes-dialog p { font-size:16px; line-height:1.65; overflow-wrap:anywhere; }
+.takes-dialog a { color:#9fe8dc; text-underline-offset:3px; overflow-wrap:anywhere; }
+.takes-list { display:grid; gap:16px; margin:20px 0; }
+.saved-take { min-width:0; padding:18px; border:1px solid #324658; border-radius:10px; background:#0b141e; }
+.saved-take h3 { font-size:18px; margin:0; }
+.take-actions { display:flex; align-items:center; gap:12px 20px; flex-wrap:wrap; }
+.take-actions a { padding:10px 0; }
+.saved-take video { display:block; width:100%; max-height:420px; margin-top:16px; background:#050a10; }
+.takes-dialog .takes-help { font-size:14px; color:#aec2d0; }
+@media (max-width:600px) { .takes-dialog { padding:18px; } .quick-recorder > .recording-notice { max-width:100%; } }
