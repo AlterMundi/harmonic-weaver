@@ -44,3 +44,44 @@ test('unsupported enumeration offers the explicit legacy index without probing r
 test('named camera settings are readable and fit a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page,{camera:false});const p=region(page);await expect(p.getByRole('combobox',{name:'Cámara disponible',exact:true})).toContainText('Logi Webcam C920e');expect(await p.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);if(process.env.TUTORIAL_QA_DIR)await p.screenshot({path:process.env.TUTORIAL_QA_DIR+'/camera-choice-narrow.png'});
 });
+
+test('portrait and reverse direction are explicit, per-device choices remembered without starting',async({page})=>{
+ const fx=await setup(page,{camera:false}),p=region(page),select=p.getByRole('combobox',{name:'Cámara disponible',exact:true}),orientation=p.getByRole('group',{name:'Orientación de la cámara'});
+ await select.selectOption(fx.cameras[0].id);await orientation.getByRole('button',{name:'Vertical',exact:true}).click();await orientation.getByRole('button',{name:'Dar vuelta',exact:true}).click();await expect(orientation).toContainText('giro a la izquierda');
+ await select.selectOption(fx.cameras[1].id);await expect(orientation.getByRole('button',{name:'Horizontal',exact:true})).toHaveAttribute('aria-pressed','true');
+ await select.selectOption(fx.cameras[0].id);await expect(orientation.getByRole('button',{name:'Vertical',exact:true})).toHaveAttribute('aria-pressed','true');await expect(orientation).toContainText('giro a la izquierda');
+ await page.reload();await page.getByRole('button',{name:'Abrir fuentes',exact:true}).click();await expect(orientation).toContainText('giro a la izquierda');expect(writes(fx,'/api/sources/camera')).toHaveLength(0);
+ await p.getByRole('button',{name:'Usar esta cámara',exact:true}).click();await expect.poll(()=>writes(fx,'/api/sources/camera').length).toBe(1);expect(writes(fx,'/api/sources/camera')[0].body.perception.camera_rotation_degrees).toBe(270);
+});
+
+test('changing an active camera orientation preserves its processing settings and waits for Apply',async({page})=>{
+ const fx=await setup(page),p=region(page),orientation=p.getByRole('group',{name:'Orientación de la cámara'});
+ Object.assign(fx.state.source.camera,{device_id:fx.cameras[0].id,index:0,rotation_degrees:0,perception:{checkpoint:'keep.pt',imgsz:448,confidence:.42}});
+ await expect(p.getByRole('combobox',{name:'Cámara disponible',exact:true})).toHaveValue(fx.cameras[0].id);
+ await orientation.getByRole('button',{name:'Vertical',exact:true}).click();await expect(p.getByRole('button',{name:'Aplicar orientación',exact:true})).toBeEnabled();await expect(orientation).toContainText('En uso: Horizontal');expect(writes(fx,'/api/sources/camera')).toHaveLength(0);
+ const before=JSON.stringify(fx.state.preset);await p.getByRole('button',{name:'Aplicar orientación',exact:true}).click();await expect.poll(()=>writes(fx,'/api/sources/camera').length).toBe(1);
+ expect(writes(fx,'/api/sources/camera')[0].body.perception).toEqual({checkpoint:'keep.pt',imgsz:448,confidence:.42,camera_rotation_degrees:90});expect(JSON.stringify(fx.state.preset)).toBe(before);fx.cameraReady();
+ await expect(orientation).toContainText('En uso: Vertical');await orientation.getByRole('button',{name:'Horizontal',exact:true}).click();await p.getByRole('button',{name:'Aplicar orientación',exact:true}).click();await expect.poll(()=>writes(fx,'/api/sources/camera').length).toBe(2);expect(writes(fx,'/api/sources/camera')[1].body.perception.camera_rotation_degrees).toBe(0);
+ expect(fx.errors).toEqual([]);
+});
+
+test('rotation cannot restart the source during a recording',async({page})=>{
+ const fx=await setup(page),orientation=region(page).getByRole('group',{name:'Orientación de la cámara'});fx.inventory.current={id:'busy-take',status:'recording'};
+ for(const label of ['Horizontal','Vertical','Dar vuelta'])await expect(orientation.getByRole('button',{name:label,exact:true})).toBeDisabled();expect(writes(fx,'/api/sources/camera')).toHaveLength(0);
+});
+
+test('portrait controls remain readable and contained on narrow screens',async({page})=>{
+ await page.setViewportSize({width:390,height:844});const fx=await setup(page,{camera:false}),p=region(page),orientation=p.getByRole('group',{name:'Orientación de la cámara'});await p.getByRole('combobox',{name:'Cámara disponible',exact:true}).selectOption(fx.cameras[0].id);await orientation.getByRole('button',{name:'Vertical',exact:true}).click();
+ expect(await orientation.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);expect(await orientation.getByRole('button',{name:'Vertical',exact:true}).evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+ if(process.env.TUTORIAL_QA_DIR)await orientation.screenshot({path:process.env.TUTORIAL_QA_DIR+'/camera-orientation-narrow.png'});
+});
+
+test('portrait preview and skeleton share the fitted image coordinates',async({page})=>{
+ const fx=await setup(page);await page.route('**/api/camera/preview?**',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280"><rect width="720" height="1280" fill="#17324a"/><circle cx="256" cy="384" r="24" fill="#69e7cf"/></svg>'}));
+ fx.state.motion_frame={width:720,height:1280,persons:[{person_id:'one',joints:[{index:5,position:[.2,.3],state:'observed'},{index:6,position:[.4,.3],state:'observed'}]}]};fx.state.preset.visual.show_skeleton=true;
+ await page.getByRole('button',{name:'Cerrar fuentes',exact:true}).click();const svg=page.locator('.video-wrap .skeleton');await expect(svg).toHaveAttribute('viewBox','0 0 0.5625 1');
+ await expect.poll(()=>page.getByAltText('Cámara en vivo').evaluate((el:any)=>el.naturalWidth)).toBe(720);
+ const result=await page.locator('.video-wrap').evaluate((wrap:any)=>{const img=wrap.querySelector('img'),svg=wrap.querySelector('svg'),b=img.getBoundingClientRect(),s=Math.min(b.width/img.naturalWidth,b.height/img.naturalHeight),m=svg.getScreenCTM();return {svgX:m.a*.2+m.e,svgY:m.d*.3+m.f,imageX:b.x+(b.width-img.naturalWidth*s)/2+256*s,imageY:b.y+(b.height-img.naturalHeight*s)/2+384*s};});
+ expect(Math.abs(result.svgX-result.imageX)).toBeLessThan(1);expect(Math.abs(result.svgY-result.imageY)).toBeLessThan(1);
+ if(process.env.TUTORIAL_QA_DIR)await page.locator('.source-view').screenshot({path:process.env.TUTORIAL_QA_DIR+'/portrait-source-synthetic.png'});
+});

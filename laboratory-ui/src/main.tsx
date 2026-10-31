@@ -151,6 +151,7 @@ const labels: Record<string, string> = {
   camera_width: "Ancho de cámara",
   camera_height: "Alto de cámara",
   camera_fps: "FPS de cámara",
+  camera_rotation_degrees: "Giro de cámara (grados)",
 };
 async function api(path: string, body?: any, method = "POST") {
   const response = await fetch(
@@ -371,7 +372,7 @@ function Fields({
         <select
           aria-label={title}
           value={value ?? schema.enum[0]}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => onChange(schema.type === "integer" || schema.type === "number" ? Number(e.target.value) : e.target.value)}
         >
           {schema.enum.map((v: any) => (
             <option key={v} value={v}>{name === "collective_view"

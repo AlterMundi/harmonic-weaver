@@ -450,6 +450,8 @@ class PerceptionSettings(Contract):
     camera_width: int = Field(default=1280, ge=160, le=3840)
     camera_height: int = Field(default=720, ge=120, le=2160)
     camera_fps: int = Field(default=30, ge=1, le=120)
+    camera_rotation_degrees: Literal[0, 90, 180, 270] = Field(default=0,
+        description="Clockwise rotation of live camera pixels before pose inference and preview. Video files keep their own display metadata.")
 
 
 PERSISTED_CONTRACTS += (PerceptionSettings,)

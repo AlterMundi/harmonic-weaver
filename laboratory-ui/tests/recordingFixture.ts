@@ -27,7 +27,7 @@ export async function setupRecording(page:any,{camera=true,existing=false,loseSt
    if(path==='/api/sources/camera'){
     const body=req.postDataJSON(),chosen=cameras.find(d=>d.id===body.device_id);
     if(body.device_id&&!chosen)return route.fulfill({status:400,json:{error:'Selected device missing'}});
-    state.source={kind:'camera',camera:{status:'warming',stream_id:'chosen-camera-stream',device_id:body.device_id||null,index:chosen?.index??body.index,sample_age_ms:null}};
+    state.source={kind:'camera',camera:{status:'warming',stream_id:'chosen-camera-stream-'+calls.length,device_id:body.device_id||null,index:chosen?.index??body.index,sample_age_ms:null,rotation_degrees:body.perception?.camera_rotation_degrees??0,perception:body.perception}};
     state.session.playing=true;if(loseCameraStart){loseCameraStart=false;return route.abort();}return route.fulfill({json:state.source.camera});
    }
    if(path==='/api/sources/close'){state.source={kind:null};state.session.playing=false;return route.fulfill({json:state});}

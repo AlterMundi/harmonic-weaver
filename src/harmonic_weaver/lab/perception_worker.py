@@ -80,6 +80,18 @@ def file_frames(path):
             }
 
 
+def orient_camera_frame(image, degrees):
+    """Rotate the measured pixels, so inference/preview share one coordinate frame."""
+    if degrees == 0:
+        return image
+    import cv2
+    rotations = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180,
+                 270: cv2.ROTATE_90_COUNTERCLOCKWISE}
+    if degrees not in rotations:
+        raise ValueError("camera rotation must be 0, 90, 180 or 270 degrees")
+    return cv2.rotate(image, rotations[degrees])
+
+
 def camera_frames(index, config):
     from harmocap.capture import LatchingCamera
     camera = LatchingCamera(index, width=config["camera_width"], height=config["camera_height"],
@@ -96,6 +108,7 @@ def camera_frames(index, config):
                     raise RuntimeError("camera produced no frame for five seconds")
                 continue
             image, sequence, stamp_us = latest
+            image = orient_camera_frame(image, config.get("camera_rotation_degrees", 0))
             last_frame = time.monotonic()
             if origin is None:
                 origin = stamp_us / 1e6
@@ -155,7 +168,9 @@ def run(args, emit):
         frame["available_monotonic_s"] = time.monotonic()
         message = {"type": "frame", "frame": frame}
         if not args.video:
-            preview = cv2.resize(image, (min(width, 960), round(height * min(width, 960) / width)))
+            # Portrait and landscape use the same bounded preview pixel budget.
+            scale = min(1., 960 / max(width, height))
+            preview = cv2.resize(image, (max(1, round(width * scale)), max(1, round(height * scale))))
             ok, jpg = cv2.imencode(".jpg", preview, [cv2.IMWRITE_JPEG_QUALITY, 75])
             if ok:
                 message["jpeg"] = base64.b64encode(jpg).decode("ascii")

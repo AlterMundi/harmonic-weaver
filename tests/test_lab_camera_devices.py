@@ -105,8 +105,24 @@ def test_live_camera_passes_resolved_path_to_existing_worker_and_exposes_identit
         def stop(self):stop.set()
     camera=LiveCamera(worker_factory=Worker)
     try:
-        camera.start(4,PerceptionSettings(checkpoint='synthetic.pt'),device_path='/dev/v4l/by-id/chosen',device_id='cam-'+'a'*32);assert seen.wait(1)
+        camera.start(4,PerceptionSettings(checkpoint='synthetic.pt',camera_rotation_degrees=270),device_path='/dev/v4l/by-id/chosen',device_id='cam-'+'a'*32);assert seen.wait(1)
         assert arguments[0]['camera']=='/dev/v4l/by-id/chosen' and arguments[0]['source_id']=='camera-4'
         assert camera.snapshot()['index']==4 and camera.snapshot()['device_id']=='cam-'+'a'*32
+        assert camera.snapshot()['rotation_degrees']==270 and camera.snapshot()['perception']['camera_rotation_degrees']==270
     finally:camera.close()
     assert camera.snapshot()['index'] is None
+
+
+def test_rotation_validation_happens_before_open_and_is_in_worker_settings(tmp_path):
+    cameras,*_=catalog(tmp_path);calls=[]
+    runtime=SimpleNamespace(library=object(),start=lambda:None,close=lambda:None,snapshot=lambda:{'source':{'kind':None}},
+        open_camera=lambda index,settings,**kwargs:(calls.append(settings.model_dump()) or {'status':'warming'}))
+    app=create_app(tmp_path/'state',runtime=runtime);app.state.camera_devices=cameras
+    with TestClient(app,base_url='http://127.0.0.1') as client:
+        body={'index':0,'perception':PerceptionSettings(checkpoint='synthetic.pt').model_dump()}
+        body['perception']['camera_rotation_degrees']=45
+        assert client.post('/api/sources/camera',json=body).status_code==422 and not calls
+        for degrees in (0,90,180,270):
+            body['perception']['camera_rotation_degrees']=degrees
+            assert client.post('/api/sources/camera',json=body).status_code==200
+            assert calls[-1]['camera_rotation_degrees']==degrees

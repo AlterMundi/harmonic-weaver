@@ -118,6 +118,7 @@ class LiveCamera:
         self.stream_id = None
         self.index = None
         self.device_id = None
+        self.settings = None
         self._lock = threading.RLock()
         self._stop = threading.Event()
 
@@ -128,6 +129,7 @@ class LiveCamera:
             self.worker = self.worker_factory()
             self.stream_id = uuid4().hex
             self.index,self.device_id=index,device_id
+            self.settings = settings.model_dump()
             self.frame, self.jpeg, self.error = None, None, None
             self.status, self.dropped = "warming", 0
             self.thread = threading.Thread(target=self._run, args=(index, settings, self.worker, self._stop, self.stream_id,device_path), daemon=True,
@@ -180,6 +182,8 @@ class LiveCamera:
             origin = self.frame.captured_monotonic_s if self.frame else None
             return {"status": self.status, "error": self.error, "dropped": self.dropped,
                     "index":self.index,"device_id":self.device_id,
+                    "rotation_degrees": (self.settings or {}).get("camera_rotation_degrees", 0),
+                    "perception": dict(self.settings) if self.settings else None,
                     "stream_id": self.stream_id,
                     "sample_age_ms": (time.monotonic() - origin) * 1000 if origin is not None else None}
 
@@ -192,4 +196,5 @@ class LiveCamera:
         with self._lock:
             self.status = "idle"
             self.index,self.device_id=None,None
+            self.settings = None
             self.frame, self.jpeg = None, None

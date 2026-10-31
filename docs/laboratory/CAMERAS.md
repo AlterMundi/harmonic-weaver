@@ -70,3 +70,24 @@ Actual receiving enumeration can be qualified without acquiring private images.
 Physical image continuity, body tracking and hearing remain human acceptance.
 
 Primary contract: [Linux VIDIOC_QUERYCAP](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/vidioc-querycap.html).
+
+## Horizontal and vertical cameras
+
+In **Fuentes → Cámara en vivo**, select **Horizontal** or **Vertical**.
+**Dar vuelta** adds180° when a sideways-mounted camera would otherwise show the
+person upside down. The selected orientation is a draft until **Usar esta cámara**
+or **Aplicar orientación** is pressed; the panel separately shows the orientation
+currently in use. Applying a different orientation reopens that same camera and
+starts fresh person/calibration history. Recording blocks camera/orientation changes.
+
+The worker rotates measured pixels before pose inference. Preview, source dimensions,
+COCO frame-height-normalized coordinates and recorded camera previews share that
+oriented frame. Uploaded videos keep their existing display-rotation metadata;
+this camera setting does not rotate them again. Mirror display is independent.
+Preview dimensions are bounded by960px on either axis for both orientations.
+Export uses its selected canvas/layout, fitting the upright source within it.
+
+Orientation is remembered per camera in the viewing browser; it never activates
+hardware on its own. Runtime telemetry reports the applied rotation and perception
+settings. Changing only orientation retains the active camera's other processing
+settings. Horizontal0° remains the default for existing configurations.

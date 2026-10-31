@@ -2,6 +2,10 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 type Data=Record<string,any>;
 const preference='weaver-lab-camera-id';
 const savedChoice=()=>{try{return localStorage.getItem(preference)||'';}catch{return '';}};
+const rotationPreference='weaver-lab-camera-rotations';
+const rotations=[0,90,180,270];
+const savedRotation=(key:string)=>{try{const value=JSON.parse(localStorage.getItem(rotationPreference)||'{}')[key];return rotations.includes(value)?value:0;}catch{return 0;}};
+const orientationLabel=(value:number)=>value===90?'Vertical · giro a la derecha':value===270?'Vertical · giro a la izquierda':value===180?'Horizontal · invertida':'Horizontal';
 
 /** Choose hardware connected to the running instrument, without guessing numeric indices. */
 export function CameraSource({api,state,perception,locked=false}:{api:any;state:Data;perception:Data|null;locked?:boolean}){
@@ -9,6 +13,7 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
  const [supported,setSupported]=useState(true),[confirmed,setConfirmed]=useState(false),[loading,setLoading]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[fetchError,setFetchError]=useState(''),[notice,setNotice]=useState(''),[manual,setManual]=useState(0);
  const live=useRef(false),reading=useRef(false),acting=useRef(false);
+ const [rotation,setRotation]=useState(0);
  const refresh=useCallback(async()=>{
   if(reading.current)return;reading.current=true;setLoading(true);
   try{
@@ -31,6 +36,20 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
  const remember=(id:string)=>{setSelected(id);setNotice('');try{localStorage.setItem(preference,id);}catch{setNotice('Esta elección no se pudo guardar; sigue disponible mientras la página esté abierta.');}};
  const running=cam&&['warming','ready'].includes(cam.status)&&!(cam.sample_age_ms>2000);
  const sameCamera=running&&(cam.device_id?cam.device_id===selected:chosen&&cam.index===chosen.index);
+ const rotationKey=selected||`index:${manual}`;
+ const selectedActive=cam&&(cam.device_id?cam.device_id===selected:!selected&&cam.index===manual);
+ useEffect(()=>{
+  const applied=selectedActive&&rotations.includes(cam.rotation_degrees)?cam.rotation_degrees:null;
+  setRotation(applied??savedRotation(rotationKey));
+  if(applied!==null)try{const saved=JSON.parse(localStorage.getItem(rotationPreference)||'{}');localStorage.setItem(rotationPreference,JSON.stringify({...saved,[rotationKey]:applied}));}catch{/* Runtime truth still stays visible. */}
+ },[rotationKey,selectedActive,cam?.stream_id]);
+ const chooseRotation=(value:number)=>{
+  setRotation(value);setNotice('');
+  try{const saved=JSON.parse(localStorage.getItem(rotationPreference)||'{}');localStorage.setItem(rotationPreference,JSON.stringify({...saved,[rotationKey]:value}));}
+  catch{setNotice('El giro elegido se usará en esta sesión, pero no se pudo guardar en este navegador.');}
+ };
+ const rotationChanged=!!sameCamera&&rotation!==(cam.rotation_degrees??0);
+ const cameraSettings=()=>({...perception,...(selectedActive?cam.perception||{}:{}),camera_rotation_degrees:rotation});
  const act=async(action:()=>Promise<any>)=>{
   if(acting.current||locked)return;acting.current=true;setBusy(true);setError('');setNotice('');
   try{await action();}catch{setError('No se confirmó la conexión. Revisá el estado de la cámara y Actualizar cámaras antes de volver a intentarlo. No reiniciamos automáticamente.');}
@@ -44,9 +63,19 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
    {selected&&!chosen&&<option value={selected}>Cámara guardada · desconectada o sin consultar</option>}
    {rows.map(row=><option key={row.id} value={row.id} disabled={!row.available}>{row.label} · cámara {row.index}{row.available?'':' · sin permiso'}</option>)}
   </select></label>
+  <div role="group" aria-label="Orientación de la cámara" className="camera-orientation">
+   <p><b>Orientación de la cámara</b></p>
+   <div className="actions">
+    <button disabled={busy||locked} aria-pressed={rotation%180===0} onClick={()=>chooseRotation(0)}>Horizontal</button>
+    <button disabled={busy||locked} aria-pressed={rotation%180===90} onClick={()=>chooseRotation(rotation%180===90?rotation:90)}>Vertical</button>
+    <button disabled={busy||locked} onClick={()=>chooseRotation((rotation+180)%360)}>Dar vuelta</button>
+   </div>
+   <p>Elegida: {orientationLabel(rotation)}. {sameCamera?`En uso: ${orientationLabel(cam.rotation_degrees??0)}.`:''}</p>
+   <p>Para una cámara montada de costado, elegí Vertical. Si quedás cabeza abajo, tocá Dar vuelta. {rotationChanged?'Pulsá Aplicar orientación para usar este giro.':'Pulsá Usar esta cámara para conectar con la orientación elegida.'}</p>
+  </div>
   <div className="actions">
    <button disabled={loading} onClick={()=>void refresh()}>{loading?'Buscando cámaras…':'Actualizar cámaras'}</button>
-   <button disabled={busy||locked||!perception||!confirmed||!chosen?.available||!!sameCamera} onClick={()=>void act(async()=>{remember(selected);await api('sources/camera',{device_id:selected,perception});setNotice('Conexión solicitada. Esperá a ver la imagen y el seguimiento.');})}>{sameCamera?'Esta cámara está en uso':'Usar esta cámara'}</button>
+   <button disabled={busy||locked||!perception||!confirmed||!chosen?.available||!!sameCamera&&!rotationChanged} onClick={()=>void act(async()=>{remember(selected);await api('sources/camera',{device_id:selected,perception:cameraSettings()});setNotice('Conexión solicitada. Esperá a ver la imagen y el seguimiento.');})}>{rotationChanged?'Aplicar orientación':sameCamera?'Esta cámara está en uso':'Usar esta cámara'}</button>
    <button disabled={busy||locked||!state.source?.kind} onClick={()=>void act(()=>api('sources/close',{}))}>Cerrar fuente / apagar cámara</button>
   </div>
   {confirmed&&supported&&!rows.length&&<p>No se detectaron cámaras. Conectá la cámara USB y pulsá Actualizar cámaras. Si ya está conectada, revisá sus permisos en el sistema.</p>}
@@ -61,7 +90,7 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
   <details><summary>Elegir cámara por índice · avanzado</summary>
    <p>Usá esta opción si la detección por nombre no está disponible. El índice puede cambiar al reconectar dispositivos.</p>
    <label>Índice de cámara<input aria-label="Índice de cámara" type="number" min="0" max="32" value={manual} onChange={e=>setManual(e.target.valueAsNumber)}/></label>
-   <button disabled={busy||locked||!perception||!Number.isInteger(manual)||manual<0||manual>32} onClick={()=>void act(()=>api('sources/camera',{index:manual,perception}))}>Usar índice manual</button>
+   <button disabled={busy||locked||!perception||!Number.isInteger(manual)||manual<0||manual>32} onClick={()=>void act(()=>api('sources/camera',{index:manual,perception:{...perception,camera_rotation_degrees:rotation}}))}>Usar índice manual</button>
   </details>
  </fieldset>;
 }
