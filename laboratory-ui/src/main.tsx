@@ -4,6 +4,7 @@ import {PerformanceControls} from "./PerformanceControls";
 import {CameraPreview} from "./CameraPreview";
 import {CameraSource} from "./CameraSource";
 import {SourcesDialog} from "./SourcesDialog";
+import {DanceControls,useDanceMode} from "./DanceMode";
 import {MotionTutorial} from "./MotionTutorial";
 import {OutputLevel} from "./OutputLevel";
 import {QuickRecorder} from "./QuickRecorder";
@@ -18,6 +19,7 @@ import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Figure } from "./figure";
 import "./style.css";
+import "./DanceMode.css";
 
 import {AudioOutputPanel} from './AudioOutputPanel';
 const diagnosticReason = (reason:string) => ({
@@ -472,6 +474,8 @@ function App() {
     canvas = useRef<HTMLCanvasElement>(null),
     figure = useRef<Figure | null>(null);
   const figureStream = useRef<string | null>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const dance = useDanceMode(stage);
   const macroQueue = useRef<{ id: string; value: number } | null>(null);
   const macroBusy = useRef(false);
   const presetBusy = useRef(false);
@@ -738,6 +742,7 @@ function App() {
     state.shaper?.telemetry_valid,
     draft?.visual,
     draft?.fundamental_hz,
+    dance.active,
   ]);
   if (!draft || !schemas.Preset)
     return (
@@ -795,7 +800,7 @@ function App() {
   const sourceMode=sourceChoice || (state.source?.kind==='video'?'video':'camera');
   const openSources=(choice:'camera'|'video'|null=null)=>{setSourceChoice(choice);setSourcesOpen(true);};
   return (
-    <main className={performance ? "performance-mode" : undefined}>
+    <main className={[performance ? "performance-mode" : "",dance.active ? "dance-mode" : ""].filter(Boolean).join(" ") || undefined}>
       <SourcesDialog open={sourcesOpen} onClose={()=>setSourcesOpen(false)}>
         <p>Elegí una cámara en vivo o cargá un video. Cambiar de opción no cambia la fuente hasta que la activás.</p>
         <div className="source-choices" role="group" aria-label="Tipo de fuente">
@@ -1114,6 +1119,8 @@ function App() {
           <button aria-label="Abrir fuentes" aria-haspopup="dialog" onClick={()=>openSources()}>Fuentes</button>
           <button aria-pressed={!performance} onClick={()=>changeView(false)}>Explorar</button>
           <button aria-pressed={performance} onClick={()=>changeView(true)}>Performance</button>
+          <button aria-label="Bailar en pantalla completa" disabled={!state.source?.kind}
+            onClick={()=>{setTutorialOpen(false);setSourcesOpen(false);void dance.enter();}}>Bailar</button>
           <button id="start-movement-tutorial" aria-expanded={tutorialOpen} aria-controls="movement-tutorial"
             onClick={()=>setTutorialOpen(value=>!value)}>{tutorialOpen ? "Cerrar tutorial" : "Hacer tutorial"}</button>
         </div>
@@ -1160,7 +1167,9 @@ function App() {
       )}
       </div>
       <div className={"lab-content"+(tutorialOpen ? " tutorial-open" : "")}>
-      <div className="stage" role="region" aria-label="Visualizadores del instrumento" tabIndex={0}>
+      <div ref={stage} className="stage" role="region" aria-label="Visualizadores del instrumento" tabIndex={0}>
+        <DanceControls active={dance.active} exit={dance.exit} hint={dance.hint}
+          problem={!connected?"Reconectando con el instrumento…":state.source?.camera?.status==='error'?"La cámara se detuvo. Volvé al set para reconectarla.":state.source?.camera?.sample_age_ms>2000?"Esperando imágenes nuevas de la cámara…":null}/>
         <section className="source-view">
           <div className="stage-label">
             {job?.name ||
@@ -1199,7 +1208,7 @@ function App() {
                 <p>Abrí un video o encendé la cámara para explorar.</p>
               </div>
             )}
-            {draft.visual.show_skeleton && displayedMotion && (
+            {(draft.visual.show_skeleton || dance.active) && displayedMotion && (
               <svg
                 className="skeleton"
                 viewBox={`0 0 ${displayedMotion.width / displayedMotion.height} 1`}

@@ -85,3 +85,10 @@ test('portrait preview and skeleton share the fitted image coordinates',async({p
  expect(Math.abs(result.svgX-result.imageX)).toBeLessThan(1);expect(Math.abs(result.svgY-result.imageY)).toBeLessThan(1);
  if(process.env.TUTORIAL_QA_DIR)await page.locator('.source-view').screenshot({path:process.env.TUTORIAL_QA_DIR+'/portrait-source-synthetic.png'});
 });
+
+test('choosing a camera directly reveals and focuses its orientation step',async({page})=>{
+ const fx=await setup(page,{camera:false}),p=region(page),orientation=p.getByRole('group',{name:'Orientación de la cámara'});
+ await p.getByRole('combobox',{name:'Cámara disponible',exact:true}).selectOption(fx.cameras[0].id);
+ await expect(orientation).toBeFocused();await expect(orientation).toContainText('2. Elegí Horizontal o Vertical');await expect(orientation).toContainText('Orientación para Logi Webcam C920e.');expect(writes(fx,'/api/sources/camera')).toHaveLength(0);
+ await orientation.getByRole('button',{name:'Vertical',exact:true}).click();await p.getByRole('button',{name:'Usar esta cámara',exact:true}).click();await expect.poll(()=>writes(fx,'/api/sources/camera').length).toBe(1);expect(writes(fx,'/api/sources/camera')[0].body.perception.camera_rotation_degrees).toBe(90);
+});

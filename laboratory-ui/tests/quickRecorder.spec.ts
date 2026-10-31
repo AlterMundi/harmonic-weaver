@@ -2,6 +2,10 @@ import {test,expect} from '@playwright/test';
 import {setupRecording as setup} from './recordingFixture';
 
 const mutations=(fx:any,path:string)=>fx.calls.filter((c:any)=>c.path===path);
+const stopAndFinish=async(page:any,fx:any)=>{
+ const stopped=page.waitForResponse((response:any)=>new URL(response.url()).pathname==='/api/captures/stop'&&response.request().method()==='POST');
+ await page.getByRole('button',{name:'Detener y guardar',exact:true}).click();await stopped;fx.finish();
+};
 
 test('record, confirm close, export overlay with audio and keep the original source/preset',async({page})=>{
  const fx=await setup(page),preset=JSON.stringify(fx.state.preset);
@@ -58,7 +62,7 @@ test('a lost recording acknowledgement is not replayed and confirmed inventory c
  const fx=await setup(page,{loseStart:true});await page.getByRole('button',{name:'Grabar',exact:true}).click();
  await expect(page.getByRole('button',{name:'Detener y guardar',exact:true})).toBeEnabled();
  await page.waitForTimeout(900);expect(mutations(fx,'/api/captures/start')).toHaveLength(1);
- await page.getByRole('button',{name:'Detener y guardar',exact:true}).click();fx.finish();
+ await stopAndFinish(page,fx);
  await expect.poll(()=>mutations(fx,'/api/captures/take-one/export').length).toBe(1);
  expect(mutations(fx,'/api/captures/start')).toHaveLength(1);
 });
@@ -66,7 +70,7 @@ test('a lost recording acknowledgement is not replayed and confirmed inventory c
 test('a lost export acknowledgement resolves through inventory without a second export',async({page})=>{
  const fx=await setup(page,{loseExport:true});await page.getByRole('button',{name:'Grabar',exact:true}).click();
  await expect(page.getByRole('button',{name:'Detener y guardar',exact:true})).toBeEnabled();
- await page.getByRole('button',{name:'Detener y guardar',exact:true}).click();fx.finish();
+ await stopAndFinish(page,fx);
  await expect.poll(()=>mutations(fx,'/api/captures/take-one/export').length).toBe(1);
  await page.waitForTimeout(1700);expect(mutations(fx,'/api/captures/take-one/export')).toHaveLength(1);
  fx.saved();await page.getByRole('button',{name:/^Tomas \(/}).click();await expect(page.getByText('Video listo',{exact:true})).toBeVisible();
@@ -75,7 +79,7 @@ test('a lost export acknowledgement resolves through inventory without a second 
 test('failed preparation retains originals and only a human retry can request another export',async({page})=>{
  const fx=await setup(page,{failExport:true});await page.getByRole('button',{name:'Grabar',exact:true}).click();
  await expect(page.getByRole('button',{name:'Detener y guardar',exact:true})).toBeEnabled();
- await page.getByRole('button',{name:'Detener y guardar',exact:true}).click();fx.finish();
+ await stopAndFinish(page,fx);
  await expect.poll(()=>mutations(fx,'/api/captures/take-one/export').length).toBe(1);
  await page.waitForTimeout(1600);expect(mutations(fx,'/api/captures/take-one/export')).toHaveLength(1);
  await page.getByRole('button',{name:/^Tomas \(/}).click();await expect(page.getByText('Originales guardados',{exact:true})).toBeVisible();

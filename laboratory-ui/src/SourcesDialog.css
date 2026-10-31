@@ -20,6 +20,7 @@
 .sources-dialog details { margin-top: 18px; }
 .camera-orientation { padding: 12px; margin: 16px 0; border: 1px solid #477b83; border-radius: 10px; }
 .camera-orientation .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.camera-orientation:focus-visible { outline: 2px solid #69e7cf; outline-offset: 3px; }
 .camera-orientation button[aria-pressed="true"] { background: #224646; border-color: #61bbae; color: #a3f0dc; }
 .sources-dialog .file-button { display: block; margin: 14px 0; }
 @media (max-width: 600px) { .sources-dialog { padding: 16px; } }

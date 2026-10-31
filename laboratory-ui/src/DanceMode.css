@@ -1,0 +1,16 @@
+/* One existing source and one existing canvas, arranged for movement. */
+main.dance-mode { position:fixed; inset:0; width:100vw; height:100dvh; min-height:0; max-width:none; padding:0; margin:0; display:block; overflow:hidden; background:#03080e; }
+.dance-mode > header, .dance-mode > .output-level, .dance-mode > .lab-notices,
+.dance-mode > footer, .dance-mode .workspace, .dance-mode .motion-tutorial { display:none; }
+.dance-mode .lab-content { position:fixed; inset:0; width:100vw; height:100dvh; display:block; margin:0; z-index:200; }
+.dance-mode .stage, .dance-mode .stage:fullscreen { position:relative; display:block; width:100%; height:100%; min-height:0; margin:0; padding:0; overflow:hidden; background:#03080e; }
+.dance-mode .stage .source-view { position:absolute; inset:0; display:block; width:100%; height:100%; border:0; border-radius:0; background:#03080e; }
+.dance-mode .source-view .video-wrap { position:absolute; inset:0; width:100%; height:100%; min-height:0; background:#03080e; }
+.dance-mode .stage .stage-label, .dance-mode .stage .transport, .dance-mode .figure-caption { display:none; }
+.dance-mode .stage .figure-view { position:absolute; right:max(12px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); width:clamp(112px,22vw,320px); height:auto; aspect-ratio:1; display:block; margin:0; padding:0; border:1px solid #477b83; border-radius:12px; overflow:hidden; box-shadow:0 4px 22px #0009; background:#04070c; z-index:2; pointer-events:none; }
+.dance-mode .stage .figure-view canvas { display:block; width:100%; height:100%; min-height:0; flex:none; }
+.dance-mode .figure-view > [role="alert"] { position:absolute; inset:auto 8px 8px; font-size:14px; background:#101a25; }
+.dance-controls { position:absolute; inset:0; z-index:3; pointer-events:none; }
+.dance-exit { position:absolute; top:max(12px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); min-height:44px; max-width:calc(100vw - 24px); padding:8px 14px; font-size:16px; color:#e7f4f4; background:#101a25ed; border-color:#6d979e; pointer-events:auto; }
+.dance-exit span { color:#c5d9de; }
+.dance-status { position:absolute; top:64px; right:12px; max-width:min(440px,calc(100vw - 24px)); margin:0; padding:8px 12px; color:#e7f4f4; font-size:14px; background:#101a25ed; border-radius:8px; }

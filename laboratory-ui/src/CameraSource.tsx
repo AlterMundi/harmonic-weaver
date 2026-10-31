@@ -14,6 +14,7 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[fetchError,setFetchError]=useState(''),[notice,setNotice]=useState(''),[manual,setManual]=useState(0);
  const live=useRef(false),reading=useRef(false),acting=useRef(false);
  const [rotation,setRotation]=useState(0);
+ const rotationGroup=useRef<HTMLDivElement>(null),focusRotation=useRef(false);
  const refresh=useCallback(async()=>{
   if(reading.current)return;reading.current=true;setLoading(true);
   try{
@@ -34,6 +35,7 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
   if(active?.id)setSelected(active.id);else if(available.length===1)setSelected(available[0].id);
  },[rows,selected,confirmed,active?.id]);
  const remember=(id:string)=>{setSelected(id);setNotice('');try{localStorage.setItem(preference,id);}catch{setNotice('Esta elección no se pudo guardar; sigue disponible mientras la página esté abierta.');}};
+ const selectCamera=(id:string)=>{focusRotation.current=!!id;remember(id);};
  const running=cam&&['warming','ready'].includes(cam.status)&&!(cam.sample_age_ms>2000);
  const sameCamera=running&&(cam.device_id?cam.device_id===selected:chosen&&cam.index===chosen.index);
  const rotationKey=selected||`index:${manual}`;
@@ -42,6 +44,7 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
   const applied=selectedActive&&rotations.includes(cam.rotation_degrees)?cam.rotation_degrees:null;
   setRotation(applied??savedRotation(rotationKey));
   if(applied!==null)try{const saved=JSON.parse(localStorage.getItem(rotationPreference)||'{}');localStorage.setItem(rotationPreference,JSON.stringify({...saved,[rotationKey]:applied}));}catch{/* Runtime truth still stays visible. */}
+  if(focusRotation.current){focusRotation.current=false;rotationGroup.current?.scrollIntoView({block:'nearest'});rotationGroup.current?.focus({preventScroll:true});}
  },[rotationKey,selectedActive,cam?.stream_id]);
  const chooseRotation=(value:number)=>{
   setRotation(value);setNotice('');
@@ -58,13 +61,14 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
  return <fieldset aria-label="Conectar cámara">
   <legend>Cámara USB o webcam</legend>
   <p>Elegí una de las cámaras conectadas al equipo que está ejecutando HarmoCap.</p>
-  <label>Cámara disponible<select aria-label="Cámara disponible" value={selected} disabled={busy||locked} onChange={e=>remember(e.target.value)}>
+  <label>1. Elegí la cámara<select aria-label="Cámara disponible" value={selected} disabled={busy||locked} onChange={e=>selectCamera(e.target.value)}>
    <option value="">Elegí una cámara…</option>
    {selected&&!chosen&&<option value={selected}>Cámara guardada · desconectada o sin consultar</option>}
    {rows.map(row=><option key={row.id} value={row.id} disabled={!row.available}>{row.label} · cámara {row.index}{row.available?'':' · sin permiso'}</option>)}
   </select></label>
-  <div role="group" aria-label="Orientación de la cámara" className="camera-orientation">
-   <p><b>Orientación de la cámara</b></p>
+  <div ref={rotationGroup} tabIndex={-1} role="group" aria-label="Orientación de la cámara" className="camera-orientation">
+   <p><b>2. Elegí Horizontal o Vertical</b></p>
+   <p>{chosen?`Orientación para ${chosen.label}.`:'La orientación se aplica a la cámara que elijas.'}</p>
    <div className="actions">
     <button disabled={busy||locked} aria-pressed={rotation%180===0} onClick={()=>chooseRotation(0)}>Horizontal</button>
     <button disabled={busy||locked} aria-pressed={rotation%180===90} onClick={()=>chooseRotation(rotation%180===90?rotation:90)}>Vertical</button>

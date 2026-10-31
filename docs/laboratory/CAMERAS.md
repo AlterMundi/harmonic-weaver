@@ -91,3 +91,9 @@ Orientation is remembered per camera in the viewing browser; it never activates
 hardware on its own. Runtime telemetry reports the applied rotation and perception
 settings. Changing only orientation retains the active camera's other processing
 settings. Horizontal0° remains the default for existing configurations.
+
+The setup explicitly groups **1. Elegí la cámara** with **2. Elegí Horizontal o
+Vertical**. After a deliberate device selection, focus moves to that device's
+orientation choice. Its remembered orientation is shown, and connecting/applying
+remains explicit. Once the set is ready, [Bailar](DANCE_MODE.md) opens the source
+and body overlay across the viewport with the existing figure at the lower right.
