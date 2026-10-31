@@ -71,7 +71,7 @@ export function CameraSource({api,state,perception,locked=false}:{api:any;state:
     <button disabled={busy||locked} onClick={()=>chooseRotation((rotation+180)%360)}>Dar vuelta</button>
    </div>
    <p>Elegida: {orientationLabel(rotation)}. {sameCamera?`En uso: ${orientationLabel(cam.rotation_degrees??0)}.`:''}</p>
-   <p>Para una cámara montada de costado, elegí Vertical. Si quedás cabeza abajo, tocá Dar vuelta. {rotationChanged?'Pulsá Aplicar orientación para usar este giro.':'Pulsá Usar esta cámara para conectar con la orientación elegida.'}</p>
+   <p>Para una cámara montada de costado, elegí Vertical. Si quedás cabeza abajo, tocá Dar vuelta. {rotationChanged?'Pulsá Aplicar orientación para usar este giro.':sameCamera?'Esta orientación ya está activa.':'Pulsá Usar esta cámara para conectar con la orientación elegida.'}</p>
   </div>
   <div className="actions">
    <button disabled={loading} onClick={()=>void refresh()}>{loading?'Buscando cámaras…':'Actualizar cámaras'}</button>
