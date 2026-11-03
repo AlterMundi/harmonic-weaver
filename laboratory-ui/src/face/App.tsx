@@ -1,0 +1,159 @@
+import React,{useCallback,useEffect,useRef,useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import {measure,calibrate,changes,INDICES,FEATURES,type Point,type Center,type Baseline,type Measurement,type Values} from './geometry';
+import {EXAMPLES,example} from './examples';
+import {FaceSound,voicesFor} from './sound';
+import {documentFor,csv,validateSession,digest,PROTOCOL,type Trial,type Sample,type Reflection} from './research';
+import {phasorPoints,type Voice} from '../figure';
+import {useDanceMode} from '../DanceMode';
+import './face.css';
+const blank:Reflection={felt:'',perceived:'',tension:null,pleasantness:null};
+const labels:Record<string,string>={radial:'Expansión radial',browL:'Ceja izquierda',browR:'Ceja derecha',eyeL:'Apertura ojo izquierdo',eyeR:'Apertura ojo derecho',mouth:'Apertura de boca',mouthCurve:'Arco de la boca',browCurveL:'Arco ceja izquierda',browCurveR:'Arco ceja derecha',asymmetry:'Diferencia entre cejas'};
+const sleepFrame=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+function download(name:string,type:string,text:string){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function FaceApp(){
+ const [view,setView]=useState<'mirror'|'research'|'guide'>('mirror'),[origin,setOrigin]=useState<'synthetic'|'camera'>('synthetic');
+ const [exampleId,setExampleId]=useState('rest'),[animate,setAnimate]=useState(false),[localConsent,setLocalConsent]=useState(false),[dataConsent,setDataConsent]=useState(false);
+ const [devices,setDevices]=useState<MediaDeviceInfo[]>([]),[device,setDevice]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState('Ejemplo dibujado · no es una persona ni un resultado del estudio.'),[error,setError]=useState('');
+ const [frame,setFrame]=useState<Measurement|null>(null),[raw,setRaw]=useState<{mesh:Point[];width:number;height:number}|null>(null),[baseline,setBaseline]=useState<Baseline|null>(null),[center,setCenter]=useState<Center>('bridge');
+ const [calibrating,setCalibrating]=useState(false),[calibrationProgress,setCalibrationProgress]=useState(0),[sensitivity,setSensitivity]=useState(1),[fundamental,setFundamental]=useState(110),[volume,setVolume]=useState(.25),[soundOn,setSoundOn]=useState(false),[mirrored,setMirrored]=useState(true);
+ const [trials,setTrials]=useState<Trial[]>([]),[recording,setRecording]=useState(false),[elapsed,setElapsed]=useState(0),[task,setTask]=useState('rest'),[notice,setNotice]=useState('');
+ const video=useRef<HTMLVideoElement>(null),stage=useRef<HTMLDivElement>(null),figure=useRef<HTMLCanvasElement>(null),stream=useRef<MediaStream|null>(null),worker=useRef<Worker|null>(null),generation=useRef(0),inflight=useRef(false),audio=useRef<FaceSound|null>(null),lastVoices=useRef<Voice[]>([]),ready=useRef(false),lastFrame=useRef(0),lastRequest=useRef(0),lastVideo=useRef(-1);
+ const dance=useDanceMode(stage),full=dance.active;
+ const referenceStarted=useRef(0);
+ const calibratingFrames=useRef<{time:number;values:Values}[]|null>(null),capture=useRef<{trial:Trial;start:number}|null>(null),disposed=useRef(false);
+ const settings=useRef({baseline,center,sensitivity,fundamental,volume,origin});settings.current={baseline,center,sensitivity,fundamental,volume,origin};
+ const finish=useRef<(reason?:string)=>void>(()=>{});
+ finish.current=(reason)=>{const c=capture.current;if(!c)return;capture.current=null;c.trial.durationMs=Math.min(10000,Math.max(0,performance.now()-c.start));c.trial.complete=!reason;c.trial.endReason=reason||null;setTrials(t=>[...t,c.trial]);setRecording(false);setElapsed(0);audio.current?.mute();setSoundOn(false);void dance.exit().then(()=>requestAnimationFrame(()=>document.querySelector<HTMLTextAreaElement>('.face-trial:last-child textarea')?.focus()));setView('research');setNotice(reason?'Ensayo interrumpido. Conservamos las lecturas y sus faltantes.':'Ensayo listo. Podés escribir lo que sentiste y exportarlo.');};
+ const accept=useCallback((mesh:Point[]|null,width:number,height:number,kind:'camera'|'synthetic',reason?:string)=>{
+  const now=performance.now(),s=settings.current;if(s.origin!==kind)return;
+  const result:Measurement=mesh?measure(mesh,width,height,s.center):{ok:false,reason:reason||'No se detectó un rostro'};
+  lastFrame.current=now;setFrame(result);setRaw(mesh&&result.ok?{mesh,width,height}:null);
+  if(kind==='camera')setStatus(result.ok?'Rostro en seguimiento · medidas proyectadas':result.reason);
+  if(result.ok&&calibratingFrames.current){
+   const list=calibratingFrames.current;if(list.length&&now-list.at(-1)!.time>500)list.length=0;list.push({time:now,values:result.values});setCalibrationProgress(Math.min(100,(now-list[0].time)/1800*100,list.length/10*100));
+   if(now-list[0].time>=1800&&list.length>=10){try{const next=calibrate(list,s.center);setBaseline(next);setNotice('Referencia lista. Ahora cambiá un gesto y escuchá la diferencia.');}catch(e){setError(String(e instanceof Error?e.message:e));}calibratingFrames.current=null;setCalibrating(false);}
+  }else if(!result.ok&&calibratingFrames.current){calibratingFrames.current=[];setCalibrationProgress(0);}
+  const delta=result.ok&&s.baseline?changes(result.values,s.baseline):null;
+  const voices=delta?voicesFor(delta,s.sensitivity,s.fundamental):[];lastVoices.current=voices;
+  if(voices.length)audio.current?.update(voices);else audio.current?.silence();
+  const c=capture.current;if(c){const item:Sample={timeMs:Math.round(now-c.start),values:result.ok?result.values:null,delta,reason:result.ok?undefined:result.reason};if(item.timeMs<=10000)c.trial.samples.push(item);}
+ },[]);
+ const stopCamera=useCallback((message='Cámara apagada. Tus permisos siguen bajo tu control.')=>{
+  generation.current++;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;worker.current?.terminate();worker.current=null;ready.current=false;inflight.current=false;
+  if(video.current)video.current.srcObject=null;
+  referenceStarted.current=0;calibratingFrames.current=null;setCalibrating(false);setBusy(false);setBaseline(null);setRaw(null);setFrame(null);audio.current?.mute();setSoundOn(false);lastVoices.current=[];
+  finish.current('Cámara detenida');setStatus(message);
+ },[]);
+ useEffect(()=>{disposed.current=false;return()=>{disposed.current=true;generation.current++;stream.current?.getTracks().forEach(t=>t.stop());worker.current?.terminate();void audio.current?.close();};},[]);
+ useEffect(()=>{
+  const hidden=()=>{if(document.hidden){stopCamera('Pausado al salir de la pestaña. Volvé a conectar cuando quieras.');setAnimate(false);}};
+  document.addEventListener('visibilitychange',hidden);return()=>document.removeEventListener('visibilitychange',hidden);
+ },[stopCamera]);
+ useEffect(()=>{
+  if(origin!=='synthetic')return;
+  const tick=()=>{if(!document.hidden)accept(example(exampleId,animate?.5+.5*Math.sin(performance.now()/900):1),800,800,'synthetic');};
+  tick();const timer=setInterval(tick,100);return()=>clearInterval(timer);
+ },[origin,exampleId,animate,accept]);
+ useEffect(()=>{
+  const timer=setInterval(()=>{
+   if(capture.current){const d=performance.now()-capture.current.start;setElapsed(Math.min(10,d/1000));if(d>=10000)finish.current();}
+   if(origin==='camera'&&stream.current&&lastFrame.current&&performance.now()-lastFrame.current>750){audio.current?.silence();lastVoices.current=[];setRaw(null);setFrame({ok:false,reason:'Esperando una imagen nueva'});if(capture.current){const timeMs=Math.round(performance.now()-capture.current.start);if(timeMs<=10000)capture.current.trial.samples.push({timeMs,values:null,delta:null,reason:'No llegó una lectura reciente'});}}
+  },100);return()=>clearInterval(timer);
+ },[origin]);
+ useEffect(()=>{audio.current?.setVolume(volume);},[volume]);
+ useEffect(()=>{
+  const draw=()=>{
+   const c=figure.current;if(!c)return;const ctx=c.getContext('2d');if(!ctx)return;
+   const w=c.clientWidth*devicePixelRatio,h=c.clientHeight*devicePixelRatio;if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
+   ctx.fillStyle='#07131b';ctx.fillRect(0,0,w,h);const t=audio.current?.context.currentTime||0;
+   const voices=lastVoices.current.map(v=>({...v,phase_rad:2*Math.PI*((v.frequency_hz*t)%1)}));
+   const sum=Math.max(.1,voices.reduce((s,v)=>s+v.gain,0));const pts=phasorPoints(voices,400,1/fundamental,.82/sum),scale=Math.min(w,h)/2;
+   ctx.strokeStyle='#73dfd0';ctx.lineWidth=1.5*devicePixelRatio;ctx.beginPath();for(let i=0;i<pts.length;i+=2){const x=w/2+pts[i]*scale,y=h/2+pts[i+1]*scale;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();
+  };
+  draw();const timer=setInterval(draw,70);return()=>clearInterval(timer);
+ },[fundamental,view,full]);
+ const listDevices=async()=>{const rows=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');setDevices(rows);return rows;};
+ const startCamera=async()=>{
+  if(busy||recording||!localConsent)return;setBusy(true);setError('');setNotice('');stopCamera('Preparando el espejo…');setBusy(true);setOrigin('camera');settings.current.origin='camera';const g=++generation.current;
+  try{
+   if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia)throw Error('Abrí el espejo desde HTTPS o localhost para usar la cámara.');
+   const media=await navigator.mediaDevices.getUserMedia({video:device?{deviceId:{exact:device},width:{ideal:960},height:{ideal:720}}:{facingMode:'user',width:{ideal:960},height:{ideal:720}},audio:false});
+   if(g!==generation.current||disposed.current){media.getTracks().forEach(t=>t.stop());return;}
+   stream.current=media;await sleepFrame();if(!video.current)throw Error('No se pudo preparar el visor.');video.current.srcObject=media;await video.current.play();
+   media.getVideoTracks()[0].addEventListener('ended',()=>{if(g===generation.current)stopCamera('La cámara se desconectó. Elegí el dispositivo y volvé a conectar.');});
+   await listDevices();if(g!==generation.current)return;
+   setStatus('Cargando el seguimiento facial en este dispositivo…');
+   const w=new Worker(new URL('./worker.ts',import.meta.url));worker.current=w;lastVideo.current=-1;lastFrame.current=0;
+   const base=new URL('./',location.href).href;
+   w.onmessage=(event)=>{if(g!==generation.current)return;const d=event.data;
+    if(d.type==='ready'){ready.current=true;setBusy(false);setStatus('Buscando un rostro. Mirá de frente a la cámara.');}
+    if(d.type==='error'){inflight.current=false;ready.current=false;setBusy(false);audio.current?.silence();lastVoices.current=[];setRaw(null);setFrame({ok:false,reason:'Seguimiento detenido'});setError('No se pudo mantener el seguimiento. Apagá la cámara y volvé a conectar.');setStatus('Seguimiento detenido');finish.current('Error de seguimiento');return;}
+    if(d.type==='frame'){inflight.current=false;if(performance.now()-d.time>750){accept(null,d.width,d.height,'camera','La lectura llegó demasiado tarde');return;}accept(d.faces.length===1?d.faces[0]:null,d.width,d.height,'camera',d.faces.length>1?'Dejá una sola persona en el encuadre':'No se detectó un rostro');}
+   };
+   w.onerror=()=>{if(g!==generation.current)return;ready.current=false;inflight.current=false;setBusy(false);setError('El motor facial no pudo iniciarse. Revisá que sus archivos estén instalados.');audio.current?.silence();};
+   w.postMessage({type:'init',base});setTimeout(()=>{if(g===generation.current&&!ready.current){stopCamera('No se pudo preparar el seguimiento.');setError('El modelo tardó demasiado en cargar. Revisá la instalación y volvé a conectar.');}},25000);
+   const pump=async()=>{if(g!==generation.current||!video.current)return;const v=video.current,now=performance.now();
+    if(ready.current&&!inflight.current&&v.readyState>=2&&v.currentTime!==lastVideo.current&&now-lastRequest.current>=65){
+     inflight.current=true;lastRequest.current=now;lastVideo.current=v.currentTime;
+     try{const bitmap=await createImageBitmap(v);if(g!==generation.current){bitmap.close();return;}w.postMessage({type:'frame',bitmap,time:now,id:g},[bitmap]);}catch{inflight.current=false;accept(null,v.videoWidth,v.videoHeight,'camera','No se pudo leer esta imagen');}
+    }
+    requestAnimationFrame(()=>void pump());
+   };void pump();
+  }catch(e){if(g!==generation.current)return;stopCamera('No se pudo conectar la cámara.');const name=e instanceof DOMException?e.name:'';setError(name==='NotAllowedError'?'No se autorizó la cámara. Podés habilitarla en los permisos del navegador.':name==='NotReadableError'?'La cámara está ocupada o no se puede leer. Elegí otra o liberala en la aplicación que la usa.':e instanceof Error?e.message:String(e));}
+ };
+ const useExample=()=>{if(recording)return;stopCamera();setOrigin('synthetic');settings.current.origin='synthetic';setStatus('Ejemplo dibujado · no es una persona ni un resultado del estudio.');setError('');};
+ const changeCenter=(v:Center)=>{setCenter(v);setBaseline(null);audio.current?.silence();setNotice('Cambió el centro. Tomá una nueva referencia.');};
+ const startReference=()=>{if(!frame?.ok)return;audio.current?.mute();setSoundOn(false);setError('');setBaseline(null);calibratingFrames.current=[];setCalibrating(true);setCalibrationProgress(0);const token=performance.now();referenceStarted.current=token;setTimeout(()=>{if(referenceStarted.current===token&&calibratingFrames.current){calibratingFrames.current=null;setCalibrating(false);setError('No reunimos suficientes lecturas estables. Mirá de frente y volvé a tomar la referencia.');}},12000);};
+ const toggleSound=async()=>{if(soundOn){audio.current?.mute();setSoundOn(false);if(capture.current)capture.current.trial.audioEvents.push({timeMs:Math.round(performance.now()-capture.current.start),enabled:false});return;}try{if(!audio.current)audio.current=new FaceSound();audio.current.setVolume(volume);await audio.current.start();setSoundOn(true);if(capture.current)capture.current.trial.audioEvents.push({timeMs:Math.round(performance.now()-capture.current.start),enabled:true});}catch(e){setError(e instanceof Error?e.message:String(e));}};
+ const startTrial=()=>{if(!baseline||!frame?.ok||!dataConsent||trials.length>=50)return;const now=performance.now();capture.current={start:now,trial:{id:crypto.randomUUID(),origin,startedAt:new Date().toISOString(),durationMs:0,complete:false,endReason:null,center,baseline,sensitivity,fundamental,volume,soundEnabled:!!audio.current?.enabled,audioEvents:[],task,samples:[],reflection:{...blank}}};setRecording(true);setView('mirror');setNotice('');};
+ const updateReflection=(id:string,key:keyof Reflection,value:string)=>setTrials(rows=>rows.map(t=>t.id===id?{...t,reflection:{...t.reflection,[key]:key==='tension'||key==='pleasantness'?(value===''?null:Math.max(0,Math.min(100,Number(value)))):value}}:t));
+ const exportJson=async()=>{try{download('weaver-espejo-sesion.json','application/json',JSON.stringify(await documentFor(trials),null,2));setNotice('Sesión exportada. El archivo contiene medidas faciales y tus respuestas; guardalo en un lugar privado.');}catch{setError('No se pudo exportar. Conservamos la sesión en esta pestaña.');}};
+ const importJson=async(file?:File)=>{if(!file)return;try{if(file.size>12_000_000)throw Error('Elegí un JSON de hasta12MB.');const d=JSON.parse(await file.text());const rows=validateSession(d);if(d.protocol_sha256!==await digest(d.protocol))throw Error('La huella del protocolo no coincide.');setTrials(rows);setView('research');setNotice('Sesión importada para lectura. No activamos cámara ni sonido.');}catch(e){setError(e instanceof Error?e.message:String(e));}};
+ const clear=()=>{finish.current('Datos retirados');capture.current=null;setTrials([]);setDataConsent(false);setBaseline(null);audio.current?.mute();setSoundOn(false);setNotice('Datos de esta pestaña borrados. Los archivos ya exportados se borran donde los guardaste.');};
+ const delta=frame?.ok&&baseline?changes(frame.values,baseline):null;
+ const rawCenter=raw?(center==='bridge'?raw.mesh[168]:{x:(raw.mesh[33].x+raw.mesh[263].x)/2,y:(raw.mesh[33].y+raw.mesh[263].y)/2}):null;
+ const fullscreen=async()=>{if(dance.active)await dance.exit();else await dance.enter();};
+ return <main className="face-app">
+  <header className="face-header"><a href="./" className="face-brand">WEAVER <span>· espejo facial</span></a><nav aria-label="Secciones del espejo">{(['mirror','research','guide'] as const).map((key,i)=><button key={key} aria-pressed={view===key} onClick={()=>setView(key)}>{['Espejo','Investigación','Cómo funciona'][i]}</button>)}</nav><span className="face-local">● En este dispositivo</span>{origin==='camera'&&stream.current&&view!=='mirror'&&<button onClick={()=>stopCamera()}>Apagar cámara</button>}</header>
+  <div className="face-intro"><div><p className="face-eyebrow">ROSTRO · RELACIONES · SONIDO</p><h1>Escuchá tu gesto.</h1><p>Mové una ceja. Abrí una sonrisa. Explorá cómo cambia el sonido con la geometría de tu cara.</p></div><p className="face-experiment">Espejo experimental<br/><span>Las medidas describen el gesto. Lo que transmite lo contás vos.</span></p></div>
+  {error&&<p className="face-error" role="alert">{error}<button onClick={()=>setError('')}>Cerrar aviso</button></p>}
+  {notice&&<p className="face-notice" role="status">{notice}</p>}
+  <section hidden={view!=='mirror'} className="face-workspace">
+   <div className={'face-stage'+(full?' face-full':'')} ref={stage} tabIndex={0} role="region" aria-label="Espejo del rostro">
+    <div className="face-stage-bar"><span>{origin==='camera'?'Tu cámara':'Ejemplo dibujado'}{recording?` · ensayo ${elapsed.toFixed(1)} /10s`:''}</span>{recording&&<button onClick={()=>finish.current('Interrumpido por la persona')}>Detener ensayo</button>}<button onClick={()=>void fullscreen()}>{full?'Volver · Esc':'Ampliar espejo'}</button></div>
+    <div className={'face-video-wrap'+(mirrored?' face-mirrored':'')}>
+     {origin==='camera'?<video ref={video} autoPlay playsInline muted aria-label="Tu cámara en el espejo"/>:<svg className="face-drawn" viewBox="0 0 800 800" aria-label="Rostro esquemático sintético"><ellipse cx="400" cy="408" rx="224" ry="286" fill="#172c37" stroke="#406373" strokeWidth="2"/><path d="M400 340 L379 433 Q400 447 421 433" fill="none" stroke="#466e7d" strokeWidth="3"/></svg>}
+     {raw&&<svg className="face-contours" viewBox={`0 0 ${raw.width} ${raw.height}`} preserveAspectRatio="xMidYMid meet" aria-label="Puntos y arcos medidos del rostro">
+      {(['browR','browL','eyeR','eyeL','mouth'] as const).map(k=><polyline key={k} points={INDICES[k].map(i=>`${raw.mesh[i].x*raw.width},${raw.mesh[i].y*raw.height}`).join(' ')} fill="none" stroke={k==='mouth'?'#ffb4ab':'#78e4d3'} strokeWidth={raw.width*.0028}/>)}
+      {[105,334,159,386,61,291,13,14].map(i=><g key={i}><line x1={rawCenter!.x*raw.width} y1={rawCenter!.y*raw.height} x2={raw.mesh[i].x*raw.width} y2={raw.mesh[i].y*raw.height} stroke="#a3c3d8" opacity=".28"/><circle cx={raw.mesh[i].x*raw.width} cy={raw.mesh[i].y*raw.height} r={raw.width*.004} fill="#c7faf0"/></g>)}
+      <circle cx={rawCenter!.x*raw.width} cy={rawCenter!.y*raw.height} r={raw.width*.008} fill="#ffcb8b"/>
+     </svg>}
+    </div>
+    <div className="face-stage-status" role="status">{status}{calibrating&&<span>Tomando referencia · {Math.round(calibrationProgress)}%</span>}</div>
+    <figure className="face-sound-figure"><canvas ref={figure} aria-label="Representación geométrica del mapeo sonoro"/><figcaption>Figura del sonido{soundOn?' · activo':' · silenciado'}</figcaption></figure>
+   </div>
+   <aside className="face-controls" aria-label="Preparar el espejo">
+    <section><p className="face-step">01 · ELEGÍ UNA FUENTE</p><div className="face-source-buttons"><button aria-pressed={origin==='synthetic'} disabled={recording} onClick={useExample}>Probar un ejemplo</button><button aria-pressed={origin==='camera'} disabled={recording} onClick={()=>{stopCamera();setOrigin('camera');settings.current.origin='camera';setStatus('La cámara está apagada. Elegí el dispositivo y conectala.');}}>Mi cámara</button></div>
+    {origin==='synthetic'?<><label>Gesto del ejemplo<select value={exampleId} disabled={recording} onChange={e=>setExampleId(e.target.value)}>{EXAMPLES.map(e=><option key={e.id} value={e.id}>{e.label}</option>)}</select></label><p>{EXAMPLES.find(e=>e.id===exampleId)?.instruction}</p><label className="face-check"><input type="checkbox" checked={animate} disabled={recording} onChange={e=>setAnimate(e.target.checked)}/>Animar este ejemplo</label></>:<>
+     <label className="face-check"><input type="checkbox" checked={localConsent} disabled={busy||recording} onChange={e=>{setLocalConsent(e.target.checked);if(!e.target.checked)stopCamera();}}/>Soy mayor de18 y autorizo usar mi cámara en esta pestaña.</label><p>No se usa el micrófono. Las imágenes se procesan en tu dispositivo.</p>
+     <label>Cámara<select value={device} disabled={busy||recording} onChange={e=>setDevice(e.target.value)}><option value="">Cámara del dispositivo</option>{devices.map((d,i)=><option key={d.deviceId} value={d.deviceId}>{d.label||`Cámara ${i+1}`}</option>)}</select></label>
+     <div className="face-actions"><button className="face-primary" disabled={!localConsent||busy||recording} onClick={()=>void startCamera()}>{busy?'Preparando…':'Conectar cámara'}</button><button onClick={()=>stopCamera()}>Apagar cámara</button></div>
+     <button className="face-text-button" disabled={!localConsent||busy} onClick={()=>void listDevices().catch(()=>setError('No pudimos consultar las cámaras. Primero conectá una y autorizá el acceso.'))}>Actualizar cámaras</button>
+    </>}</section>
+    <section><p className="face-step">02 · TOMÁ TU REFERENCIA</p><label>Centro de comparación<select value={center} disabled={recording||calibrating} onChange={e=>changeCenter(e.target.value as Center)}><option value="bridge">Puente nasal alto</option><option value="eyes">Mitad entre ojos</option></select></label><p>Dejá descansar la cara y mirá de frente mientras tomamos la referencia.</p><button disabled={!frame?.ok||calibrating||recording} onClick={startReference}>{calibrating?'Tomando referencia…':baseline?'Volver a tomar referencia':'Tomar referencia'}</button>{calibrating&&<button onClick={()=>{referenceStarted.current=0;calibratingFrames.current=null;setCalibrating(false);}}>Cancelar referencia</button>}<p className="face-small">{baseline?`${baseline.frames} lecturas · referencia lista`:'La referencia permite escuchar cambios respecto de tu propio gesto.'}</p></section>
+    <section><p className="face-step">03 · ESCUCHÁ LOS CAMBIOS</p><button className="face-primary" disabled={!baseline} onClick={()=>void toggleSound()}>{soundOn?'Silenciar sonido':'Activar sonido'}</button><label>Volumen · {Math.round(volume*100)}%<input aria-label="Volumen del espejo" type="range" min="0" max="1" step=".01" value={volume} disabled={recording} onChange={e=>setVolume(Number(e.target.value))}/></label><details><summary>Ajustar el instrumento</summary><label>Sensibilidad · {sensitivity.toFixed(2)}<input type="range" min=".25" max="3" step=".05" value={sensitivity} disabled={recording} onChange={e=>setSensitivity(Number(e.target.value))}/></label><label>Fundamental · {fundamental}Hz<input type="range" min="55" max="220" step="1" value={fundamental} disabled={recording} onChange={e=>setFundamental(Number(e.target.value))}/></label><label className="face-check"><input type="checkbox" checked={mirrored} onChange={e=>setMirrored(e.target.checked)}/>Verme como en un espejo</label></details><p className="face-small">Seis voces senoidales. Si el rostro se pierde, el sonido se desvanece.</p></section>
+   </aside>
+   <div className="face-readings"><div><p className="face-step">LO QUE CAMBIA RESPECTO DE TU REFERENCIA</p><p>Proporciones y desplazamientos proyectados; no son una lectura de tus emociones.</p></div><div className="face-meters">{['radial','browL','browR','mouth','mouthCurve','asymmetry'].map(k=><div key={k}><span>{labels[k]}</span><strong>{delta?(delta[k as keyof Values]>=0?'+':'')+delta[k as keyof Values].toFixed(3):'—'}</strong><div className="face-meter"><i style={{width:`${delta?Math.min(100,Math.abs(delta[k as keyof Values])*500):0}%`}}/></div></div>)}</div></div>
+  </section>
+  <section hidden={view!=='research'} className="face-research">
+   <div className="face-research-intro"><p className="face-step">PILOTO EXPLORATORIO · V0.1</p><h2>Un gesto. Una observación.</h2><p>Guardá diez segundos de medidas y contá tu experiencia. Los ejemplos dibujados quedan marcados como sintéticos. La investigación de observadores se describe en el plan; estas respuestas son de quien explora el espejo.</p></div>
+   <div className="face-research-grid"><section className="face-card"><h3>Preparar un ensayo</h3><label className="face-check"><input type="checkbox" checked={dataConsent} disabled={recording} onChange={e=>setDataConsent(e.target.checked)}/>Autorizo conservar medidas y respuestas en esta pestaña para exportarlas.</label><p>Los archivos contienen geometría facial. Elegís con quién compartirlos. Esta versión no guarda fotos, video ni audio. Recargar cierra los datos que no exportaste.</p><label>Movimiento a explorar<select value={task} disabled={recording} onChange={e=>setTask(e.target.value)}>{EXAMPLES.map(e=><option key={e.id} value={e.id}>{e.label}</option>)}</select></label><p>{EXAMPLES.find(e=>e.id===task)?.instruction}</p><button className="face-primary" disabled={!baseline||!frame?.ok||!dataConsent||recording||trials.length>=50} onClick={startTrial}>Guardar ensayo de10 segundos</button>{recording&&<><p role="status">Registrando medidas · {elapsed.toFixed(1)} /10s</p><progress max="10" value={elapsed}/><button onClick={()=>finish.current('Interrumpido por la persona')}>Interrumpir ensayo</button></>}<p className="face-small">{baseline?'Referencia disponible.':'Primero tomá una referencia en Espejo.'} Al iniciar volvés al espejo; al terminar aparecen las preguntas. Los ajustes quedan fijados durante cada ensayo.</p></section>
+   <section className="face-card"><h3>Tu sesión · {trials.length} ensayos</h3><p>Datos en memoria, sin envío automático. Exportá antes de cerrar. Importar reemplaza esta lista después de validar el archivo.</p><div className="face-actions"><button disabled={!trials.length||recording} onClick={()=>void exportJson()}>Exportar sesión JSON</button><button disabled={!trials.length||recording} onClick={()=>download('weaver-espejo-medidas.csv','text/csv',csv(trials))}>Exportar tabla CSV</button></div><label>Leer una sesión anterior<input type="file" accept="application/json,.json" disabled={recording} onChange={e=>void importJson(e.target.files?.[0])}/></label><button onClick={clear}>Borrar mis datos de esta pestaña</button><p className="face-small">La huella del protocolo detecta cambios accidentales; no acredita quién produjo los datos.</p></section></div>
+   {trials.map((t,i)=><article key={t.id} className="face-card face-trial"><header><h3>Ensayo {String(i+1).padStart(2,'0')}</h3><span>{t.origin==='synthetic'?'Ejemplo sintético':'Cámara'} · {t.complete?'completo':'interrumpido'} · {(t.durationMs/1000).toFixed(1)}s</span></header><p>{t.samples.filter(s=>s.values).length} lecturas válidas · {t.samples.filter(s=>!s.values).length} faltantes. {t.endReason}</p><div className="face-question-grid"><label>¿Qué sentiste al hacer este gesto?<textarea maxLength={2000} value={t.reflection.felt} onChange={e=>updateReflection(t.id,'felt',e.target.value)}/></label><label>¿Qué te transmite al verlo o escucharlo?<textarea maxLength={2000} value={t.reflection.perceived} onChange={e=>updateReflection(t.id,'perceived',e.target.value)}/></label><label>Tensión percibida · 0 ninguna /100 mucha<input type="number" min="0" max="100" value={t.reflection.tension??''} onChange={e=>updateReflection(t.id,'tension',e.target.value)}/></label><label>Agrado · 0 muy desagradable /100 muy agradable<input type="number" min="0" max="100" value={t.reflection.pleasantness??''} onChange={e=>updateReflection(t.id,'pleasantness',e.target.value)}/></label></div><p className="face-small">Podés dejar cualquier pregunta sin responder. Un campo vacío queda como faltante.</p></article>)}
+  </section>
+  <section hidden={view!=='guide'} className="face-guide"><p className="face-step">UN ESPEJO PARA INVESTIGAR</p><h2>Qué medimos. Qué escuchás.</h2><div className="face-guide-grid"><article className="face-card"><h3>La geometría</h3><p>Seguimos arcos y puntos de cejas, ojos y boca. Compensamos posición, tamaño y giro en el plano de la imagen. Hace falta mirar de frente: un giro hacia un costado o arriba cambia la proyección.</p><p>Compará puente nasal y centro entre ojos tomando una referencia nueva. Los valores son relativos a tu rostro; no existe aquí una proporción correcta.</p></article><article className="face-card"><h3>El sonido</h3><p>La expansión, la apertura y los cambios de cejas modifican la intensidad de seis voces. La curvatura y la diferencia entre lados cambian sus frecuencias. Volumen, sensibilidad y fundamental son elecciones del instrumento.</p><p>Es una interpretación sonora diseñada para explorar; todavía no demuestra consonancia natural del rostro. Este motor del navegador es independiente de Shaper y no cambia tu set corporal.</p></article><article className="face-card"><h3>La investigación</h3><p>Primero verificamos que las medidas sean repetibles. Después preguntamos a personas qué les transmiten los gestos sin enseñarles una emoción esperada. Más adelante comparamos video, sonido y combinaciones concordantes e intercambiadas.</p><p>Las percepciones, lo que sintió quien hizo el gesto y las medidas se guardan como datos diferentes. No se deduce sinceridad, salud ni estado emocional verdadero.</p></article><article className="face-card"><h3>Tu cámara y tus datos</h3><p>La cámara se activa sólo con tu permiso. Se apaga al salir de la pestaña o con Apagar cámara. No se accede al micrófono y no se suben imágenes. Los archivos del modelo se sirven junto a esta web.</p><p>Guardá sólo con consentimiento. La sesión vive en memoria; JSON y CSV se descargan cuando vos lo pedís. Borrar aquí no elimina copias que ya compartiste.</p></article></div><p><a href="https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker" target="_blank" rel="noreferrer">Seguimiento facial: documentación de MediaPipe</a> · <a href="https://eprints.gla.ac.uk/88928/" target="_blank" rel="noreferrer">Antecedente de expresiones dinámicas</a></p></section>
+  <footer className="face-footer"><span>Weaver · estudio del gesto</span><span>Prototipo de investigación · v0.1</span></footer>
+ </main>;
+}
+export function mount(){document.title='Weaver · Espejo facial';createRoot(document.getElementById('root')!).render(<FaceApp/>);}

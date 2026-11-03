@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build"
+    "build": "npm run prepare:face && tsc --noEmit && vite build --base ./",
+    "prepare:face": "node ../scripts/prepare-face-assets.mjs"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "1.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

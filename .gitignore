@@ -21,3 +21,6 @@ reports/t45-*/state_timestamps.jsonl
 # Browser deployment config contains only public Google application identifiers.
 laboratory-ui/.env.local
 laboratory-ui/.env.*.local
+
+# Pinned face model and WASM are prepared locally at build time.
+laboratory-ui/public/face-assets/
