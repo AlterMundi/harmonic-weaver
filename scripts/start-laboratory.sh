@@ -69,7 +69,7 @@ if "$lab_check"; then
 fi
 
 cd -- "$lab_root/laboratory-ui"
-if [[ ! -d node_modules ]]; then npm ci --no-audit --no-fund; fi
+node "$lab_root/scripts/prepare-laboratory-dependencies.mjs"
 npm run build
 cd -- "$lab_root"
 export PYTHONPATH="$lab_root/src"

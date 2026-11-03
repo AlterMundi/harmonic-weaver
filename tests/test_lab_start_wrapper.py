@@ -17,17 +17,20 @@ def executable(path,body='#!/bin/sh\nexit 0\n'):
 @pytest.fixture
 def stack(tmp_path):
     root=tmp_path/'projects'/'weaver with spaces';(root/'scripts').mkdir(parents=True)
-    for name in ('start-laboratory.sh','start-laboratory-development.sh','start-laboratory-dev.sh'):
+    for name in ('start-laboratory.sh','start-laboratory-development.sh','start-laboratory-dev.sh','prepare-laboratory-dependencies.mjs'):
         shutil.copy2(SCRIPTS/name,root/'scripts'/name)
     (root/'laboratory-ui/node_modules').mkdir(parents=True)
+    (root/'laboratory-ui/package.json').write_text('{"name":"synthetic-lab-ui"}')
+    (root/'laboratory-ui/package-lock.json').write_text('{"lockfileVersion":3}')
     recorder='#!/usr/bin/env python3\nimport json,os,sys\nfrom pathlib import Path\nPath(os.environ["WEAVER_START_RECORD"]).write_text(json.dumps({"argv":sys.argv[1:],"path":os.environ["PYTHONPATH"],"harmocap":os.environ["HARMOCAP_DIR"],"shaper":os.environ["SHAPER_DIR"]}))\n'
     executable(root/'.venv/bin/python',recorder)
     for repo in ('harmonic-weaver','harmonic-shaper','harmonic-shaper-lab','harmonic-shaper-dev','HarMoCAP','HarMoCAP-lab'):
         executable(root.parent/repo/'.venv/bin/python')
     (root.parent/'HarMoCAP/harmocap-m-pose-ft2.pt').write_text('local synthetic model marker')
-    bindir=tmp_path/'bin';executable(bindir/'npm')
+    bindir=tmp_path/'bin'
+    executable(bindir/'npm','#!/usr/bin/env python3\nimport os,sys,json\nfrom pathlib import Path\np=Path(os.environ["WEAVER_NPM_RECORD"]);rows=json.loads(p.read_text()) if p.exists() else [];rows.append(sys.argv[1:]);p.write_text(json.dumps(rows))\nif sys.argv[1:2]==["ci"] and os.environ.get("WEAVER_NPM_CI_FAIL"):sys.exit(17)\n')
     env={k:v for k,v in os.environ.items() if k not in SELECTORS and k not in ('WEAVER_LAB_DATA_DIR','LAB_DEV_DATA_DIR')}
-    env.update(PATH=str(bindir)+os.pathsep+env['PATH'],WEAVER_START_RECORD=str(tmp_path/'record.json'),WEAVER_LAB_DATA_DIR=str(tmp_path/'private dev data'))
+    env.update(PATH=str(bindir)+os.pathsep+env['PATH'],WEAVER_START_RECORD=str(tmp_path/'record.json'),WEAVER_NPM_RECORD=str(tmp_path/'npm.json'),WEAVER_LAB_DATA_DIR=str(tmp_path/'private dev data'))
     return root,env
 
 
@@ -92,3 +95,34 @@ def test_both_legacy_spellings_share_describe_and_allow_explicit_overrides(stack
     args=json.loads(Path(env['WEAVER_START_RECORD']).read_text())['argv']
     assert args[args.index('--port')+1]=='17775'
     assert args[-2:]==['--data-dir','chosen data']
+
+
+def test_existing_ui_install_is_reconciled_once_then_reused(stack):
+    root,env=stack
+    for _ in range(2):
+        result=run(stack)
+        assert result.returncode==0,result.stderr
+    calls=json.loads(Path(env['WEAVER_NPM_RECORD']).read_text())
+    assert sum(call[:1]==['ci'] for call in calls)==1
+    assert sum(call==['run','build'] for call in calls)==2
+
+
+@pytest.mark.parametrize('name',['package.json','package-lock.json'])
+def test_changed_ui_dependency_contract_refreshes_existing_packages(stack,name):
+    root,env=stack
+    assert run(stack).returncode==0
+    p=root/'laboratory-ui'/name
+    value=json.loads(p.read_text());value['synthetic_revision']=2;p.write_text(json.dumps(value))
+    result=run(stack)
+    assert result.returncode==0,result.stderr
+    calls=json.loads(Path(env['WEAVER_NPM_RECORD']).read_text())
+    assert sum(call[:1]==['ci'] for call in calls)==2
+
+
+def test_failed_dependency_refresh_does_not_build_or_start_audio(stack):
+    root,env=stack
+    result=run(stack,overrides={'WEAVER_NPM_CI_FAIL':'1'})
+    assert result.returncode==17
+    assert not Path(env['WEAVER_START_RECORD']).exists()
+    assert not (root/'laboratory-ui/node_modules/.weaver-dependencies.sha256').exists()
+    assert json.loads(Path(env['WEAVER_NPM_RECORD']).read_text())==[['ci','--no-audit','--no-fund']]

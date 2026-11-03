@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, UploadFile, File, Form, Query, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
-from fastapi.staticfiles import StaticFiles
+from .ui_assets import LaboratoryUIFiles
 from pydantic import Field
 
 from .contracts import Contract, Number, PERSISTED_CONTRACTS, PerceptionSettings, Preset
@@ -1750,5 +1750,5 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
             pass
 
     if ui_dir is not None and (ui_dir / "index.html").is_file():
-        app.mount("/", StaticFiles(directory=ui_dir, html=True), name="laboratory-ui")
+        app.mount("/", LaboratoryUIFiles(directory=ui_dir, html=True), name="laboratory-ui")
     return app

@@ -2,6 +2,11 @@
 
 Headless modulation router/patchbay for the Harmonic Beacon ecosystem.
 
+The maintained shared laboratory is in **AlterMundi/harmonic-weaver**, branch
+`main`. It includes the body and **Rostro** instruments and the camera, recording,
+tutorial, fullscreen and volume improvements. [Install/update the same laboratory](docs/laboratory/UPDATES.md);
+[use the face instrument](docs/laboratory/face/README.md).
+
 harmonic-weaver routes modulation from **sources** through **transformations**
 into **instruments**. It manages scenes and a global panic, and is driven by
 contract manifests. It has no UI of its own: all UIs are thin clients of the

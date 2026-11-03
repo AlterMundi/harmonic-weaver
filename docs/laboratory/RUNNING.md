@@ -5,6 +5,9 @@ aceptación de Nicolás no se infieren de las pruebas automatizadas.
 
 [Evidencia, mediciones y límites conocidos](VALIDATION.md).
 
+[Shared source, dependency refresh and browser updates](UPDATES.md): use the same
+ordinary laboratory for body and face; preserve machine settings and local data.
+
 ## Vista Performance
 
 El botón **Performance** del encabezado reúne intensidad, realce, articulación,
