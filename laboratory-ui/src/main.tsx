@@ -1116,7 +1116,7 @@ function App() {
           </h1>
         </div>
         <div className="actions" role="group" aria-label="Vista del laboratorio">
-          <a className="face-launch-link" href="?mode=face" target="_blank" rel="noreferrer" style={{fontSize:16,padding:"10px 12px",color:"#aee8da"}}>Espejo facial</a>
+          <a className="face-launch-link" aria-label="Espejo facial" href="?mode=face" target="_blank" rel="noreferrer" style={{fontSize:16,padding:"10px 12px",color:"#aee8da"}}>Rostro</a>
           <button aria-label="Abrir fuentes" aria-haspopup="dialog" onClick={()=>openSources()}>Fuentes</button>
           <button aria-pressed={!performance} onClick={()=>changeView(false)}>Explorar</button>
           <button aria-pressed={performance} onClick={()=>changeView(true)}>Performance</button>

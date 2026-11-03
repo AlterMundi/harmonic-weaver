@@ -22,7 +22,7 @@ export class FaceSound{
  constructor(){
   const compressor=this.context.createDynamicsCompressor();compressor.threshold.value=-15;compressor.ratio.value=8;
   this.master.gain.value=this.volume;this.master.connect(compressor);compressor.connect(this.context.destination);compressor.connect(this.destination);
-  this.nodes=Array.from({length:6},()=>{const osc=this.context.createOscillator(),gain=this.context.createGain();gain.gain.value=0;osc.type='sine';osc.connect(gain);gain.connect(this.master);osc.start();return {osc,gain};});
+  this.nodes=Array.from({length:8},()=>{const osc=this.context.createOscillator(),gain=this.context.createGain();gain.gain.value=0;osc.type='sine';osc.connect(gain);gain.connect(this.master);osc.start();return {osc,gain};});
  }
  async start(){await this.context.resume();if(this.context.state!=='running')throw Error('Tocá Activar sonido para habilitar el audio.');this.enabled=true;}
  setVolume(v:number){this.volume=clip(v,0,1);this.master.gain.setTargetAtTime(this.volume,this.context.currentTime,.025);}

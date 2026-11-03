@@ -1,4 +1,6 @@
 import {FaceLandmarker,FilesetResolver} from '@mediapipe/tasks-vision';
+import {installLocalNetwork} from './localNetwork';
+installLocalNetwork(self.location.origin);
 let model:FaceLandmarker|undefined;
 self.onmessage=async(event:MessageEvent)=>{
  const {type,base,bitmap,time,id}=event.data;

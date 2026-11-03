@@ -1,4 +1,4 @@
-# Facial geometry and browser sound contract0.1
+# Facial geometry and browser sound contracts
 
 All descriptors are projected measurements, not internal-state labels. Coordinates
 are anatomical model left/right; mirroring affects display only.
@@ -42,9 +42,12 @@ an unsuccessful collection after12s. Reject MAD>0.012 for either eyebrow gap or>
 aperture. These thresholds require physical qualification. Changes are raw
 feature minus personal reference, not ratios between different people's faces.
 
-## Sound map
+## Historical six-voice sound map0.1
 
-The independent browser engine uses six continuously running sine oscillators.
+The legacy map uses six voices from an eight-oscillator browser engine.
+The current default is the [contour-series map0.2](CONTOUR_INSTRUMENT.md);
+its exact formula and controls are specified separately.
+The following equations remain unchanged for legacy-session comparisons.
 For feature changes d, movement vector m=(3d_radial,7d_browL,7d_browR,
 2d_eyeL,2d_eyeR,1.2d_mouth), bend vector
 b=(0,5d_browCurveL,5d_browCurveR,4d_asymmetry,-4d_asymmetry,6d_mouthCurve).

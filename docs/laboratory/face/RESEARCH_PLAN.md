@@ -168,3 +168,14 @@ source manifest, rights and clock qualification.
 No iris-based organ/life-history diagnosis, emotion diagnosis, lie detection,
 EEG-band inference, universal beauty ratio or energetic-efficiency claim is part
 of this protocol. Earlier Trama/general work remains separate roadmap scope, not completed by this prototype.
+
+## Implemented continuation,2026-11-03
+
+The [contour instrument0.2](CONTOUR_INSTRUMENT.md) implements an explicitly
+designed3–8-partial map, with separate richness and contraction-deviation controls.
+It is deliberately suggestive: a listener liking its output cannot validate
+that faces are naturally consonant. The legacy map remains selectable and
+imports keep their original protocol identity.
+See the [stimulus-evoked human experiment](HUMAN_EXPERIMENT.md) for the current
+next step, controls, pending stimulus rights and separation of felt/reported
+experience from observer perception. No new human results are asserted.
