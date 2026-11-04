@@ -67,3 +67,7 @@ estimated for drawing, not actual sampled audio telemetry or physical cymatics.
 Distances/curvatures are not frequencies. A designed map does not establish
 natural consonance. Signed inward bend, harmonicity, roughness, subjective
 pleasantness, perceived tension and practitioner feeling remain separate.
+
+## Local-curve continuation,2026-11-04
+
+The [local curves and actions research bench](../../../research/laboratory/facial_curves/README.md) distinguishes the current three-point chord deflection from a complete curvature profile. It adds center-independent curve magnitude/vector, inflection and scale tests plus a synthetic interactive teaching note. A midpoint can bulge toward the reference while its curvature vector points away; those descriptors must not share an unqualified concavity label. This research bench does not change the live geometry version, sound or session schema.

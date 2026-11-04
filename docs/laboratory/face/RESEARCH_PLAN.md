@@ -179,3 +179,7 @@ imports keep their original protocol identity.
 See the [stimulus-evoked human experiment](HUMAN_EXPERIMENT.md) for the current
 next step, controls, pending stimulus rights and separation of felt/reported
 experience from observer perception. No new human results are asserted.
+
+## Local shape beyond center distance,2026-11-04
+
+Sai emphasized that each expressive line carries shape/motion information beyond the nasal/eye reference. The [source-grounded continuation and mathematical bench](../../../research/laboratory/facial_curves/README.md) uses FACS/component-analysis antecedents and separates local curve geometry, regional movement, center relation and skin-line appearance. It provides matched-opening/different-curvature controls and a staged annotation/sonification plan. Synthetic geometry/browser checks are not action-recognition, human-perception or physical skin-crease validation; the deployed reader still uses its previous descriptors.
