@@ -1,4 +1,5 @@
 /** Projected, similarity-normalized facial geometry. No emotion classification. */
+import type {ExpressionReference} from './expression';
 export type Point = {x:number;y:number;z?:number};
 export type Center = 'bridge'|'eyes';
 export const GEOMETRY_VERSION='face-geometry/0.1';
@@ -45,7 +46,7 @@ export function measure(mesh:Point[],width:number,height:number,reference:Center
  if(!FEATURES.every(k=>Number.isFinite(values[k])))return {ok:false,reason:'Geometría degenerada'};
  return {ok:true,values,points,center,scale,yawProxy,roll:Math.atan2(x.y,x.x)};
 }
-export type Baseline={schema:'face-baseline/v1';center:Center;values:Values;noise:Values;frames:number;durationMs:number};
+export type Baseline={schema:'face-baseline/v1';center:Center;values:Values;noise:Values;frames:number;durationMs:number;expressionReference?:ExpressionReference};
 const median=(v:number[])=>{const a=[...v].sort((a,b)=>a-b);return a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2;};
 export function calibrate(frames:{time:number;values:Values}[],center:Center):Baseline{
  if(frames.length<10||frames.at(-1)!.time-frames[0].time<1200)throw Error('Necesitamos al menos1,2s y10 lecturas válidas.');

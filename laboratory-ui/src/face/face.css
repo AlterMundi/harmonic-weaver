@@ -4,3 +4,9 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 
 .face-instruments{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:0 0 20px;font-size:16px}.face-instruments a{color:#aee8da;padding:10px 0}.face-instruments strong{color:#f4fbfa}.face-drive{display:grid;gap:8px;padding:10px;background:#102733;border-radius:8px;font-size:14px}.face-drive span{display:flex;justify-content:space-between;gap:12px}.face-drive strong{color:#8de8d6}.face-instruments a:focus-visible{outline:2px solid #f4c989;outline-offset:4px}
+.face-expression-panel .face-expression-label{font-size:26px;line-height:1.15;color:#ffe2a6;margin:12px 0}
+.face-expression-evidence{padding-left:20px;margin:14px 0;color:#f1dfbc;font-size:14px}
+.face-expression-evidence li{margin:12px 0}.face-expression-evidence span{display:block;overflow-wrap:anywhere;color:#c7d9dd;margin-top:5px;font-variant-numeric:tabular-nums}
+.face-expression-badge{position:absolute;top:76px;left:18px;z-index:2;max-width:min(320px,calc(100% - 36px));padding:10px 13px;background:#07131be8;border:1px solid #827353;border-radius:10px;pointer-events:none}
+.face-expression-badge span{display:block;font-size:14px;line-height:1.4;color:#e3cfa4}.face-expression-badge strong{display:block;font-size:20px;line-height:1.3;color:#ffe2a6;font-weight:550;margin:4px 0}
+@media(max-width:720px){.face-expression-badge{top:70px;left:10px;max-width:calc(100% - 20px);padding:7px 10px}.face-expression-badge strong{font-size:18px}}

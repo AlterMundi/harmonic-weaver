@@ -1,4 +1,4 @@
-# Weaver facial mirror — contour instrument0.2
+# Weaver facial mirror — contour instrument0.3
 
 Build the existing laboratory with `cd laboratory-ui && npm ci && npm run build`.
 The build prepares pinned model/WASM under ignored `public/face-assets`; weights
@@ -22,7 +22,7 @@ No separate backend, account, host-camera permission or native Shaper is needed.
    Use **Borrar mis datos** to withdraw page-held data, including an active trial.
 
 This version saves derived metrics and answers only. It does not record camera
-pixels/audio, identify people, classify emotions, certify true/fake smiles, infer
+pixels/audio, identify people, validate felt emotions, certify true/fake smiles, infer
 EEG/health or implement the later observer modality experiment. Explicit
 synthetic examples are not study participants or evidence of expression accuracy.
 
@@ -32,6 +32,21 @@ Physical camera tracking, expression accuracy and actual hearing require a
 consented human check separate from synthetic/browser/model-fixture QA.
 
 The current [contour instrument](CONTOUR_INSTRUMENT.md) specifies the3–8-partial
-map, geometric drives, worker network boundary and v1/v2 export compatibility.
+map, geometric drives, worker network boundary and v1/v2/v3 export compatibility.
 The [next human experiment](HUMAN_EXPERIMENT.md) separates the JAFFE geometry
 pilot from prospective stimulus-evoked expression and listening trials.
+
+## Optional expression readout,2026-11-04
+
+Sai requested a visible emotion/expression identifier after the geometry-only
+version. The mirror now offers four **experimental geometric hypotheses** beside
+the face, highlights supporting points in gold and explains the deltas. Take a
+new resting reference, then enable **Mostrar lectura orientativa**. This is a
+hand-authored, unvalidated rule system, not a trained emotion model or FACS coder.
+Unknown, mixed, reference-needed and tracking-lost states are explicit. The audio
+map still depends on geometry, independently of these labels.
+
+[Expression readout specification](EXPRESSION_READOUT.md) gives the exact features,
+thresholds, persistence, limitations and validation plan. Trials automatically hide
+labels and leave them hidden afterward; v3 exports retain prior exposure context
+and expression geometry. Old imports retain unknown exposure, not assumed blinding.

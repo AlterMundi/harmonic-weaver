@@ -22,7 +22,7 @@ test('camera opt-in, multiple-face rejection and owned-track cleanup',async({pag
  },{mesh:example()});
  await page.goto(url);await page.getByRole('button',{name:'Mi cámara',exact:true}).click();await expect(page.getByRole('button',{name:'Conectar cámara',exact:true})).toBeDisabled();expect(await page.evaluate(()=>(window as any).__requests.length)).toBe(0);
  await page.getByText('Soy mayor de18 y autorizo usar mi cámara en esta pestaña.',{exact:true}).click();await page.getByRole('button',{name:'Conectar cámara',exact:true}).click();await expect(page.getByText('Rostro en seguimiento · medidas proyectadas',{exact:true})).toBeVisible({timeout:15000});await reference(page);
- await page.evaluate(()=>(window as any).__faces=2);await expect(page.getByText('Dejá una sola persona en el encuadre',{exact:true})).toBeVisible();await expect(page.getByLabel('Puntos y arcos medidos del rostro')).toHaveCount(0);
+ await page.evaluate(()=>(window as any).__faces=2);await expect(page.getByText('Dejá una sola persona en el encuadre',{exact:true})).toBeVisible();await expect(page.getByLabel('Puntos y arcos medidos del rostro')).toHaveCount(0);await expect(page.locator('.face-expression-label')).toHaveText('Sin lectura de expresión');
  await page.getByRole('button',{name:'Apagar cámara',exact:true}).click();expect(await page.evaluate(()=>(window as any).__tracks.every((t:MediaStreamTrack)=>t.readyState==='ended'))).toBe(true);expect(await page.evaluate(()=>(window as any).__requests[0].audio)).toBe(false);
 });
 test('camera denial is visible without automatic fallback',async({page})=>{

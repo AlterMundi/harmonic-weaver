@@ -6,7 +6,7 @@ Use the ordinary laboratory launch command and choose **Rostro**. In that view: 
 
 ## A designed map, without emotion inference
 
-Only validated geometry and changes relative to the person's reference enter the mapper. There is no emotion classifier, emotion probability, sincerity score or inferred inner state. The rendered lines are estimated facial contours, not segmentation of forehead wrinkles, infraorbital shading or nasolabial skin folds.
+Only validated geometry and changes relative to the person's reference enter the mapper. The audio mapper uses no emotion classifier, emotion probability, sincerity score or inferred inner state. A separate optional expression readout was added on2026-11-04; see [its specification](EXPRESSION_READOUT.md). The rendered lines are estimated facial contours, not segmentation of forehead wrinkles, infraorbital shading or nasolabial skin folds.
 
 The new default map `face-contour-series/0.2` exposes **Respuesta de riqueza** and **Desvío por contracción**, each0–1. The previous `face-six-sines/0.1` mapping remains selectable. These are compositional controls chosen to explore the human's intended connection between opening/smiling-like gestures and a richer aligned spectrum, and between contraction and displaced upper partials. Their expected emotional reading is a hypothesis, not a software measurement.
 
@@ -26,7 +26,7 @@ These constants define an exploratory instrument. They are not physiological thr
 
 ## Local processing and study records
 
-The model/WASM ship with the same UI build. A worker network guard permits same-origin fetch/XHR only, including blocking SDK diagnostics to external services. No microphone is requested. Camera/mesh data remain in the browser; the app does not upload frames. Session JSONv2 records the exact selected mapping/depths; CSV appends these controls. Valid v1 records remain importable and are explicitly marked as legacy rather than silently relabeled with the new map. Session hashes detect accidental protocol mismatch, not scientific authenticity.
+The model/WASM ship with the same UI build. A worker network guard permits same-origin fetch/XHR only, including blocking SDK diagnostics to external services. No microphone is requested. Camera/mesh data remain in the browser; the app does not upload frames. Session JSONv3 (and historicalv2) records the exact selected mapping/depths; CSV appends these controls. Valid v1 records remain importable and are explicitly marked as legacy rather than silently relabeled with the new map. Session hashes detect accidental protocol mismatch, not scientific authenticity.
 
 The body instrument's native six voices, presets, source and routing remain separate. The face sound is the browser engine; a native Shaper face-source adapter is not claimed here. No public webcam application, hosted per-person session backend or shared collection service is implied by source publication.
 

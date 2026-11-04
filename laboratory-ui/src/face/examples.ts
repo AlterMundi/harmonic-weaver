@@ -7,6 +7,7 @@ export const EXAMPLES=[
  {id:'contract',label:'Fruncir y soltar',instruction:'Acercá un poco las cejas y después aflojá.'},
  {id:'open',label:'Abrir cejas y ojos',instruction:'Abrí ambas cejas y los ojos; después dejá bajar una ceja.'},
  {id:'one',label:'Una sola ceja',instruction:'Cambiá una ceja manteniendo el resto lo más parecido posible.'},
+ {id:'down',label:'Bajar comisuras',instruction:'Bajá suavemente ambas comisuras sin forzar la mandíbula.'},
 ] as const;
 export function example(id:string='rest',amount=1):Point[]{
  const points:Point[]=Array.from({length:478},()=>({x:.5,y:.5,z:0}));
@@ -24,5 +25,6 @@ export function example(id:string='rest',amount=1):Point[]{
  const mouth=[61,40,37,0,267,270,291,321,314,17,84,91];
  mouth.forEach((n,i)=>put(n,.5-(.12+smile*.025)*Math.cos(i*Math.PI/6),.64-(.018+smile*.018)*Math.sin(i*Math.PI/6)-smile*.035*Math.pow(Math.cos(i*Math.PI/6),2)));
  put(13,.5,.627-smile*.008);put(14,.5,.653+smile*.035+open*.07);
+ if(id==='down')for(const i of mouth)points[i].y+=.035*amount*Math.pow((points[i].x-.5)/.12,2);
  return points;
 }

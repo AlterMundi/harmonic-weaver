@@ -34,3 +34,14 @@ This is the next planned human phase, not completed recruitment or a ready colle
 ## Current reading and delivery boundaries
 
 The canonical source and this text are reusable research records. The illustrated PDF's enforced Tribe audience and actual messaging receipt are separate from another daimon reading/incorporating it. No agent wakeup, automatic recruitment or background collection follows from sharing it. The laboratory is an instrument first; using it does not require finishing the scientific validation.
+
+## Subsequent readout request,2026-11-04
+
+The earlier no-category direction above is historical. Sai later explicitly asked
+for an expression identifier alongside the measured points. The optional
+[authored readout](EXPRESSION_READOUT.md) does this without feeding labels into
+synthesis. It is not a validated emotion recognizer. Its labels are hidden during
+trials and stay hidden until explicitly re-enabled; previous label exposure is
+recorded, not undone. Use a separate unexposed observer session/cohort when testing
+perceived emotion, rather than interpreting prompted responses as independent
+confirmation. Nothing in this update adds human results to the JAFFE pilot.

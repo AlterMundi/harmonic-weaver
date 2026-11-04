@@ -183,3 +183,13 @@ experience from observer perception. No new human results are asserted.
 ## Local shape beyond center distance,2026-11-04
 
 Sai emphasized that each expressive line carries shape/motion information beyond the nasal/eye reference. The [source-grounded continuation and mathematical bench](../../../research/laboratory/facial_curves/README.md) uses FACS/component-analysis antecedents and separates local curve geometry, regional movement, center relation and skin-line appearance. It provides matched-opening/different-curvature controls and a staged annotation/sonification plan. Synthetic geometry/browser checks are not action-recognition, human-perception or physical skin-crease validation; the deployed reader still uses its previous descriptors.
+
+## Optional expression suggestions,2026-11-04
+
+Sai subsequently requested visible expression identification. The separate
+[readout specification](EXPRESSION_READOUT.md) retains this correction and the
+measurement/interpretation distinction. Four authored prototypes provide possible
+labels with point evidence, not validated emotion or sincerity scores. The sound
+map is unchanged. v3 session files retain readout version, prior exposure and
+optional expression features/reference; v1/v2 remain importable. For an independent
+perception study keep labels hidden and recruit a fresh unexposed sample.
