@@ -65,3 +65,15 @@ test('trial hides suggestions throughout and afterward; actual exposure is expor
  const d=JSON.parse(content);expect(d.trials[0].expressionReadout).toEqual({version:EXPRESSION_VERSION,enabledBeforeTrial:true,suggestionSeenBeforeTrial:true,labelsDuringTrial:false});expect(d.trials[0].samples[0].expressionValues.cornerLiftL).toBeGreaterThan(0);
  await page.getByRole('button',{name:'Espejo',exact:true}).click();await expect(page.getByLabel('Mostrar lectura orientativa')).not.toBeChecked();await expect(page.locator('.face-expression-badge')).toHaveCount(0);await page.getByLabel('Mostrar lectura orientativa').check();await expect(page.locator('.face-expression-label')).toHaveText('Alegría posible');
 });
+
+test('withdrawing local data cancels an in-progress reference without recreating it',async({page})=>{
+ await page.goto('./?mode=face');await page.getByRole('button',{name:'Tomar referencia',exact:true}).click();
+ await page.getByRole('button',{name:'Investigación',exact:true}).click();
+ await page.getByRole('button',{name:'Borrar mis datos de esta pestaña',exact:true}).click();
+ await page.getByRole('button',{name:'Espejo',exact:true}).click();
+ await page.waitForTimeout(2500);
+ await expect(page.getByRole('button',{name:'Activar sonido',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Tomar referencia',exact:true})).toBeEnabled();
+ await expect(page.getByRole('button',{name:'Cancelar referencia',exact:true})).toHaveCount(0);
+ await expect(page.locator('.face-expression-label')).toHaveText('Sin lectura de expresión');
+});
