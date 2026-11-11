@@ -1,5 +1,11 @@
 # Estado actual del laboratorio
 
+2026-11-11: [Guitar spectral-analysis source](integrations/GUITAR_SPECTRUM.md)
+adds explicit read-only ingestion into the existing router. Contract/routing
+checks passed without hardware; Legion producer installation remains blocked
+by its refused SSH connection. This does not resume the held Cata trial or
+assert live acoustic integration.
+
 Continuation, 2026-10-27: [Legion recovery and proposed 13 November congress
 delivery](CONGRESS_2026-11-13.md). The retained saved state was inspected directly;
 the dated implementation history below is preserved.

@@ -1,0 +1,47 @@
+--- a/spectrum.py
++++ b/spectrum.py
+@@ -1,5 +1,5 @@
+ """R24 channel-2 live analysis. Bounded RAM only; no recording or motor control."""
+-import collections,json,math,subprocess,threading,time
++import collections,json,math,secrets,subprocess,threading,time
+ import numpy as np
+
+ RATE=48000
+@@ -37,6 +37,7 @@
+     def __init__(self):
+         self.lock=threading.RLock();self.stop_event=threading.Event();self.thread=None;self.proc=None
+         self.running=False;self.error=None;self.latest=None;self.held=None;self.rows=collections.deque(maxlen=100);self.seq=0
++        self.stream_id=secrets.token_hex(8);self.sample_seq=0;self.sampled_at=None
+         self.started=0;self.lease=0;self.size=2048;self.threshold=-65;self.hold_s=5
+     def start(self,settings):
+         if set(settings)!={'fft_size','threshold_db','hold_s'}:raise ValueError('Ajustes de espectro inválidos')
+@@ -47,6 +48,7 @@
+         with self.lock:
+             if self.running:raise ValueError('Detené la escucha antes de cambiar el análisis')
+             self.size=n;self.threshold=threshold;self.hold_s=hold;self.latest=None;self.held=None;self.rows.clear();self.seq=0;self.error=None
++            self.stream_id=secrets.token_hex(8);self.sample_seq=0;self.sampled_at=None
+             self.started=self.lease=time.monotonic();self.stop_event.clear();self.running=True
+             self.thread=threading.Thread(target=self.worker,daemon=True);self.thread.start()
+     def stop(self):
+@@ -62,7 +64,11 @@
+             if held:
+                 held['age_s']=round(now-held.pop('at'),2)
+                 if held['age_s']>self.hold_s:held=None
+-            return {'running':self.running,'error':self.error,'source':'Zoom R24 · canal físico2 (índice1)','sample_rate':RATE,'fft_size':self.size,'window_ms':round(self.size/RATE*1000,1),'bin_hz':round(RATE/self.size,2),'elapsed_s':round(now-self.started,1) if self.started else 0,'latest':self.latest,'held':held,'rows':list(self.rows)[-12:],'hold_s':self.hold_s,'max_session_s':900}
++            return {'source_schema':'hbg.spectrum/v1','stream_id':self.stream_id,'sample_seq':self.sample_seq,'sample_age_ms':round(max(0,now-self.sampled_at)*1000,3) if self.sampled_at is not None else None,'running':self.running,'error':self.error,'source':'Zoom R24 · canal físico2 (índice1)','sample_rate':RATE,'fft_size':self.size,'window_ms':round(self.size/RATE*1000,1),'bin_hz':round(RATE/self.size,2),'elapsed_s':round(now-self.started,1) if self.started else 0,'latest':self.latest,'held':held,'rows':list(self.rows)[-12:],'hold_s':self.hold_s,'max_session_s':900}
++    def observe(self,result,now):
++        """Record one newly computed window, never a repeated HTTP read."""
++        with self.lock:
++            self.latest=result;self.sample_seq+=1;self.sampled_at=now
+     def worker(self):
+         # Hardware exposes8 channels. Select channel index1 immediately in RAM;
+         # no unused channel or selected-channel audio is ever written to disk.
+@@ -90,7 +96,7 @@
+                 result=analyze(buf,self.size,self.threshold)
+                 if result is None:continue
+                 with self.lock:
+-                    self.latest=result
++                    self.observe(result,now)
+                     peak=result['peaks'][0] if result['peaks'] else None
+                     if peak and (not self.held or now-self.held['at']>self.hold_s or peak['db']>self.held['db']):self.held=dict(peak,at=now,spectrum=result['spectrum'])
+                     row=np.asarray(result['spectrum']);bucket=row if bucket is None else np.maximum(bucket,row)

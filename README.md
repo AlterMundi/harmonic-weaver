@@ -44,6 +44,13 @@ laboratory and the Shaper process it started. The historical
 `start-kinetic-consonance.sh` command below launches the earlier instrument.
 [Laboratory setup and walkthrough](docs/laboratory/RUNNING.md).
 
+## Guitar analyzer source
+
+The existing Guitar panel can provide fresh spectral peak, RMS and clipping
+measurements to the Weaver registry through an explicit read-only adapter.
+[Producer compatibility, use and receiving limits](docs/laboratory/integrations/GUITAR_SPECTRUM.md).
+It does not activate capture, hardware or a scene.
+
 ## Headless Weaver
 
 Install the project and run the Stage Contract server on the local-only default
