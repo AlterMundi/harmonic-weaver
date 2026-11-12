@@ -55,3 +55,20 @@ HTTP adapter and a fixed per-receiver service agent. Source publication, accepte
 start jobs, actual HTTP readiness and physical listening/tracking remain separate.
 The prior native-protocol page is retired; other receiver installations still
 require their own actual access and resource binding.
+
+## Guitar reference alignment — 40.4 Hz
+
+Spatializer source `0ba1237` now uses the guitar reference of40.4 Hz for
+its twelve band centers, bandwidths and1818 Hz high-pass crossover. This is
+an actual DSP correction, not a label change. Body preset and Shaper runtime
+reference were independently observed at40.4 Hz on the selected receiver.
+Rostro source2528f47 is included in the current UI build; new visits use40.4 Hz.
+Existing tabs retain their own state: export an active trial before reopening,
+and use the explicit40.4 Hz reset if the older page remains open. Historical
+v1–v4/110 Hz records remain readable without rewriting their tuning.
+
+For a live Spatializer update, capture the existing contract-gated68-control
+state, reload only its owning audio component, restore and read back those
+controls, and verify the existing audio connections. Preserve the guitar
+controller and body session. Receiving installation, software readiness and
+physical listening remain separate evidence; another host must adopt the source.
