@@ -4,6 +4,7 @@ import argparse
 import fcntl
 import json
 import os
+import platform
 from pathlib import Path
 import signal
 import subprocess
@@ -70,7 +71,13 @@ class Stack:
         contract=json.loads((self.args.spatializer_dir/'beacon_spatial.contract.json').read_text())
         try:
             snapshot=beacon_snapshot(host='127.0.0.1',port=57120,expected_contract_id=contract_id_from_manifest(contract),timeout=.6)
-            subprocess.run([sys.executable,str(self.args.spatializer_dir/'beacon_routes.py'),'--output','r24','--check'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=4)
+            if platform.system()=='Darwin':
+                native=json.loads((self.state/'spatializer/native.json').read_text())
+                if native.get('phase')!='processes_started' or native.get('source')!='live':return False
+                if native.get('input_device')!=os.environ.get('BEACON_INPUT_DEVICE') or native.get('output_device')!=os.environ.get('BEACON_OUTPUT_DEVICE'):return False
+                snapshot['coreaudio_configuration']=native
+            else:
+                subprocess.run([sys.executable,str(self.args.spatializer_dir/'beacon_routes.py'),'--output','r24','--check'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=4)
             self.audio_snapshot=snapshot
             return True
         except Exception:return False
@@ -79,7 +86,8 @@ class Stack:
         env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',BEACON_OUTPUT_TARGET='r24',
                  BEACON_LOG_DIR=str(self.state/'spatializer'))
         controller='http://127.0.0.1:18879/state'
-        if alive(controller):self.borrowed.append('guitar')
+        if self.args.no_guitar_controller:pass
+        elif alive(controller):self.borrowed.append('guitar')
         else:
             self.start('guitar',[str(self.args.guitar_panel_dir/'run-panel.sh')],self.args.guitar_panel_dir,env)
             self.wait_ready('guitar',lambda:alive(controller),10)
@@ -92,13 +100,16 @@ class Stack:
         if self.args.with_weaver:
             if alive('http://127.0.0.1:8765/'):self.borrowed.append('weaver')
             else:
-                self.start('weaver',[str(ROOT/'scripts/start-laboratory.sh'),'--audio-backend','jack','--device','R24 Analog Stereo','--tracking-device','cpu'],ROOT,env)
+                native=platform.system()=='Darwin'
+                device=os.environ.get('HARMONIC_SHAPER_DEVICE',os.environ.get('BEACON_OUTPUT_DEVICE','')) if native else 'R24 Analog Stereo'
+                if not device:raise ValueError('Select the native Shaper output device')
+                self.start('weaver',[str(ROOT/'scripts/start-laboratory.sh'),'--audio-backend','native' if native else 'jack','--device',device,'--tracking-device','auto' if native else 'cpu'],ROOT,env)
                 self.wait_ready('weaver',lambda:alive('http://127.0.0.1:8765/'),180)
         self.record('ready',audio=self.audio_snapshot,
-                    entry={'spatializer':'http://localhost:5050','guitar':'http://localhost:18879',
+                    entry={'spatializer':'http://localhost:5050','guitar':None if self.args.no_guitar_controller else 'http://localhost:18879',
                            'weaver':'http://localhost:8765' if self.args.with_weaver else None})
-        print('Harmonic Lab listo: guitarra R24 canal1 → Spatializer → salida R24.',flush=True)
-        print('Spatializer: http://localhost:5050 · Guitarra: http://localhost:18879',flush=True)
+        print('Harmonic Lab iniciado con CoreAudio seleccionado; verificar audio y escucha en esta Mac.' if platform.system()=='Darwin' else 'Harmonic Lab listo: guitarra R24 canal1 → Spatializer → salida R24.',flush=True)
+        print('Spatializer: http://localhost:5050'+('' if self.args.no_guitar_controller else ' · Guitarra: http://localhost:18879'),flush=True)
         if self.args.with_weaver:print('Weaver/HarMoCAP: http://localhost:8765 · elegir fuente no activa la cámara automáticamente.',flush=True)
         print('Ctrl+C cierra sólo los componentes iniciados aquí; los que ya estaban abiertos se conservan.',flush=True)
         while not self.stop.wait(.5):
@@ -127,6 +138,7 @@ def main():
     parser.add_argument('--spatializer-dir',type=Path,default=ROOT.parent/'beacon-spatial')
     parser.add_argument('--guitar-panel-dir',type=Path,default=Path.home()/'.local/share/hbg-cyberbrick/panel')
     parser.add_argument('--state-dir',type=Path,default=Path.home()/'.local/state/harmonic-lab')
+    parser.add_argument('--no-guitar-controller',action='store_true',help='run audio/body software without requiring a CyberBrick motor controller')
     parser.add_argument('--with-weaver',action='store_true',help='also start the usual Weaver/Shaper laboratory; camera remains an explicit UI choice')
     parser.add_argument('--hours',type=float,default=8)
     args=parser.parse_args()

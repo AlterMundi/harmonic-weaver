@@ -1,5 +1,8 @@
 # Start the existing instruments together
 
+[Native macOS receiving and current acceptance limits](MACOS.md). The default
+Linux R24/JACK recipe below is not a Mac installation instruction.
+
 From the maintained `harmonic-weaver` checkout:
 
 ```sh

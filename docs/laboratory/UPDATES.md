@@ -23,3 +23,10 @@ The served entry HTML is marked `Cache-Control: no-store`. Opening/reloading the
 New users receive the shared features from the maintained source and its build. Camera permission, the selected device, personal resting reference, presets, recordings, folders, Drive account/grants and research responses belong to their installation/browser. Updating does not publish or copy Sai's camera frames, private files, accounts or unsaved session. See [running the laboratory](RUNNING.md), [camera scope](CAMERAS.md), [recording setup](RECORDING_SETUP.md) and [Rostro](face/README.md).
 
 An old downloaded copy or an old separately running server does not update itself from GitHub. This workflow is a source update and ordinary launch, not a background auto-updater or a newly published public webcam service.
+
+## macOS receiving
+
+Use the shared [native receiving guide](integrations/MACOS.md), exact CoreAudio
+selection and companion Spatializer update. A source pull or Linux test does
+not establish native audio/tracking acceptance. Existing Mac data/permissions
+and local changes remain with their receiving operator.
