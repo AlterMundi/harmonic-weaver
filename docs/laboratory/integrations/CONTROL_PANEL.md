@@ -1,77 +1,101 @@
-# Shared laboratory web entry and receiving services
+# Authenticated laboratory web control
 
-The shared entry is https://compaii.dmn.homes/harmonic_lab in Apps. It currently
-provides ordinary web links to interfaces on the visiting computer. **It does
-not yet have an HTTPS service-start writer.** Do not describe opening those
-links as starting services, or claim that a shared page installs a local agent.
+The selected entry is https://compaii.dmn.homes/harmonic_lab/ in Apps. The alias
+uses the existing Home service route and shared sign-in. It provides real
+per-receiver status, individual start, start-all and ordinary interface links
+only while the corresponding HTTP readiness check succeeds. There are no native
+URI links in this web flow. Loading or polling the panel never starts services.
 
-Nicolas rejected the `harmonic-lab://` links used in the first page. They were
-removed from the web entry: registering an OS handler and exercising its CLI did
-not establish the human's web click journey. The retained native handler below
-is implementation history and an optional technical route, not the normal web
-panel contract. Do not restore it as the default product flow. Genuine web start
-controls require a maintained authenticated per-computer operation endpoint,
-actual resource authorization, service availability and receiving qualification.
-Do not expose unauthenticated loopback writes or publish an administrative SSH
-key to make a button appear functional. Existing deployments and settings stay
-preserved while that integration remains unfinished.
+## Existing services, one receiving writer
 
-On an existing Linux laboratory installation, run
-`scripts/install-laboratory-launcher.sh`. This registers only the current user's
-URL handler; it creates no startup daemon or recurring job. The local handler
-uses the ordinary finite `start-live-stack.sh --guitar-lab` composition and
-`--body-only` for an independent body component. Existing ready components are
-reused. A foreign port is preserved. Each owned component session has its usual
-eight-hour limit, Ctrl+C stop path and bounded latest component logs. Failed
-components do not prevent the handler from attempting other selected components.
-The first browser activation may ask the user to open the native application.
+The Home HTTP service uses its existing deployment capability and access checks;
+Nicolas's selected instance is available to his existing paired-human audience.
+Its private `STATE_DIR/control.json` contains only operator-selected receivers.
+An HTTP caller cannot supply a machine address, user, credential, command, port
+or file path. Each entry has `id`, `label`, `resource`, `address`, `user`, `key`
+and `knownHosts`; credentials stay in private bounded service state, never the
+package, Git or browser. Another pair deploys this same source through its own
+Home capability and own resource bindings. Do not point Sai/Ani at Nicolas's
+resource or assume that a daimon VM owns their workstation's devices.
 
-The handler's single optional local configuration is
-`~/.config/harmonic-lab/launch.json`. Preserve a receiving operator's existing
-file. The default selects the installed motor panel if present and the body
-laboratory if present; Spatializer is off until an input/output profile is
-selected. No camera is required just to start the body UI; choose its source
-later. A computer without a guitar panel can start the body laboratory alone.
-An example **structure**, not an inventory claim or a receiving driver choice:
+The receiving Linux agent is a fixed executable, called through a new dedicated
+SSH service identity. The selected key is restricted to the gateway address,
+forced to this agent, and cannot forward, request a PTY or obtain a shell.
+The only sudo grant runs that root-owned agent as the actual local operator,
+with no arguments. Existing human administrative keys, SSH configuration and
+broad sudo rules are preserved. `backend/install_transport.py` is an explicit
+operator installation tool: public key plus a private receiving JSON with
+`operator` and `gateway_address`. It does not start at skill read or create a
+browser identity, login or pairing system. Non-Linux installation remains with
+the receiving operator's actual native route; the script refuses before mutation.
 
-```json
-{
-  "services": {"guitar": false, "audio": false, "body": true},
-  "environment": {
-    "HARMONIC_LAB_AUDIO_BACKEND": "native",
-    "HARMONIC_SHAPER_DEVICE": "Exact receiving output device",
-    "HARMONIC_LAB_TRACKING_DEVICE": "auto"
-  }
-}
-```
+The agent exposes only `status`, `start` and `configure` with closed validation.
+It imports the existing `scripts/open-harmonic-lab.py` service functions; no URI
+registration is required. It reuses the existing finite controller, Spatializer
+and body launchers. The body component contains Weaver, HarMoCAP and its managed
+Shaper. Camera/tracking is chosen later inside that interface. Missing or
+unselected guitar/audio components do not block the other selected services.
+A ready component is reused without restart. Host readiness is not physical
+camera, motor, USB wiring, listening or tracking acceptance.
 
-Backend choices reuse existing `native`, `jack` and `auto` support. An empty
-`HARMONIC_SHAPER_DEVICE` chooses the existing backend's default/query behavior;
-it does not select an input camera or microphone. Use the actual receiving
-PortAudio inventory and body UI audio controls to choose and check output.
-For macOS Spatializer keep its exact `BEACON_INPUT_DEVICE` and
-`BEACON_OUTPUT_DEVICE`. Linux Spatializer may select exact JACK ports with all
-three of `BEACON_INPUT_PORT`, `BEACON_OUTPUT_LEFT`, `BEACON_OUTPUT_RIGHT`, or reuse
-the existing R24/internal output profiles. Only its own SuperCollider links are
-modified. Clock/channel compatibility and actual listening remain receiving
-checks. Do not copy Linux device names onto another machine.
+`start` creates one bounded receiving job and returns acceptance separately from
+readiness. The UI updates actual service state and shows receiving failures.
+One latest job, two fixed lock files and a 32-request idempotency ledger bound
+control state; retries of a retained ID do not launch another job. Existing
+component sessions retain their eight-hour maximum, owned-only Ctrl+C cleanup
+and one 1 MiB latest log tail per component. No global Stop or model wakeup is
+part of this operation. Control-job state expiry is not an excuse to stop an
+unrelated or user-owned process.
 
-Current qualification: Linux activation of the previously stopped motor panel,
-reuse without a second process, Spatializer base startup, separate body startup,
-ordinary UI build, Shaper API and local interfaces were observed. The motor
-panel remained idle and no camera was started. A browser on the publishing host
-can inspect this navigation page but cannot prove the visiting Linux desktop's
-external-protocol acceptance. Human clicking, listening and source tracking are
-separate observations.
+## Audio and optional instruments
 
-macOS has a portable engine handoff in [MACOS](MACOS.md); this Linux desktop
-installer intentionally does not claim to register a macOS URL application.
-Oliva is retaining that receiving gap with Ani's inventory/access work. Other
-receivers need actual installation and selected audio; a shared entry or a GitHub
-collaborator grant is not delivery of their local native handler.
+The receiving profile remains `~/.config/harmonic-lab/launch.json`. The panel
+edits selected instruments and the existing native/JACK/auto output configuration
+for **future starts**, without restarting or retuning an active performance.
+No receiving device names are baked into the shared package. Reuse actual
+PortAudio/CoreAudio/JACK inventories and preserve personal presets/calibration.
+The three exact Linux JACK ports or the native CoreAudio device names remain
+explicit. Never silently substitute another camera/microphone or infer hardware
+from an accessible static UI. Body uses the host camera; Rostro uses the visiting
+browser's camera. Model selection still uses the existing explicit `--checkpoint`
+route; this panel does not claim a model selector.
 
-Recovery removes only the registered `harmonic-lab.desktop` association/file if
-still selected and stops the task-owned sessions through their native terminals.
-Preserve original defaults/associations, local configuration, private media and
-presets. The panel creates no hardware write merely by opening or restoring
-saved form values.
+The interface links intentionally target the selected receiver's localhost;
+open them from that receiver's browser. The authenticated web control endpoint
+can be reached elsewhere, but this does not proxy the instrument UIs onto another
+computer or a phone. Open is disabled while readiness is absent. A disconnected
+receiver cannot be started through an unavailable transport; the panel reports
+that condition rather than inventing success or opening a closed port.
+
+## Source, deployment and recovery
+
+`laboratory-control/index.html` and `app.js` are the single frontend source;
+`backend/main.js` is the Node24 HTTP adapter; `backend/agent.py` is the receiving
+operation writer. The deployable Home bundle flattens the frontend beside the
+Node entry with the existing closed `service.json` package contract. Use the
+normal `daimon-home publish` and `daimon-home-service --request` route, exact
+predecessor and private audience. Do not package receiving configuration or keys.
+The public alias delegates to that authenticated route, never an unauthenticated
+local-write or administrative SSH endpoint. Retain one current and one previous
+package plus the exact deployment receipt; bounded service storage is enforced
+by the existing receiver capability.
+
+Code rollback preserves receiving profiles and live instruments. Removing the
+transport later withdraws only its dedicated account/key, fixed agent and narrow
+sudo fragment after its own job has finished; it must not alter any pre-existing
+human login. Restoring UI code does not stop a motor/camera/audio operation.
+
+Observed selected Linux receiving evidence is retained in the owning Harmonic
+Lab work record: HTTP stopped-to-ready Spatializer/body startup, guitar reuse,
+actual interfaces, dedicated operation/forwarding denials and unchanged admin
+login hashes. Shared sign-in enforcement and browser verification are separate
+from hardware and human acceptance. Mac, Sai workstation and other receiving
+installations remain distinct unfinished adoption work, not implied by source
+publication or a GitHub invitation.
+
+## Retired first attempt
+
+The initial static page used `harmonic-lab://` links. Nicolas rejected them;
+terminal CLI/OS registration was not proof of a usable web click. That approach
+was removed from the web flow. Retain its useful local service functions, but do
+not reintroduce native protocols as substitutes for these real web operations.

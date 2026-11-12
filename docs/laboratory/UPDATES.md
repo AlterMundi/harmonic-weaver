@@ -47,3 +47,11 @@ Nicolas rejected custom native-scheme links in the web panel. The shared entry
 now uses ordinary interface links and truthfully states that web service startup
 is not connected yet. A tested native CLI/OS registration is not a verified web
 control flow; preserve the owning [control-panel contract](integrations/CONTROL_PANEL.md).
+
+## Real web operations
+
+The shared [control panel](integrations/CONTROL_PANEL.md) now has an authenticated
+HTTP adapter and a fixed per-receiver service agent. Source publication, accepted
+start jobs, actual HTTP readiness and physical listening/tracking remain separate.
+The prior native-protocol page is retired; other receiver installations still
+require their own actual access and resource binding.
