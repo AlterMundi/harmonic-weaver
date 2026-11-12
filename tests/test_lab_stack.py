@@ -5,7 +5,7 @@ import types
 import unittest
 from unittest.mock import patch,Mock
 
-spec=importlib.util.spec_from_file_location('lab_stack',Path(__file__).resolve().parents[1]/'scripts/start-harmonic-lab.py')
+spec=importlib.util.spec_from_file_location('lab_stack',Path(__file__).resolve().parents[1]/'scripts/harmonic-lab-session.py')
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 
 class StackTests(unittest.TestCase):
@@ -28,3 +28,9 @@ class StackTests(unittest.TestCase):
                     stack.run();start.assert_not_called()
                 self.assertEqual(stack.borrowed,['guitar','spatializer'])
             finally:stack.close()
+
+    def test_canonical_live_entry_exposes_the_profile_without_starting_devices(self):
+        import subprocess
+        command=Path(__file__).resolve().parents[1]/'scripts/start-live-stack.sh'
+        result=subprocess.run([str(command),'--guitar-lab','--help'],capture_output=True,text=True,timeout=5,check=True)
+        self.assertIn('--with-weaver',result.stdout)

@@ -18,6 +18,9 @@
 # detached run can be stopped later with --stop.
 #
 # Usage:
+#   scripts/start-live-stack.sh --guitar-lab [--with-weaver]
+#     Guitar CH1 -> Spatializer -> R24; optional usual body laboratory.
+#     No camera, scene activation or motor command on startup.
 #   scripts/start-live-stack.sh [options]
 #   scripts/start-live-stack.sh --stop <run-id|latest>
 #
@@ -99,6 +102,13 @@
 set -u
 
 WEAVER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# The human's existing entry point remains canonical. This profile composes
+# existing launchers without entering the historical auto-scene/camera path.
+if [ "${1:-}" = "--guitar-lab" ]; then
+    shift
+    exec python3 "$WEAVER_DIR/scripts/harmonic-lab-session.py" "$@"
+fi
+
 BEACON_DIR="${BEACON_DIR:-$HOME/Projects/beacon-spatial}"
 SHAPER_DIR="${SHAPER_DIR:-$HOME/Projects/harmonic-shaper}"
 HARMOCAP_DIR="${HARMOCAP_DIR:-$HOME/Projects/HarMoCAP}"

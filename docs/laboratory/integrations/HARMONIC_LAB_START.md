@@ -3,8 +3,12 @@
 From the maintained `harmonic-weaver` checkout:
 
 ```sh
-python3 scripts/start-harmonic-lab.py
+scripts/start-live-stack.sh --guitar-lab
 ```
+
+This is the existing full-stack entry point, with an explicit guitar profile.
+The historical default still activates its chosen scene and camera; the guitar
+profile uses `harmonic-lab-session.py` only as its internal supervisor.
 
 This starts/reuses the existing Guitar panel and starts the existing Spatializer
 in live mode, without a public tunnel. The verified audio path is R24 physical
@@ -16,7 +20,7 @@ Use the Guitar panel to control the motor explicitly. The former separate
 To include the ordinary body laboratory in the same invocation:
 
 ```sh
-python3 scripts/start-harmonic-lab.py --with-weaver
+scripts/start-live-stack.sh --guitar-lab --with-weaver
 ```
 
 This reuses `start-laboratory.sh --audio-backend jack --device "R24 Analog Stereo"
