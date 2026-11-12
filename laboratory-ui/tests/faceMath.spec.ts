@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {measure,bulge,inwardBend,calibrate,changes,FEATURES} from '../src/face/geometry';
 import {example} from '../src/face/examples';
 import {voicesFor} from '../src/face/sound';
-import {csv,validateSession,PROTOCOL,V4_PROTOCOL,V2_PROTOCOL,V3_PROTOCOL,LEGACY_PROTOCOL} from '../src/face/research';
+import {csv,validateSession,PROTOCOL,V5_PROTOCOL,V4_PROTOCOL,V2_PROTOCOL,V3_PROTOCOL,LEGACY_PROTOCOL} from '../src/face/research';
 const baseline=()=>calibrate(Array.from({length:20},(_,i)=>({time:i*100,values:(measure(example(),800,800) as any).values})),'bridge');
 test('similarity transforms preserve ratios and relative bend in the image plane',()=>{
  const original=measure(example('smile'),800,800);expect(original.ok).toBe(true);if(!original.ok)return;
@@ -46,7 +46,7 @@ test('CSV preserves missing/zero and escapes spreadsheet formulas in free text',
 });
 test('import rejects repeated identities, bad deltas and malformed numeric responses',()=>{
  const b=baseline(),trial:any={id:'a',origin:'synthetic',task:'one',center:'bridge',baseline:b,durationMs:10000,complete:true,endReason:null,soundEnabled:false,audioEvents:[],sensitivity:1,fundamental:110,volume:.25,samples:[{timeMs:0,values:b.values,delta:changes(b.values,b)}],reflection:{felt:'',perceived:'',tension:null,pleasantness:0}};
- trial.mapping={id:'contour',richness:1,detune:.8};const session:any={schema:'face-mirror-session/v5',protocol:PROTOCOL,trials:[trial]};expect(validateSession(session)).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v4',protocol:V4_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v3',protocol:V3_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v2',protocol:V2_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v1',protocol:LEGACY_PROTOCOL,trials:[{...trial,mapping:undefined}]} )[0].mapping?.id).toBe('legacy');expect(()=>validateSession({...session,trials:[trial,trial]})).toThrow();
+ trial.mapping={id:'contour',richness:1,detune:.8};const session:any={schema:'face-mirror-session/v6',protocol:PROTOCOL,trials:[trial]};expect(validateSession(session)).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v5',protocol:V5_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v4',protocol:V4_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v3',protocol:V3_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v2',protocol:V2_PROTOCOL})).toHaveLength(1);expect(validateSession({...session,schema:'face-mirror-session/v1',protocol:LEGACY_PROTOCOL,trials:[{...trial,mapping:undefined}]} )[0].mapping?.id).toBe('legacy');expect(()=>validateSession({...session,trials:[trial,trial]})).toThrow();
  expect(()=>validateSession({...session,trials:[{...trial,samples:[{...trial.samples[0],delta:{...trial.samples[0].delta,mouth:20}}]}]})).toThrow();
  expect(()=>validateSession({...session,trials:[{...trial,reflection:{...trial.reflection,tension:101}}]})).toThrow();
 });

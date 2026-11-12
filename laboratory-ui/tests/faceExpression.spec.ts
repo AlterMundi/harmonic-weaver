@@ -2,6 +2,7 @@ import {test,expect} from '@playwright/test';
 import {measure,calibrate,changes} from '../src/face/geometry';
 import {example} from '../src/face/examples';
 import {expressionValues,expressionReference,suggestExpression,ExpressionStabilizer,EXPRESSION_VERSION} from '../src/face/expression';
+import {REGIONAL_VERSION} from '../src/face/regions';
 import {documentFor,validateSession,csv,V2_PROTOCOL} from '../src/face/research';
 
 const probes=(id='rest')=>expressionValues(measure(example(id),800,800))!;
@@ -37,7 +38,7 @@ test('label requires half a second and resets immediately on loss or an interrup
 test('v3 exports exposure and expression geometry; v2 re-export leaves exposure unknown',async()=>{
  const m=measure(example(),800,800);if(!m.ok)throw Error();const b=calibrate(Array.from({length:20},(_,i)=>({time:i*100,values:m.values})),'eyes');b.expressionReference=reference();
  const trial:any={id:'expr',origin:'synthetic',task:'rest',startedAt:new Date().toISOString(),center:'eyes',baseline:b,durationMs:10000,complete:true,endReason:null,soundEnabled:false,audioEvents:[],sensitivity:1,fundamental:110,volume:.25,mapping:{id:'contour',richness:1,detune:.8},expressionReadout:{version:EXPRESSION_VERSION,enabledBeforeTrial:true,suggestionSeenBeforeTrial:true,labelsDuringTrial:false},samples:[{timeMs:0,values:m.values,delta:changes(m.values,b),expressionValues:probes()}],reflection:{felt:'',perceived:'',tension:null,pleasantness:null}};
- const doc=await documentFor([trial]);expect(doc.schema).toBe('face-mirror-session/v5');expect(validateSession(doc)[0].expressionReadout?.suggestionSeenBeforeTrial).toBe(true);expect(csv([trial])).toContain('suggestion_seen_before_trial');
+ const doc=await documentFor([trial]);expect(doc.schema).toBe('face-mirror-session/v6');expect(validateSession(doc)[0].expressionReadout?.suggestionSeenBeforeTrial).toBe(true);expect(csv([trial])).toContain('suggestion_seen_before_trial');
  expect(()=>validateSession({...doc,trials:[{...trial,expressionReadout:{...trial.expressionReadout,labelsDuringTrial:true}}]})).toThrow();
  expect(()=>validateSession({...doc,trials:[{...trial,samples:[{...trial.samples[0],expressionValues:{...probes(),mouth:NaN}}]}]})).toThrow();
  const {expressionReadout,...old}=trial;delete old.baseline.expressionReference;old.samples=[{timeMs:0,values:m.values,delta:changes(m.values,b)}];
@@ -62,7 +63,7 @@ test('trial hides suggestions throughout and afterward; actual exposure is expor
  await expect(page.getByLabel('Mostrar lectura orientativa')).not.toBeChecked();await expect(page.getByLabel('Mostrar lectura orientativa')).toBeDisabled();await expect(page.locator('.face-expression-badge')).toHaveCount(0);await expect(page.locator('[data-expression-point]')).toHaveCount(0);
  await expect(page.getByRole('heading',{name:'Ensayo 01'})).toBeVisible({timeout:15000});await expect(page.getByLabel('¿Qué sentiste al hacer este gesto?')).toBeFocused();
  const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'Exportar sesión JSON',exact:true}).click()]);const stream=await download.createReadStream();let content='';for await(const chunk of stream!)content+=chunk;
- const d=JSON.parse(content);expect(d.trials[0].expressionReadout).toEqual({version:EXPRESSION_VERSION,enabledBeforeTrial:true,suggestionSeenBeforeTrial:true,labelsDuringTrial:false});expect(d.trials[0].samples[0].expressionValues.cornerLiftL).toBeGreaterThan(0);
+ const d=JSON.parse(content);expect(d.trials[0].expressionReadout).toEqual({version:REGIONAL_VERSION,enabledBeforeTrial:true,suggestionSeenBeforeTrial:true,labelsDuringTrial:false});expect(d.trials[0].samples[0].expressionValues.cornerLiftL).toBeGreaterThan(0);expect(d.trials[0].samples[0].regionalValues.mouthBend).not.toBeNull();expect(d.trials[0].baseline.regionalReference.schema).toBe('face-regional-reference/v1');
  await page.getByRole('button',{name:'Espejo',exact:true}).click();await expect(page.getByLabel('Mostrar lectura orientativa')).not.toBeChecked();await expect(page.locator('.face-expression-badge')).toHaveCount(0);await page.getByLabel('Mostrar lectura orientativa').check();await expect(page.locator('.face-expression-label')).toHaveText('Alegría posible');
 });
 

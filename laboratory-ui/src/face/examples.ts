@@ -7,14 +7,17 @@ export const EXAMPLES=[
  {id:'contract',label:'Fruncir y soltar',instruction:'Acercá un poco las cejas y después aflojá.'},
  {id:'open',label:'Abrir cejas y ojos',instruction:'Abrí ambas cejas y los ojos; después dejá bajar una ceja.'},
  {id:'one',label:'Una sola ceja',instruction:'Cambiá una ceja manteniendo el resto lo más parecido posible.'},
+ {id:'eyes-brows',label:'Cejas y ojos · boca relajada',instruction:'Abrí cejas y ojos dejando la boca como en reposo.'},
+ {id:'mouth-open',label:'Boca abierta · resto en reposo',instruction:'Abrí sólo la boca. Puede aparecer al hablar o bostezar.'},
+ {id:'mixed',label:'Sonrisa y cejas fruncidas',instruction:'Combiná el gesto de la boca con otro de las cejas.'},
  {id:'down',label:'Bajar comisuras',instruction:'Bajá suavemente ambas comisuras sin forzar la mandíbula.'},
 ] as const;
 export function example(id:string='rest',amount=1):Point[]{
  const points:Point[]=Array.from({length:478},()=>({x:.5,y:.5,z:0}));
  const put=(i:number,x:number,y:number)=>points[i]={x,y,z:0};
  put(33,.28,.4);put(133,.43,.4);put(362,.57,.4);put(263,.72,.4);put(168,.5,.4);put(6,.5,.48);put(152,.5,.84);
- const smile=id==='smile'?.5*amount:id==='wide'?amount:0;
- const open=id==='open'?amount:0,contract=id==='contract'?amount:0;
+ const smile=id==='smile'?.5*amount:id==='wide'||id==='mixed'?amount:0;
+ const open=id==='open'||id==='eyes-brows'?amount:0,contract=id==='contract'||id==='mixed'?amount:0;
  const left=id==='one'?amount:open, right=open;
  [70,63,105,66,107].forEach((n,i)=>put(n,.275+i*.04,.32-Math.sin(i*Math.PI/4)*(.025+open*.012)-right*.045+contract*.025*(i/4)));
  [336,296,334,293,300].forEach((n,i)=>put(n,.565+i*.04,.32-Math.sin(i*Math.PI/4)*(.025+left*.012)-left*.045+contract*.025*(1-i/4)));
@@ -25,6 +28,8 @@ export function example(id:string='rest',amount=1):Point[]{
  const mouth=[61,40,37,0,267,270,291,321,314,17,84,91];
  mouth.forEach((n,i)=>put(n,.5-(.12+smile*.025)*Math.cos(i*Math.PI/6),.64-(.018+smile*.018)*Math.sin(i*Math.PI/6)-smile*.035*Math.pow(Math.cos(i*Math.PI/6),2)));
  put(13,.5,.627-smile*.008);put(14,.5,.653+smile*.035+open*.07);
+ if(id==='eyes-brows')points[14].y=.653;
+ if(id==='mouth-open')points[14].y+=.07*amount;
  if(id==='down')for(const i of mouth)points[i].y+=.035*amount*Math.pow((points[i].x-.5)/.12,2);
  return points;
 }

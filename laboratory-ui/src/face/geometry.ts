@@ -1,5 +1,6 @@
 /** Projected, similarity-normalized facial geometry. No emotion classification. */
 import type {ExpressionReference} from './expression';
+import type {RegionalReference} from './regions';
 export type Point = {x:number;y:number;z?:number};
 export type Center = 'bridge'|'eyes';
 export const GEOMETRY_VERSION='face-geometry/0.1';
@@ -12,6 +13,8 @@ export const INDICES={
   lip:[61,13,291,14],anchors:[33,263,168,6,152],
 } as const;
 export const SELECTED=[...new Set(Object.values(INDICES).flat())];
+// Numeric signals use these landmarks; decorative contour vertices do not gate sound.
+export const METRIC_INDICES=[33,263,168,6,152,386,334,159,105,374,362,145,133,13,14,61,291,336,300,70,107] as const;
 export const FEATURES=['radial','browL','browR','eyeL','eyeR','mouth','mouthCurve','browCurveL','browCurveR','asymmetry'] as const;
 export type Feature = typeof FEATURES[number];
 export type Values=Record<Feature,number>;
@@ -26,9 +29,13 @@ export function bulge(a:Point,b:Point,c:Point){
 export function inwardBend(a:Point,b:Point,c:Point,center:Point){
  const sign=Math.sign(bulge(a,center,c));return sign?bulge(a,b,c)*sign:0;
 }
-export function measure(mesh:Point[],width:number,height:number,reference:Center='bridge',mode:GeometryMode='projected'):Measurement{
+export type ProjectedFace={ok:true;points:Record<number,Point>;center:Point;scale:number;yawProxy:number;roll:number;geometryMode:GeometryMode}|{ok:false;reason:string};
+/** Normalize available contours independently; absent points are never filled with zero. */
+export function projectFace(mesh:Point[],width:number,height:number,reference:Center='bridge',mode:GeometryMode='projected'):ProjectedFace{
  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return {ok:false,reason:'Dimensiones inválidas'};
- if(SELECTED.some(i=>!mesh[i]||![mesh[i].x,mesh[i].y,mesh[i].z??0].every(Number.isFinite)))return {ok:false,reason:'Faltan puntos válidos'};
+ const valid=(i:number)=>!!mesh[i]&&[mesh[i].x,mesh[i].y,mesh[i].z??0].every(Number.isFinite);
+ if([33,263,...(reference==='bridge'||mode==='head-aligned'?[168]:[]),...(mode==='head-aligned'?[6]:[])].some(i=>!valid(i)))return {ok:false,reason:'Faltan anclas válidas del rostro'};
+ const selected=SELECTED.filter(valid);
  const pixel=(i:number)=>({x:mesh[i].x*width,y:mesh[i].y*height});
  const a=pixel(33),b=pixel(263),scale=distance(a,b);
  if(scale<width*.08)return {ok:false,reason:'Acercá el rostro a la cámara'};
@@ -36,7 +43,7 @@ export function measure(mesh:Point[],width:number,height:number,reference:Center
  if(yawProxy>(mode==='head-aligned'?1.15:.55))return {ok:false,reason:mode==='head-aligned'?'El giro oculta parte del rostro. Volvé un poco hacia la cámara.':'Mirá un poco más de frente'};
  const x={x:(b.x-a.x)/scale,y:(b.y-a.y)/scale},y={x:-x.y,y:x.x},origin=middle(a,b);
  const normalize=(p:Point):Point=>({x:((p.x-origin.x)*x.x+(p.y-origin.y)*x.y)/scale,y:((p.x-origin.x)*y.x+(p.y-origin.y)*y.y)/scale});
- let points=Object.fromEntries(SELECTED.map(i=>[i,normalize(pixel(i))]));
+ let points=Object.fromEntries(selected.map(i=>[i,normalize(pixel(i))]));
  if(mode==='head-aligned'){
   // Face-fixed axes use eye corners and nasal bridge only, never iris/pupil centers.
   // z is MediaPipe's relative estimate in image-width units, not measured depth.
@@ -48,10 +55,16 @@ export function measure(mesh:Point[],width:number,height:number,reference:Center
   const nasal=minus(p3(6),p3(168)),along=dot(nasal,ex),vertical={x:nasal.x-along*ex.x,y:nasal.y-along*ex.y,z:nasal.z-along*ex.z},length=norm(vertical);
   if(length<span*.01)return {ok:false,reason:'No se pudo orientar el rostro con estabilidad'};
   const ey={x:vertical.x/length,y:vertical.y/length,z:vertical.z/length},aa=p3(33),bb=p3(263),middle3={x:(aa.x+bb.x)/2,y:(aa.y+bb.y)/2,z:(aa.z+bb.z)/2};
-  points=Object.fromEntries(SELECTED.map(i=>{const v=minus(p3(i),middle3);return [i,{x:dot(v,ex)/span,y:dot(v,ey)/span}];}));
+  points=Object.fromEntries(selected.map(i=>{const v=minus(p3(i),middle3);return [i,{x:dot(v,ex)/span,y:dot(v,ey)/span}];}));
  }
 
  const center=reference==='bridge'?points[168]:{x:0,y:0};
+ return {ok:true,points,center,scale,yawProxy,roll:Math.atan2(x.y,x.x),geometryMode:mode};
+}
+export function measure(mesh:Point[],width:number,height:number,reference:Center='bridge',mode:GeometryMode='projected'):Measurement{
+ const projected=projectFace(mesh,width,height,reference,mode);if(!projected.ok)return projected;
+ const {points,center,scale,yawProxy,roll}=projected;
+ if(METRIC_INDICES.some(i=>!points[i]))return {ok:false,reason:'Faltan puntos válidos'};
  const gap=(upper:number,lower:number,outer:number,inner:number)=>distance(points[upper],points[lower])/distance(points[outer],points[inner]);
  const browL=points[386].y-points[334].y,browR=points[159].y-points[105].y;
  const radial=[105,334,159,386,61,291,13,14,152].reduce((s,i)=>s+distance(points[i],center),0)/9;
@@ -60,9 +73,9 @@ export function measure(mesh:Point[],width:number,height:number,reference:Center
   browCurveL:inwardBend(points[336],points[334],points[300],center),browCurveR:inwardBend(points[70],points[105],points[107],center),
   asymmetry:browL-browR};
  if(!FEATURES.every(k=>Number.isFinite(values[k])))return {ok:false,reason:'Geometría degenerada'};
- return {ok:true,values,points,center,scale,yawProxy,roll:Math.atan2(x.y,x.x),geometryMode:mode};
+ return {ok:true,values,points,center,scale,yawProxy,roll,geometryMode:mode};
 }
-export type Baseline={schema:'face-baseline/v1';center:Center;values:Values;noise:Values;frames:number;durationMs:number;expressionReference?:ExpressionReference;geometryMode?:GeometryMode};
+export type Baseline={schema:'face-baseline/v1';center:Center;values:Values;noise:Values;frames:number;durationMs:number;expressionReference?:ExpressionReference;regionalReference?:RegionalReference;geometryMode?:GeometryMode};
 const median=(v:number[])=>{const a=[...v].sort((a,b)=>a-b);return a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2;};
 export function calibrate(frames:{time:number;values:Values}[],center:Center):Baseline{
  if(frames.length<10||frames.at(-1)!.time-frames[0].time<1200)throw Error('Necesitamos al menos1,2s y10 lecturas válidas.');

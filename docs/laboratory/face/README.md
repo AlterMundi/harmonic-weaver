@@ -1,4 +1,4 @@
-# Weaver facial mirror — contour instrument0.5
+# Weaver facial mirror — contour instrument0.6
 
 Build the existing laboratory with `cd laboratory-ui && npm ci && npm run build`.
 The build prepares pinned model/WASM under ignored `public/face-assets`; weights
@@ -109,3 +109,22 @@ reference partials, real Web Audio oscillator values, decimal input/reset,
 v5 JSON/CSV and historical110Hz imports, plus the existing geometry, camera
 fixture, finite gain lease, withdrawal and narrow-screen journeys. This is
 software/fixture verification; no physical hearing/camera acceptance is inferred.
+
+
+## Independent regions and composed gestures,2026-11-13
+
+The mirror now displays mouth, eyes and brows separately, with local shape,
+signed arc deflection/turn, missingness and contributions to the total gesture.
+[Regional readout](REGIONAL_READOUT.md) specifies the authored rules, coordinate
+conventions, independent250ms persistence, partial data and limitations.
+The former complete-pattern classifier is retained for historical records.
+New sessionv6 records regional numeric descriptors/reference and the actual
+method; exact v1–v5 remain importable without invented data.
+
+**Mostrar curvas y puntos** hides only the overlay. Numeric sound no longer
+requires decorative contour vertices. Core metric loss still pauses sound;
+regional hypotheses use only their available evidence. Native body engines and
+the40.4Hz reference remain unchanged. New drawn examples let the person compare
+raised eyes/brows with a relaxed mouth, mouth opening alone and smile+furrow.
+A shared pose reference is still required; profile/occlusion accuracy and
+physical camera/hearing acceptance are not established by synthetic fixtures.
