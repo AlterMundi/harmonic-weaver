@@ -30,3 +30,9 @@ Use the shared [native receiving guide](integrations/MACOS.md), exact CoreAudio
 selection and companion Spatializer update. A source pull or Linux test does
 not establish native audio/tracking acceptance. Existing Mac data/permissions
 and local changes remain with their receiving operator.
+
+## Sai source adoption
+
+The [contribution audit](integrations/SAI_CONTRIBUTIONS.md) records shared UI work
+and the companion named-camera correction. The Mac receiving cutoff now includes
+HarMoCAP `4d56e4d`; previous source inclusion does not claim device acceptance.

@@ -34,6 +34,19 @@ receiving changes explicitly. Eko's separate Mac browser/Face review packet is
 not qualification of native pose/audio or a substitute for the requested stack;
 its publication and paused-goal holds remain independent.
 
+## Cutoff amendment 2 — Sai companion contribution
+
+The source audit found that the selected HarMoCAP baseline omitted Sai's
+`2d566f1a9370a44eae2b96d3066b3d4e68808021` named-camera fix. Use HarMoCAP
+`4d56e4d3da534287042e5eb870106ba0c589eb5f` for the current receiving cutoff;
+the other three source revisions in handoff 1 stay the same. The change treats
+only regular media files as paced/EOF-terminated files, preserving live behavior
+for named devices and URLs. The two capture-wakeup regression tests passed in
+the existing Linux laboratory environment after adoption; that is not a Mac
+camera/driver test. See [Sai contribution audit](SAI_CONTRIBUTIONS.md).
+Handoff 1 remains historical preparation evidence; this amendment supersedes
+its deliberate exclusion of the later HarMoCAP revision.
+
 ## Reuse the installation
 
 Keep the four existing sibling checkouts: `harmonic-weaver`, `harmonic-shaper`,
