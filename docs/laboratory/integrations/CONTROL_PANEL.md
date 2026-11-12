@@ -1,10 +1,20 @@
-# Shared control panel, local receiving services
+# Shared laboratory web entry and receiving services
 
-The shared entry is https://compaii.dmn.homes/harmonic_lab in Apps. It is navigation,
-not a remote motor/camera endpoint. Native `harmonic-lab://guitar|audio|body|all`
-activation resolves on the visiting computer; ordinary web links use that
-computer's localhost. Opening the same panel never operates Legion from another
-machine. No author bot, credentials or new login is involved.
+The shared entry is https://compaii.dmn.homes/harmonic_lab in Apps. It currently
+provides ordinary web links to interfaces on the visiting computer. **It does
+not yet have an HTTPS service-start writer.** Do not describe opening those
+links as starting services, or claim that a shared page installs a local agent.
+
+Nicolas rejected the `harmonic-lab://` links used in the first page. They were
+removed from the web entry: registering an OS handler and exercising its CLI did
+not establish the human's web click journey. The retained native handler below
+is implementation history and an optional technical route, not the normal web
+panel contract. Do not restore it as the default product flow. Genuine web start
+controls require a maintained authenticated per-computer operation endpoint,
+actual resource authorization, service availability and receiving qualification.
+Do not expose unauthenticated loopback writes or publish an administrative SSH
+key to make a button appear functional. Existing deployments and settings stay
+preserved while that integration remains unfinished.
 
 On an existing Linux laboratory installation, run
 `scripts/install-laboratory-launcher.sh`. This registers only the current user's

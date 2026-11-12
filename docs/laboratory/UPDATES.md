@@ -40,3 +40,10 @@ HarMoCAP `4d56e4d`; previous source inclusion does not claim device acceptance.
 The [shared control panel](integrations/CONTROL_PANEL.md) now composes existing
 finite components through a local desktop handler. Each receiving machine needs
 its own installation and audio selection; native macOS receiving remains pending.
+
+## Web entry correction
+
+Nicolas rejected custom native-scheme links in the web panel. The shared entry
+now uses ordinary interface links and truthfully states that web service startup
+is not connected yet. A tested native CLI/OS registration is not a verified web
+control flow; preserve the owning [control-panel contract](integrations/CONTROL_PANEL.md).
