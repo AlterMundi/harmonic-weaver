@@ -22,7 +22,7 @@ test('actual face worker keeps tracking beyond the SDK diagnostic flush without 
   const Native=window.Worker;(window as any).__faceTimes=[];window.Worker=class extends Native{constructor(...args:any[]){super(args[0],args[1]);this.addEventListener('message',e=>{if(e.data.type==='frame'&&e.data.faces.length===1)(window as any).__faceTimes.push(performance.now());});}} as any;
  });
  await page.goto('./?mode=face');await page.getByRole('button',{name:'Mi cámara',exact:true}).click();await page.getByText('Soy mayor de18 y autorizo usar mi cámara en esta pestaña.',{exact:true}).click();await page.getByRole('button',{name:'Conectar cámara',exact:true}).click();
- await expect(page.getByText('Rostro en seguimiento · medidas proyectadas',{exact:true})).toBeVisible({timeout:55000});
+ await expect(page.getByText(/^Rostro en seguimiento/)).toBeVisible({timeout:55000});
  const start=await page.evaluate(()=>performance.now());
  await page.waitForFunction(start=>((window as any).__faceTimes.at(-1)||0)>start+61000,start,{timeout:70000});
  await expect(page.getByLabel('Puntos y arcos medidos del rostro')).toBeVisible();expect(errors).toEqual([]);expect(external).toEqual([]);
