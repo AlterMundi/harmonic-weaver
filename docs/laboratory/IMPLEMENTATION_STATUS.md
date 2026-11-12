@@ -1,5 +1,9 @@
 # Estado actual del laboratorio
 
+2026-11-12: [joint Harmonic Lab startup](integrations/HARMONIC_LAB_START.md)
+composes the existing Guitar/Spatializer and optional body laboratory; receiving
+JACK/OSC checks and human listening remain distinct.
+
 2026-11-11: [Guitar spectral-analysis source](integrations/GUITAR_SPECTRUM.md)
 adds explicit read-only ingestion into the existing router. Contract/routing
 checks passed without hardware; Legion producer installation remains blocked

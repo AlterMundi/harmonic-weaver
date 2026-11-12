@@ -44,6 +44,12 @@ laboratory and the Shaper process it started. The historical
 `start-kinetic-consonance.sh` command below launches the earlier instrument.
 [Laboratory setup and walkthrough](docs/laboratory/RUNNING.md).
 
+## Harmonic Lab startup
+
+[Start Guitar and Spatializer together](docs/laboratory/integrations/HARMONIC_LAB_START.md),
+with the ordinary Weaver/HarMoCAP laboratory as an explicit option. Uses existing
+interfaces and audio devices; no motor, recording or camera activation on launch.
+
 ## Guitar analyzer source
 
 The existing Guitar panel can provide fresh spectral peak, RMS and clipping
