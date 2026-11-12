@@ -1,4 +1,4 @@
-# Weaver facial mirror — contour instrument0.3
+# Weaver facial mirror — contour instrument0.4
 
 Build the existing laboratory with `cd laboratory-ui && npm ci && npm run build`.
 The build prepares pinned model/WASM under ignored `public/face-assets`; weights
@@ -10,7 +10,7 @@ No separate backend, account, host-camera permission or native Shaper is needed.
 1. Try a drawn example, or choose **Mi cámara**, adult local-use consent and
    **Conectar cámara**. The first permission may reveal named camera choices.
 2. Choose a reference center and take a resting reference. Changing center/source
-   clears it. Keep the face close and frontal. A camera occupied by another app
+   clears it. Start with the face close and approximately frontal. A camera occupied by another app
    is not automatically taken over or replaced.
 3. Choose the contour-series map (default) or the preserved six-voice legacy map.
    The default reference is the eye midpoint. Activate sound from a button; adjust volume, sensitivity and fundamental.
@@ -40,7 +40,7 @@ pilot from prospective stimulus-evoked expression and listening trials.
 
 Sai requested a visible emotion/expression identifier after the geometry-only
 version. The mirror now offers four **experimental geometric hypotheses** beside
-the face, highlights supporting points in gold and explains the deltas. Take a
+the face, highlights supporting points in violet and explains the deltas. Take a
 new resting reference, then enable **Mostrar lectura orientativa**. This is a
 hand-authored, unvalidated rule system, not a trained emotion model or FACS coder.
 Unknown, mixed, reference-needed and tracking-lost states are explicit. The audio
@@ -50,3 +50,29 @@ map still depends on geometry, independently of these labels.
 thresholds, persistence, limitations and validation plan. Trials automatically hide
 labels and leave them hidden afterward; v3 exports retain prior exposure context
 and expression geometry. Old imports retain unknown exposure, not assumed blinding.
+
+
+## Head-relative comparison and cool contours,2026-11-12
+
+The default **Compensar giros moderados · experimental** compares estimated
+relative3D landmarks in a face-fixed plane, anchored by eye corners33/263 and
+nasal bridge168/6. Iris/pupil landmarks are neither needed nor used as a gate.
+Looking sideways with the eyes does not invalidate the geometry. Relative depth
+comes from the pinned model; it is not measured physical depth. Moderate head
+turns are supported experimentally; steep profiles/occlusion remain unknown.
+The prior **Comparación frontal · anterior** mode remains available. Changing
+comparison mode clears the resting reference and mutes sound until a new reference
+is taken. New sessions identify geometry mode in v4 JSON/CSV; v1–v3 imports retain
+their original protocol definitions.
+
+All measured curves and evidence markers use violet, cyan, blue, teal or green,
+with dark contour shadows. No skin-like pink/gold overlays remain. The four
+expression labels are still unvalidated authored geometric suggestions, and the
+sound still follows geometry rather than a label. No body tracking engine, native
+sound tuning, camera activation or public hosting selection changed.
+
+Validation:32 focused face tests pass, including synthetic yaw/pitch transforms,
+iris independence, steep-profile rejection, reference invalidation, exports,
+withdrawal, Web Audio, layout, and an actual pinned-model/WASM portrait fixture.
+These checks do not establish expression accuracy during real human turns;
+consented camera and hearing acceptance remain separate.

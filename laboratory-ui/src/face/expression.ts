@@ -36,7 +36,7 @@ export const unavailable=(detail='Tomá una referencia en reposo para leer la ex
 const labels={joy:'Alegría posible',surprise:'Sorpresa posible',anger:'Enojo posible',sadness:'Tristeza posible'};
 
 export function suggestExpression(values:ExpressionValues|null,reference?:ExpressionReference):ExpressionReading{
- if(!values)return unavailable('Necesitamos una lectura reciente de un solo rostro de frente.');
+ if(!values)return unavailable('Necesitamos una lectura reciente de un solo rostro visible.');
  if(!reference||!validExpressionReference(reference))return unavailable();
  const d=Object.fromEntries(EXPRESSION_FEATURES.map(k=>[k,values[k]-reference.values[k]])) as ExpressionValues;
  const threshold=(k:ExpressionFeature,min:number)=>Math.max(min,3*reference.noise[k]);
