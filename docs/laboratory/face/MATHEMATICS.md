@@ -51,9 +51,9 @@ The following equations remain unchanged for legacy-session comparisons.
 For feature changes d, movement vector m=(3d_radial,7d_browL,7d_browR,
 2d_eyeL,2d_eyeR,1.2d_mouth), bend vector
 b=(0,5d_browCurveL,5d_browCurveR,4d_asymmetry,-4d_asymmetry,6d_mouthCurve).
-At sensitivity S∈[0.25,3], fundamental F∈[55,220]Hz:
+At sensitivity S∈[0.25,3], fundamental F∈[40.4,220]Hz (default40.4):
 
-f_i=clamp(F(i+1)2^clamp(S b_i,-0.2,0.2),55,1600).
+f_i=clamp(F(i+1)2^clamp(S b_i,-0.2,0.2),min(55,F),1600).
 g_i=(0.13 if i=0 else0.045)+0.075 clamp(|S m_i|,0,1).
 
 Gain/frequency updates ramp; the master gain defaults to0.25 and is user-controlled.

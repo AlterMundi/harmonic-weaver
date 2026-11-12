@@ -1,4 +1,4 @@
-# Weaver facial mirror — contour instrument0.4
+# Weaver facial mirror — contour instrument0.5
 
 Build the existing laboratory with `cd laboratory-ui && npm ci && npm run build`.
 The build prepares pinned model/WASM under ignored `public/face-assets`; weights
@@ -76,3 +76,36 @@ iris independence, steep-profile rejection, reference invalidation, exports,
 withdrawal, Web Audio, layout, and an actual pinned-model/WASM portrait fixture.
 These checks do not establish expression accuracy during real human turns;
 consented camera and hearing acceptance remain separate.
+
+
+##40.4Hz reference,2026-11-12
+
+Sai selected40.4Hz as the facial instrument's default, matching the numeric
+reference of the native body set. Earlier facial builds defaulted to110Hz and
+rejected values below55Hz. The browser instrument now starts at40.4Hz, offers
+40.4–220Hz in0.1Hz steps and an explicit reset to40.4Hz. The displayed summary
+shows the current base even while detailed controls are collapsed. Both contour
+and six-voice comparison modes retain a first partial at the selected base;
+no55Hz floor silently retunes a40.4Hz first partial.
+
+In the aligned contour series the partials are40.4,80.8,121.2,161.6,202,242.4,
+282.8 and323.2Hz. Rest uses the first three; geometric opening/bending brings in
+higher partials, while contraction can displace upper frequencies without moving
+the first one. The existing power normalization, volume, expression rules and
+tracking-loss gain lease are unchanged. This is a compositional reference, not
+a validated natural emotion-to-pitch or brain-frequency correspondence. The
+browser and native engines share a numeric reference, not a synchronized phase clock.
+
+Session/protocolv5 identifies the default/range/step. Each trial keeps its actual
+fundamental; CSV appends fundamental_hz. Exact v1–v4 protocol definitions remain
+accepted with their historical55–220Hz range, and old110Hz records are not retuned.
+Actual loudspeaker/camera/hearing acceptance is separate from oscillator and
+export checks. A live browser page keeps its current settings until a deliberate
+reload; export unsaved research trials first. No native body process restart is
+needed for this frontend update.
+
+Validation for the40.4Hz change:34 focused tests passed, including both mapper
+reference partials, real Web Audio oscillator values, decimal input/reset,
+v5 JSON/CSV and historical110Hz imports, plus the existing geometry, camera
+fixture, finite gain lease, withdrawal and narrow-screen journeys. This is
+software/fixture verification; no physical hearing/camera acceptance is inferred.

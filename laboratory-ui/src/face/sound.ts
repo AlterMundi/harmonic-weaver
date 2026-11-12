@@ -1,11 +1,13 @@
 import type {Values} from './geometry';
 import type {Voice} from '../figure';
+import {FACE_FUNDAMENTAL,validFundamental} from './tuning';
 export const SOUND_VERSION='face-six-sines/0.1';
 const clip=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
-export function voicesFor(delta:Values,sensitivity=1,fundamental=110):Voice[]{
+export function voicesFor(delta:Values,sensitivity=1,fundamental=FACE_FUNDAMENTAL):Voice[]{
+ if(!validFundamental(fundamental))return [];
  const moves=[delta.radial*3,delta.browL*7,delta.browR*7,delta.eyeL*2,delta.eyeR*2,delta.mouth*1.2];
  const curves=[0,delta.browCurveL*5,delta.browCurveR*5,delta.asymmetry*4,-delta.asymmetry*4,delta.mouthCurve*6];
- return moves.map((v,i)=>({frequency_hz:clip(fundamental*(i+1)*2**clip(curves[i]*sensitivity,-.2,.2),55,1600),
+ return moves.map((v,i)=>({frequency_hz:clip(fundamental*(i+1)*2**clip(curves[i]*sensitivity,-.2,.2),Math.min(55,fundamental),1600),
   gain:(i===0?.13:.045)+clip(Math.abs(v*sensitivity),0,1)*.075,phase_rad:0,harmonic_n:i+1}));
 }
 /** Sample-clock gain lease, also exercised with the browser OfflineAudioContext. */
@@ -29,7 +31,7 @@ export class FaceSound{
  update(voices:Voice[]){
   this.last=voices;const now=this.context.currentTime;
   this.nodes.forEach(({osc,gain},i)=>{
-   const v=voices[i];osc.frequency.setTargetAtTime(v?.frequency_hz||110,now,.04);
+   const v=voices[i];osc.frequency.setTargetAtTime(v?.frequency_hz||FACE_FUNDAMENTAL,now,.04);
    const target=this.enabled?(v?.gain||0):0;leaseGain(gain.gain,target,now);
   });
  }

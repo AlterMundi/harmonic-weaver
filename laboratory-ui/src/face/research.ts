@@ -1,5 +1,6 @@
 import {FEATURES,GEOMETRY_VERSION,type Values,type Baseline,type Center,type GeometryMode,HEAD_GEOMETRY_VERSION} from './geometry';
 import {SOUND_VERSION} from './sound';
+import {FACE_FUNDAMENTAL,FACE_MIN_HZ,FACE_MAX_HZ,validFundamental} from './tuning';
 import {validMapping,type MappingSettings} from './contourSound';
 import {EXPRESSION_VERSION,EXPRESSION_FEATURES,validExpressionReference,type ExpressionValues} from './expression';
 export const MODEL_SHA='64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff';
@@ -23,7 +24,8 @@ export const V3_PROTOCOL={...V2_PROTOCOL,schema:'face-mirror-protocol/v3',
  exposure:'Hidden throughout trials and stays hidden afterward until explicitly enabled. Trial metadata retains prior enablement and previously seen suggestions; old imports have unknown exposure, not a claim of blinding.',
  samples:'Optional expressionValues contain point-derived heights, slopes, corner offsets and apertures. Personal expression reference is a separate optional baseline field. No image pixels.'},
 } as const;
-export const PROTOCOL={...V3_PROTOCOL,schema:'face-mirror-protocol/v4',geometry:HEAD_GEOMETRY_VERSION,geometry_modes:['projected','head-aligned'],measurement:'Legacy projected2D or head-aligned relative3D estimates using eye corners and nasal bridge; no iris/pupil-center gate. Moderate yaw only, no measured3D or profile accuracy claim. Trial and baseline identify the selected mode.'} as const;
+export const V4_PROTOCOL={...V3_PROTOCOL,schema:'face-mirror-protocol/v4',geometry:HEAD_GEOMETRY_VERSION,geometry_modes:['projected','head-aligned'],measurement:'Legacy projected2D or head-aligned relative3D estimates using eye corners and nasal bridge; no iris/pupil-center gate. Moderate yaw only, no measured3D or profile accuracy claim. Trial and baseline identify the selected mode.'} as const;
+export const PROTOCOL={...V4_PROTOCOL,schema:'face-mirror-protocol/v5',tuning:{default_hz:FACE_FUNDAMENTAL,min_hz:FACE_MIN_HZ,max_hz:FACE_MAX_HZ,step_hz:0.1,reference:'Instrument fundamental; no change to native body/Shaper tuning or emotion inference.'}} as const;
 export type Sample={timeMs:number;values:Values|null;delta:Values|null;reason?:string;expressionValues?:ExpressionValues|null};
 export type Reflection={felt:string;perceived:string;tension:number|null;pleasantness:number|null};
 export type Trial={geometryMode?:GeometryMode;expressionReadout?:{version:typeof EXPRESSION_VERSION;enabledBeforeTrial:boolean;suggestionSeenBeforeTrial:boolean;labelsDuringTrial:false};mapping?:MappingSettings;id:string;origin:'camera'|'synthetic';startedAt:string;durationMs:number;complete:boolean;endReason:string|null;center:Center;baseline:Baseline;sensitivity:number;fundamental:number;volume:number;soundEnabled:boolean;audioEvents:{timeMs:number;enabled:boolean}[];task:string;samples:Sample[];reflection:Reflection};
@@ -33,11 +35,11 @@ export function canonical(value:unknown):string{
  return JSON.stringify(value);
 }
 export async function digest(value:unknown){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical(value)))),v=>v.toString(16).padStart(2,'0')).join('');}
-export async function documentFor(trials:Trial[]){return {schema:'face-mirror-session/v4',protocol:PROTOCOL,protocol_sha256:await digest(PROTOCOL),exportedAt:new Date().toISOString(),trials};}
+export async function documentFor(trials:Trial[]){return {schema:'face-mirror-session/v5',protocol:PROTOCOL,protocol_sha256:await digest(PROTOCOL),exportedAt:new Date().toISOString(),trials};}
 const cell=(v:unknown)=>{let s=v==null?'':String(v);if(typeof v==='string'&&/^[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};
 export function csv(trials:Trial[]){
- const header=['trial_id','origin','task','time_ms','valid','gap_reason','center',...FEATURES,...FEATURES.map(k=>'delta_'+k),'felt','perceived','tension','pleasantness','mapping_id','richness_depth','detune_depth','expression_readout_version','readout_enabled_before_trial','suggestion_seen_before_trial','labels_during_trial',...EXPRESSION_FEATURES.map(k=>'expression_'+k),'geometry_mode'];
- const rows=trials.flatMap(t=>t.samples.map(s=>[t.id,t.origin,t.task,s.timeMs,!!s.values,s.reason,t.center,...FEATURES.map(k=>s.values?.[k]??null),...FEATURES.map(k=>s.delta?.[k]??null),t.reflection.felt,t.reflection.perceived,t.reflection.tension,t.reflection.pleasantness,t.mapping?.id??'legacy',t.mapping?.richness??1,t.mapping?.detune??1,t.expressionReadout?.version,t.expressionReadout?.enabledBeforeTrial,t.expressionReadout?.suggestionSeenBeforeTrial,t.expressionReadout?.labelsDuringTrial,...EXPRESSION_FEATURES.map(k=>s.expressionValues?.[k]??null),t.geometryMode??'projected'].map(cell).join(',')));
+ const header=['trial_id','origin','task','time_ms','valid','gap_reason','center',...FEATURES,...FEATURES.map(k=>'delta_'+k),'felt','perceived','tension','pleasantness','mapping_id','richness_depth','detune_depth','expression_readout_version','readout_enabled_before_trial','suggestion_seen_before_trial','labels_during_trial',...EXPRESSION_FEATURES.map(k=>'expression_'+k),'geometry_mode','fundamental_hz'];
+ const rows=trials.flatMap(t=>t.samples.map(s=>[t.id,t.origin,t.task,s.timeMs,!!s.values,s.reason,t.center,...FEATURES.map(k=>s.values?.[k]??null),...FEATURES.map(k=>s.delta?.[k]??null),t.reflection.felt,t.reflection.perceived,t.reflection.tension,t.reflection.pleasantness,t.mapping?.id??'legacy',t.mapping?.richness??1,t.mapping?.detune??1,t.expressionReadout?.version,t.expressionReadout?.enabledBeforeTrial,t.expressionReadout?.suggestionSeenBeforeTrial,t.expressionReadout?.labelsDuringTrial,...EXPRESSION_FEATURES.map(k=>s.expressionValues?.[k]??null),t.geometryMode??'projected',t.fundamental].map(cell).join(',')));
  return [header.map(cell).join(','),...rows].join('\r\n');
 }
 export function validateSession(raw:unknown):Trial[]{
@@ -45,14 +47,16 @@ export function validateSession(raw:unknown):Trial[]{
  const legacy=d?.schema==='face-mirror-session/v1'&&canonical(d.protocol)===canonical(LEGACY_PROTOCOL);
  const v2=d?.schema==='face-mirror-session/v2'&&canonical(d.protocol)===canonical(V2_PROTOCOL);
  const v3=d?.schema==='face-mirror-session/v3'&&canonical(d.protocol)===canonical(V3_PROTOCOL);
- if(!(legacy||v2||v3||d?.schema==='face-mirror-session/v4'&&canonical(d.protocol)===canonical(PROTOCOL))||!Array.isArray(d.trials)||d.trials.length>50)throw Error('Archivo de sesión incompatible.');
+ const v4=d?.schema==='face-mirror-session/v4'&&canonical(d.protocol)===canonical(V4_PROTOCOL);
+ const v5=d?.schema==='face-mirror-session/v5'&&canonical(d.protocol)===canonical(PROTOCOL);
+ if(!(legacy||v2||v3||v4||v5)||!Array.isArray(d.trials)||d.trials.length>50)throw Error('Archivo de sesión incompatible.');
  const ids=new Set();
  for(const t of d.trials){
   if(t.geometryMode!==undefined&&!['projected','head-aligned'].includes(t.geometryMode))throw Error('Comparación geométrica inválida.');
   if(!legacy&&!validMapping(t.mapping))throw Error('Mapeo de ensayo inválido.');
   if(typeof t.complete!=='boolean'||!(t.endReason===null||typeof t.endReason==='string'&&t.endReason.length<=300)||typeof t.soundEnabled!=='boolean'||!Array.isArray(t.audioEvents)||t.audioEvents.length>200||t.audioEvents.some(e=>!Number.isFinite(e.timeMs)||e.timeMs<0||e.timeMs>t.durationMs+500||typeof e.enabled!=='boolean'))throw Error('Estado de ensayo inválido.');
   if(typeof t.id!=='string'||ids.has(t.id)||!['camera','synthetic'].includes(t.origin)||!['bridge','eyes'].includes(t.center)||!t.baseline||t.baseline.center!==t.center||t.baseline.schema!=='face-baseline/v1'||!Array.isArray(t.samples)||t.samples.length>1200||!Number.isFinite(t.durationMs)||t.durationMs<0||t.durationMs>30000||typeof t.task!=='string'||t.task.length>300)throw Error('Ensayo inválido.');ids.add(t.id);
-  if(!Number.isFinite(t.sensitivity)||t.sensitivity<.25||t.sensitivity>3||!Number.isFinite(t.fundamental)||t.fundamental<55||t.fundamental>220||!Number.isFinite(t.volume)||t.volume<0||t.volume>1)throw Error('Mapeo inválido.');
+  if(!Number.isFinite(t.sensitivity)||t.sensitivity<.25||t.sensitivity>3||(v5?!validFundamental(t.fundamental):!Number.isFinite(t.fundamental)||t.fundamental<55||t.fundamental>220)||!Number.isFinite(t.volume)||t.volume<0||t.volume>1)throw Error('Mapeo inválido.');
   if(t.baseline.geometryMode!==undefined&&t.baseline.geometryMode!==(t.geometryMode??'projected'))throw Error('La referencia no coincide con la comparación geométrica.');
   if(!FEATURES.every(k=>Number.isFinite(t.baseline.values[k])&&Number.isFinite(t.baseline.noise[k])))throw Error('Referencia inválida.');
   if(t.baseline.expressionReference!==undefined&&!validExpressionReference(t.baseline.expressionReference))throw Error('Referencia de expresión inválida.');

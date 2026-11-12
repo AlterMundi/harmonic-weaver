@@ -1,5 +1,6 @@
 import {FEATURES,type Values} from './geometry';
 import type {Voice} from '../figure';
+import {FACE_FUNDAMENTAL,validFundamental} from './tuning';
 export const CONTOUR_SOUND_VERSION='face-contour-series/0.2';
 export type MappingSettings={id:'contour'|'legacy';richness:number;detune:number};
 export const DEFAULT_MAPPING:MappingSettings={id:'contour',richness:1,detune:.8};
@@ -18,9 +19,9 @@ export function validMapping(value:unknown):value is MappingSettings{
  const m=value as MappingSettings;return !!m&&['contour','legacy'].includes(m.id)&&[m.richness,m.detune].every(x=>Number.isFinite(x)&&x>=0&&x<=1);
 }
 /** Richness changes partial weights; contraction changes placement on Nico's f0/2 grid. */
-export function contourVoices(delta:Values,sensitivity=1,f0=110,mapping:MappingSettings=DEFAULT_MAPPING):Voice[]{
+export function contourVoices(delta:Values,sensitivity=1,f0=FACE_FUNDAMENTAL,mapping:MappingSettings=DEFAULT_MAPPING):Voice[]{
  const d=contourDrive(delta,sensitivity);
- if(!d||!validMapping(mapping)||!Number.isFinite(f0)||f0<55||f0>220)return [];
+ if(!d||!validMapping(mapping)||!validFundamental(f0))return [];
  const richness=d.spread*mapping.richness;
  const deviation=d.contraction*(1-d.spread)*mapping.detune;
  const offsets=[0,.65,-.55,.35,-.50,.40,-.30,.25];

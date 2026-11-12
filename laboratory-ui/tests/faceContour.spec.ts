@@ -5,17 +5,17 @@ import {contourDrive,contourVoices,DEFAULT_MAPPING} from '../src/face/contourSou
 const baseline=()=>{const m=measure(example(),800,800,'eyes');if(!m.ok)throw Error(m.reason);return m.values;};
 const delta=(id:string)=>{const m=measure(example(id),800,800,'eyes');if(!m.ok)throw Error(m.reason);return changes(m.values,{schema:'face-baseline/v1',center:'eyes',values:baseline(),noise:baseline(),frames:20,durationMs:1900});};
 test('geometric bends/openings enrich an integer series; contraction offsets upper partials',()=>{
- const rest=contourVoices(delta('rest')),wide=contourVoices(delta('wide')),open=contourVoices(delta('open')),contract=contourVoices(delta('contract'));
+ const rest=contourVoices(delta('rest'),1,110),wide=contourVoices(delta('wide'),1,110),open=contourVoices(delta('open'),1,110),contract=contourVoices(delta('contract'),1,110);
  expect(rest.filter(v=>v.gain>1e-6)).toHaveLength(3);expect(wide.filter(v=>v.gain>1e-6)).toHaveLength(8);expect(open.filter(v=>v.gain>1e-6)).toHaveLength(8);
  for(const voices of [rest,wide,open])voices.forEach((v,i)=>expect(v.frequency_hz).toBeCloseTo(110*(i+1),8));
  expect(contract[0].frequency_hz).toBe(110);expect(contract[1].frequency_hz).not.toBe(220);
  expect(Object.keys(contourDrive(delta('wide'))!)).not.toContain('emotion');
 });
 test('digital power stays constant across richness and intended reference partial stays fixed',()=>{
- for(const id of ['rest','wide','smile','contract','open','one'])for(const f0 of [55,110,220])for(const sensitivity of [.25,1,3]){
+ for(const id of ['rest','wide','smile','contract','open','one'])for(const f0 of [40.4,55,110,220])for(const sensitivity of [.25,1,3]){
   const voices=contourVoices(delta(id),sensitivity,f0);expect(voices).toHaveLength(8);expect(voices[0].frequency_hz).toBe(f0);
   expect(voices.reduce((s,v)=>s+v.gain*v.gain,0)).toBeCloseTo(.22**2,10);
-  for(const v of voices){expect(Number.isFinite(v.frequency_hz)).toBe(true);expect(v.frequency_hz).toBeGreaterThanOrEqual(55);expect(v.frequency_hz).toBeLessThan(2000);expect(v.gain).toBeGreaterThanOrEqual(0);}
+  for(const v of voices){expect(Number.isFinite(v.frequency_hz)).toBe(true);expect(v.frequency_hz).toBeGreaterThanOrEqual(40.4);expect(v.frequency_hz).toBeLessThan(2000);expect(v.gain).toBeGreaterThanOrEqual(0);}
  }
 });
 test('richness/deviation controls are independent; malformed input cannot create stale invalid audio',()=>{
