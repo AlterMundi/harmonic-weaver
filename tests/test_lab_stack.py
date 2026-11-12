@@ -61,3 +61,14 @@ class StackTests(unittest.TestCase):
                 self.assertIn('native',command);self.assertIn('Native Output',command)
                 self.assertIn('auto',command);self.assertNotIn('jack',command)
             finally:stack.close()
+
+    def test_body_component_reuses_existing_launcher_without_touching_audio_or_motor(self):
+        with tempfile.TemporaryDirectory() as td,patch.dict('sys.modules',{'bounded_log':types.SimpleNamespace(copy_tail=lambda *_:None)}):
+            args=types.SimpleNamespace(state_dir=Path(td),spatializer_dir=Path(td),hours=0,with_weaver=False,no_guitar_controller=False,body_only=True)
+            stack=module.Stack(args)
+            try:
+                with patch.object(module,'alive',return_value=False),patch.object(module.platform,'system',return_value='Linux'),patch.object(stack,'wait_ready'),patch.object(stack,'start') as start:
+                    stack.run()
+                self.assertEqual([c.args[0] for c in start.call_args_list],['weaver'])
+                self.assertIn(str(module.ROOT/'scripts/start-laboratory.sh'),start.call_args.args[1])
+            finally:stack.close()
