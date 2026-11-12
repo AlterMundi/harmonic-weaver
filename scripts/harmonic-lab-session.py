@@ -77,13 +77,13 @@ class Stack:
                 if native.get('input_device')!=os.environ.get('BEACON_INPUT_DEVICE') or native.get('output_device')!=os.environ.get('BEACON_OUTPUT_DEVICE'):return False
                 snapshot['coreaudio_configuration']=native
             else:
-                subprocess.run([sys.executable,str(self.args.spatializer_dir/'beacon_routes.py'),'--output','r24','--check'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=4)
+                subprocess.run([sys.executable,str(self.args.spatializer_dir/'beacon_routes.py'),'--output',os.environ.get('BEACON_OUTPUT_TARGET','r24'),'--check'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=4)
             self.audio_snapshot=snapshot
             return True
         except Exception:return False
 
     def run(self):
-        env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',BEACON_OUTPUT_TARGET='r24',
+        env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',BEACON_OUTPUT_TARGET=os.environ.get('BEACON_OUTPUT_TARGET','r24'),
                  BEACON_LOG_DIR=str(self.state/'spatializer'))
         self.audio_snapshot=None
         body_only=getattr(self.args,'body_only',False)
@@ -104,9 +104,12 @@ class Stack:
             if alive('http://127.0.0.1:8765/'):self.borrowed.append('weaver')
             else:
                 native=platform.system()=='Darwin'
-                device=os.environ.get('HARMONIC_SHAPER_DEVICE',os.environ.get('BEACON_OUTPUT_DEVICE','')) if native else 'R24 Analog Stereo'
-                if not device:raise ValueError('Select the native Shaper output device')
-                self.start('weaver',[str(ROOT/'scripts/start-laboratory.sh'),'--audio-backend','native' if native else 'jack','--device',device,'--tracking-device','auto' if native else 'cpu'],ROOT,env)
+                backend=os.environ.get('HARMONIC_LAB_AUDIO_BACKEND','native' if native else 'jack')
+                if backend not in ('auto','native','jack'):raise ValueError('Select an existing audio backend')
+                device=os.environ.get('HARMONIC_SHAPER_DEVICE',os.environ.get('BEACON_OUTPUT_DEVICE','') if native else 'R24 Analog Stereo')
+                command=[str(ROOT/'scripts/start-laboratory.sh'),'--audio-backend',backend,'--tracking-device',os.environ.get('HARMONIC_LAB_TRACKING_DEVICE','auto' if native else 'cpu')]
+                if device:command+=['--device',device]
+                self.start('weaver',command,ROOT,env)
                 self.wait_ready('weaver',lambda:alive('http://127.0.0.1:8765/'),180)
         self.record('ready',audio=self.audio_snapshot,
                     entry={'spatializer':None if body_only else 'http://localhost:5050','guitar':None if body_only or self.args.no_guitar_controller else 'http://localhost:18879',

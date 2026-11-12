@@ -36,3 +36,7 @@ and local changes remain with their receiving operator.
 The [contribution audit](integrations/SAI_CONTRIBUTIONS.md) records shared UI work
 and the companion named-camera correction. The Mac receiving cutoff now includes
 HarMoCAP `4d56e4d`; previous source inclusion does not claim device acceptance.
+
+The [shared control panel](integrations/CONTROL_PANEL.md) now composes existing
+finite components through a local desktop handler. Each receiving machine needs
+its own installation and audio selection; native macOS receiving remains pending.

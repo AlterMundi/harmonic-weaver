@@ -72,3 +72,9 @@ Tests use isolated graph/process fixtures and bounded scratch logs. They do not
 claim operational audio integration; record actual receiving checks separately
 in the owning Harmonic Lab work record. There is no autonomous model attention,
 background sensor service or global Stop.
+
+## Shared control panel
+
+Use [the control panel contract](CONTROL_PANEL.md) for native per-computer launch,
+optional components and selected audio. The shared HTTPS entry does not control
+another computer by opening its localhost links.

@@ -72,3 +72,14 @@ class StackTests(unittest.TestCase):
                 self.assertEqual([c.args[0] for c in start.call_args_list],['weaver'])
                 self.assertIn(str(module.ROOT/'scripts/start-laboratory.sh'),start.call_args.args[1])
             finally:stack.close()
+
+    def test_body_component_accepts_selected_native_output_without_guitar_input(self):
+        with tempfile.TemporaryDirectory() as td,patch.dict('sys.modules',{'bounded_log':types.SimpleNamespace(copy_tail=lambda *_:None)}):
+            args=types.SimpleNamespace(state_dir=Path(td),spatializer_dir=Path(td),hours=0,with_weaver=False,no_guitar_controller=True,body_only=True)
+            stack=module.Stack(args)
+            try:
+                with patch.object(module,'alive',return_value=False),patch.object(module.platform,'system',return_value='Linux'),patch.object(stack,'wait_ready'),patch.object(stack,'start') as start,patch.dict(module.os.environ,{'HARMONIC_LAB_AUDIO_BACKEND':'native','HARMONIC_SHAPER_DEVICE':'Chosen Output'}):
+                    stack.run()
+                command=start.call_args.args[1]
+                self.assertIn('native',command);self.assertIn('Chosen Output',command);self.assertNotIn('R24 Analog Stereo',command)
+            finally:stack.close()
