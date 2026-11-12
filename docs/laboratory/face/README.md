@@ -128,3 +128,17 @@ the40.4Hz reference remain unchanged. New drawn examples let the person compare
 raised eyes/brows with a relaxed mouth, mouth opening alone and smile+furrow.
 A shared pose reference is still required; profile/occlusion accuracy and
 physical camera/hearing acceptance are not established by synthetic fixtures.
+
+### Updating a live laboratory UI
+
+A Face-only update can build through the existing Node/dependency environment
+into one temporary output directory (at most64 MiB), compare the pinned model
+and WASM bytes, and promote the HTML entry atomically. Preserve existing hashed
+assets for open tabs; never force a trial refresh. Keep retained JS/CSS assets
+within4 MiB and one previous entry for rollback. If another promotion would
+exceed that bound, resolve old-client use before retiring code; do not silently
+discard active-trial dependencies. Remove the temporary build after served
+entry/chunk readback. This does not require restarting native body or audio.
+
+The selected0.6 source is `f4de58526e7776e882fccf6bfbe93cb12bc54262`.
+Its receiving source/build/served checks and device/human acceptance are separate.
