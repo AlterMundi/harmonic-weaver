@@ -1,8 +1,9 @@
 import {FEATURES,type Values} from './geometry';
 import type {Voice} from '../figure';
 import {FACE_FUNDAMENTAL,validFundamental} from './tuning';
+import {validExpressionSound,type ExpressionSoundSettings} from './expressionSound';
 export const CONTOUR_SOUND_VERSION='face-contour-series/0.2';
-export type MappingSettings={id:'contour'|'legacy';richness:number;detune:number};
+export type MappingSettings={id:'contour'|'legacy'|'expression';richness:number;detune:number;expression?:ExpressionSoundSettings};
 export const DEFAULT_MAPPING:MappingSettings={id:'contour',richness:1,detune:.8};
 const clip=(x:number,a=0,b=1)=>Math.max(a,Math.min(b,x));
 /** Explicit geometric drives. These are neither emotion probabilities nor FACS labels. */
@@ -16,12 +17,12 @@ export function contourDrive(delta:Values,sensitivity=1){
  return {cornerCurve,browOpening,eyeOpening,opening,contraction,spread:Math.max(cornerCurve,opening)};
 }
 export function validMapping(value:unknown):value is MappingSettings{
- const m=value as MappingSettings;return !!m&&['contour','legacy'].includes(m.id)&&[m.richness,m.detune].every(x=>Number.isFinite(x)&&x>=0&&x<=1);
+ const m=value as MappingSettings;return !!m&&['contour','legacy','expression'].includes(m.id)&&[m.richness,m.detune].every(x=>Number.isFinite(x)&&x>=0&&x<=1)&&(m.expression===undefined?m.id!=='expression':validExpressionSound(m.expression));
 }
 /** Richness changes partial weights; contraction changes placement on Nico's f0/2 grid. */
 export function contourVoices(delta:Values,sensitivity=1,f0=FACE_FUNDAMENTAL,mapping:MappingSettings=DEFAULT_MAPPING):Voice[]{
  const d=contourDrive(delta,sensitivity);
- if(!d||!validMapping(mapping)||!validFundamental(f0))return [];
+ if(!d||!validMapping(mapping)||mapping.id==='expression'||!validFundamental(f0))return [];
  const richness=d.spread*mapping.richness;
  const deviation=d.contraction*(1-d.spread)*mapping.detune;
  const offsets=[0,.65,-.55,.35,-.50,.40,-.30,.25];

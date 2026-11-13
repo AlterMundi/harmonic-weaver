@@ -142,3 +142,14 @@ entry/chunk readback. This does not require restarting native body or audio.
 
 The selected0.6 source is `f4de58526e7776e882fccf6bfbe93cb12bc54262`.
 Its receiving source/build/served checks and device/human acceptance are separate.
+
+## Optional expression-axis sound,2026-11-13
+
+The0.7 face review adds **Emoción · eje expresivo** beside the existing maps.
+Continuous authored smile/frunce strengths move a voice between configurable
+H1/H11 destinations; default40.4Hz stays the reference. This explicitly selected
+feedback mode is distinct from the unchanged contour/legacy maps.
+[Expression sound](EXPRESSION_SOUND.md) specifies the controls, cue formulas,
+midpoint/mixed/missing behavior, bounded gain and v7 export contract. Hearing it
+also supplies an authored interpretation even when visual labels are hidden.
+No real-camera/hearing or emotion-recognition result is claimed.
