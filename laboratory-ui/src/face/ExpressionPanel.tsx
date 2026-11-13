@@ -16,7 +16,7 @@ export function ExpressionPanel({reading,regional,enabled,recording,onChange}:{r
    </article>)}</div>}
    {regional?.referenceReady&&<p className="face-small">Arco = desvío respecto de su cuerda, dividido por su ancho. + hacia la referencia; − hacia afuera. El giro es la curvatura acumulada orientada. La forma aporta indicios; no decide una emoción por sí sola.</p>}
    {reading.evidence.length>0&&<details><summary>Ver puntos y medidas</summary><ul className="face-expression-evidence">{reading.evidence.map(e=><li key={e.description}><strong>{e.description}</strong><span>Puntos {e.points.join(' · ')}</span><span>{e.features.map(k=>`${names[k]}: ${number(regional?.delta?.[k]??reading.delta?.[k])}`).join(' / ')}</span></li>)}</ul><p className="face-small">Cambios respecto del reposo: alturas y pendientes en anchos entre ojos; aperturas en anchos de cada ojo o de la boca.</p></details>}
-   <p className="face-small">Lectura experimental de la expresión visible. El sonido sigue los contornos, sin usar esta etiqueta.</p>
+   <p className="face-small">Lectura experimental de la expresión visible. El sonido responde al mapeo elegido, sin usar el texto de esta etiqueta.</p>
   </>:<p>{recording?'Lectura oculta durante el ensayo.':'Lectura oculta. Respondé las preguntas antes de volver a mostrarla.'}</p>}
  </section>;
 }
