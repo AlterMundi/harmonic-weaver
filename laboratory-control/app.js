@@ -1,6 +1,6 @@
 'use strict';
 const $=s=>document.getElementById(s);let data=null,chosen='',csrf='',pending=false,editing=false;
-const labels={guitar:'Guitarra',audio:'Spatializer',body:'Weaver · HarMoCAP · Shaper'};
+const labels={router:'Weaver · ruteos',guitar:'Guitarra',audio:'Spatializer',body:'Weaver · HarMoCAP · Shaper'};
 function selected(){return data?.hosts.find(x=>x.id===chosen);}
 function notice(s){$('notice').textContent=s;}
 function render(){
@@ -13,7 +13,7 @@ function render(){
   const state=document.createElement('div');state.className='status'+(s.status==='ready'?' ready':'');
   const starting=h.job&&['queued','starting'].includes(h.job.phase)&&h.job.services.includes(s.id);
   state.textContent=s.status==='ready'?'En marcha':starting?'Iniciando…':!s.installed?'Sin instalar':!s.enabled?'No seleccionado':'Detenido';card.append(state);
-  const info=document.createElement('p');info.textContent=({guitar:'Control del mecanismo y ajustes guardados.',audio:'Entrada de guitarra, bandas y espacio sonoro.',body:'Captura corporal, ruteos y síntesis. La cámara se activa desde su interfaz.'})[s.id];card.append(info);
+  const info=document.createElement('p');info.textContent=({router:'Ruteos entre fuentes e instrumentos. No requiere guitarra, cámara ni salida de audio.',guitar:'Control del mecanismo y ajustes guardados.',audio:'Entrada de guitarra, bandas y espacio sonoro.',body:'Captura corporal, ruteos y síntesis. La cámara se activa desde su interfaz.'})[s.id];card.append(info);
   const result=h.job?.results?.[s.id];if(result?.status==='failed'){const error=document.createElement('p');error.textContent=result.message;card.append(error);}
   const controls=document.createElement('div');controls.className='controls';const start=document.createElement('button');start.textContent='Iniciar';start.disabled=pending||starting||s.status==='ready'||!s.enabled||!s.installed;start.onclick=()=>begin(s.id);controls.append(start);
   const open=document.createElement('a');open.textContent='Abrir interfaz';open.target='_blank';open.rel='noopener';

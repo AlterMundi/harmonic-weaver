@@ -13,7 +13,7 @@ import time
 HOME=Path.home()
 STATE=HOME/'.local/state/harmonic-lab/web-control'
 LAUNCHER=HOME/'Projects/harmonic-weaver/scripts/open-harmonic-lab.py'
-SERVICES={'guitar':(18879,'Guitarra'),'audio':(5050,'Spatializer'),'body':(8765,'Weaver · HarMoCAP · Shaper')}
+SERVICES={'router':(8767,'Weaver · ruteos'),'guitar':(18879,'Guitarra'),'audio':(5050,'Spatializer'),'body':(8765,'Weaver · HarMoCAP · Shaper')}
 
 def atomic(path,data):
     pending=path.with_suffix('.pending');pending.write_text(json.dumps(data,ensure_ascii=False)+'\n');os.replace(pending,path)
@@ -29,6 +29,8 @@ def snapshot(module=None):
     rows=[]
     for name,(port,label) in SERVICES.items():
         installed=(panel/'run-panel.sh').is_file() if name=='guitar' else (HOME/'Projects/harmonic-weaver/scripts/start-laboratory.sh').is_file()
+        if name=='body':installed=installed and (HOME/'Projects/harmonic-shaper/.venv/bin/python').is_file()
+        if name=='router':installed=(HOME/'Projects/harmonic-weaver/.venv/bin/python').is_file()
         if name=='audio':installed=installed and (HOME/'Projects/beacon-spatial/start-beacon.sh').is_file()
         ready=module.ready() if name=='guitar' else module.component_ready(port,'Spatializer' if name=='audio' else 'Weaver')
         rows.append(dict(id=name,label=label,enabled=enabled[name],installed=installed,status='ready' if ready else 'stopped' if installed else 'unavailable',url=f'http://localhost:{port}/' if ready else None))

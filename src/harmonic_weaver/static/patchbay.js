@@ -107,7 +107,7 @@
     socketNonce = Math.random().toString(36).slice(2, 8);
     requestSequence = 0;
     const scheme = location.protocol === "https:" ? "wss:" : "ws:";
-    socket = new WebSocket(`${scheme}//${location.host}/ws`);
+    socket = new WebSocket(`${scheme}//${location.host}${new URL("ws", document.baseURI).pathname}`);
 
     socket.addEventListener("message", (event) => {
       let message;
@@ -946,7 +946,7 @@
 
   async function loadSceneParams() {
     try {
-      const response = await fetch("/api/scene/params", {cache: "no-store"});
+      const response = await fetch(new URL("api/scene/params", document.baseURI), {cache: "no-store"});
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const params = await response.json();
       setKnobOutputs(params);
@@ -961,7 +961,7 @@
     const body = {};
     body[key] = value;
     try {
-      const response = await fetch("/api/scene/params", {
+      const response = await fetch(new URL("api/scene/params", document.baseURI), {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(body),

@@ -49,6 +49,8 @@ def component_ready(port, title):
 
 
 def ensure_component(kind):
+    if kind=='router':
+        return ensure_router()
     port,title,session,flags,seconds=(5050,'Spatializer','harmonic-lab',[],60) if kind=='audio' else (8765,'Weaver','harmonic-lab-body',['--body-only'],200)
     if component_ready(port,title):return 'reused'
     with socket.socket() as sock:
@@ -69,10 +71,27 @@ def ensure_component(kind):
     raise RuntimeError('El laboratorio sigue preparando su interfaz; revisá la sesión antes de reintentar')
 
 
+def ensure_router():
+    """Use the maintained headless engine without opening hardware or reports."""
+    if component_ready(8767,'Harmonic Weaver'):return 'reused'
+    with socket.socket() as sock:
+        if sock.connect_ex(('127.0.0.1',8767))==0:raise RuntimeError('La interfaz de ruteos está ocupada')
+    root=Path.home()/'Projects/harmonic-weaver'
+    if not(root/'.venv/bin/python').is_file():raise RuntimeError('Falta instalar el motor de ruteos')
+    session='harmonic-lab-router'
+    if subprocess.run(['tmux','has-session','-t','='+session],capture_output=True,timeout=4).returncode:
+        subprocess.run(['tmux','new-session','-d','-s',session,shlex.join([str(root/'.venv/bin/python'),str(root/'scripts/router-session.py')])],check=True,timeout=4)
+    deadline=time.monotonic()+20
+    while time.monotonic()<deadline:
+        if component_ready(8767,'Harmonic Weaver'):return 'started'
+        time.sleep(.2)
+    raise RuntimeError('El motor de ruteos no pudo iniciar')
+
+
 def configuration(panel):
     path=Path.home()/'.config/harmonic-lab/launch.json'
     config=json.loads(path.read_text()) if path.is_file() else {}
-    services={'guitar':(panel/'run-panel.sh').is_file(),'audio':False,'body':(Path.home()/'Projects/harmonic-weaver/scripts/start-laboratory.sh').is_file()}
+    services={'router':False,'guitar':(panel/'run-panel.sh').is_file(),'audio':False,'body':(Path.home()/'Projects/harmonic-weaver/scripts/start-laboratory.sh').is_file()}
     selected=config.get('services',{})
     if set(selected)-set(services) or any(type(v) is not bool for v in selected.values()):raise ValueError('Selección de instrumentos inválida')
     services.update(selected)

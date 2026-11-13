@@ -99,3 +99,23 @@ The initial static page used `harmonic-lab://` links. Nicolas rejected them;
 terminal CLI/OS registration was not proof of a usable web click. That approach
 was removed from the web flow. Retain its useful local service functions, but do
 not reintroduce native protocols as substitutes for these real web operations.
+
+## Headless Linux receivers
+
+A server such as MEDUSA is distinct from its paired human's workstation. Without
+an audio interface/camera/guitar, the supported Weaver routing engine may run
+independently as `router` on loopback8767. It uses the existing Stage factory,
+keeps no report/recording writer, and its session expires after8h with a single
+1MiB log. This is the real router/patchbay, not body tracking, synthesis output
+or physical audio acceptance. Uninstalled/unselected devices stay separate.
+
+Reuse the existing own Home `web` service and its current per-pair audience.
+The operator may select `proxies: {"router":8767}` in a receiver entry. This maps
+only that fixed loopback service to `interfaces/<receiver>/router/`; no browser
+input can choose a port/host. HTTP and WebSocket requests retain the existing
+shared-auth gate, and cookies/authorization are not forwarded to the instrument.
+Stage links/API/WebSocket URLs support the same relative prefix. Other receivers
+keep their existing local-interface links unless explicitly configured otherwise.
+Do not add MEDUSA to Nicolas's host list or route Sai through his credentials.
+Use each receiving pair's existing slot/resource binding. Loading the panel
+starts no instrument; optional service failures do not stop other components.
