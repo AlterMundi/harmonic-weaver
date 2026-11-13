@@ -28,7 +28,7 @@ const server=http.createServer(async(req,res)=>{
  if(u.pathname==='/health'){res.end('{"ok":true}');return;}
  try{
   if(req.method==='GET'&&u.pathname==='/api/status'){
-   const hosts=await Promise.all(config().hosts.map(async h=>{try{const state=await invoke(h,{op:'status'});state.services=state.services.map(s=>({...s,url:s.status==='ready'&&h.proxies?.[s.id]?'interfaces/'+h.id+'/'+s.id+'/':s.url}));return {id:h.id,label:h.label,online:true,...state};}catch(e){return {id:h.id,label:h.label,online:false,message:e.message,services:[]}}}));
+   const hosts=await Promise.all(config().hosts.map(async h=>{try{const state=await invoke(h,{op:'status'});state.services=state.services.map(s=>({...s,url:s.status==='ready'&&h.proxies?.[s.id]?'interfaces/'+h.id+'/'+s.id+'/':s.url}));return {id:h.id,label:h.label,online:true,remoteInterfaces:Boolean(h.proxies),...state};}catch(e){return {id:h.id,label:h.label,online:false,message:e.message,services:[]}}}));
    return json(res,200,{hosts,csrf});
   }
   if(req.method==='POST'&&['/api/start','/api/configure'].includes(u.pathname)){

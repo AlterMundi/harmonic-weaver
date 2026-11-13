@@ -6,6 +6,7 @@ function notice(s){$('notice').textContent=s;}
 function render(){
  const h=selected();$('services').replaceChildren();$('start-all').disabled=pending||!h?.online||!h.services.some(s=>s.enabled&&s.installed);
  if(!h)return;
+ $('access-help').textContent=(h.remoteInterfaces?'Las interfaces de '+h.label+' se abren desde este panel.':'Los enlaces abren las interfaces locales del equipo elegido: usalos desde su navegador.')+' Iniciar los servicios no mueve el motor ni activa la cámara. Las sesiones tienen un máximo de ocho horas.';
  if(!h.online)notice('No podemos conectar con '+h.label+'. Verificá que esté encendido y conectado.');
  for(const s of h.services){
   const card=document.createElement('article');card.className='card';
