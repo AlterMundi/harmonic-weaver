@@ -48,7 +48,19 @@ def component_ready(port, title):
     except Exception:return False
 
 
+def desktop_audio_environment():
+    # The restricted sudo writer does not inherit the desktop session variables.
+    # Reuse only this operator's existing PipeWire socket; never another user.
+    if os.name=='posix':
+        runtime=Path('/run/user')/str(os.getuid())
+        try:
+            if runtime.stat().st_uid==os.getuid() and (runtime/'pipewire-0').is_socket():
+                os.environ.setdefault('XDG_RUNTIME_DIR',str(runtime))
+        except OSError:pass
+
+
 def ensure_component(kind):
+    desktop_audio_environment()
     if kind=='router':
         return ensure_router()
     port,title,session,flags,seconds=(5050,'Spatializer','harmonic-lab',[],60) if kind=='audio' else (8765,'Weaver','harmonic-lab-body',['--body-only'],200)
