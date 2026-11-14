@@ -107,7 +107,7 @@ def configuration(panel):
     selected=config.get('services',{})
     if set(selected)-set(services) or any(type(v) is not bool for v in selected.values()):raise ValueError('Selección de instrumentos inválida')
     services.update(selected)
-    allowed={'HARMONIC_LAB_AUDIO_BACKEND','HARMONIC_SHAPER_DEVICE','HARMONIC_LAB_TRACKING_DEVICE','BEACON_OUTPUT_TARGET','BEACON_INPUT_DEVICE','BEACON_OUTPUT_DEVICE','BEACON_INPUT_PORT','BEACON_OUTPUT_LEFT','BEACON_OUTPUT_RIGHT'}
+    allowed={'HARMONIC_LAB_AUDIO_BACKEND','HARMONIC_SHAPER_DEVICE','HARMONIC_LAB_TRACKING_DEVICE','BEACON_OUTPUT_TARGET','BEACON_INPUT_DEVICE','BEACON_OUTPUT_DEVICE','BEACON_INPUT_PORT','BEACON_VOICE_INPUT_PORT','BEACON_OUTPUT_LEFT','BEACON_OUTPUT_RIGHT'}
     environment=config.get('environment',{})
     if set(environment)-allowed or any(not isinstance(v,str) or len(v)>512 or '\x00' in v for v in environment.values()):raise ValueError('Configuración de audio inválida')
     os.environ.update(environment)

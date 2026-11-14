@@ -119,3 +119,9 @@ keep their existing local-interface links unless explicitly configured otherwise
 Do not add MEDUSA to Nicolas's host list or route Sai through his credentials.
 Use each receiving pair's existing slot/resource binding. Loading the panel
 starts no instrument; optional service failures do not stop other components.
+
+The per-receiver audio profile also accepts `BEACON_VOICE_INPUT_PORT` for an
+explicit clean microphone mixed beside the guitar. R24capture_FR is input2.
+The Spatializer route writer verifies its direct playback links independently
+of the filtered guitar and preserves other microphone consumers. This path has
+no13-band/spatial filters and creates no recording; input gain is the R24preamp.

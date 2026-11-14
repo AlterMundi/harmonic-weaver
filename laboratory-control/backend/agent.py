@@ -68,7 +68,7 @@ def dispatch(request):
         if not isinstance(profile,dict) or set(profile)-{'services','environment'}:raise ValueError('Configuración inválida')
         services=profile.get('services',{});environment=profile.get('environment',{})
         if not isinstance(services,dict) or set(services)-set(SERVICES) or any(type(v)is not bool for v in services.values()):raise ValueError('Instrumentos inválidos')
-        allowed={'HARMONIC_LAB_AUDIO_BACKEND','HARMONIC_SHAPER_DEVICE','HARMONIC_LAB_TRACKING_DEVICE','BEACON_OUTPUT_TARGET','BEACON_INPUT_DEVICE','BEACON_OUTPUT_DEVICE','BEACON_INPUT_PORT','BEACON_OUTPUT_LEFT','BEACON_OUTPUT_RIGHT'}
+        allowed={'HARMONIC_LAB_AUDIO_BACKEND','HARMONIC_SHAPER_DEVICE','HARMONIC_LAB_TRACKING_DEVICE','BEACON_OUTPUT_TARGET','BEACON_INPUT_DEVICE','BEACON_OUTPUT_DEVICE','BEACON_INPUT_PORT','BEACON_VOICE_INPUT_PORT','BEACON_OUTPUT_LEFT','BEACON_OUTPUT_RIGHT'}
         if not isinstance(environment,dict) or set(environment)-allowed or any(not isinstance(v,str) or len(v)>512 or any(c in v for c in ('\0','\n','\r')) for v in environment.values()):raise ValueError('Audio inválido')
         if environment.get('HARMONIC_LAB_AUDIO_BACKEND','auto') not in ('auto','native','jack'):raise ValueError('Backend inválido')
         path=HOME/'.config/harmonic-lab/launch.json';path.parent.mkdir(parents=True,exist_ok=True)
