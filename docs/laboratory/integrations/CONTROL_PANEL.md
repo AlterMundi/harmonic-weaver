@@ -46,6 +46,9 @@ camera, motor, USB wiring, listening or tracking acceptance.
 
 `start` creates one bounded receiving job and returns acceptance separately from
 readiness. The UI updates actual service state and shows receiving failures.
+Start confirmation requires the returned job to match the submitted ID and
+selected instrument. If the receiver returns an older active job, the panel
+reports that the receiver is busy. Interface readiness still comes from status.
 One latest job, two fixed lock files and a 32-request idempotency ledger bound
 control state; retries of a retained ID do not launch another job. Existing
 component sessions retain their eight-hour maximum, owned-only Ctrl+C cleanup

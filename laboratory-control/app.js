@@ -39,7 +39,22 @@ function render(){
 }
 async function refresh(){try{const r=await fetch('api/status');if(!r.ok)throw Error('No se pudo consultar el laboratorio.');data=await r.json();csrf=data.csrf;const old=chosen;chosen=data.hosts.some(h=>h.id===chosen)?chosen:data.hosts[0]?.id||'';$('host').replaceChildren(...data.hosts.map(h=>new Option(h.label,h.id)));$('host').value=chosen;if(!old&&chosen)notice('');render();}catch(e){notice(e.message);$('start-all').disabled=true;}}
 async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-Lab-CSRF':csrf},body:JSON.stringify(body)});const result=await r.json();if(!r.ok)throw Error(result.error);return result;}
-async function begin(service){pending=true;render();notice('Solicitando inicio…');try{await post('api/start',{host:chosen,service,id:crypto.randomUUID()});notice('Inicio solicitado. El estado se actualizará cuando cada interfaz esté lista.');await refresh();}catch(e){notice(e.message+' No se repitió la acción.');}finally{pending=false;render();}}
+async function begin(service){
+ const request={host:chosen,service,id:crypto.randomUUID()};
+ pending=true;render();notice('Solicitando inicio…');
+ try{
+  const {job}=await post('api/start',request);
+  const accepted=job?.id===request.id&&(service==='all'||job.services?.includes(service));
+  if(chosen===request.host){
+   if(accepted)notice('Inicio solicitado. El estado se actualizará cuando cada interfaz esté lista.');
+   else if(job?.id!==request.id&&['queued','starting'].includes(job?.phase))
+    notice('Este equipo ya está procesando otro inicio. Podés volver a intentar cuando termine.');
+   else notice('Inicio sin confirmación. Revisá el estado del equipo.');
+  }
+  await refresh();
+ }catch(e){if(chosen===request.host)notice(e.message+' No se repitió la acción.');}
+ finally{pending=false;render();}
+}
 $('start-all').onclick=()=>begin('all');$('refresh').onclick=refresh;$('host').onchange=()=>{chosen=$('host').value;editing=false;notice('');render();};$('profile').oninput=()=>{editing=true;};
 $('profile').onsubmit=async e=>{e.preventDefault();const h=selected();if(!h)return;const profile=structuredClone(h.profile),env=profile.environment||{};profile.services=Object.fromEntries([...document.querySelectorAll('[data-service]')].map(x=>[x.dataset.service,x.checked]));env.HARMONIC_LAB_AUDIO_BACKEND=$('backend').value;env.HARMONIC_SHAPER_DEVICE=$('device').value;
  const input=$('input-device').value,output=$('output-device').value;
