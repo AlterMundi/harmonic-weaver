@@ -1,6 +1,9 @@
 'use strict';
 const $=s=>document.getElementById(s);let data=null,chosen='',csrf='',pending=false,editing=false;
 const labels={router:'Weaver · ruteos',guitar:'Guitarra',audio:'Spatializer',body:'Weaver · HarMoCAP · Shaper'};
+const requestedService=new URLSearchParams(location.search).get('service');
+const linkedService=['audio','body'].includes(requestedService)?requestedService:null;
+let hasRevealedLinkedService=false;
 function selected(){return data?.hosts.find(x=>x.id===chosen);}
 function notice(s){$('notice').textContent=s;}
 function render(){
@@ -19,6 +22,15 @@ function render(){
   const controls=document.createElement('div');controls.className='controls';const start=document.createElement('button');start.textContent='Iniciar';start.disabled=pending||starting||s.status==='ready'||!s.enabled||!s.installed;start.onclick=()=>begin(s.id);controls.append(start);
   const open=document.createElement('a');open.textContent='Abrir interfaz';open.target='_blank';open.rel='noopener';
   if(s.status==='ready'&&s.url)open.href=s.url;else{open.className='disabled';open.setAttribute('aria-disabled','true');}controls.append(open);card.append(controls);$('services').append(card);
+  if(s.id===linkedService){
+   card.style.borderColor='#8ddcd3';
+   if(!hasRevealedLinkedService){
+    hasRevealedLinkedService=true;
+    title.tabIndex=-1;
+    title.focus({preventScroll:true});
+    card.scrollIntoView({block:'center'});
+   }
+  }
  }
  if(!editing&&h.online){
   $('enabled').replaceChildren();for(const id of Object.keys(labels)){const l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.dataset.service=id;c.checked=h.profile.services?.[id]??h.services.find(x=>x.id===id)?.enabled??false;l.append(c,' '+labels[id]);$('enabled').append(l);}
