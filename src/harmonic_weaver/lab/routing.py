@@ -38,9 +38,13 @@ class VoiceTarget:
 
 
 class PreparedRoutes:
-    def __init__(self, preset: Preset):
+    def __init__(self, preset: Preset, *, source_catalog=None):
         self.preset = preset.model_copy(deep=True)
         self.catalog = signal_catalog()
+        for name, unit in (source_catalog or {}).items():
+            if name in self.catalog and self.catalog[name] != unit:
+                raise ValueError(f"source catalog cannot redefine {name}")
+            self.catalog[name] = unit
         self.routes = [r for r in self.preset.routes if r.enabled]
         self.smoothed = {}
         self.expression_history = {}

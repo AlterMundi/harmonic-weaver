@@ -82,3 +82,9 @@ Continuidad solicitada 2026-09-30: [roadmap completo y dependencias](ROADMAP_CON
 Contrato opt-in de transporte OSC por persona y fronteras de reloj/migración:
 [observaciones OSC v2](OSC_OBSERVATIONS.md), seguimiento #77. Este receptor no
 reemplaza el contrato espacial R09 ni cambia el instrumento cotidiano.
+
+## Experimental sources
+
+[Phone Pair source through the existing Weaver/Shaper laboratory](integrations/PHONE_PAIR.md)
+documents the separate experimental branch, native guitar alternative and actual
+receiving limits.

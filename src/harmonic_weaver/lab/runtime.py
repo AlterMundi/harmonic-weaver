@@ -51,6 +51,31 @@ class LaboratoryRuntime:
         self.last_targets = []
         self.diagnostic = {"code": "no_source", "message": "Elegí una fuente."}
         self.body_volume = BodyVolume()
+        self.phone_pair = None
+
+    def _close_phone_pair(self):
+        if self.phone_pair is not None:
+            self.phone_pair.close()
+            self.phone_pair = None
+
+    def open_phone_pair(self):
+        from .phone_pair import PhonePairController
+        if self.phone_pair is not None:
+            raise ValueError('A phone receiver is already selected; close it before replacing it')
+        self.camera.close()
+        if self.job_id:
+            self.library.cancel(self.job_id)
+        with self._lock:
+            self._reset()
+            self.kind, self.job_id, self.frame = 'phones', None, None
+            self.person_id, self.calibration, self.calibration_notice = None, None, None
+            self.error, self.restore_error = None, None
+            self.model = None
+            self._autoplay_pending = False
+            self.transport.reset(playing=True)
+            self.phone_pair = PhonePairController(self.audio,clock=self.clock,revision=max(0,self.revision))
+            self.store.set_runtime(source_id='phone-pair',person_id=None,calibration_id=None,playing=True,status='waiting',error=None)
+            return self.phone_pair
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -85,6 +110,7 @@ class LaboratoryRuntime:
         job = self.library.open(path, settings, force=force)
         self.camera.close()
         with self._lock:
+            self._close_phone_pair()
             self.kind, self.job_id = "video", job["id"]
             self.person_id, self.calibration, self.frame = None, None, None
             self.calibration_notice = None
@@ -106,6 +132,7 @@ class LaboratoryRuntime:
         else:
             self.camera.start(index,settings,device_path=device_path,device_id=device_id)
         with self._lock:
+            self._close_phone_pair()
             self.kind, self.job_id = "camera", None
             self.person_id, self.calibration, self.frame = None, None, None
             self.calibration_notice = None
@@ -126,6 +153,7 @@ class LaboratoryRuntime:
         if self.job_id:
             self.library.cancel(self.job_id)
         with self._lock:
+            self._close_phone_pair()
             self.kind, self.job_id = None, None
             self._autoplay_pending = False
             self.frame, self.person_id, self.calibration = None, None, None
@@ -137,6 +165,12 @@ class LaboratoryRuntime:
 
     def control(self, *, playing=None, position_s=None, loop=None, tracked_prefix=None):
         with self._lock:
+            if self.kind == 'phones' and self.phone_pair is not None:
+                if position_s is not None or tracked_prefix is not None:
+                    raise ValueError('Phone sources cannot seek')
+                if playing is not None:
+                    self.phone_pair.control('resume' if playing else 'pause')
+                return self.snapshot()
             if tracked_prefix is not None:
                 if self.kind != "video":
                     raise ValueError("only file sources support tracked-prefix loops")
@@ -314,6 +348,15 @@ class LaboratoryRuntime:
     def tick(self):
         started = self.clock()
         with self._lock:
+            if self.kind == 'phones' and self.phone_pair is not None:
+                controller=self.phone_pair
+                self.last_targets=controller.tick()
+                self.features,self.routing=controller.features,controller.routing
+                self.diagnostic={'code':'phone_pair','message':'Teléfonos → Weaver → Shaper local'}
+                self.store.set_runtime(source_id='phone-pair',person_id=None,playing=not controller.source.paused,
+                                       status='paused' if controller.source.paused else 'playing' if any(controller.source.fresh(role) for role in ('a','b')) else 'waiting',error=None)
+                self.tick_ms=(self.clock()-started)*1000
+                return
             preset, revision, prepared = self.store.configuration()
             config_epoch = self.store.analysis_epoch()
             if config_epoch != self.config_epoch:
@@ -506,6 +549,7 @@ class LaboratoryRuntime:
         self._stop.set()
         if self._thread:
             self._thread.join(timeout=3)
+        self._close_phone_pair()
         self.audio.close()
         self.camera.close()
         self.library.close()

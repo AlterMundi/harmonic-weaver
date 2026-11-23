@@ -421,6 +421,9 @@ def create_app(data_dir: Path, *, store: SessionStore | None = None, runtime=Non
     app = FastAPI(title="Laboratorio corporal", version="1", lifespan=lifespan)
     app.state.session_store = session
     app.state.runtime = runtime
+    if runtime is not None:
+        from .phone_pair import mount_phone_pair_routes
+        mount_phone_pair_routes(app, runtime)
     app.state.camera_devices = CameraDevices()
 
     @app.middleware("http")
