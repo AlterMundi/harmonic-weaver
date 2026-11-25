@@ -2,7 +2,7 @@
 const $=s=>document.getElementById(s);let data=null,chosen='',csrf='',pending=false,editing=false;
 const labels={router:'Weaver · ruteos',guitar:'Guitarra',audio:'Spatializer',body:'Weaver · HarMoCAP · Shaper'};
 const requestedService=new URLSearchParams(location.search).get('service');
-const linkedService=['audio','body'].includes(requestedService)?requestedService:null;
+const linkedService=['audio','body','guitar'].includes(requestedService)?requestedService:null;
 let hasRevealedLinkedService=false;
 function selected(){return data?.hosts.find(x=>x.id===chosen);}
 function notice(s){$('notice').textContent=s;}

@@ -6,8 +6,9 @@ per-receiver status, individual start, start-all and ordinary interface links
 only while the corresponding HTTP readiness check succeeds. There are no native
 URI links in this web flow. Loading or polling the panel never starts services.
 
-Use `?service=audio` for Spatializer and `?service=body` for Weaver · HarMoCAP ·
-Shaper. The panel highlights the requested instrument for the selected receiver
+Use `?service=guitar` for Guitar, `?service=audio` for Spatializer, and
+`?service=body` for Weaver · HarMoCAP · Shaper. The panel highlights the
+requested instrument for the selected receiver
 and scrolls to it the first time its card is available. Refreshing status keeps
 the highlight and the user's current scroll position. Both links retain the
 ordinary sign-in, receiver selection and separate Open and Start controls.
