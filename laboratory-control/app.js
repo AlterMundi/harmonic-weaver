@@ -1,8 +1,12 @@
 'use strict';
 const $=s=>document.getElementById(s);let data=null,chosen='',csrf='',pending=false,editing=false;
 const labels={router:'Weaver · ruteos',guitar:'Guitarra',audio:'Spatializer',body:'Weaver · HarMoCAP · Shaper'};
-const requestedService=new URLSearchParams(location.search).get('service');
+const query=new URLSearchParams(location.search);
+const requestedService=query.get('service');
 const linkedService=['audio','body','guitar'].includes(requestedService)?requestedService:null;
+const views=query.getAll('view');
+const showInstrument=linkedService==='body'&&query.getAll('service').length===1&&
+ views.length===1&&views[0]==='instrumento';
 let hasRevealedLinkedService=false;
 function selected(){return data?.hosts.find(x=>x.id===chosen);}
 function notice(s){$('notice').textContent=s;}
@@ -21,7 +25,21 @@ function render(){
   const result=h.job?.results?.[s.id];if(result?.status==='failed'){const error=document.createElement('p');error.textContent=result.message;card.append(error);}
   const controls=document.createElement('div');controls.className='controls';const start=document.createElement('button');start.textContent='Iniciar';start.disabled=pending||starting||s.status==='ready'||!s.enabled||!s.installed;start.onclick=()=>begin(s.id);controls.append(start);
   const open=document.createElement('a');open.textContent='Abrir interfaz';open.target='_blank';open.rel='noopener';
-  if(s.status==='ready'&&s.url)open.href=s.url;else{open.className='disabled';open.setAttribute('aria-disabled','true');}controls.append(open);card.append(controls);$('services').append(card);
+  if(s.status==='ready'&&s.url){
+   open.href=s.url;
+   if(s.id==='body'&&showInstrument){
+    try{
+     const target=new URL(s.url,document.baseURI);
+     if(target.protocol==='http:'||target.protocol==='https:'){
+      target.searchParams.set('view','instrumento');
+      open.href=target.href;
+     }
+    }catch(error){
+     if(!(error instanceof TypeError))throw error;
+    }
+   }
+  }else{open.className='disabled';open.setAttribute('aria-disabled','true');}
+  controls.append(open);card.append(controls);$('services').append(card);
   if(s.id===linkedService){
    card.style.borderColor='#8ddcd3';
    if(!hasRevealedLinkedService){

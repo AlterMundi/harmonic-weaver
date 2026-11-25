@@ -12,6 +12,9 @@ requested instrument for the selected receiver
 and scrolls to it the first time its card is available. Refreshing status keeps
 the highlight and the user's current scroll position. Both links retain the
 ordinary sign-in, receiver selection and separate Open and Start controls.
+Use `?service=body&view=instrumento` for the Shaper worktop. The panel
+focuses the body card and passes the view to its ready interface on Open.
+The laboratory selects its existing Instrumento tab for this entry.
 
 ## Existing services, one receiving writer
 

@@ -443,7 +443,10 @@ function App() {
   const [state, setState] = useState<Data>({}),
     [schemas, setSchemas] = useState<Data>({}),
     [draft, setDraft] = useState<Data | null>(null);
-  const [tab, setTab] = useState("Fuente"),
+  const [tab, setTab] = useState(() => {
+    const views = new URLSearchParams(location.search).getAll("view");
+    return views.length === 1 && views[0] === "instrumento" ? "Instrumento" : "Fuente";
+  }),
     [error, setError] = useState(""),
     [connected, setConnected] = useState(false);
   const [perception, setPerception] = useState<Data | null>(null),
